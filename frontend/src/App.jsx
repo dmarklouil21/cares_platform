@@ -1,15 +1,19 @@
 import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import PatientLayout from "./layouts/PatientLayout";
+import SelectUserType from "./pages/user/registration/SelectUserType";
+import Info102 from "./pages/user/registration/beneficiary/Info102";
 
 const App = () => {
   return (
-    <div className="bg-black h-screen">
-      <div className="flex items-center justify-center h-screen">
-        <h1 className="text-purple-700 text-[200px] text-center ">
-          WELCOMEE <br />
-          <span className="animate-pulse"> JOVANIEE</span>
-        </h1>
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<PatientLayout />}>
+          <Route index element={<SelectUserType />} />
+          <Route path="Info1_02" element={<Info102 />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 };
 
