@@ -1,1 +1,81 @@
 @import "tailwindcss";
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
+@theme {
+  --color-primary: #749ab6;
+  --color-secondary: #fcb814;
+  --color-lightblue: #c5d7e5;
+  --color-yellow: #fcb814;
+  --color-gray: #f0f2f5;
+  --color-black: #111827;
+  --color-gray2: #6b7280;
+  --font-inter: "Inter", sans-serif;
+}
+.custom-blue-filter {
+  filter: brightness(0) saturate(100%) invert(65%) sepia(11%) saturate(1241%)
+    hue-rotate(163deg) brightness(91%) contrast(89%);
+}
+.custom-blue-off {
+  filter: none;
+}
+/* Add to your CSS file */
+.column-group-1 th:nth-child(1),
+.column-group-1 td:nth-child(2) {
+  background-color: #f3f4f6; /* bg-gray-100 */
+}
+
+.column-group-2 th:nth-child(3),
+.column-group-2 td:nth-child(4) {
+  background-color: #ffffff; /* bg-white */
+}
+
+/* For non-striped rows */
+tr:not(.bg-gray-100) th:nth-child(1),
+tr:not(.bg-gray-100) td:nth-child(2) {
+  background-color: #f9fafb; /* bg-gray-50 */
+}
+
+* {
+  font-family: "Inter", sans-serif;
+}
+
+/* bounce animation */
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.bounce-in {
+  animation: bounceIn 0.2s ease-out;
+}
+
+@keyframes bounceOut {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+}
+
+.bounce-out {
+  animation: bounceOut 0.2s ease-in forwards;
+}
