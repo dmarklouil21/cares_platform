@@ -31,6 +31,10 @@ const Details = () => {
         sourceOfIncome: "Employment",
         occupation: "Sewer",
         income: "15,000",
+        sourceInfo:
+          "Ingon kong mego nga akong lolo na ingon daw si lola nga si papa kay ni ingon nga si mama daw kay ni ingon nga ni ingon daw si kuya nga baho daw og tae",
+        programAvailed:
+          "Nalibang daw si pedro nga wa mangilo ka dagan dagan sa sapa ni langoy sa balas ga hakot og balas para iyabo.",
         emergencyContacts: [
           {
             name: "Maria Dela Cruz",
@@ -73,6 +77,10 @@ const Details = () => {
         sourceOfIncome: "Employment",
         occupation: "Teacher",
         income: "30,000",
+        sourceInfo:
+          "HAHAH kong mego nga akong lolo na ingon daw si lola nga si papa kay ni ingon nga si mama daw kay ni ingon nga ni ingon daw si kuya nga baho daw og tae",
+        programAvailed:
+          "HEHEH Nalibang daw si pedro nga wa mangilo ka dagan dagan sa sapa ni langoy sa balas ga hakot og balas para iyabo.",
         emergencyContacts: [
           {
             name: "Juan Santos",
@@ -222,13 +230,13 @@ const Details = () => {
                 Source of Information (Where did you here about RAFI-EJACC?)
               </h1>
               <p className="p-3 h-fit border-b border-black/30 w-[60%]">
-                AMbot lang AMbot lang
+                {patient.sourceInfo}
               </p>
               <h1 className="bg-gray py-1.5 px-5 w-[60%] border-b border-black/30">
                 Other RAFI program you availed:
               </h1>
               <p className="p-3 h-fit border-b border-black/30 w-[60%]">
-                AMbot lang AMbot lang
+                {patient.programAvailed}
               </p>
             </div>
           </div>

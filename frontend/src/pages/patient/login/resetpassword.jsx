@@ -111,7 +111,7 @@ const ResetPasswordPanel = () => {
           className={`fixed inset-0 bg-white backdrop-blur-sm h-screen w-full flex flex-col items-center p-5 gap-5 bounce-in ${animationClass}`}
         >
           <img
-            src="/public/images/logo_black_text.png"
+            src="/images/logo_black_text.png"
             className="h-[70px] mb-10"
             alt="RAFI LOGO"
           />
