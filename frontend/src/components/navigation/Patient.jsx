@@ -1,57 +1,59 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-const AdminSidebar = () => {
+const PatientSidebar = () => {
   const location = useLocation();
-  const [isPatientOpen, setIsPatientOpen] = useState(false);
-  const [isSampleOpen, setIsSampleOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState("Dashboard");
+  const [isServicesOpen, setIsServicesOpen] = useState(false);
+  const [isAwarenessOpen, setIsAwarenessOpen] = useState(false);
+  const [activeNav, setActiveNav] = useState("Home");
 
   const nav = [
     {
-      name: "Dashboard",
+      name: "Home",
       icon: "/src/assets/images/navigation/admin/dashboard.svg",
       path: "/Admin",
       arrow: "",
     },
     {
-      name: "Patient",
+      name: "Cancer Awareness",
       icon: "/src/assets/images/navigation/patient/cancerwarenessicon.svg",
       path: "",
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
     {
-      name: "Sample",
+      name: "Services",
       icon: "/src/assets/images/navigation/patient/services.svg",
       path: "",
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
   ];
 
-  const patientSubNav = [
-    { name: "Patient Master List", path: "/Admin/PatientMasterList" },
-    { name: "Individual Screening", path: "/Admin/IndividualScreening" },
-    { name: "Mass Screening", path: "/Admin/MassScreening" },
-    { name: "Pre-Enrollment", path: "/Admin/AdminPreEnrollment" },
-    { name: "Cancer Management", path: "/Admin/CancerManagement" },
+  const servicesSubNav = [
+    { name: "Cancer Screening", path: "/cancer-screening" },
+    { name: "Cancer Management", path: "/cancer-management" },
+    { name: "Survivorship", path: "/survivorship" },
   ];
 
-  const sampleSubNav = [
-    { name: "Sample 1", path: "/Admin/Sample1" },
-    { name: "Sample 2", path: "/Admin/Sample2" },
+  const awarenessSubNav = [
+    { name: "Sample", path: "/awareness-sample1" },
+    { name: "Sample", path: "/awareness-sample2" },
   ];
 
-  const togglePatient = () => {
-    setIsPatientOpen((prev) => !prev);
-    if (!isPatientOpen) {
-      setIsSampleOpen(false);
+  const toggleServices = () => {
+    // Close if already open, otherwise open
+    setIsServicesOpen((prev) => !prev);
+    // Close the other subnav when opening this one
+    if (!isServicesOpen) {
+      setIsAwarenessOpen(false);
     }
   };
 
-  const toggleSample = () => {
-    setIsSampleOpen((prev) => !prev);
-    if (!isSampleOpen) {
-      setIsPatientOpen(false);
+  const toggleAwareness = () => {
+    // Close if already open, otherwise open
+    setIsAwarenessOpen((prev) => !prev);
+    // Close the other subnav when opening this one
+    if (!isAwarenessOpen) {
+      setIsServicesOpen(false);
     }
   };
 
@@ -60,23 +62,25 @@ const AdminSidebar = () => {
     const path = location.pathname;
 
     // Check if any subnav is active
-    const activeSubNav = [...patientSubNav, ...sampleSubNav].find(
+    const activeSubNav = [...servicesSubNav, ...awarenessSubNav].find(
       (item) => path.startsWith(item.path) && item.path !== ""
     );
 
     if (activeSubNav) {
       // Find which parent nav this subnav belongs to
-      if (patientSubNav.some((item) => item.path === activeSubNav.path)) {
-        setActiveNav("Patient");
-        setIsPatientOpen(true);
-      } else if (sampleSubNav.some((item) => item.path === activeSubNav.path)) {
-        setActiveNav("Sample");
-        setIsSampleOpen(true);
+      if (servicesSubNav.some((item) => item.name === activeSubNav.name)) {
+        setActiveNav("Services");
+        setIsServicesOpen(true);
+      } else if (
+        awarenessSubNav.some((item) => item.name === activeSubNav.name)
+      ) {
+        setActiveNav("Cancer Awareness");
+        setIsAwarenessOpen(true);
       }
     } else if (path === "/Admin") {
-      setActiveNav("Dashboard");
-      setIsPatientOpen(false);
-      setIsSampleOpen(false);
+      setActiveNav("Home");
+      setIsServicesOpen(false);
+      setIsAwarenessOpen(false);
     }
   }, [location.pathname]);
 
@@ -84,14 +88,14 @@ const AdminSidebar = () => {
     setActiveNav(name);
 
     // Toggle the subnav if it's expandable
-    if (name === "Patient") {
-      togglePatient();
-    } else if (name === "Sample") {
-      toggleSample();
+    if (name === "Services") {
+      toggleServices();
+    } else if (name === "Cancer Awareness") {
+      toggleAwareness();
     } else {
-      // For Dashboard, close all subnavs
-      setIsPatientOpen(false);
-      setIsSampleOpen(false);
+      // For Home, close all subnavs
+      setIsServicesOpen(false);
+      setIsAwarenessOpen(false);
     }
   };
 
@@ -117,9 +121,11 @@ const AdminSidebar = () => {
         {nav.map((item, index) => {
           const isActive = activeNav === item.name;
           const isExpandable =
-            item.name === "Patient" || item.name === "Sample";
-          const isOpen = item.name === "Patient" ? isPatientOpen : isSampleOpen;
-          const subNav = item.name === "Patient" ? patientSubNav : sampleSubNav;
+            item.name === "Services" || item.name === "Cancer Awareness";
+          const isOpen =
+            item.name === "Services" ? isServicesOpen : isAwarenessOpen;
+          const subNav =
+            item.name === "Services" ? servicesSubNav : awarenessSubNav;
 
           return (
             <li key={index} className="flex flex-col">
@@ -203,4 +209,4 @@ const AdminSidebar = () => {
   );
 };
 
-export default AdminSidebar;
+export default PatientSidebar;

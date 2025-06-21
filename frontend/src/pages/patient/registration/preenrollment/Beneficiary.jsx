@@ -1,7 +1,9 @@
 import { useState } from "react";
 import barangayData from "../../../../constants/barangayData";
+import { useNavigate } from "react-router-dom";
 
 export default function PatinetProfileForm() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -83,6 +85,7 @@ export default function PatinetProfileForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Form submitted:", formData);
+    navigate("/Patient");
     // Add your form submission logic here
   };
 
