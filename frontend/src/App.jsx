@@ -1,15 +1,16 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 // ----------- LAYOUTS ------------------
-import PatientLayout from "./layouts/Patient";
+import RegisterLoginLayout from "./layouts/RegisterLogin";
 import AdminLayout from "./layouts/Admin";
+import PatientLayout from "./layouts/Patient";
 
 // ----------- REGISTRATION SIDE ------------------
 import SelectUserType from "./pages/patient/registration/SelectUserType";
 // details - wala pay rhu and private
 import DetailsBeneficiary from "./pages/patient/registration/details/Beneficiary";
 // note - wala pay rhu and private
-import NoteBeneficiary from "./pages/patient/registration/note/Beneficiary";
+import NoteBeneficiary from "./pages/patient/registration/note/registration/Beneficiary";
 //pre enrollment - wala pay rhu and private
 import PreEnrollmentBeneficiary from "./pages/patient/registration/preenrollment/Beneficiary";
 
@@ -21,11 +22,15 @@ import ResetPassword from "./pages/patient/login/resetpassword";
 import AdminDashboard from "./pages/admin/dashboard/Dashboard";
 import AdminPreEnrollment from "./pages/admin/patient/PreEnrollment";
 import AdminPatientDetails from "./pages/admin/patient/Details";
+
+// ----------- PATIENT SIDE ------------------
+import PatientHomePage from "./pages/patient/home/Home";
+
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<PatientLayout />}>
+        <Route path="/" element={<RegisterLoginLayout />}>
           <Route index element={<SelectUserType />} />
           <Route path="DetailsBeneficiary" element={<DetailsBeneficiary />} />
           <Route path="Login" element={<Login />} />
@@ -35,6 +40,7 @@ const App = () => {
             path="PreEnrollmentBeneficiary"
             element={<PreEnrollmentBeneficiary />}
           />
+          <Route path="PatientHomePage" element={<PatientHomePage />} />
         </Route>
         <Route path="/Admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
@@ -43,6 +49,9 @@ const App = () => {
             path="AdminPatientDetails/:patientId"
             element={<AdminPatientDetails />}
           />
+        </Route>
+        <Route path="/Patient" element={<PatientLayout />}>
+          <Route index element={<PatientHomePage />} />
         </Route>
       </Routes>
     </BrowserRouter>

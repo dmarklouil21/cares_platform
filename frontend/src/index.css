@@ -31,6 +31,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .column-group-2 td:nth-child(4) {
   background-color: #ffffff; /* bg-white */
 }
+.custom-shadow {
+  @apply shadow-lg;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
+}
 
 /* For non-striped rows */
 tr:not(.bg-gray-100) th:nth-child(1),
