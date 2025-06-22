@@ -12,7 +12,7 @@ const PatientLayout = () => {
     id: "pat-12345",
     name: "Sample Patient",
     preEnrollment: {
-      validated: false,
+      validated: true,
       submittedDate: "2023-11-15",
     },
   };

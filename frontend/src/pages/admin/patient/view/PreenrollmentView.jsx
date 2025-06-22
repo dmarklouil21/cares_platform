@@ -117,7 +117,13 @@ const Details = () => {
       <div className="h-[90%] overflow-auto  px-5 py-3 flex flex-col gap-3">
         <div className="flex justify-between px-5">
           <h2 className="text-xl font-bold">Patient No: {patient.id}</h2>
-          <Link to={"/Admin/AdminPreEnrollment"}>Back</Link>
+          <Link to={"/Admin/patient/AdminPreEnrollment"}>
+            <img
+              src="/images/back.png"
+              alt="Back button icon"
+              className="h-6"
+            />
+          </Link>
         </div>
 
         <div className="border rounded-md flex flex-col border-black/30">

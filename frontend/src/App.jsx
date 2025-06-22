@@ -21,10 +21,17 @@ import ResetPassword from "./pages/patient/login/resetpassword";
 // ----------- ADMIN SIDE ------------------
 import AdminDashboard from "./pages/admin/dashboard/Dashboard";
 import AdminPreEnrollment from "./pages/admin/patient/PreEnrollment";
-import AdminPatientDetails from "./pages/admin/patient/Details";
+import IndividualScreening from "./pages/admin/patient/IndividualScreening";
+
+// ----------- ADMIN VIEW SIDE ------------------
+import AdminPreenrollmentDetails from "./pages/admin/patient/view/PreenrollmentView";
+import AdminIndividualScreeningView from "./pages/admin/patient/view/IndividualScreeningView";
 
 // ----------- PATIENT SIDE ------------------
 import PatientHomePage from "./pages/patient/home/Home";
+import PatientCancerScreening from "./pages/patient/services/CancerScreening";
+import CancerManagement from "./pages/patient/services/CancerManagement";
+import Survivorship from "./pages/patient/services/Survivorship";
 
 const App = () => {
   return (
@@ -44,14 +51,39 @@ const App = () => {
         </Route>
         <Route path="/Admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
-          <Route path="AdminPreEnrollment" element={<AdminPreEnrollment />} />
-          <Route
-            path="AdminPatientDetails/:patientId"
-            element={<AdminPatientDetails />}
-          />
+          <Route path="patient">
+            <Route path="AdminPreEnrollment" element={<AdminPreEnrollment />} />
+            <Route
+              path="AdminIndividualScreening"
+              element={<IndividualScreening />}
+            />
+            <Route path="view">
+              <Route
+                path="AdminPreenrollmentDetails/:patientId"
+                element={<AdminPreenrollmentDetails />}
+              />
+
+              <Route
+                path="AdminIndividualScreeningView"
+                element={<AdminIndividualScreeningView />}
+              />
+            </Route>
+          </Route>
         </Route>
         <Route path="/Patient" element={<PatientLayout />}>
           <Route index element={<PatientHomePage />} />
+          <Route path="services">
+            <Route
+              path="cancer-screening"
+              element={<PatientCancerScreening />}
+            />
+            <Route path="cancer-management" element={<CancerManagement />} />
+            <Route path="survivorship" element={<Survivorship />} />
+          </Route>
+          <Route path="awareness">
+            <Route path="sample1" element={<div>Awareness Sample 1</div>} />
+            <Route path="sample2" element={<div>Awareness Sample 2</div>} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

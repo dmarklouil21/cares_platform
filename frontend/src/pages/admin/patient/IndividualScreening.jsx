@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const PreEnrollment = () => {
+const IndividualScreening = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("");
@@ -63,7 +63,8 @@ const PreEnrollment = () => {
   });
 
   const handleViewClick = (patientId) => {
-    navigate(`/Admin/patient/view/AdminPreenrollmentDetails/${patientId}`);
+    navigate(`/Admin/patient/view/AdminIndividualScreeningView`);
+    // navigate(`/Admin/patient/view/AdminPatientDetails/${patientId}`);
   };
 
   return (
@@ -72,11 +73,11 @@ const PreEnrollment = () => {
         <h1 className="text-md font-bold">Admin</h1>
       </div>
       <div className="px-5 py-7 flex flex-col gap-7">
-        <h2 className="text-xl font-bold ml-5">Pre-Enrollment</h2>
+        <h2 className="text-xl font-bold ml-5">Individual Screening</h2>
 
         <div className="flex flex-col bg-white h-[80%] rounded-2xl shadow-md px-5 py-5 gap-6">
           <a href="#" className="text-md font-semibold text-yellow">
-            Pre-Enrollment Requests
+            Individual Screening Applicant List
           </a>
 
           <div className="flex justify-between flex-wrap gap-3">
@@ -206,4 +207,4 @@ const PreEnrollment = () => {
   );
 };
 
-export default PreEnrollment;
+export default IndividualScreening;

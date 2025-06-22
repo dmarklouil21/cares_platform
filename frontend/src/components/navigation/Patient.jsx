@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const PatientSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isAwarenessOpen, setIsAwarenessOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Home");
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const nav = [
     {
       name: "Home",
       icon: "/src/assets/images/navigation/admin/dashboard.svg",
-      path: "/Admin",
+      path: "/Patient",
       arrow: "",
     },
     {
@@ -29,78 +31,92 @@ const PatientSidebar = () => {
   ];
 
   const servicesSubNav = [
-    { name: "Cancer Screening", path: "/cancer-screening" },
-    { name: "Cancer Management", path: "/cancer-management" },
-    { name: "Survivorship", path: "/survivorship" },
+    { name: "Cancer Screening", path: "/Patient/services/cancer-screening" },
+    { name: "Cancer Management", path: "/Patient/services/cancer-management" },
+    { name: "Survivorship", path: "/Patient/services/survivorship" },
   ];
 
   const awarenessSubNav = [
-    { name: "Sample", path: "/awareness-sample1" },
-    { name: "Sample", path: "/awareness-sample2" },
+    { name: "Sample 1", path: "/Patient/awareness/sample1" },
+    { name: "Sample 2", path: "/Patient/awareness/sample2" },
   ];
 
-  const toggleServices = () => {
-    // Close if already open, otherwise open
-    setIsServicesOpen((prev) => !prev);
-    // Close the other subnav when opening this one
-    if (!isServicesOpen) {
-      setIsAwarenessOpen(false);
-    }
+  const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func.apply(this, args);
+      }, delay);
+    };
   };
 
-  const toggleAwareness = () => {
-    // Close if already open, otherwise open
-    setIsAwarenessOpen((prev) => !prev);
-    // Close the other subnav when opening this one
-    if (!isAwarenessOpen) {
-      setIsServicesOpen(false);
-    }
-  };
-
-  // Update active nav based on path
   useEffect(() => {
     const path = location.pathname;
+    setIsTransitioning(false);
 
-    // Check if any subnav is active
-    const activeSubNav = [...servicesSubNav, ...awarenessSubNav].find(
-      (item) => path.startsWith(item.path) && item.path !== ""
+    const activeService = servicesSubNav.find((item) =>
+      path.startsWith(item.path)
     );
+    if (activeService) {
+      setActiveNav("Services");
+      setIsServicesOpen(true);
+      setIsAwarenessOpen(false);
+      return;
+    }
 
-    if (activeSubNav) {
-      // Find which parent nav this subnav belongs to
-      if (servicesSubNav.some((item) => item.name === activeSubNav.name)) {
-        setActiveNav("Services");
-        setIsServicesOpen(true);
-      } else if (
-        awarenessSubNav.some((item) => item.name === activeSubNav.name)
-      ) {
-        setActiveNav("Cancer Awareness");
-        setIsAwarenessOpen(true);
-      }
-    } else if (path === "/Admin") {
-      setActiveNav("Home");
+    const activeAwareness = awarenessSubNav.find((item) =>
+      path.startsWith(item.path)
+    );
+    if (activeAwareness) {
+      setActiveNav("Cancer Awareness");
+      setIsAwarenessOpen(true);
+      setIsServicesOpen(false);
+      return;
+    }
+
+    const activeMainNav = nav.find((item) => item.path && path === item.path);
+    if (activeMainNav) {
+      setActiveNav(activeMainNav.name);
       setIsServicesOpen(false);
       setIsAwarenessOpen(false);
     }
   }, [location.pathname]);
 
-  const handleNavClick = (name) => {
-    setActiveNav(name);
+  const handleNavigation = debounce((path) => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    navigate(path);
+  }, 300);
 
-    // Toggle the subnav if it's expandable
+  const toggleServices = () => {
+    if (isTransitioning) return;
+    setIsServicesOpen((prev) => !prev);
+    setIsAwarenessOpen(false);
+    setActiveNav("Services");
+  };
+
+  const toggleAwareness = () => {
+    if (isTransitioning) return;
+    setIsAwarenessOpen((prev) => !prev);
+    setIsServicesOpen(false);
+    setActiveNav("Cancer Awareness");
+  };
+
+  const handleNavClick = (name) => {
+    if (isTransitioning) return;
+
     if (name === "Services") {
       toggleServices();
     } else if (name === "Cancer Awareness") {
       toggleAwareness();
     } else {
-      // For Home, close all subnavs
+      setActiveNav(name);
       setIsServicesOpen(false);
       setIsAwarenessOpen(false);
+      const targetPath = nav.find((item) => item.name === name)?.path;
+      if (targetPath) handleNavigation(targetPath);
     }
-  };
-
-  const handleSubNavClick = (name) => {
-    setActiveNav(name);
   };
 
   return (
@@ -128,12 +144,12 @@ const PatientSidebar = () => {
             item.name === "Services" ? servicesSubNav : awarenessSubNav;
 
           return (
-            <li key={index} className="flex flex-col">
+            <li key={index} className="flex flex-col gap-2">
               <div
                 onClick={() => handleNavClick(item.name)}
                 className={`group flex items-center justify-between px-3 py-3 rounded-lg hover:bg-gray cursor-pointer ${
                   isActive ? "bg-gray" : ""
-                }`}
+                } ${isTransitioning ? "opacity-70 pointer-events-none" : ""}`}
               >
                 <div className="flex items-center gap-3">
                   <img
@@ -154,7 +170,7 @@ const PatientSidebar = () => {
                           : "text-white font-medium group-hover:font-bold group-hover:text-primary"
                       }`}
                       onClick={(e) => {
-                        e.stopPropagation();
+                        e.preventDefault();
                         handleNavClick(item.name);
                       }}
                     >
@@ -189,14 +205,18 @@ const PatientSidebar = () => {
                   {subNav.map((subItem, subIndex) => (
                     <li
                       key={subIndex}
-                      className={`cursor-pointer dropdown-item rounded-lg px-5 hover:font-bold hover:text-primary block py-2 hover:bg-gray ${
-                        location.pathname.startsWith(subItem.path)
+                      className={`rounded-lg px-5 hover:font-bold hover:text-primary block py-2 hover:bg-gray ${
+                        location.pathname === subItem.path
                           ? "bg-gray text-primary font-bold"
                           : "text-white"
-                      }`}
-                      onClick={() => handleSubNavClick(subItem.name)}
+                      } ${isTransitioning ? "pointer-events-none" : ""}`}
                     >
-                      <Link to={subItem.path}>{subItem.name}</Link>
+                      <button
+                        onClick={() => handleNavigation(subItem.path)}
+                        className="w-full text-left"
+                      >
+                        {subItem.name}
+                      </button>
                     </li>
                   ))}
                 </ul>
