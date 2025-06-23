@@ -6,43 +6,43 @@ const supportAgencies = [
     name: "Vicente Sotto Memorial Medical Center (VSMMC)",
     description:
       "Public hospital offering free cancer diagnosis, specialist referrals, and outpatient treatment services.",
-    logo: "/src/assets/images/PatientHomePage/sotto.png",
+    logo: "/src/assets/images/patient/PatientHomePage/sotto.png",
     path: "/agencies/vsmmc",
   },
   {
     name: "Philippine Charity Sweepstakes Office (PCSO)",
     description:
       "Provides financial grants for cancer treatment, medications, and rehabilitation through medical assistance programs.",
-    logo: "/src/assets/images/PatientHomePage/pcso.png",
+    logo: "/src/assets/images/patient/PatientHomePage/pcso.png",
     path: "/agencies/pcso",
   },
   {
     name: "DOH Medical Assistance for Financially Incapacitated Patients (MAIFP)",
     description:
       "Government program covering hospitalization costs for indigent cancer patients in public hospitals.",
-    logo: "/src/assets/images/PatientHomePage/doh.png",
+    logo: "/src/assets/images/patient/PatientHomePage/doh.png",
     path: "/agencies/doh",
   },
   {
     name: "Department of Social Welfare & Development (DSWD)",
     description:
       "Offers subsistence allowances, transportation aid, and psychosocial support for cancer patients.",
-    logo: "/src/assets/images/PatientHomePage/DSWD-LOGO.png",
+    logo: "/src/assets/images/patient/PatientHomePage/DSWD-LOGO.png",
     path: "/agencies/dswd",
   },
   {
     name: "City Hospitalization Assistance & Medicines Program (CHAMP)",
     description:
       "Local initiative providing free medicines and limited hospitalization subsidies for qualified residents.",
-    logo: "/src/assets/images/PatientHomePage/champ.png",
+    logo: "/src/assets/images/patient/PatientHomePage/champ.png",
     path: "/agencies/champ",
   },
 ];
 
 const NavigationGuide = () => {
   return (
-    <div className="right-panel w-full h-screen bg-gray overflow-auto">
-      <div className="bg-white py-4 px-10 flex justify-between items-center border-b">
+    <div className=" w-full h-screen bg-gray overflow-auto">
+      <div className="bg-white py-4 px-10 flex justify-between items-center ">
         <div className="font-bold">Beneficary</div>
         <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
           <img
@@ -53,7 +53,7 @@ const NavigationGuide = () => {
         </div>
       </div>
 
-      <div className="py-6 h-[80%] overflow-auto px-10">
+      <div className="py-6 overflow-auto px-10">
         <h1 className="text-lg font-bold mb-6 uppercase">
           CANCER PATIENT NAVIGATION GUIDE
         </h1>
@@ -124,7 +124,7 @@ const NavigationGuide = () => {
 
             <div className="flex items-center gap-3 mb-6">
               <img
-                src="/src/assets/images/PatientHomePage/location.svg"
+                src="/src/assets/images/patient/PatientHomePage/location.svg"
                 alt="Location icon"
                 className="h-8 w-8"
               />
@@ -144,7 +144,7 @@ const NavigationGuide = () => {
               </p>
               <div className="flex items-center gap-3 mb-1">
                 <img
-                  src="/src/assets/images/PatientHomePage/calendar.svg"
+                  src="/src/assets/images/patient/PatientHomePage/calendar.svg"
                   alt="Calendar icon"
                   className="h-8 w-8"
                 />
@@ -167,7 +167,7 @@ const NavigationGuide = () => {
               </ul>
               <div className="flex gap-3 items-center">
                 <img
-                  src="/src/assets/images/PatientHomePage/calendar.svg"
+                  src="/src/assets/images/patient/PatientHomePage/calendar.svg"
                   alt="Calendar icon"
                   className="h-8 w-8"
                 />

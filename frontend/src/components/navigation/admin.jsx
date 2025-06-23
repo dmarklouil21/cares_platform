@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const AdminSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isPatientOpen, setIsPatientOpen] = useState(false);
   const [isSampleOpen, setIsSampleOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Dashboard");
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const nav = [
     {
@@ -30,9 +32,12 @@ const AdminSidebar = () => {
 
   const patientSubNav = [
     { name: "Patient Master List", path: "/Admin/PatientMasterList" },
-    { name: "Individual Screening", path: "/Admin/IndividualScreening" },
+    {
+      name: "Individual Screening",
+      path: "/Admin/patient/AdminIndividualScreening",
+    },
     { name: "Mass Screening", path: "/Admin/MassScreening" },
-    { name: "Pre-Enrollment", path: "/Admin/AdminPreEnrollment" },
+    { name: "Pre-Enrollment", path: "/Admin/patient/AdminPreEnrollment" },
     { name: "Cancer Management", path: "/Admin/CancerManagement" },
   ];
 
@@ -41,62 +46,82 @@ const AdminSidebar = () => {
     { name: "Sample 2", path: "/Admin/Sample2" },
   ];
 
-  const togglePatient = () => {
-    setIsPatientOpen((prev) => !prev);
-    if (!isPatientOpen) {
-      setIsSampleOpen(false);
-    }
+  const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func.apply(this, args);
+      }, delay);
+    };
   };
 
-  const toggleSample = () => {
-    setIsSampleOpen((prev) => !prev);
-    if (!isSampleOpen) {
-      setIsPatientOpen(false);
-    }
-  };
-
-  // Update active nav based on path
   useEffect(() => {
     const path = location.pathname;
+    setIsTransitioning(false);
 
-    // Check if any subnav is active
-    const activeSubNav = [...patientSubNav, ...sampleSubNav].find(
-      (item) => path.startsWith(item.path) && item.path !== ""
+    const activePatient = patientSubNav.find((item) =>
+      path.startsWith(item.path)
     );
+    if (activePatient) {
+      setActiveNav("Patient");
+      setIsPatientOpen(true);
+      setIsSampleOpen(false);
+      return;
+    }
 
-    if (activeSubNav) {
-      // Find which parent nav this subnav belongs to
-      if (patientSubNav.some((item) => item.path === activeSubNav.path)) {
-        setActiveNav("Patient");
-        setIsPatientOpen(true);
-      } else if (sampleSubNav.some((item) => item.path === activeSubNav.path)) {
-        setActiveNav("Sample");
-        setIsSampleOpen(true);
-      }
-    } else if (path === "/Admin") {
-      setActiveNav("Dashboard");
+    const activeSample = sampleSubNav.find((item) =>
+      path.startsWith(item.path)
+    );
+    if (activeSample) {
+      setActiveNav("Sample");
+      setIsSampleOpen(true);
+      setIsPatientOpen(false);
+      return;
+    }
+
+    const activeMainNav = nav.find((item) => item.path && path === item.path);
+    if (activeMainNav) {
+      setActiveNav(activeMainNav.name);
       setIsPatientOpen(false);
       setIsSampleOpen(false);
     }
   }, [location.pathname]);
 
-  const handleNavClick = (name) => {
-    setActiveNav(name);
+  const handleNavigation = debounce((path) => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    navigate(path);
+  }, 300);
 
-    // Toggle the subnav if it's expandable
+  const togglePatient = () => {
+    if (isTransitioning) return;
+    setIsPatientOpen((prev) => !prev);
+    setIsSampleOpen(false);
+    setActiveNav("Patient");
+  };
+
+  const toggleSample = () => {
+    if (isTransitioning) return;
+    setIsSampleOpen((prev) => !prev);
+    setIsPatientOpen(false);
+    setActiveNav("Sample");
+  };
+
+  const handleNavClick = (name) => {
+    if (isTransitioning) return;
+
     if (name === "Patient") {
       togglePatient();
     } else if (name === "Sample") {
       toggleSample();
     } else {
-      // For Dashboard, close all subnavs
+      setActiveNav(name);
       setIsPatientOpen(false);
       setIsSampleOpen(false);
+      const targetPath = nav.find((item) => item.name === name)?.path;
+      if (targetPath) handleNavigation(targetPath);
     }
-  };
-
-  const handleSubNavClick = (name) => {
-    setActiveNav(name);
   };
 
   return (
@@ -122,12 +147,12 @@ const AdminSidebar = () => {
           const subNav = item.name === "Patient" ? patientSubNav : sampleSubNav;
 
           return (
-            <li key={index} className="flex flex-col">
+            <li key={index} className="flex flex-col gap-2">
               <div
                 onClick={() => handleNavClick(item.name)}
                 className={`group flex items-center justify-between px-3 py-3 rounded-lg hover:bg-gray cursor-pointer ${
                   isActive ? "bg-gray" : ""
-                }`}
+                } ${isTransitioning ? "opacity-70 pointer-events-none" : ""}`}
               >
                 <div className="flex items-center gap-3">
                   <img
@@ -148,7 +173,7 @@ const AdminSidebar = () => {
                           : "text-white font-medium group-hover:font-bold group-hover:text-primary"
                       }`}
                       onClick={(e) => {
-                        e.stopPropagation();
+                        e.preventDefault();
                         handleNavClick(item.name);
                       }}
                     >
@@ -183,14 +208,18 @@ const AdminSidebar = () => {
                   {subNav.map((subItem, subIndex) => (
                     <li
                       key={subIndex}
-                      className={`cursor-pointer dropdown-item rounded-lg px-5 hover:font-bold hover:text-primary block py-2 hover:bg-gray ${
-                        location.pathname.startsWith(subItem.path)
+                      className={`rounded-lg px-5 hover:font-bold hover:text-primary block py-2 hover:bg-gray ${
+                        location.pathname === subItem.path
                           ? "bg-gray text-primary font-bold"
                           : "text-white"
-                      }`}
-                      onClick={() => handleSubNavClick(subItem.name)}
+                      } ${isTransitioning ? "pointer-events-none" : ""}`}
                     >
-                      <Link to={subItem.path}>{subItem.name}</Link>
+                      <button
+                        onClick={() => handleNavigation(subItem.path)}
+                        className="w-full text-left"
+                      >
+                        {subItem.name}
+                      </button>
                     </li>
                   ))}
                 </ul>
