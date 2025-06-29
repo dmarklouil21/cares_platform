@@ -1,110 +1,71 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
+import api from "src/api/axiosInstance"; 
 
 const Details = () => {
-  const { patientId } = useParams();
+  const { beneficiary_id } = useParams();
   const [patient, setPatient] = useState(null);
+  console.log("Beneficiary ID:", beneficiary_id);
 
   useEffect(() => {
-    const mockPatients = [
-      {
-        id: "001",
-        name: "Juan Dela Cruz",
-        submissionDate: "2025-04-12",
-        lgu: "Municipality of Argao",
-        status: "Pending",
-        lastName: "dela Cruz",
-        firstName: "Juan",
-        middleName: "Reyes",
-        dob: "1925-01-01",
-        age: 100,
-        civilStatus: "NCSB",
-        sex: "Male",
-        numChildren: 17,
-        address: "Bogo, Argao, Cebu",
-        mobile: "09122332332",
-        municipality: "Argao",
-        barangay: "Bogo",
-        email: "email@sample.com",
-        highestEducation: "Bachelor's Degree",
-        sourceOfIncome: "Employment",
-        occupation: "Sewer",
-        income: "15,000",
-        sourceInfo:
-          "Ingon kong mego nga akong lolo na ingon daw si lola nga si papa kay ni ingon nga si mama daw kay ni ingon nga ni ingon daw si kuya nga baho daw og tae",
-        programAvailed:
-          "Nalibang daw si pedro nga wa mangilo ka dagan dagan sa sapa ni langoy sa balas ga hakot og balas para iyabo.",
-        emergencyContacts: [
-          {
-            name: "Maria Dela Cruz",
-            relationship: "Spouse",
-            landline: "032-123-4567",
-            address: "Bogo, Argao, Cebu",
-            email: "maria.delacruz@sample.com",
-            mobile: "09123334455",
-          },
-          {
-            name: "Pedro Reyes",
-            relationship: "Brother",
-            landline: "032-234-5678",
-            address: "Cebu City, Cebu",
-            email: "pedro.reyes@sample.com",
-            mobile: "09127778899",
-          },
-        ],
-      },
-      {
-        id: "002",
-        name: "Maria Santos",
-        submissionDate: "2025-04-10",
-        lgu: "Municipality of Argao",
-        status: "Verified",
-        lastName: "Santos",
-        firstName: "Maria",
-        middleName: "Garcia",
-        dob: "1980-05-15",
-        age: 43,
-        civilStatus: "Married",
-        sex: "Female",
-        numChildren: 3,
-        address: "Poblacion, Argao, Cebu",
-        mobile: "09123456789",
-        municipality: "Argao",
-        barangay: "Poblacion",
-        email: "maria.santos@sample.com",
-        highestEducation: "Bachelor's Degree",
-        sourceOfIncome: "Employment",
-        occupation: "Teacher",
-        income: "30,000",
-        sourceInfo:
-          "HAHAH kong mego nga akong lolo na ingon daw si lola nga si papa kay ni ingon nga si mama daw kay ni ingon nga ni ingon daw si kuya nga baho daw og tae",
-        programAvailed:
-          "HEHEH Nalibang daw si pedro nga wa mangilo ka dagan dagan sa sapa ni langoy sa balas ga hakot og balas para iyabo.",
-        emergencyContacts: [
-          {
-            name: "Juan Santos",
-            relationship: "Husband",
-            address: "Poblacion, Argao, Cebu",
-            mobile: "09125556677",
-            landline: "032-345-6789",
-            email: "juan.santos@sample.com",
-          },
-          {
-            name: "Ana Garcia",
-            relationship: "Sister",
-            address: "Talisay City, Cebu",
-            mobile: "09128889900",
-            landline: "032-456-7890",
-            email: "ana.garcia@sample.com",
-          },
-        ],
-      },
-    ];
+    let isMounted = true;
 
-    const foundPatient = mockPatients.find((p) => p.id === patientId);
-    setPatient(foundPatient);
-  }, [patientId]);
+    const fetchData = async () => {
+      try {
+        const response = await api.get(`/ejacc/pre-enrollment/details/${beneficiary_id}/`);
+        if (isMounted) {
+          setPatient(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching beneficiary data:", error);
+      }
+    };
+    
+    fetchData();
+
+    return () => {
+      isMounted = false;
+    };
+
+  }, [beneficiary_id]);
+
+  const handleActionClick = async (beneficiary_id, action) => {
+    try {
+      const url = `/ejacc/pre-enrollment/${action}/${beneficiary_id}/`;
+
+      if (action === "delete") {
+        await api.delete(url);
+      } else {
+        await api.patch(url, {
+          status: action === "validate" ? "validated" : "rejected"
+        });
+      }
+  
+      alert(`${action} Successfully`);
+    } catch (error) {
+      console.error(`An error occurred while trying to ${action} this beneficiary`, error);
+      alert(`Failed to ${action} beneficiary. Please try again.`);
+    }
+  };
+
+  const handleVerifyClick = async (beneficiary_id) => {
+    try{
+      await api.post(`/ejacc/pre-enrollment/verify/${beneficiary_id}/`);
+      alert("Validated Successfully");
+    } catch (error) {
+      console.error("There's an error occured while verifying this beneficiary", error);
+    }
+  };
+
+  const handleDeleteClick = async (beneficiary_id) => {
+      try{
+        await api.delete(`/ejacc/pre-enrollment/delete/${beneficiary_id}/`);
+      alert("Deleted Successfully");
+    } catch (error) {
+      console.error("There's an error occured while deleting this beneficiary", error);
+    }
+  }
 
   if (!patient) {
     return <div className="p-6">Loading patient details...</div>;
@@ -112,11 +73,11 @@ const Details = () => {
   return (
     <div className="h-screen w-full bg-white">
       <div className="bg-primary/50 h-[10%] px-5 flex justify-between items-center">
-        <h1 className="text-md font-bold">Patient Details</h1>
+        <h1 className="text-md font-bold">Beneficiary Details</h1>
       </div>
       <div className="h-[90%] overflow-auto  px-5 py-3 flex flex-col gap-3">
         <div className="flex justify-between px-5">
-          <h2 className="text-xl font-bold">Patient No: {patient.id}</h2>
+          <h2 className="text-xl font-bold">Beneficiary ID: {patient.beneficiary_id}</h2>
           <Link to={"/Admin/patient/AdminPreEnrollment"}>
             <img
               src="/images/back.png"
@@ -129,7 +90,7 @@ const Details = () => {
         <div className="border rounded-md flex flex-col border-black/30">
           <div className="flex flex-col">
             <div className="bg-gray rounded-t-md py-2 px-5 flex justify-between items-center">
-              <h1 className="text-md font-bold">Patient Profile</h1>
+              <h1 className="text-md font-bold">Beneficiary Profile</h1>
             </div>
             <div className="flex justify-center bg-white p-5">
               <ul className="w-[100%] bg-gray/50">
@@ -146,13 +107,13 @@ const Details = () => {
               </ul>
               <ul className="w-[100%]">
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.lastName}
+                  {patient.last_name}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.firstName}
+                  {patient.first_name}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.middleName}
+                  {patient.middle_name}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
                   {patient.sex}
@@ -172,16 +133,16 @@ const Details = () => {
               </ul>
               <ul className="w-[100%]">
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.dob}
+                  {patient.date_of_birth}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
                   {patient.age}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.civilStatus}
+                  {patient.civil_status}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.numChildren}
+                  {patient.number_of_children}
                 </li>
               </ul>
             </div>
@@ -206,7 +167,7 @@ const Details = () => {
                   {patient.address}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.municipality}
+                  {patient.city}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
                   {patient.barangay}
@@ -222,7 +183,7 @@ const Details = () => {
               </ul>
               <ul className="w-[100%]">
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.mobile}
+                  {patient.mobile_number}
                 </li>
               </ul>
             </div>
@@ -236,13 +197,13 @@ const Details = () => {
                 Source of Information (Where did you here about RAFI-EJACC?)
               </h1>
               <p className="p-3 h-fit border-b border-black/30 w-[60%]">
-                {patient.sourceInfo}
+                {patient.source_of_information}
               </p>
               <h1 className="bg-gray py-1.5 px-5 w-[60%] border-b border-black/30">
                 Other RAFI program you availed:
               </h1>
               <p className="p-3 h-fit border-b border-black/30 w-[60%]">
-                {patient.programAvailed}
+                {patient.other_rafi_programs_availed}
               </p>
             </div>
           </div>
@@ -265,16 +226,16 @@ const Details = () => {
               </ul>
               <ul className="w-[100%]">
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.highestEducation}
+                  {patient.highest_educational_attainment}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.sourceOfIncome}
+                  {patient.source_of_income}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
                   {patient.occupation}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.income}
+                  {patient.monthly_income}
                 </li>
               </ul>
             </div>
@@ -295,13 +256,13 @@ const Details = () => {
               </ul>
               <ul className="w-[100%]">
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergencyContacts[0].name}
+                  {patient.emergency_contacts[0]?.name || 'None'}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergencyContacts[0].relationship}
+                  {patient.emergency_contacts[0]?.relationship_to_patient || 'None'}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergencyContacts[0].landline}
+                  {patient.emergency_contacts[0]?.landline_number || 'None'}
                 </li>
               </ul>
               <ul className="w-[100%] bg-gray/50">
@@ -315,13 +276,13 @@ const Details = () => {
               </ul>
               <ul className="w-[100%]">
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergencyContacts[0].address}
+                  {patient.emergency_contacts[0]?.address || 'None'}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergencyContacts[0].email}
+                  {patient.emergency_contacts[0]?.email || 'None'}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergencyContacts[0].mobile}
+                  {patient.emergency_contacts[0]?.mobile_number || 'None'}
                 </li>
               </ul>
             </div>
@@ -342,13 +303,13 @@ const Details = () => {
               </ul>
               <ul className="w-[100%]">
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergencyContacts[1].name}
+                  {patient.emergency_contacts[1]?.name || 'None'}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergencyContacts[1].relationship}
+                  {patient.emergency_contacts[1]?.relationship_to_patient || 'None'}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergencyContacts[1].landline}
+                  {patient.emergency_contacts[1]?.landline_number || 'None'}
                 </li>
               </ul>
               <ul className="w-[100%] bg-gray/50">
@@ -362,21 +323,32 @@ const Details = () => {
               </ul>
               <ul className="w-[100%]">
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergencyContacts[1].address}
+                  {patient.emergency_contacts[1]?.address || 'None'}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergencyContacts[1].email}
+                  {patient.emergency_contacts[1]?.email || 'None'}
                 </li>
                 <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergencyContacts[1].mobile}
+                  {patient.emergency_contacts[1]?.mobile_number || 'None'}
                 </li>
               </ul>
             </div>
           </div>
         </div>
-        <button className="flex justify-start px-12 py-1.5 bg-primary rounded-md w-fit font-bold text-white">
-          Verify
-        </button>
+        {
+          patient.status === "pending" ? 
+            <button 
+              onClick={() => handleActionClick(patient.beneficiary_id, "validate")}
+              className="flex justify-start px-12 py-1.5 bg-primary rounded-md w-fit font-bold text-white">
+              Verify
+            </button>
+          : 
+            <button 
+              onClick={() => handleActionClick(patient.beneficiary_id, "delete")}
+              className="flex justify-start px-12 py-1.5 bg-primary rounded-md w-fit font-bold text-white">
+              Delete
+            </button>
+        }
       </div>
     </div>
   );

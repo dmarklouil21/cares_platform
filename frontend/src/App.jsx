@@ -1,22 +1,21 @@
-import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 // ----------- LAYOUTS ------------------
 import RegisterLoginLayout from "./layouts/RegisterLogin";
 import AdminLayout from "./layouts/Admin";
-import PatientLayout from "./layouts/Patient";
+import BeneficiaryLayout from "./layouts/Beneficiary";
 
 // ----------- REGISTRATION SIDE ------------------
-import SelectUserType from "./pages/patient/registration/SelectUserType";
+import SelectUserType from "./pages/beneficiary/registration/SelectUserType";
 // details - wala pay rhu and private
-import DetailsBeneficiary from "./pages/patient/registration/details/Beneficiary";
+import UserRegistration from "./pages/beneficiary/registration/details/Beneficiary";
 // note - wala pay rhu and private
-import NoteBeneficiary from "./pages/patient/registration/note/registration/Beneficiary";
+import NoteBeneficiary from "./pages/beneficiary/registration/note/registration/Beneficiary";
 //pre enrollment - wala pay rhu and private
-import PreEnrollmentBeneficiary from "./pages/patient/registration/preenrollment/Beneficiary";
+import PreEnrollmentBeneficiary from "./pages/beneficiary/registration/preenrollment/Beneficiary";
 
 // ----------- LOGIN SIDE ------------------
-import Login from "./pages/patient/login/login";
-import ResetPassword from "./pages/patient/login/resetpassword";
+import Login from "./pages/beneficiary/login/Login";
+import ResetPassword from "./pages/beneficiary/login/resetpassword";
 
 // ----------- ADMIN SIDE ------------------
 import AdminDashboard from "./pages/admin/dashboard/Dashboard";
@@ -27,66 +26,97 @@ import IndividualScreening from "./pages/admin/patient/IndividualScreening";
 import AdminPreenrollmentDetails from "./pages/admin/patient/view/PreenrollmentView";
 import AdminIndividualScreeningView from "./pages/admin/patient/view/IndividualScreeningView";
 
-// ----------- PATIENT SIDE ------------------
-import PatientHomePage from "./pages/patient/home/Home";
-import PatientCancerScreening from "./pages/patient/services/CancerScreening";
-import CancerManagement from "./pages/patient/services/CancerManagement";
-import Survivorship from "./pages/patient/services/Survivorship";
+// ----------- BENEFICIARY SIDE ------------------
+import BeneficiaryHomePage from "./pages/beneficiary/home/Home";
+import BeneficiaryCancerScreening from "./pages/beneficiary/services/CancerScreening";
+import CancerManagement from "./pages/beneficiary/services/CancerManagement";
+import Survivorship from "./pages/beneficiary/services/Survivorship";
+
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<RegisterLoginLayout />}>
-          <Route index element={<SelectUserType />} />
-          <Route path="DetailsBeneficiary" element={<DetailsBeneficiary />} />
-          <Route path="Login" element={<Login />} />
-          <Route path="ResetPassword" element={<ResetPassword />} />
-          <Route path="NoteBeneficiary" element={<NoteBeneficiary />} />
-          <Route
-            path="PreEnrollmentBeneficiary"
-            element={<PreEnrollmentBeneficiary />}
-          />
-          <Route path="PatientHomePage" element={<PatientHomePage />} />
-        </Route>
-        <Route path="/Admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="patient">
-            <Route path="AdminPreEnrollment" element={<AdminPreEnrollment />} />
-            <Route
-              path="AdminIndividualScreening"
-              element={<IndividualScreening />}
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<RegisterLoginLayout />}>
+            <Route index element={<SelectUserType />} />
+            <Route path="UserRegistration" element={<UserRegistration />} />
+            <Route path="Login" element={<Login />} />
+            <Route path="ResetPassword" 
+              element={
+                <ProtectedRoute>
+                  <ResetPassword />
+                </ProtectedRoute>
+              } 
             />
-            <Route path="view">
+            <Route path="NoteBeneficiary" 
+              element={
+                <ProtectedRoute>
+                  <NoteBeneficiary />
+                </ProtectedRoute>
+              } 
+            />
+            <Route
+              path="PreEnrollmentBeneficiary"
+              element={
+                <ProtectedRoute>
+                  <PreEnrollmentBeneficiary />
+                </ProtectedRoute>
+              } 
+            />
+          </Route>
+          <Route path="/Admin" 
+            element={
+              <ProtectedAdminRoute>
+                <AdminLayout />
+              </ProtectedAdminRoute>
+            }>
+            <Route index element={<AdminDashboard />} />
+            <Route path="patient">
+              <Route path="AdminPreEnrollment" element={<AdminPreEnrollment />} />
               <Route
-                path="AdminPreenrollmentDetails/:patientId"
-                element={<AdminPreenrollmentDetails />}
+                path="AdminIndividualScreening"
+                element={<IndividualScreening />}
               />
+              <Route path="view">
+                <Route
+                  path="AdminPreenrollmentDetails/:beneficiary_id"
+                  element={<AdminPreenrollmentDetails />}
+                />
 
-              <Route
-                path="AdminIndividualScreeningView"
-                element={<AdminIndividualScreeningView />}
-              />
+                <Route
+                  path="AdminIndividualScreeningView"
+                  element={<AdminIndividualScreeningView />}
+                />
+              </Route>
             </Route>
           </Route>
-        </Route>
-        <Route path="/Patient" element={<PatientLayout />}>
-          <Route index element={<PatientHomePage />} />
-          <Route path="services">
-            <Route
-              path="cancer-screening"
-              element={<PatientCancerScreening />}
-            />
-            <Route path="cancer-management" element={<CancerManagement />} />
-            <Route path="survivorship" element={<Survivorship />} />
+          <Route path="/Beneficiary" 
+            element={
+              <ProtectedRoute>
+                <BeneficiaryLayout />
+              </ProtectedRoute>
+            }>
+            <Route index element={<BeneficiaryHomePage />} />
+            <Route path="services">
+              <Route
+                path="cancer-screening"
+                element={<BeneficiaryCancerScreening />}
+              />
+              <Route path="cancer-management" element={<CancerManagement />} />
+              <Route path="survivorship" element={<Survivorship />} />
+            </Route>
+            <Route path="awareness">
+              <Route path="sample1" element={<div>Awareness Sample 1</div>} />
+              <Route path="sample2" element={<div>Awareness Sample 2</div>} />
+            </Route>
           </Route>
-          <Route path="awareness">
-            <Route path="sample1" element={<div>Awareness Sample 1</div>} />
-            <Route path="sample2" element={<div>Awareness Sample 2</div>} />
-          </Route>
-        </Route>
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 };
 

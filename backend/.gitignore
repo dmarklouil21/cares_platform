@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.env
+*.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Django stuff
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+local_settings.py
+*.sqlite3
+
+# If using Django migrations
+**/migrations/*.pyc
+**/migrations/*.pyo
+**/migrations/__pycache__/
+**/migrations/*.log
+**/migrations/*.tmp
+**/migrations/*.bak
+
+# Environment variables
+.env
+.env.*
+
+# Pytest and coverage
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# MyPy
+.mypy_cache/
+
+# Pycharm
+.idea/
+
+# Docker
+*.pid
+*.seed
+docker-compose.override.yml
+
+# PostgreSQL
+*.psql
+*.dump
