@@ -68,17 +68,19 @@ const IndividualScreening = () => {
   };
 
   return (
-    <div className="h-full w-full bg-gray">
-      <div className="bg-white py-4 px-5 flex justify-between items-center">
+    <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
+      <div className="bg-white h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">Admin</h1>
       </div>
-      <div className="px-5 py-7 flex flex-col gap-7">
-        <h2 className="text-xl font-bold ml-5">Individual Screening</h2>
+      <div className="w-full flex-1 py-5 flex flex-col justify-around px-5">
+        <h2 className="text-xl font-bold text-left w-full pl-5">
+          Individual Screening
+        </h2>
 
-        <div className="flex flex-col bg-white h-[80%] rounded-2xl shadow-md px-5 py-5 gap-6">
-          <a href="#" className="text-md font-semibold text-yellow">
+        <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-3">
+          <p className="text-md font-semibold text-yellow">
             Individual Screening Applicant List
-          </a>
+          </p>
 
           <div className="flex justify-between flex-wrap gap-3">
             <input
@@ -111,11 +113,11 @@ const IndividualScreening = () => {
             </button>
           </div>
 
-          <div className="overflow-x-auto bg-white shadow">
+          <div className=" bg-white shadow">
             <table className="min-w-full divide-y divide-gray-200">
               <thead>
                 <tr className="bg-lightblue">
-                  <th className="w-[13%] text-center text-sm py-3">
+                  <th className="w-[13%] text-center text-sm py-3 !bg-lightblue">
                     Patient ID
                   </th>
                   <th className="w-[20%] text-sm py-3">Name</th>
@@ -123,62 +125,80 @@ const IndividualScreening = () => {
                     Submission Date
                   </th>
                   <th className="w-[15%] text-center text-sm py-3">LGU</th>
-                  <th className="w-[15%] text-center text-sm py-3">Status</th>
-                  <th className="w-full text-center text-sm py-3">Actions</th>
+                  <th className="w-[13.4%] text-center text-sm py-3">Status</th>
+                  <th className="w-[22%] text-center text-sm py-3">Actions</th>
+                  {filteredData.length >= 4 && (
+                    <th className="!bg-lightblue w-[1.6%] p-0 m-0"></th>
+                  )}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredData.map((item) => (
-                  <tr key={item.id}>
-                    <td className="text-center text-sm py-4 text-gray-800">
-                      {item.id}
-                    </td>
-                    <td className="text-center text-sm py-4 text-gray-800">
-                      {item.name}
-                    </td>
-                    <td className="text-center text-sm py-4 text-gray-800">
-                      {new Date(item.submissionDate).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        }
-                      )}
-                    </td>
-                    <td className="text-center text-sm py-4 text-gray-800">
-                      {item.lgu}
-                    </td>
-                    <td className="text-center text-sm py-4 text-gray-800">
-                      <span className="px-3 py-1 inline-flex text-xs font-semibold rounded-md bg-amber-50 text-amber-600">
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="text-center text-sm py-4 flex gap-2 justify-center">
-                      <button
-                        onClick={() => handleViewClick(item.id)}
-                        className="text-white py-1 px-3 rounded-md shadow bg-primary"
-                      >
-                        View
-                      </button>
-                      <button className="text-white py-1 px-3 rounded-md shadow bg-green-500">
-                        Verify
-                      </button>
-                      <button className="text-white py-1 px-3 rounded-md shadow bg-red-500">
-                        Reject
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {filteredData.length === 0 && (
-                  <tr>
-                    <td colSpan="6" className="text-center py-4 text-gray-500">
-                      No records found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
             </table>
+            <div className="max-h-[200px] min-h-[200px] overflow-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <colgroup>
+                  <col className="w-[13%]" />
+                  <col className="w-[20%] " />
+                  <col className="w-[15%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[13.4%]" />
+                  <col className="w-[22%]" />
+                </colgroup>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredData.map((item) => (
+                    <tr key={item.id}>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {item.id}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {item.name}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {new Date(item.submissionDate).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          }
+                        )}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {item.lgu}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        <span className="px-3 py-1 inline-flex text-xs font-semibold rounded-md bg-amber-50 text-amber-600">
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="text-center text-sm py-4 flex gap-2 justify-center">
+                        <button
+                          onClick={() => handleViewClick(item.id)}
+                          className="text-white py-1 px-3 rounded-md shadow bg-primary"
+                        >
+                          View
+                        </button>
+                        <button className="text-white py-1 px-3 rounded-md shadow bg-green-500">
+                          Verify
+                        </button>
+                        <button className="text-white py-1 px-3 rounded-md shadow bg-red-500">
+                          Reject
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredData.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="text-center py-4 text-gray-500"
+                      >
+                        No records found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Footer Pagination */}

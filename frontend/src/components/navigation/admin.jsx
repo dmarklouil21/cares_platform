@@ -23,10 +23,10 @@ const AdminSidebar = () => {
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
     {
-      name: "Sample",
-      icon: "/src/assets/images/navigation/patient/services.svg",
-      path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+      name: "User Management",
+      icon: "/src/assets/images/navigation/admin/usermanagementicon.svg",
+      path: "/Admin/UserManagement",
+      arrow: "",
     },
   ];
 
@@ -137,97 +137,112 @@ const AdminSidebar = () => {
           Platform
         </h1>
       </div>
+      <div className="h-[80%] flex flex-col justify-between ">
+        <ul>
+          {nav.map((item, index) => {
+            const isActive = activeNav === item.name;
+            const isExpandable =
+              item.name === "Patient" || item.name === "Sample";
+            const isOpen =
+              item.name === "Patient" ? isPatientOpen : isSampleOpen;
+            const subNav =
+              item.name === "Patient" ? patientSubNav : sampleSubNav;
 
-      <ul>
-        {nav.map((item, index) => {
-          const isActive = activeNav === item.name;
-          const isExpandable =
-            item.name === "Patient" || item.name === "Sample";
-          const isOpen = item.name === "Patient" ? isPatientOpen : isSampleOpen;
-          const subNav = item.name === "Patient" ? patientSubNav : sampleSubNav;
+            return (
+              <li key={index} className="flex flex-col gap-2">
+                <div
+                  onClick={() => handleNavClick(item.name)}
+                  className={`group flex items-center justify-between px-3 py-3 rounded-lg hover:bg-gray cursor-pointer ${
+                    isActive ? "bg-gray" : ""
+                  } ${isTransitioning ? "opacity-70 pointer-events-none" : ""}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={item.icon}
+                      alt={`${item.name} icon`}
+                      className={`w-5 h-5 ${
+                        isActive
+                          ? "custom-blue-filter"
+                          : "invert brightness-0 group-hover:brightness-100 group-hover:invert-0"
+                      }`}
+                    />
+                    {item.path ? (
+                      <Link
+                        to={item.path}
+                        className={`${
+                          isActive
+                            ? "text-primary font-bold"
+                            : "text-white font-medium group-hover:font-bold group-hover:text-primary"
+                        }`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleNavClick(item.name);
+                        }}
+                      >
+                        {item.name}
+                      </Link>
+                    ) : (
+                      <span
+                        className={`${
+                          isActive
+                            ? "text-primary font-bold"
+                            : "text-white font-medium group-hover:font-bold group-hover:text-primary"
+                        }`}
+                      >
+                        {item.name}
+                      </span>
+                    )}
+                  </div>
 
-          return (
-            <li key={index} className="flex flex-col gap-2">
-              <div
-                onClick={() => handleNavClick(item.name)}
-                className={`group flex items-center justify-between px-3 py-3 rounded-lg hover:bg-gray cursor-pointer ${
-                  isActive ? "bg-gray" : ""
-                } ${isTransitioning ? "opacity-70 pointer-events-none" : ""}`}
-              >
-                <div className="flex items-center gap-3">
-                  <img
-                    src={item.icon}
-                    alt={`${item.name} icon`}
-                    className={`w-5 h-5 ${
-                      isActive
-                        ? "custom-blue-filter"
-                        : "invert brightness-0 group-hover:brightness-100 group-hover:invert-0"
-                    }`}
-                  />
-                  {item.path ? (
-                    <Link
-                      to={item.path}
-                      className={`${
-                        isActive
-                          ? "text-primary font-bold"
-                          : "text-white font-medium group-hover:font-bold group-hover:text-primary"
+                  {item.arrow && (
+                    <img
+                      src={item.arrow}
+                      alt="Arrow icon"
+                      className={`w-4 h-4 transition-transform duration-300 invert brightness-0 group-hover:brightness-100 group-hover:invert-0 ${
+                        isOpen ? "rotate-180" : ""
                       }`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleNavClick(item.name);
-                      }}
-                    >
-                      {item.name}
-                    </Link>
-                  ) : (
-                    <span
-                      className={`${
-                        isActive
-                          ? "text-primary font-bold"
-                          : "text-white font-medium group-hover:font-bold group-hover:text-primary"
-                      }`}
-                    >
-                      {item.name}
-                    </span>
+                    />
                   )}
                 </div>
 
-                {item.arrow && (
-                  <img
-                    src={item.arrow}
-                    alt="Arrow icon"
-                    className={`w-4 h-4 transition-transform duration-300 invert brightness-0 group-hover:brightness-100 group-hover:invert-0 ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                )}
-              </div>
-
-              {isExpandable && isOpen && (
-                <ul className="pl-5 flex flex-col gap-2">
-                  {subNav.map((subItem, subIndex) => (
-                    <li
-                      key={subIndex}
-                      className={`rounded-lg px-5 hover:font-bold hover:text-primary block py-2 hover:bg-gray ${
-                        location.pathname === subItem.path
-                          ? "bg-gray text-primary font-bold"
-                          : "text-white"
-                      } ${isTransitioning ? "pointer-events-none" : ""}`}
-                    >
-                      <button
-                        onClick={() => handleNavigation(subItem.path)}
-                        className="w-full text-left"
+                {isExpandable && isOpen && (
+                  <ul className="pl-5 flex flex-col gap-2">
+                    {subNav.map((subItem, subIndex) => (
+                      <li
+                        key={subIndex}
+                        className={`rounded-lg px-5 hover:font-bold hover:text-primary block py-2 hover:bg-gray ${
+                          location.pathname === subItem.path
+                            ? "bg-gray text-primary font-bold"
+                            : "text-white"
+                        } ${isTransitioning ? "pointer-events-none" : ""}`}
                       >
-                        {subItem.name}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+                        <button
+                          onClick={() => handleNavigation(subItem.path)}
+                          className="w-full text-left"
+                        >
+                          {subItem.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+        <button
+          className="bg-white/5 py-1 flex items-center justify-between gap-5 px-5 rounded-md hover:bg-white/50"
+          onClick={() => {
+            //usba lang
+            localStorage.clear();
+            sessionStorage.clear();
+            navigate("/Login");
+          }}
+        >
+          <h1 className="text-white">Logout</h1>
+          <img src="/images/logout.svg" alt="Logout icon" className="h-7" />
+        </button>
+      </div>
     </div>
   );
 };

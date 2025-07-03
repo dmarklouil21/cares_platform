@@ -83,3 +83,12 @@ tr:not(.bg-gray-100) td:nth-child(2) {
 .bounce-out {
   animation: bounceOut 0.2s ease-in forwards;
 }
+@media print {
+  body,
+  .print\\:block,
+  .print\\:bg-white,
+  .bg-white {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
