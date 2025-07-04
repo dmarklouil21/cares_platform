@@ -1,6 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
+// Modal component for confirmation
+function ConfirmationModal({ open, text, onConfirm, onCancel }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
+      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
+        <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
+        <div className="flex gap-4">
+          <button
+            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
+            onClick={onConfirm}
+          >
+            Confirm
+          </button>
+          <button
+            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const EditUser = () => {
   const location = useLocation();
   const user = location.state?.user || {};
@@ -19,6 +45,9 @@ const EditUser = () => {
   const [resetPassword, setResetPassword] = useState("");
   const [resetConfirmPassword, setResetConfirmPassword] = useState("");
   const [resetNotification, setResetNotification] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("");
+  const [modalAction, setModalAction] = useState(null); // {type: 'reset'|'save'}
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,14 +68,46 @@ const EditUser = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Save changes with confirmation modal
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Updated user:", form);
-    setNotification("Profile changes saved successfully!");
-    setTimeout(() => {
-      setNotification("");
-      navigate("/Admin/UserManagement");
-    }, 2000);
+    setModalText("Are you sure you want to save changes?");
+    setModalAction({ type: "save" });
+    setModalOpen(true);
+  };
+
+  // Reset password with confirmation modal
+  const handleResetPassword = () => {
+    setShowResetModal(false);
+    setModalText("Are you sure you want to reset the password?");
+    setModalAction({ type: "reset" });
+    setModalOpen(true);
+  };
+
+  // Modal confirm handler
+  const handleModalConfirm = () => {
+    if (modalAction?.type === "save") {
+      setNotification("Profile changes saved successfully!");
+      setTimeout(() => {
+        setNotification("");
+        navigate("/Admin/UserManagement");
+      }, 2000);
+    } else if (modalAction?.type === "reset") {
+      setNotification("Password reset successfully!");
+      setTimeout(() => setNotification(""), 2000);
+      setResetPassword("");
+      setResetConfirmPassword("");
+    }
+    setModalOpen(false);
+    setModalAction(null);
+    setModalText("");
+  };
+
+  // Modal cancel handler
+  const handleModalCancel = () => {
+    setModalOpen(false);
+    setModalAction(null);
+    setModalText("");
   };
 
   return (
@@ -67,7 +128,7 @@ const EditUser = () => {
 
       {/* Reset Password Modal */}
       {showResetModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 bg-opacity-40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-[2px] bg-black/15 bg-opacity-40">
           <div className="bg-white rounded-lg shadow-lg p-8 min-w-[350px] flex flex-col gap-5 relative">
             <h2 className="text-lg font-bold mb-2 text-center">
               Reset Password
@@ -100,15 +161,7 @@ const EditUser = () => {
               </button>
               <button
                 className="bg-primary text-white px-4 py-2 rounded hover:bg-lightblue font-bold"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowResetModal(false);
-                  setResetNotification("");
-                  setNotification("Password reset successfully!");
-                  setTimeout(() => setNotification(""), 2000);
-                  setResetPassword("");
-                  setResetConfirmPassword("");
-                }}
+                onClick={handleResetPassword}
               >
                 Reset password
               </button>
@@ -116,6 +169,15 @@ const EditUser = () => {
           </div>
         </div>
       )}
+
+      {/* Main confirmation modal for save/reset */}
+      <ConfirmationModal
+        open={modalOpen}
+        text={modalText}
+        onConfirm={handleModalConfirm}
+        onCancel={handleModalCancel}
+      />
+
       <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">Edit Profile</h1>
       </div>

@@ -1,3 +1,28 @@
+// Modal component for confirmation
+function ConfirmationModal({ open, text, onConfirm, onCancel }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
+      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
+        <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
+        <div className="flex gap-4">
+          <button
+            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
+            onClick={onConfirm}
+          >
+            Confirm
+          </button>
+          <button
+            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 // Notification component for showing popup messages
@@ -54,6 +79,10 @@ const UserManagement = () => {
   const [notification, setNotification] = useState("");
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("");
+  const [modalAction, setModalAction] = useState(null); // {id, action}
 
   // Status filter state
   const [statusFilter, setStatusFilter] = useState("all");
@@ -92,12 +121,41 @@ const UserManagement = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
+  // Modal confirm handler
+  const handleModalConfirm = () => {
+    if (modalAction) {
+      setNotification(
+        `${
+          modalAction.action.charAt(0).toUpperCase() +
+          modalAction.action.slice(1)
+        } user successfully`
+      );
+      setTimeout(() => setNotification(""), 3500);
+    }
+    setModalOpen(false);
+    setModalAction(null);
+    setModalText("");
+  };
+
+  // Modal cancel handler (just close modal, no action)
+  const handleModalCancel = () => {
+    setModalOpen(false);
+    setModalAction(null);
+    setModalText("");
+  };
+
+  // Show modal for reject, do notification for others
   const handleActionClick = (id, action) => {
-    setNotification(
-      `${action.charAt(0).toUpperCase() + action.slice(1)} user successfully`
-    );
-    setTimeout(() => setNotification(""), 3500);
-    // For demo, you can add logic to update users state if needed
+    if (action === "reject") {
+      setModalText("Are you sure you want to reject this user?");
+      setModalAction({ id, action });
+      setModalOpen(true);
+    } else {
+      setNotification(
+        `${action.charAt(0).toUpperCase() + action.slice(1)} user successfully`
+      );
+      setTimeout(() => setNotification(""), 3500);
+    }
   };
 
   const navigate = useNavigate();
@@ -139,6 +197,12 @@ const UserManagement = () => {
 
   return (
     <>
+      <ConfirmationModal
+        open={modalOpen}
+        text={modalText}
+        onConfirm={handleModalConfirm}
+        onCancel={handleModalCancel}
+      />
       <Notification
         message={notification}
         onClose={() => setNotification("")}

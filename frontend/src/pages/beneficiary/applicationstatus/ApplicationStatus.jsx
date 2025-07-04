@@ -1,3 +1,28 @@
+// Modal component for confirmation
+function ConfirmationModal({ open, text, onConfirm, onCancel }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
+      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
+        <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
+        <div className="flex gap-4">
+          <button
+            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
+            onClick={onConfirm}
+          >
+            Confirm
+          </button>
+          <button
+            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 const sampleApplications = [
   {
     id: "APP-2025-001",
@@ -44,12 +69,30 @@ const ApplicationStatus = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
   const [notification, setNotification] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("");
+  const [modalAppId, setModalAppId] = useState(null);
 
   const navigate = useNavigate();
 
   const handleCancel = (id) => {
-    setNotification(`Application ${id} cancelled successfully.`);
+    setModalText("Are you sure you want to cancel this application?");
+    setModalAppId(id);
+    setModalOpen(true);
+  };
+
+  const handleModalConfirm = () => {
+    setNotification(`Application ${modalAppId} cancelled successfully.`);
     setTimeout(() => setNotification(""), 3000);
+    setModalOpen(false);
+    setModalAppId(null);
+    setModalText("");
+  };
+
+  const handleModalCancel = () => {
+    setModalOpen(false);
+    setModalAppId(null);
+    setModalText("");
   };
 
   const handleView = (app) => {
@@ -75,6 +118,12 @@ const ApplicationStatus = () => {
 
   return (
     <>
+      <ConfirmationModal
+        open={modalOpen}
+        text={modalText}
+        onConfirm={handleModalConfirm}
+        onCancel={handleModalCancel}
+      />
       {notification && (
         <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
           <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
