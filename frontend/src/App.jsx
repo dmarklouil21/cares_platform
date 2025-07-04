@@ -20,17 +20,27 @@ import ResetPassword from "./pages/beneficiary/login/resetpassword";
 // ----------- ADMIN SIDE ------------------
 import AdminDashboard from "./pages/admin/dashboard/Dashboard";
 import AdminPreEnrollment from "./pages/admin/patient/PreEnrollment";
-import IndividualScreening from "./pages/admin/patient/IndividualScreening";
+import AdminIndividualScreening from "./pages/admin/patient/IndividualScreening";
+import AdminUserManagement from "./pages/admin/usermanagement/UserManagement";
 
 // ----------- ADMIN VIEW SIDE ------------------
 import AdminPreenrollmentDetails from "./pages/admin/patient/view/PreenrollmentView";
 import AdminIndividualScreeningView from "./pages/admin/patient/view/IndividualScreeningView";
+
+// ----------- User Management actions ------------------
+import AdminManagementAddUser from "./pages/admin/usermanagement/add/AddUser";
+import AdminManagementViewUser from "./pages/admin/usermanagement/view/ViewUser";
+import AdminManagementEditUser from "./pages/admin/usermanagement/edit/EditUser";
 
 // ----------- BENEFICIARY SIDE ------------------
 import BeneficiaryHomePage from "./pages/beneficiary/home/Home";
 import BeneficiaryCancerScreening from "./pages/beneficiary/services/CancerScreening";
 import CancerManagement from "./pages/beneficiary/services/CancerManagement";
 import Survivorship from "./pages/beneficiary/services/Survivorship";
+import BeneficiaryApplicationStatus from "./pages/beneficiary/applicationstatus/ApplicationStatus";
+
+// ----------- Application actions ------------------
+import BeneficiaryApplicationView from "./pages/beneficiary/applicationstatus/view/ViewApplication";
 
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
@@ -45,19 +55,21 @@ const App = () => {
             <Route index element={<SelectUserType />} />
             <Route path="UserRegistration" element={<UserRegistration />} />
             <Route path="Login" element={<Login />} />
-            <Route path="ResetPassword" 
+            <Route
+              path="ResetPassword"
               element={
                 <ProtectedRoute>
                   <ResetPassword />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route path="NoteBeneficiary" 
+            <Route
+              path="NoteBeneficiary"
               element={
                 <ProtectedRoute>
                   <NoteBeneficiary />
                 </ProtectedRoute>
-              } 
+              }
             />
             <Route
               path="PreEnrollmentBeneficiary"
@@ -65,21 +77,26 @@ const App = () => {
                 <ProtectedRoute>
                   <PreEnrollmentBeneficiary />
                 </ProtectedRoute>
-              } 
+              }
             />
           </Route>
-          <Route path="/Admin" 
+          <Route
+            path="/Admin"
             element={
               <ProtectedAdminRoute>
                 <AdminLayout />
               </ProtectedAdminRoute>
-            }>
+            }
+          >
             <Route index element={<AdminDashboard />} />
             <Route path="patient">
-              <Route path="AdminPreEnrollment" element={<AdminPreEnrollment />} />
+              <Route
+                path="AdminPreEnrollment"
+                element={<AdminPreEnrollment />}
+              />
               <Route
                 path="AdminIndividualScreening"
-                element={<IndividualScreening />}
+                element={<AdminIndividualScreening />}
               />
               <Route path="view">
                 <Route
@@ -93,13 +110,22 @@ const App = () => {
                 />
               </Route>
             </Route>
+
+            <Route path="UserManagement">
+              <Route index element={<AdminUserManagement />} />
+              <Route path="add-user" element={<AdminManagementAddUser />} />
+              <Route path="view-user" element={<AdminManagementViewUser />} />
+              <Route path="edit-user" element={<AdminManagementEditUser />} />
+            </Route>
           </Route>
-          <Route path="/Beneficiary" 
+          <Route
+            path="/Beneficiary"
             element={
               <ProtectedRoute>
                 <BeneficiaryLayout />
               </ProtectedRoute>
-            }>
+            }
+          >
             <Route index element={<BeneficiaryHomePage />} />
             <Route path="services">
               <Route
@@ -112,6 +138,13 @@ const App = () => {
             <Route path="awareness">
               <Route path="sample1" element={<div>Awareness Sample 1</div>} />
               <Route path="sample2" element={<div>Awareness Sample 2</div>} />
+            </Route>
+            <Route path="applicationstatus">
+              <Route index element={<BeneficiaryApplicationStatus />} />
+              <Route
+                path="application-view"
+                element={<BeneficiaryApplicationView />}
+              />
             </Route>
           </Route>
         </Routes>
