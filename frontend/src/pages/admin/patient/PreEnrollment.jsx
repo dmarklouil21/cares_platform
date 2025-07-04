@@ -1,4 +1,29 @@
 import { useState, useEffect, act, useRef } from "react";
+// Simple Modal component
+function ConfirmationModal({ open, text, onConfirm, onCancel }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
+      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
+        <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
+        <div className="flex gap-4">
+          <button
+            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
+            onClick={onConfirm}
+          >
+            Confirm
+          </button>
+          <button
+            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 // Notification component for showing popup messages
 function Notification({ message, onClose }) {
   if (!message) return null;
@@ -27,6 +52,11 @@ const PreEnrollment = () => {
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [notification, setNotification] = useState("");
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("");
+  const [modalAction, setModalAction] = useState(null); // {beneficiary_id, action}
 
   // Fetch data function so it can be reused
   const fetchData = async () => {
@@ -88,10 +118,26 @@ const PreEnrollment = () => {
     currentPage * recordsPerPage
   );
 
-  const handleActionClick = async (beneficiary_id, action) => {
+  // Show modal for validate/reject, call API for delete
+  const handleActionClick = (beneficiary_id, action) => {
+    if (action === "validate") {
+      setModalText("Confirm validation?");
+      setModalAction({ beneficiary_id, action });
+      setModalOpen(true);
+    } else if (action === "reject") {
+      setModalText("Confirm Rejection?");
+      setModalAction({ beneficiary_id, action });
+      setModalOpen(true);
+    } else if (action === "delete") {
+      // Delete does not need confirmation modal
+      performAction(beneficiary_id, action);
+    }
+  };
+
+  // Actually perform the action after confirmation
+  const performAction = async (beneficiary_id, action) => {
     try {
       const url = `/ejacc/pre-enrollment/${action}/${beneficiary_id}/`;
-
       if (action === "delete") {
         await api.delete(url);
       } else {
@@ -99,7 +145,6 @@ const PreEnrollment = () => {
           status: action === "validate" ? "validated" : "rejected",
         });
       }
-
       let actionWord =
         action === "validate"
           ? "Validated"
@@ -107,7 +152,7 @@ const PreEnrollment = () => {
           ? "Rejected"
           : action.charAt(0).toUpperCase() + action.slice(1);
       setNotification(`${actionWord} Successfully`);
-      fetchData(); // Refresh data after successful action
+      fetchData();
       setTimeout(() => setNotification(""), 3500);
     } catch (error) {
       console.error(
@@ -119,12 +164,36 @@ const PreEnrollment = () => {
     }
   };
 
+  // Modal confirm handler
+  const handleModalConfirm = () => {
+    if (modalAction) {
+      performAction(modalAction.beneficiary_id, modalAction.action);
+    }
+    setModalOpen(false);
+    setModalAction(null);
+    setModalText("");
+  };
+
+  // Modal cancel handler (just close modal, no action)
+  const handleModalCancel = () => {
+    setModalOpen(false);
+    setModalAction(null);
+    setModalText("");
+  };
+
   const handleViewClick = (beneficiary_id) => {
     navigate(`/Admin/patient/view/AdminPreenrollmentDetails/${beneficiary_id}`);
   };
 
   return (
     <>
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        open={modalOpen}
+        text={modalText}
+        onConfirm={handleModalConfirm}
+        onCancel={handleModalCancel}
+      />
       <Notification
         message={notification}
         onClose={() => setNotification("")}
