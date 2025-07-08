@@ -1,5 +1,6 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
 
 
 class LoginSerializer(TokenObtainPairSerializer):
@@ -11,8 +12,9 @@ class LoginSerializer(TokenObtainPairSerializer):
 	
 	def validate(self, attrs):
 		data = super().validate(attrs)
+		if not self.user.is_active:
+			raise AuthenticationFailed('This account is not active. Please wait for admin approval.')
 		
-		# Add custom fields to the response
 		data['user'] = {
 			'user_id': self.user.user_id,
 			'email': self.user.email,
