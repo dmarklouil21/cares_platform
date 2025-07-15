@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { updateUser } from "../../../../services/userManagementService";
 
 // Modal component for confirmation
 function ConfirmationModal({ open, text, onConfirm, onCancel }) {
@@ -29,16 +30,17 @@ function ConfirmationModal({ open, text, onConfirm, onCancel }) {
 
 const EditUser = () => {
   const location = useLocation();
-  const user = location.state?.user || {};
+  const backendUser = location.state?.user || {};
+  // Map backend user fields to form state
   const [form, setForm] = useState({
-    firstName: user.firstName || "",
-    lastName: user.lastName || "",
-    email: user.email || "",
-    username: user.username || "",
-    password: user.password || "",
-    confirmPassword: user.confirmPassword || "",
-    role: user.role || "admin",
-    status: user.status || "active",
+    firstName: backendUser.first_name || "",
+    lastName: backendUser.last_name || "",
+    email: backendUser.email || "",
+    username: backendUser.username || backendUser.email || "",
+    password: backendUser.plain_password || "",
+    confirmPassword: backendUser.plain_password || "",
+    role: backendUser.is_superuser ? "admin" : backendUser.is_rhu ? "rhu" : backendUser.is_private ? "private" : "beneficiary",
+    status: backendUser.is_active ? "active" : "inactive",
   });
   const [notification, setNotification] = useState("");
   const [showResetModal, setShowResetModal] = useState(false);
@@ -49,28 +51,54 @@ const EditUser = () => {
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null); // {type: 'reset'|'save'}
   const navigate = useNavigate();
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     setForm({
-      firstName: user.firstName || "",
-      lastName: user.lastName || "",
-      email: user.email || "",
-      username: user.username || "",
-      password: user.password || "",
-      confirmPassword: user.confirmPassword || "",
-      role: user.role || "admin",
-      status: user.status || "active",
+      firstName: backendUser.first_name || "",
+      lastName: backendUser.last_name || "",
+      email: backendUser.email || "",
+      username: backendUser.username || backendUser.email || "",
+      password: backendUser.plain_password || "",
+      confirmPassword: backendUser.plain_password || "",
+      role: backendUser.is_superuser ? "admin" : backendUser.is_rhu ? "rhu" : backendUser.is_private ? "private" : "beneficiary",
+      status: backendUser.is_active ? "active" : "inactive",
     });
-  }, [user]);
+  }, [backendUser]);
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.firstName.trim()) newErrors.firstName = "First name is required.";
+    if (!form.lastName.trim()) newErrors.lastName = "Last name is required.";
+    if (!form.email.trim()) {
+      newErrors.email = "Email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      newErrors.email = "Invalid email address.";
+    }
+    if (form.password || form.confirmPassword) {
+      if (!form.password) newErrors.password = "Password is required if changing password.";
+      if (!form.confirmPassword) newErrors.confirmPassword = "Confirm password is required if changing password.";
+      if (form.password && form.confirmPassword && form.password !== form.confirmPassword) {
+        newErrors.confirmPassword = "Passwords do not match.";
+      }
+    }
+    return newErrors;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   // Save changes with confirmation modal
   const handleSubmit = (e) => {
     e.preventDefault();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
     setModalText("Are you sure you want to save changes?");
     setModalAction({ type: "save" });
     setModalOpen(true);
@@ -78,23 +106,58 @@ const EditUser = () => {
 
   // Reset password with confirmation modal
   const handleResetPassword = () => {
+    // Validate reset password fields
+    if (!resetPassword) {
+      setResetNotification("Password is required.");
+      return;
+    }
+    if (!resetConfirmPassword) {
+      setResetNotification("Confirm password is required.");
+      return;
+    }
+    if (resetPassword !== resetConfirmPassword) {
+      setResetNotification("Passwords do not match.");
+      return;
+    }
     setShowResetModal(false);
     setModalText("Are you sure you want to reset the password?");
-    setModalAction({ type: "reset" });
+    setModalAction({ type: "reset", password: resetPassword });
     setModalOpen(true);
   };
 
   // Modal confirm handler
-  const handleModalConfirm = () => {
+  const handleModalConfirm = async () => {
     if (modalAction?.type === "save") {
-      setNotification("Profile changes saved successfully!");
-      setTimeout(() => {
-        setNotification("");
-        navigate("/Admin/UserManagement");
-      }, 2000);
+      // Prepare payload for backend
+      const payload = {
+        first_name: form.firstName,
+        last_name: form.lastName,
+        email: form.email,
+        input_role: form.role,
+        is_active: form.status === "active",
+      };
+      // Only send password if changed
+      if (form.password) payload.password = form.password;
+      try {
+        await updateUser(backendUser.id, payload);
+        setNotification("Profile changes saved successfully!");
+        setTimeout(() => {
+          setNotification("");
+          navigate("/Admin/UserManagement");
+        }, 2000);
+      } catch (error) {
+        setNotification("Failed to update user");
+        setTimeout(() => setNotification("") , 2000);
+      }
     } else if (modalAction?.type === "reset") {
-      setNotification("Password reset successfully!");
-      setTimeout(() => setNotification(""), 2000);
+      // Only update password
+      try {
+        await updateUser(backendUser.id, { password: modalAction.password });
+        setNotification("Password reset successfully!");
+      } catch (error) {
+        setNotification("Failed to reset password");
+      }
+      setTimeout(() => setNotification("") , 2000);
       setResetPassword("");
       setResetConfirmPassword("");
     }
@@ -147,6 +210,7 @@ const EditUser = () => {
               onChange={(e) => setResetConfirmPassword(e.target.value)}
               className="border border-gray-300 rounded px-3 py-2 focus:outline-none w-full"
             />
+            {resetNotification && <span className="text-red-500 text-xs">{resetNotification}</span>}
             <div className="flex gap-3 justify-end mt-2">
               <button
                 className="bg-gray-200 text-black px-4 py-2 rounded hover:bg-gray-300"
@@ -201,6 +265,7 @@ const EditUser = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none "
                 />
+                {errors.firstName && <span className="text-red-500 text-xs">{errors.firstName}</span>}
               </div>
               <div>
                 <label className="block text-gray-700 mb-1">Email:</label>
@@ -211,6 +276,7 @@ const EditUser = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none "
                 />
+                {errors.email && <span className="text-red-500 text-xs">{errors.email}</span>}
               </div>
               <div>
                 <label className="block text-gray-700 mb-1">Role:</label>
@@ -244,6 +310,7 @@ const EditUser = () => {
                     Reset password
                   </button>
                 </div>
+                {errors.password && <span className="text-red-500 text-xs">{errors.password}</span>}
               </div>
             </div>
             {/* Second Column */}
@@ -257,6 +324,7 @@ const EditUser = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none "
                 />
+                {errors.lastName && <span className="text-red-500 text-xs">{errors.lastName}</span>}
               </div>
               <div>
                 <label className="block text-gray-700 mb-1">Username:</label>

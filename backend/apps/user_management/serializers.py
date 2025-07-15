@@ -11,7 +11,7 @@ class UserManagementSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'email', 'first_name', 'last_name', 'is_active', 'is_superuser',
             'date_of_birth', 'age', 'phone_number', 'is_resident_of_cebu', 'lgu', 'address',
-            'password', 'role', 'input_role'
+            'password', 'role', 'input_role', 'plain_password'
         ]
 
     def get_role(self, obj):
@@ -45,7 +45,7 @@ class UserManagementSerializer(serializers.ModelSerializer):
         instance.username = email 
 
         password = validated_data.get('password', None)
-        if password:
+        if password is not None:
             instance.set_password(password)
             instance.plain_password = password
 

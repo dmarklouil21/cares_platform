@@ -3,11 +3,10 @@ import axios from 'axios';
 const API_URL = "http://localhost:8000";
 
 export const loginAPI = async (email, password) => {
-  const response = await axios.post(`${API_URL}/user/login/`, {
-    username: email,
+  const response = await axios.post(`http://localhost:8000/api/registration/login/`, {
+    email,
     password,
   });
-
   return response.data;
 };
 
@@ -18,3 +17,12 @@ export const logout = () => {
 
 export const getAccessToken = () => localStorage.getItem('access');
 export const getRefreshToken = () => localStorage.getItem('refresh');
+
+export const resetPasswordAPI = async (email, old_password, new_password) => {
+  const response = await axios.post(`${API_URL}/user/reset-password/`, {
+    email,
+    old_password,
+    new_password,
+  });
+  return response.data;
+};

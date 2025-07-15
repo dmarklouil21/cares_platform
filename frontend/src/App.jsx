@@ -12,6 +12,7 @@ import UserRegistration from "./pages/beneficiary/registration/details/Beneficia
 import NoteBeneficiary from "./pages/beneficiary/registration/note/registration/Beneficiary";
 //pre enrollment - wala pay rhu and private
 import PreEnrollmentBeneficiary from "./pages/beneficiary/registration/preenrollment/Beneficiary";
+import NotValidated from "./pages/beneficiary/registration/note/preenrollment/NotValidated";
 
 // ----------- LOGIN SIDE ------------------
 import Login from "./pages/beneficiary/login/Login";
@@ -79,6 +80,7 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
+            <Route path="NotValidated" element={<NotValidated />} />
           </Route>
           <Route
             path="/Admin"

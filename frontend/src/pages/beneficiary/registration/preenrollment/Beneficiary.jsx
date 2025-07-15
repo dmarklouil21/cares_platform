@@ -108,7 +108,8 @@ export default function PatinetProfileForm() {
 
     try {
       const response = await api.post("/beneficiary/pre-enrollment/", formData);
-      navigate("/Beneficiary");
+      const fullName = `${formData.first_name} ${formData.middle_name ? formData.middle_name + ' ' : ''}${formData.last_name}`.trim();
+      navigate("/Beneficiary", { state: { fullName } });
     } catch (error) {
       if (error.response && error.response.data && error.response.data.exists) {
         setNotification("You already registered as beneficiary");

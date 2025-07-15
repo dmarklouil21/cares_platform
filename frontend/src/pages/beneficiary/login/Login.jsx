@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
+import api from "src/api/axiosInstance";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -15,13 +16,27 @@ const Login = () => {
     try {
       const loggedInUser = await login(email, password);
 
-      console.log("Loged In User:", loggedInUser);
-      if (loggedInUser.is_first_login) {
-        navigate("/ResetPassword");
-      } else if (loggedInUser.is_superuser) {
+      console.log("Logged In User:", loggedInUser);
+      if (loggedInUser.is_superuser) {
         navigate("/Admin");
+      } else if (loggedInUser.is_first_login) {
+        navigate("/resetpassword");
+      } else if (loggedInUser.is_active) {
+        // If user is active, check pre-enrollment status
+        try {
+          const response = await api.get("/beneficiary/details/");
+          if (response.data.status === "validated") {
+            navigate("/Beneficiary");
+          } else {
+            navigate("/PreEnrollmentBeneficiary");
+          }
+        } catch (error) {
+          // If no beneficiary record, go to pre-enrollment
+          navigate("/PreEnrollmentBeneficiary");
+        }
       } else {
-        navigate("/Beneficiary");
+        // Not active, go to reset password
+        navigate("/resetpassword");
       }
     } catch (err) {
       alert("Login failed. Please check your credentials.");
@@ -103,7 +118,7 @@ const Login = () => {
             <rect fill="#05a6f0" x="2" y="13" width="9" height="9" />
             <rect fill="#ffba08" x="13" y="13" width="9" height="9" />
           </svg>
-          Sign up with Microsoft Single Sign-on
+          Sign up with Microsoft
         </button>
       </form>
     </div>

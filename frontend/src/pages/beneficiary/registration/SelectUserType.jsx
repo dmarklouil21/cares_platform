@@ -57,7 +57,7 @@ const SelectUserType = () => {
             <rect fill="#05a6f0" x="4" y="12.5" width="7" height="7" />
             <rect fill="#ffba08" x="13" y="12.5" width="7" height="7" />
           </svg>
-          <p className="text-sm">Sign up with Microsoft Single Sign-on</p>
+          <p className="text-sm">Sign up with Microsoft</p>
         </button>
       </div>
       <p className="text-sm font-medium text-black">
