@@ -25,6 +25,7 @@ function ConfirmationModal({ open, text, onConfirm, onCancel }) {
 }
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { addUser } from "../../../../services/userManagementService";
 
 const AddUser = () => {
   const [form, setForm] = useState({
@@ -40,27 +41,67 @@ const AddUser = () => {
   const [notification, setNotification] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.firstName.trim()) newErrors.firstName = "First name is required.";
+    if (!form.lastName.trim()) newErrors.lastName = "Last name is required.";
+    if (!form.email.trim()) {
+      newErrors.email = "Email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      newErrors.email = "Invalid email address.";
+    }
+    if (!form.password) newErrors.password = "Password is required.";
+    if (!form.confirmPassword) newErrors.confirmPassword = "Confirm password is required.";
+    if (form.password && form.confirmPassword && form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match.";
+    }
+    return newErrors;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
     setModalText("Are you sure you want to add this user?");
     setModalOpen(true);
   };
 
   // Modal confirm handler
-  const handleModalConfirm = () => {
+  const handleModalConfirm = async () => {
     setModalOpen(false);
-    setNotification("User successfully added!");
-    setTimeout(() => {
-      setNotification("");
-      navigate("/Admin/UserManagement");
-    }, 2000);
+    // Prepare payload for backend
+    const payload = {
+      first_name: form.firstName,
+      last_name: form.lastName,
+      email: form.email,
+      password: form.password,
+      input_role: form.role,
+      is_active: form.status === "active",
+      // Add other fields as needed
+    };
+    try {
+      await addUser(payload);
+      setNotification("User successfully added!");
+      setTimeout(() => {
+        setNotification("");
+        navigate("/Admin/UserManagement");
+      }, 2000);
+    } catch (error) {
+      setNotification("Failed to add user");
+      setTimeout(() => setNotification("") , 2000);
+    }
   };
 
   // Modal cancel handler
@@ -114,6 +155,7 @@ const AddUser = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none "
                 />
+                {errors.firstName && <span className="text-red-500 text-xs">{errors.firstName}</span>}
               </div>
               <div>
                 <label className="block text-gray-700 mb-1">Email:</label>
@@ -124,6 +166,7 @@ const AddUser = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none "
                 />
+                {errors.email && <span className="text-red-500 text-xs">{errors.email}</span>}
               </div>
               <div>
                 <label className="block text-gray-700 mb-1">Password:</label>
@@ -134,6 +177,7 @@ const AddUser = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none "
                 />
+                {errors.password && <span className="text-red-500 text-xs">{errors.password}</span>}
               </div>
               <div>
                 <label className="block text-gray-700 mb-1">Role:</label>
@@ -161,6 +205,7 @@ const AddUser = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none "
                 />
+                {errors.lastName && <span className="text-red-500 text-xs">{errors.lastName}</span>}
               </div>
               <div>
                 <label className="block text-gray-700 mb-1">Username:</label>
@@ -170,6 +215,7 @@ const AddUser = () => {
                   value={form.username}
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  disabled
                 />
               </div>
               <div>
@@ -181,8 +227,9 @@ const AddUser = () => {
                   name="confirmPassword"
                   value={form.confirmPassword}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none "
                 />
+                {errors.confirmPassword && <span className="text-red-500 text-xs">{errors.confirmPassword}</span>}
               </div>
               <div>
                 <label className="block text-gray-700 mb-1">Status:</label>

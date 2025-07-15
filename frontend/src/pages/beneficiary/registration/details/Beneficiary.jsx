@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import api from "src/api/axiosInstance";
 
 const Info101 = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const Info101 = () => {
 
   const [showPopup, setShowPopup] = useState(false);
   const [animationClass, setAnimationClass] = useState("bounce-in");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -28,19 +30,39 @@ const Info101 = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     const isValid = Object.values(formData).every((val) =>
       typeof val === "boolean" ? val === true : val.trim() !== ""
     );
-
-    if (isValid) {
-      console.log("Submitted Data:", formData);
+    if (!isValid) {
+      alert("Please fill in all fields and agree to the privacy notice.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      // Map frontend fields to backend expected fields
+      const payload = {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        date_of_birth: formData.birthDate,
+        age: formData.age,
+        email: formData.email,
+        phone_number: formData.phone,
+        address: formData.address,
+        lgu: formData.lgu,
+      };
+      await api.post("/api/registration/register/", payload);
       setAnimationClass("bounce-in");
       setShowPopup(true);
-    } else {
-      alert("Please fill in all fields and agree to the privacy notice.");
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        alert(error.response.data.message);
+      } else {
+        alert("Registration failed. Please try again later.");
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -259,8 +281,9 @@ const Info101 = () => {
           <button
             type="submit"
             className="text-center font-bold bg-primary text-white py-2 w-[45%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+            disabled={submitting}
           >
-            SUBMIT
+            {submitting ? "SUBMITTING..." : "SUBMIT"}
           </button>
         </div>
       </form>

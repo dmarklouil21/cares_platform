@@ -1,6 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
-const NotValidated = ({ fullName }) => {
+const NotValidated = () => {
+  const location = useLocation();
+  const fullName = location.state?.fullName || "";
   return (
     <div className="h-screen w-full flex  flex-col justify-center items-center p-5 gap-7">
       <img

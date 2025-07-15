@@ -23,8 +23,9 @@ function ConfirmationModal({ open, text, onConfirm, onCancel }) {
     </div>
   );
 }
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
+import { fetchUsers, deleteUser, updateUser } from "../../../services/userManagementService";
 // Notification component for showing popup messages
 function Notification({ message, onClose }) {
   if (!message) return null;
@@ -42,39 +43,8 @@ function Notification({ message, onClose }) {
   );
 }
 
-const sampleUsers = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john.doe@example.com",
-    role: "Admin",
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    role: "rhu",
-    status: "Inactive",
-  },
-  {
-    id: 3,
-    name: "Alice Johnson",
-    email: "alice.johnson@example.com",
-    role: "Beneficiary",
-    status: "Active",
-  },
-  {
-    id: 4,
-    name: "SHISH Johnson",
-    email: "alice.johnson@example.com",
-    role: "private",
-    status: "Active",
-  },
-];
-
 const UserManagement = () => {
-  const [users, setUsers] = useState(sampleUsers);
+  const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [notification, setNotification] = useState("");
   const [recordsPerPage, setRecordsPerPage] = useState(10);
@@ -87,17 +57,19 @@ const UserManagement = () => {
   // Status filter state
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Fix: Use first_name + last_name for display and search
   const filteredResults = users.filter((user) => {
     const query = searchQuery.trim().toLowerCase();
+    const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim().toLowerCase();
     const matchesSearch =
       !query ||
-      user.id.toString().includes(query) ||
-      user.name.toLowerCase().includes(query) ||
-      user.email.toLowerCase().includes(query);
+      user.id?.toString().includes(query) ||
+      fullName.includes(query) ||
+      (user.email || '').toLowerCase().includes(query);
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "active" && user.status.toLowerCase() === "active") ||
-      (statusFilter === "inactive" && user.status.toLowerCase() === "inactive");
+      (statusFilter === "active" && user.is_active) ||
+      (statusFilter === "inactive" && !user.is_active);
     return matchesSearch && matchesStatus;
   });
 
@@ -121,14 +93,36 @@ const UserManagement = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
+  // Fetch users from API
+  const loadUsers = useCallback(async () => {
+    try {
+      const data = await fetchUsers();
+      setUsers(data);
+    } catch (error) {
+      setNotification("Failed to fetch users");
+      setTimeout(() => setNotification(""), 3500);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
   // Modal confirm handler
-  const handleModalConfirm = () => {
-    if (modalAction) {
+  const handleModalConfirm = async () => {
+    console.log('Modal Confirm:', modalAction); // Debug log
+    if (modalAction && modalAction.action === "delete" && modalAction.id) {
+      try {
+        await deleteUser(modalAction.id);
+        setNotification("User deleted successfully");
+        loadUsers();
+      } catch (error) {
+        setNotification("Failed to delete user");
+      }
+      setTimeout(() => setNotification(""), 3500);
+    } else {
       setNotification(
-        `${
-          modalAction.action.charAt(0).toUpperCase() +
-          modalAction.action.slice(1)
-        } user successfully`
+        `${modalAction?.action?.charAt(0).toUpperCase() + modalAction?.action?.slice(1)} user successfully`
       );
       setTimeout(() => setNotification(""), 3500);
     }
@@ -144,9 +138,14 @@ const UserManagement = () => {
     setModalText("");
   };
 
-  // Show modal for reject, do notification for others
+  // Show modal for delete
   const handleActionClick = (id, action) => {
-    if (action === "reject") {
+    console.log('handleActionClick:', { id, action }); // Debug log
+    if (action === "delete") {
+      setModalText("Are you sure you want to delete this user?");
+      setModalAction({ id, action });
+      setModalOpen(true);
+    } else if (action === "reject") {
       setModalText("Are you sure you want to reject this user?");
       setModalAction({ id, action });
       setModalOpen(true);
@@ -158,40 +157,55 @@ const UserManagement = () => {
     }
   };
 
+  // Accept user
+  const handleAccept = async (id) => {
+    try {
+      await updateUser(id, { is_active: true });
+      setNotification("User accepted and activated");
+      loadUsers();
+    } catch (error) {
+      setNotification("Failed to accept user");
+    }
+    setTimeout(() => setNotification(""), 3500);
+  };
+
+  // Reject user
+  const handleReject = async (id) => {
+    try {
+      await updateUser(id, { is_active: false });
+      setNotification("User rejected and deactivated");
+      loadUsers();
+    } catch (error) {
+      setNotification("Failed to reject user");
+    }
+    setTimeout(() => setNotification(""), 3500);
+  };
+
   const navigate = useNavigate();
+  // Fix: View button logic
   const handleViewClick = (id) => {
     const user = users.find((u) => u.id === id);
     if (user) {
-      // Map sample user fields to match AddUser/ViewUser fields
       const userDetails = {
-        firstName: user.name.split(" ")[0] || "",
-        lastName: user.name.split(" ").slice(1).join(" ") || "",
+        firstName: user.first_name || "",
+        lastName: user.last_name || "",
         email: user.email,
-        username: user.email.split("@")[0],
+        username: user.email ? user.email.split("@")[0] : "",
         password: "********",
         confirmPassword: "********",
         role: user.role ? user.role.toLowerCase() : "admin",
-        status: user.status ? user.status.toLowerCase() : "active",
+        status: user.is_active ? "active" : "inactive",
       };
       navigate("view-user", { state: { user: userDetails } });
     }
   };
 
+  // Fix: Edit button logic
   const handleEditClick = (id) => {
     const user = users.find((u) => u.id === id);
     if (user) {
-      // Map sample user fields to match AddUser/EditUser fields
-      const userDetails = {
-        firstName: user.name.split(" ")[0] || "",
-        lastName: user.name.split(" ").slice(1).join(" ") || "",
-        email: user.email,
-        username: user.email.split("@")[0],
-        password: "********",
-        confirmPassword: "********",
-        role: user.role ? user.role.toLowerCase() : "admin",
-        status: user.status ? user.status.toLowerCase() : "active",
-      };
-      navigate("edit-user", { state: { user: userDetails } });
+      // Pass the full user object, including id
+      navigate("edit-user", { state: { user } });
     }
   };
 
@@ -291,7 +305,8 @@ const UserManagement = () => {
                     {paginatedData.map((user) => (
                       <tr key={user.id}>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {user.name}
+                          {/* Fix: Use first_name + last_name for display */}
+                          {`${user.first_name || ''} ${user.last_name || ''}`.trim()}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
                           {user.email}
@@ -302,12 +317,12 @@ const UserManagement = () => {
                         <td className="text-center text-sm py-4 text-gray-800">
                           <span
                             className={`px-3 py-1 inline-flex text-xs font-semibold rounded-md ${
-                              user.status === "Active"
+                              user.is_active
                                 ? "bg-green-100 text-green-600"
                                 : "bg-red-100 text-red-600"
                             }`}
                           >
-                            {user.status}
+                            {user.is_active ? "Active" : "Inactive"}
                           </span>
                         </td>
                         <td className="text-center text-sm py-4 flex gap-2 justify-center">
@@ -324,10 +339,13 @@ const UserManagement = () => {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleActionClick(user.id, "reject")}
+                            onClick={() => {
+                              console.log('Delete button clicked for user:', user); // Debug log
+                              handleActionClick(user.id, "delete");
+                            }}
                             className="text-white py-1 px-3 rounded-md shadow bg-red-500"
                           >
-                            Reject
+                            Delete
                           </button>
                         </td>
                       </tr>

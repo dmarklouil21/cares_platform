@@ -13,7 +13,18 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const { access, refresh, user } = await loginAPI(email, password);
+      const data = await loginAPI(email, password);
+      // The custom endpoint returns user info at the top level
+      const { access, refresh, is_superuser, is_first_login, is_active, first_name, last_name, email: userEmail, user_id } = data;
+      const user = {
+        is_superuser,
+        is_first_login,
+        is_active,
+        first_name,
+        last_name,
+        email: userEmail,
+        user_id, // Store user_id
+      };
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
       localStorage.setItem("user", JSON.stringify(user));

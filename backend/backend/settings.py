@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'corsheaders',  # CORS headers for API
     'apps.user',
     'apps.pre_enrollment',
+    'apps.registration',
+    'apps.user_management',
 ]
 
 MIDDLEWARE = [
@@ -88,9 +90,9 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cares_platform_db',
-        'USER': 'postgres',
-        'PASSWORD': 'admin',
+        'NAME': 'cares_db',
+        'USER': 'cares_user',
+        'PASSWORD': 'cares_password',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -162,3 +164,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Twilio SMS settings
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
+
+# Email backend settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'caresplatform@gmail.com'  #  Gmail address
+EMAIL_HOST_PASSWORD = 'tnymdneawgjtxljt'  # Gmail app password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+AUTHENTICATION_BACKENDS = [
+    'apps.user.auth_backend.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]

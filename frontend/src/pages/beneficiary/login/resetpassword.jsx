@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { resetPasswordAPI } from "src/services/authService";
 
 const ResetPasswordPanel = () => {
   const navigate = useNavigate();
@@ -18,10 +19,33 @@ const ResetPasswordPanel = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Reset Password Data:", formData);
-    setShowPopup(true);
+    // Get email from localStorage user
+    const user = JSON.parse(localStorage.getItem("user"));
+    const email = user?.email;
+    if (!email) {
+      alert("User email not found. Please log in again.");
+      return;
+    }
+    if (!formData.oldPassword || !formData.newPassword || !formData.confirmPassword) {
+      alert("Please fill in all fields.");
+      return;
+    }
+    if (formData.newPassword !== formData.confirmPassword) {
+      alert("New passwords do not match.");
+      return;
+    }
+    try {
+      await resetPasswordAPI(email, formData.oldPassword, formData.newPassword);
+      setShowPopup(true);
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        alert(error.response.data.message);
+      } else {
+        alert("Password reset failed. Please try again later.");
+      }
+    }
   };
 
   const handleContinue = () => {

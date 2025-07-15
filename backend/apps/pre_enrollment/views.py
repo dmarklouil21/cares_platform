@@ -1,6 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from rest_framework.exceptions import NotFound
 
 from .models import Beneficiary
 from .serializers import BeneficiarySerializer
@@ -33,7 +34,10 @@ class BeneficiaryDetailView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return Beneficiary.objects.get(user=self.request.user)
+        try:
+            return Beneficiary.objects.get(user=self.request.user)
+        except Beneficiary.DoesNotExist:
+            raise NotFound("No beneficiary record found for this user.")
 
 # EJACC
 
