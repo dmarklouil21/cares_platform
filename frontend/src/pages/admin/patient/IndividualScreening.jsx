@@ -61,19 +61,53 @@ const IndividualScreening = () => {
       submissionDate: "2025-04-12",
       lgu: "Municipality of Argao",
       status: "Pending",
-      lastName: "dela Cruz",
-      firstName: "Juan",
-      middleName: "Reyes",
-      dob: "1925-01-01",
-      age: 100,
-      civilStatus: "NCSB",
-      sex: "Male",
-      numChildren: 17,
-      address: "Bogo, Argao, Cebu",
-      mobile: "09122332332",
-      municipality: "Argao",
-      barangay: "Bogo",
-      email: "email@sample.com",
+      screeningProcedure: "Mammogram",
+      procedureDetails: "Breast screening due to palpable mass",
+      cancerSite: "Breast",
+      requirements: [
+        {
+          name: "MRIReport.pdf",
+          type: "pdf",
+          url: "/files/shit.pdf",
+        },
+        {
+          name: "ClinicReferral.docx",
+          type: "doc",
+          url: "/files/Project-Adviser-Appointment-Form-EDITED.docx",
+        },
+        {
+          name: "BrainScan.jpg",
+          type: "image",
+          url: "/src/assets/images/admin/patient/individualscreening/Image.svg",
+        },
+      ],
+      preScreeningDetails: {
+        referredFrom: "Barangay Health Center",
+        referringDoctor: "Dr. Smith",
+        referralReason: "Suspicious lump",
+        chiefComplaint: "Lump in left breast",
+        consultationDate: "2025-04-01",
+        diagnosisDate: "2025-04-05",
+      },
+      diagnosis: ["Microscopic", "Histology of Primary"],
+      multiplePrimaries: ["1"],
+      primarySites: ["Breast", "Liver"],
+      laterality: "left",
+      histology: "Invasive ductal carcinoma",
+      staging: "Localized",
+      tnm: { t: "2", n: "1", m: "0" },
+      metastasisSites: ["none"],
+      finalDiagnosis: "Stage II breast cancer",
+      icd10Code: "C50.9",
+      treatment: {
+        purpose: "Curative-Complete",
+        primaryAssistance: "Chemotherapy",
+        assistanceDate: "2025-04-15",
+        adjuvant: ["Surgery", "Chemotherapy"],
+        adjuvantOther: "",
+        otherSources: ["Radiotherapy"],
+        otherSourcesOther: "",
+      },
     },
     {
       id: "002",
@@ -81,19 +115,53 @@ const IndividualScreening = () => {
       submissionDate: "2025-04-10",
       lgu: "Municipality of Argao",
       status: "Verified",
-      lastName: "Santos",
-      firstName: "Maria",
-      middleName: "Garcia",
-      dob: "1980-05-15",
-      age: 43,
-      civilStatus: "Married",
-      sex: "Female",
-      numChildren: 3,
-      address: "Poblacion, Argao, Cebu",
-      mobile: "09123456789",
-      municipality: "Argao",
-      barangay: "Poblacion",
-      email: "maria.santos@sample.com",
+      screeningProcedure: "MRI",
+      procedureDetails: "Brain MRI for persistent headache",
+      cancerSite: "Brain",
+      requirements: [
+        {
+          name: "MRIReport.pdf",
+          type: "pdf",
+          url: "/files/shit.pdf",
+        },
+        {
+          name: "ClinicReferral.docx",
+          type: "doc",
+          url: "/files/Project-Adviser-Appointment-Form-EDITED.docx",
+        },
+        {
+          name: "BrainScan.jpg",
+          type: "image",
+          url: "/src/assets/images/admin/patient/individualscreening/Image.svg",
+        },
+      ],
+      preScreeningDetails: {
+        referredFrom: "Private Clinic",
+        referringDoctor: "Dr. Lee",
+        referralReason: "Chronic headache",
+        chiefComplaint: "Headache",
+        consultationDate: "2025-03-20",
+        diagnosisDate: "2025-03-25",
+      },
+      diagnosis: ["Clinical Investigation"],
+      multiplePrimaries: ["2"],
+      primarySites: ["Brain"],
+      laterality: "right",
+      histology: "Glioblastoma",
+      staging: "Distant Metastasis",
+      tnm: { t: "3", n: "2", m: "1" },
+      metastasisSites: ["bone", "brainMetastasis"],
+      finalDiagnosis: "Advanced brain tumor",
+      icd10Code: "C71.9",
+      treatment: {
+        purpose: "Palliative Only",
+        primaryAssistance: "Radiotherapy",
+        assistanceDate: "2025-04-20",
+        adjuvant: ["Radiotherapy"],
+        adjuvantOther: "",
+        otherSources: ["Chemotherapy"],
+        otherSourcesOther: "Experimental drug",
+      },
     },
   ];
 
@@ -110,8 +178,10 @@ const IndividualScreening = () => {
   });
 
   const handleViewClick = (patientId) => {
-    navigate(`/Admin/patient/view/AdminIndividualScreeningView`);
-    // navigate(`/Admin/patient/view/AdminPatientDetails/${patientId}`);
+    const selected = tableData.find((item) => item.id === patientId);
+    navigate(`/Admin/patient/view/AdminIndividualScreeningView`, {
+      state: { record: selected },
+    });
   };
 
   // Modal confirm handler

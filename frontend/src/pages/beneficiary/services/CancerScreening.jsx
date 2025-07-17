@@ -7,12 +7,12 @@ const screeningOptions = [
     description:
       "One-on-one medical evaluation for persons experiencing symptoms or with high cancer risk (family history, genetic factors). Includes doctor consultations, targeted tests (e.g., mammograms, PSA tests), and personalized results review.",
     features: [
-      "Tailored tests based on your symptoms/risk",
+      "Tailored tests based on your symptoms / risk",
       "Physician-guided process",
       "Private results with counseling",
     ],
     icon: "/src/assets/images/patient/services/cancerscreening/individualscreeningicon.png",
-    link: "../../templates/registration/registrationStep4A.html",
+    link: "/Beneficiary/services/cancer-screening/individual-screening-req",
     isLink: true,
   },
   {
