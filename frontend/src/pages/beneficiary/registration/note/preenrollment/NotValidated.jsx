@@ -11,11 +11,10 @@ const NotValidated = () => {
         alt="RAFI LOGO"
       />
 
-      <h2 className="text-5xl font-bold text-center ">
-        {fullName}, your pre-enrollment is still pending
-        <br />
+      <h2 className="text-5xl font-bold text-center border ">
+        {fullName}, your pre-enrollment is still
         <span className="flex items-center justify-center gap-2">
-          for validation
+          pending for validation
           <img src="/images/warning.png" className="h-[40px]" alt="RAFI LOGO" />
         </span>
       </h2>

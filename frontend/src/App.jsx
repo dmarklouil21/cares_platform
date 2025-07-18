@@ -43,6 +43,11 @@ import BeneficiaryApplicationStatus from "./pages/beneficiary/applicationstatus/
 // ----------- Application actions ------------------
 import BeneficiaryApplicationView from "./pages/beneficiary/applicationstatus/view/ViewApplication";
 
+// ----------- Services: Cancer Screening ------------------
+import BeneficiaryIndividualScreeningReq from "./pages/beneficiary/services/pages/cancerscreening/Requirements";
+import BeneficiaryIndividualScreening from "./pages/beneficiary/services/pages/cancerscreening/IndividualScreening";
+import BeneficiaryPreScreeningForm from "./pages/beneficiary/services/pages/cancerscreening/PreScreeningForm";
+
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -130,10 +135,21 @@ const App = () => {
           >
             <Route index element={<BeneficiaryHomePage />} />
             <Route path="services">
-              <Route
-                path="cancer-screening"
-                element={<BeneficiaryCancerScreening />}
-              />
+              <Route path="cancer-screening">
+                <Route index element={<BeneficiaryCancerScreening />} />
+                <Route
+                  path="individual-screening-req"
+                  element={<BeneficiaryIndividualScreeningReq />}
+                />
+                <Route
+                  path="individual-screening"
+                  element={<BeneficiaryIndividualScreening />}
+                />
+                <Route
+                  path="pre-screening-form"
+                  element={<BeneficiaryPreScreeningForm />}
+                />
+              </Route>
               <Route path="cancer-management" element={<CancerManagement />} />
               <Route path="survivorship" element={<Survivorship />} />
             </Route>
