@@ -21,12 +21,13 @@ import ResetPassword from "./pages/beneficiary/login/resetpassword";
 // ----------- ADMIN SIDE ------------------
 import AdminDashboard from "./pages/admin/dashboard/Dashboard";
 import AdminPreEnrollment from "./pages/admin/patient/PreEnrollment";
-import AdminIndividualScreening from "./pages/admin/patient/IndividualScreening";
+import AdminIndividualScreening from "./pages/admin/cancerscreening/IndividualScreening";
 import AdminUserManagement from "./pages/admin/usermanagement/UserManagement";
+import AdminScreeningRequest from "./pages/admin/cancerscreening/ScreeningRequest";
 
 // ----------- ADMIN VIEW SIDE ------------------
 import AdminPreenrollmentDetails from "./pages/admin/patient/view/PreenrollmentView";
-import AdminIndividualScreeningView from "./pages/admin/patient/view/IndividualScreeningView";
+import AdminIndividualScreeningView from "./pages/admin/cancerscreening/view/IndividualScreeningView";
 
 // ----------- User Management actions ------------------
 import AdminManagementAddUser from "./pages/admin/usermanagement/add/AddUser";
@@ -39,9 +40,13 @@ import BeneficiaryCancerScreening from "./pages/beneficiary/services/CancerScree
 import CancerManagement from "./pages/beneficiary/services/CancerManagement";
 import Survivorship from "./pages/beneficiary/services/Survivorship";
 import BeneficiaryApplicationStatus from "./pages/beneficiary/applicationstatus/ApplicationStatus";
+import BeneficiaryIndividualScreeningStatus from "./pages/beneficiary/individualscreeningstatus/IndividualScreeningStatus";
 
 // ----------- Application actions ------------------
 import BeneficiaryApplicationView from "./pages/beneficiary/applicationstatus/view/ViewApplication";
+
+// ----------- IndividualScreeningStatus actions ------------------
+import BeneficiaryIndividualScreeningStatusView from "./pages/beneficiary/individualscreeningstatus/view/ViewIndividualStatus";
 
 // ----------- Services: Cancer Screening ------------------
 import BeneficiaryIndividualScreeningReq from "./pages/beneficiary/services/pages/cancerscreening/Requirements";
@@ -101,19 +106,10 @@ const App = () => {
                 path="AdminPreEnrollment"
                 element={<AdminPreEnrollment />}
               />
-              <Route
-                path="AdminIndividualScreening"
-                element={<AdminIndividualScreening />}
-              />
               <Route path="view">
                 <Route
                   path="AdminPreenrollmentDetails/:beneficiary_id"
                   element={<AdminPreenrollmentDetails />}
-                />
-
-                <Route
-                  path="AdminIndividualScreeningView"
-                  element={<AdminIndividualScreeningView />}
                 />
               </Route>
             </Route>
@@ -123,6 +119,22 @@ const App = () => {
               <Route path="add-user" element={<AdminManagementAddUser />} />
               <Route path="view-user" element={<AdminManagementViewUser />} />
               <Route path="edit-user" element={<AdminManagementEditUser />} />
+            </Route>
+            <Route path="cancerscreening">
+              <Route
+                path="AdminIndividualScreening"
+                element={<AdminIndividualScreening />}
+              />
+              <Route
+                path="AdminScreeningRequest"
+                element={<AdminScreeningRequest />}
+              />
+              <Route path="view">
+                <Route
+                  path="AdminIndividualScreeningView"
+                  element={<AdminIndividualScreeningView />}
+                />
+              </Route>
             </Route>
           </Route>
           <Route
@@ -162,6 +174,13 @@ const App = () => {
               <Route
                 path="application-view"
                 element={<BeneficiaryApplicationView />}
+              />
+            </Route>
+            <Route path="individualscreeningstatus">
+              <Route index element={<BeneficiaryIndividualScreeningStatus />} />
+              <Route
+                path="individualstatus-view"
+                element={<BeneficiaryIndividualScreeningStatusView />}
               />
             </Route>
           </Route>

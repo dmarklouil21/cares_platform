@@ -92,3 +92,7 @@ tr:not(.bg-gray-100) td:nth-child(2) {
     print-color-adjust: exact !important;
   }
 }
+.custom-scrollbar {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #fff transparent; /* thumb color and track color */
+}
