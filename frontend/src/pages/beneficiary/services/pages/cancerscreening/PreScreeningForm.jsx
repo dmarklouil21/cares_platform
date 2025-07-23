@@ -1,9 +1,14 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 
 const PreScreeningForm = () => {
+  const location = useLocation();
+  const { formValues, uploadedFiles } = location.state || {};
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [formData, setFormData] = useState({});
+
+  console.log("Received form values:", formValues);
+  console.log("Received uploaded files:", uploadedFiles);
 
   const handleSubmit = (e) => {
     e.preventDefault();
