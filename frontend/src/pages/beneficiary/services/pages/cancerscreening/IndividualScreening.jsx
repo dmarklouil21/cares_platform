@@ -1,12 +1,13 @@
-import React, { useRef, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useRef, useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const IndividualScreening = () => {
+  const navigate = useNavigate();
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [formValues, setFormValues] = useState({
     screeningprocedure: "",
-    proceduredetials: "",
-    cancetsite: "",
+    proceduredetails: "",
+    cancersite: "",
   });
   const fileInputRef = useRef();
 
@@ -63,8 +64,14 @@ const IndividualScreening = () => {
   const handleContinue = (e) => {
     e.preventDefault();
     // Navigation logic remains the same
-    window.location.href =
-      "/Beneficiary/services/cancer-screening/pre-screening-form";
+    /* window.location.href =
+      "/Beneficiary/services/cancer-screening/pre-screening-form"; */
+    navigate("/Beneficiary/services/cancer-screening/pre-screening-form", {
+      state: {
+        formValues,
+        uploadedFiles,
+      },
+    });
   };
 
   return (
@@ -105,6 +112,7 @@ const IndividualScreening = () => {
                 className="w-[85%] p-3 border border-gray2 rounded-md"
                 value={formValues.screeningprocedure}
                 onChange={handleInputChange}
+                required
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -117,6 +125,7 @@ const IndividualScreening = () => {
                 className="w-[85%] p-3 border border-gray2 rounded-md"
                 value={formValues.proceduredetials}
                 onChange={handleInputChange}
+                required
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -129,6 +138,7 @@ const IndividualScreening = () => {
                 className="w-[85%] p-3 border border-gray2 rounded-md"
                 value={formValues.cancetsite}
                 onChange={handleInputChange}
+                required
               />
             </div>
           </div>
@@ -158,6 +168,7 @@ const IndividualScreening = () => {
                 multiple
                 className="hidden"
                 onChange={handleFileChange}
+                required
               />
 
               <div className="bg-primary p-2 rounded-full">

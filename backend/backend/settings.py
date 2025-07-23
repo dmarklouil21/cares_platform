@@ -47,10 +47,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',  # Django REST Framework
     'corsheaders',  # CORS headers for API
+    'apps.patient',
     'apps.user',
     'apps.pre_enrollment',
     'apps.registration',
     'apps.user_management',
+    'apps.cancer_screening',
 ]
 
 MIDDLEWARE = [
