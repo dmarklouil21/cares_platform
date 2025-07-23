@@ -34,6 +34,12 @@ const BeneficiarySidebar = () => {
       path: "/Beneficiary/applicationstatus",
       arrow: "",
     },
+    {
+      name: "Individual Screening status",
+      icon: "/src/assets/images/navigation/admin/patient.svg",
+      path: "/Beneficiary/individualscreeningstatus",
+      arrow: "",
+    },
   ];
 
   const servicesSubNav = [
@@ -132,7 +138,7 @@ const BeneficiarySidebar = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen justify-between px-3 py-7 bg-primary w-[25%]">
+    <div className="flex flex-col h-screen justify-between px-3 py-7 bg-primary w-[30%]">
       <div className="flex justify-start items-end gap-3">
         <img
           src="/images/logo_white_text.png"
@@ -144,8 +150,8 @@ const BeneficiarySidebar = () => {
           Platform
         </h1>
       </div>
-      <div className="h-[80%] flex flex-col justify-between ">
-        <ul>
+      <div className="h-[80%] flex flex-col justify-between overflow-auto">
+        <ul className="flex flex-col overflow-auto custom-scrollbar  flex-1">
           {nav.map((item, index) => {
             const isActive = activeNav === item.name;
             const isExpandable =

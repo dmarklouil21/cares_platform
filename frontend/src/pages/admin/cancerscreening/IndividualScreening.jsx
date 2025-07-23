@@ -58,7 +58,7 @@ const IndividualScreening = () => {
     {
       id: "001",
       name: "Juan Dela Cruz",
-      submissionDate: "2025-04-12",
+      Dateapproved: "2025-04-12",
       lgu: "Municipality of Argao",
       status: "Pending",
       screeningProcedure: "Mammogram",
@@ -78,7 +78,7 @@ const IndividualScreening = () => {
         {
           name: "BrainScan.jpg",
           type: "image",
-          url: "/src/assets/images/admin/patient/individualscreening/Image.svg",
+          url: "/src/assets/images/admin/cancerscreening/individualscreening/Image.svg",
         },
       ],
       preScreeningDetails: {
@@ -112,7 +112,7 @@ const IndividualScreening = () => {
     {
       id: "002",
       name: "Maria Santos",
-      submissionDate: "2025-04-10",
+      Dateapproved: "2025-04-10",
       lgu: "Municipality of Argao",
       status: "Verified",
       screeningProcedure: "MRI",
@@ -132,7 +132,7 @@ const IndividualScreening = () => {
         {
           name: "BrainScan.jpg",
           type: "image",
-          url: "/src/assets/images/admin/patient/individualscreening/Image.svg",
+          url: "/src/assets/images/admin/cancerscreening/individualscreening/Image.svg",
         },
       ],
       preScreeningDetails: {
@@ -172,14 +172,14 @@ const IndividualScreening = () => {
       !searchQuery ||
       record.id.includes(searchQuery) ||
       record.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const dateMatch = !dateFilter || record.submissionDate === dateFilter;
+    const dateMatch = !dateFilter || record.Dateapproved === dateFilter;
 
     return statusMatch && searchMatch && dateMatch;
   });
 
   const handleViewClick = (patientId) => {
     const selected = tableData.find((item) => item.id === patientId);
-    navigate(`/Admin/patient/view/AdminIndividualScreeningView`, {
+    navigate(`/Admin/cancerscreening/view/AdminIndividualScreeningView`, {
       state: { record: selected },
     });
   };
@@ -191,8 +191,8 @@ const IndividualScreening = () => {
         let actionWord =
           modalAction.action === "verify"
             ? "Verified"
-            : modalAction.action === "reject"
-            ? "Rejected"
+            : modalAction.action === "cancel"
+            ? "Canceled"
             : "";
         setNotification(`${actionWord} Successfully`);
         setTimeout(() => setNotification(""), 3500);
@@ -216,8 +216,8 @@ const IndividualScreening = () => {
       setModalText("Confirm verification?");
       setModalAction({ id, action });
       setModalOpen(true);
-    } else if (action === "reject") {
-      setModalText("Confirm Rejection?");
+    } else if (action === "cancel") {
+      setModalText("Confirm Cancelation?");
       setModalAction({ id, action });
       setModalOpen(true);
     }
@@ -247,7 +247,7 @@ const IndividualScreening = () => {
 
           <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-3">
             <p className="text-md font-semibold text-yellow">
-              Individual Screening Applicant List
+              Individual Screening
             </p>
 
             <div className="flex justify-between flex-wrap gap-3">
@@ -290,7 +290,7 @@ const IndividualScreening = () => {
                     </th>
                     <th className="w-[20%] text-sm py-3">Name</th>
                     <th className="w-[15%] text-center text-sm py-3">
-                      Submission Date
+                      Date Approved
                     </th>
                     <th className="w-[15%] text-center text-sm py-3">LGU</th>
                     <th className="w-[13.4%] text-center text-sm py-3">
@@ -325,7 +325,7 @@ const IndividualScreening = () => {
                           {item.name}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {new Date(item.submissionDate).toLocaleDateString(
+                          {new Date(item.Dateapproved).toLocaleDateString(
                             "en-US",
                             {
                               year: "numeric",
@@ -349,17 +349,17 @@ const IndividualScreening = () => {
                           >
                             View
                           </button>
-                          <button
+                          {/* <button
                             className="text-white py-1 px-3 rounded-md shadow bg-green-500"
                             onClick={() => handleActionClick(item.id, "verify")}
                           >
                             Verify
-                          </button>
+                          </button> */}
                           <button
                             className="text-white py-1 px-3 rounded-md shadow bg-red-500"
-                            onClick={() => handleActionClick(item.id, "reject")}
+                            onClick={() => handleActionClick(item.id, "cancel")}
                           >
-                            Reject
+                            Cancel
                           </button>
                         </td>
                       </tr>

@@ -8,6 +8,7 @@ const AdminSidebar = () => {
   const [isSampleOpen, setIsSampleOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Dashboard");
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isCancerScreeningOpen, setIsCancerScreeningOpen] = useState(false);
 
   const nav = [
     {
@@ -28,17 +29,31 @@ const AdminSidebar = () => {
       path: "/Admin/UserManagement",
       arrow: "",
     },
+    {
+      name: "Cancer Screening",
+      icon: "/src/assets/images/navigation/admin/cancerscreeningicon.svg",
+      path: "",
+      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+    },
   ];
 
   const patientSubNav = [
     { name: "Patient Master List", path: "/Admin/PatientMasterList" },
-    {
-      name: "Individual Screening",
-      path: "/Admin/patient/AdminIndividualScreening",
-    },
-    { name: "Mass Screening", path: "/Admin/MassScreening" },
+
     { name: "Pre-Enrollment", path: "/Admin/patient/AdminPreEnrollment" },
     { name: "Cancer Management", path: "/Admin/CancerManagement" },
+  ];
+
+  const cancerscreeningSubNav = [
+    {
+      name: "Individual Screening",
+      path: "/Admin/cancerscreening/AdminIndividualScreening",
+    },
+    {
+      name: "Screening Request",
+      path: "/Admin/cancerscreening/AdminScreeningRequest",
+    },
+    { name: "Mass Screening", path: "/Admin/MassScreening" },
   ];
 
   const sampleSubNav = [
@@ -67,6 +82,7 @@ const AdminSidebar = () => {
       setActiveNav("Patient");
       setIsPatientOpen(true);
       setIsSampleOpen(false);
+      setIsCancerScreeningOpen(false);
       return;
     }
 
@@ -77,6 +93,18 @@ const AdminSidebar = () => {
       setActiveNav("Sample");
       setIsSampleOpen(true);
       setIsPatientOpen(false);
+      setIsCancerScreeningOpen(false);
+      return;
+    }
+
+    const activeCancerScreening = cancerscreeningSubNav.find((item) =>
+      path.startsWith(item.path)
+    );
+    if (activeCancerScreening) {
+      setActiveNav("Cancer Screening");
+      setIsCancerScreeningOpen(true);
+      setIsPatientOpen(false);
+      setIsSampleOpen(false);
       return;
     }
 
@@ -85,6 +113,7 @@ const AdminSidebar = () => {
       setActiveNav(activeMainNav.name);
       setIsPatientOpen(false);
       setIsSampleOpen(false);
+      setIsCancerScreeningOpen(false);
     }
   }, [location.pathname]);
 
@@ -98,6 +127,7 @@ const AdminSidebar = () => {
     if (isTransitioning) return;
     setIsPatientOpen((prev) => !prev);
     setIsSampleOpen(false);
+    setIsCancerScreeningOpen(false);
     setActiveNav("Patient");
   };
 
@@ -105,7 +135,16 @@ const AdminSidebar = () => {
     if (isTransitioning) return;
     setIsSampleOpen((prev) => !prev);
     setIsPatientOpen(false);
+    setIsCancerScreeningOpen(false);
     setActiveNav("Sample");
+  };
+
+  const toggleCancerScreening = () => {
+    if (isTransitioning) return;
+    setIsCancerScreeningOpen((prev) => !prev);
+    setIsPatientOpen(false);
+    setIsSampleOpen(false);
+    setActiveNav("Cancer Screening");
   };
 
   const handleNavClick = (name) => {
@@ -115,17 +154,20 @@ const AdminSidebar = () => {
       togglePatient();
     } else if (name === "Sample") {
       toggleSample();
+    } else if (name === "Cancer Screening") {
+      toggleCancerScreening();
     } else {
       setActiveNav(name);
       setIsPatientOpen(false);
       setIsSampleOpen(false);
+      setIsCancerScreeningOpen(false);
       const targetPath = nav.find((item) => item.name === name)?.path;
       if (targetPath) handleNavigation(targetPath);
     }
   };
 
   return (
-    <div className="flex flex-col h-screen justify-start gap-20 px-3 py-7 bg-primary w-[25%]">
+    <div className="flex flex-col h-screen justify-start gap-20 px-3 py-7 bg-primary w-[30%]">
       <div className="flex justify-start items-end gap-3">
         <img
           src="/images/logo_white_text.png"
@@ -137,16 +179,30 @@ const AdminSidebar = () => {
           Platform
         </h1>
       </div>
-      <div className="h-[80%] flex flex-col justify-between ">
-        <ul>
+      <div className="h-[80%] flex flex-col justify-between  overflow-auto">
+        <ul className="flex flex-col overflow-auto custom-scrollbar  flex-1">
           {nav.map((item, index) => {
             const isActive = activeNav === item.name;
             const isExpandable =
-              item.name === "Patient" || item.name === "Sample";
+              item.name === "Patient" ||
+              item.name === "Sample" ||
+              item.name === "Cancer Screening";
             const isOpen =
-              item.name === "Patient" ? isPatientOpen : isSampleOpen;
+              item.name === "Patient"
+                ? isPatientOpen
+                : item.name === "Sample"
+                ? isSampleOpen
+                : item.name === "Cancer Screening"
+                ? isCancerScreeningOpen
+                : false;
             const subNav =
-              item.name === "Patient" ? patientSubNav : sampleSubNav;
+              item.name === "Patient"
+                ? patientSubNav
+                : item.name === "Sample"
+                ? sampleSubNav
+                : item.name === "Cancer Screening"
+                ? cancerscreeningSubNav
+                : [];
 
             return (
               <li key={index} className="flex flex-col gap-2">

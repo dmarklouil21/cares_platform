@@ -48,7 +48,7 @@ const IndividualScreeningView = () => {
       <div className="py-6 px-10 flex flex-col flex-1">
         <div className="flex justify-between p-3 items-center">
           <h2 className="text-xl font-semibold">{form?.name || ""}</h2>
-          <Link to={"/Admin/patient/AdminIndividualScreening"}>
+          <Link to={"/Admin/cancerscreening/AdminIndividualScreening"}>
             <img
               src="/images/back.png"
               alt="Back button icon"
@@ -125,13 +125,13 @@ const IndividualScreeningView = () => {
                       />
                     ) : file.type === "pdf" ? (
                       <img
-                        src="/src/assets/images/admin/patient/individualscreening/pdf.svg"
+                        src="/src/assets/images/admin/cancerscreening/individualscreening/pdf.svg"
                         alt="PDF"
                         className="w-12 h-12 mb-2"
                       />
                     ) : file.type === "doc" ? (
                       <img
-                        src="/src/assets/images/admin/patient/individualscreening/docs.svg"
+                        src="/src/assets/images/admin/cancerscreening/individualscreening/docs.svg"
                         alt="DOC"
                         className="w-12 h-12 mb-2"
                       />
