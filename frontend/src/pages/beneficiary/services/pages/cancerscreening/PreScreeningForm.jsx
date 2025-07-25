@@ -3,42 +3,54 @@ import { useState } from "react";
 
 const PreScreeningForm = () => {
   const location = useLocation();
-  const { formValues, uploadedFiles } = location.state || {};
+  const { screening_procedure, uploadedFiles } = location.state || {};
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [formData, setFormData] = useState({});
-
-  console.log("Received form values:", formValues);
-  console.log("Received uploaded files:", uploadedFiles);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Get all form data
     const form = e.target;
     const formElements = form.elements;
     const data = {};
+    
+    // Checkbox groups to collect
+    const checkboxGroups = [
+      "diagnosis_basis",
+      "primary_sites",
+      "distant_metastasis_sites",
+      "adjuvant_treatments_received",
+      "other_source_treatments"
+    ];
 
-    // Loop through all form elements
+    // Initialize arrays for checkbox groups
+    checkboxGroups.forEach(group => {
+      data[group] = [];
+    });
+
+    // Loop through form elements
     for (let i = 0; i < formElements.length; i++) {
       const element = formElements[i];
+      const { name, id, type, checked, value } = element;
 
-      if (element.name) {
-        if (element.type === "checkbox" || element.type === "radio") {
-          data[element.name] = element.checked;
-        } else {
-          data[element.name] = element.value;
+      if (name) {
+        const isCheckboxGroup = checkboxGroups.find(group => name.startsWith(group));
+        if (type === "checkbox" && isCheckboxGroup && checked) {
+          data[isCheckboxGroup].push(value);
+        } else if (type !== "checkbox") {
+          data[name] = value;
         }
-      } else if (element.id) {
-        // Handle elements without name but with id (like the T, N, M inputs)
-        data[element.id] = element.value;
+      } else if (id) {
+        data[id] = value; // e.g., TNM inputs
       }
     }
 
-    // Print all inputs to console
-    console.log("Form Data:", data);
-    setFormData(data);
+    const combinedData = {
+      screening_procedure,
+      uploadedFiles,
+      pre_screening_form: data,
+    };
 
-    // Show success modal
+    console.log("Pre-screening form data:", combinedData);
     setShowSuccessModal(true);
   };
 
@@ -211,7 +223,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="nonMicroscopic"
+                  name="diagnosis_basis_nonMicroscopic"
+                  value="None Microscopic"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Non Microscopic</label>
@@ -219,7 +232,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="deathCertificatesOnly"
+                  name="diagnosis_basis_deathCertificatesOnly"
+                  value="Death Certificates Only"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Death Certificates Only</label>
@@ -227,7 +241,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="clinicalInvestigation"
+                  name="diagnosis_basis_clinicalInvestigation"
+                  value="Clinical Investigation"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Clinical Investigation</label>
@@ -235,7 +250,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="specificTumorMarkers"
+                  name="diagnosis_basis_specificTumorMarkers"
+                  value="Specific Tumor Markers"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Specific Tumors Makers</label>
@@ -243,7 +259,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="microscopic"
+                  name="diagnosis_basis_microscopic"
+                  value="Microscopic"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Microscopic</label>
@@ -251,7 +268,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="cytologyHematology"
+                  name="diagnosis_basis_cytologyHematology"
+                  value="Cytology or Hematology"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Cytology or Hermotology</label>
@@ -259,7 +277,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="histologyMetastasis"
+                  name="diagnosis_basis_histologyMetastasis"
+                  value="Histology of Metastasis"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Histology of Metastasis</label>
@@ -267,7 +286,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="histologyPrimary"
+                  name="diagnosis_basis_histologyPrimary"
+                  value="Histology of Primary"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Histology of Primary</label>
@@ -281,6 +301,7 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   name="primary1"
+                  value="1"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>1</label>
@@ -289,6 +310,7 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   name="primary2"
+                  value="2"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>2</label>
@@ -297,6 +319,7 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   name="primary3"
+                  value="3"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>3</label>
@@ -309,7 +332,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="colon"
+                  name="primary_sites_colon"
+                  value="Colon"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Colon</label>
@@ -317,7 +341,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="brain"
+                  name="primary_sites_brain"
+                  value="Brain"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Brain</label>
@@ -325,7 +350,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="bladder"
+                  name="primary_sites_bladder"
+                  value="Bladder"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Bladder</label>
@@ -333,7 +359,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="skin"
+                  name="primary_sites_skin"
+                  value="Skin"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Skin</label>
@@ -341,7 +368,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="kidney"
+                  name="primary_sites_kidney"
+                  value="Kidney"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Kidney</label>
@@ -349,7 +377,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="testis"
+                  name="primary_sites_testis"
+                  value="Testis"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Testis</label>
@@ -357,7 +386,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="liver"
+                  name="primary_sites_liver"
+                  value="Liver"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Liver</label>
@@ -365,7 +395,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="corpusUteri"
+                  name="primary_sites_corpusUteri"
+                  value="Corpus Uteri"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Corpus Uteri</label>
@@ -373,7 +404,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="urinary"
+                  name="primary_sites_urinary"
+                  value="Urinary"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Urinary</label>
@@ -381,7 +413,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="prostate"
+                  name="primary_sites_prostate"
+                  value="Prostate"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Prostate</label>
@@ -389,7 +422,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="nasopharnyx"
+                  name="primary_sites_nasopharnyx"
+                  value="Nasopharnyx"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Nasopharnyx</label>
@@ -397,7 +431,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="oralCavity"
+                  name="primary_sites_oralCavity"
+                  value="Oral Cavity"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Oral Cavity</label>
@@ -405,7 +440,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="ovary"
+                  name="primary_sites_ovary"
+                  value="Ovary"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Ovary</label>
@@ -413,7 +449,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="lung"
+                  name="primary_sites_lung"
+                  value="Lung"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Lung</label>
@@ -421,7 +458,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="gull"
+                  name="primary_sites_gull"
+                  value="Gull"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Gull</label>
@@ -429,7 +467,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="thyroid"
+                  name="primary_sites_thyroid"
+                  value="Thyroid"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Thyroid</label>
@@ -437,7 +476,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="rectum"
+                  name="primary_sites_rectum"
+                  value="Rectum"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Rectum</label>
@@ -445,7 +485,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="blood"
+                  name="primary_sites_blood"
+                  value="Blood"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Blood</label>
@@ -453,7 +494,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="stomach"
+                  name="primary_sites_stomach"
+                  value="Stomach"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Stomach</label>
@@ -461,7 +503,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="pancreas"
+                  name="primary_sites_pancreas"
+                  value="Pancreas"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Pancreas</label>
@@ -469,7 +512,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="esophagus"
+                  name="primary_sites_esophagus"
+                  value="Esophagus"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Esophagus</label>
@@ -477,7 +521,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="breast"
+                  name="primary_sites_breast"
+                  value="Breast"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Breast</label>
@@ -485,7 +530,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="uterineCervix"
+                  name="primary_sites_uterineCervix"
+                  value="Uterine Cervix"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Uterine Cervix</label>
@@ -510,6 +556,7 @@ const PreScreeningForm = () => {
                   type="radio"
                   id="left"
                   name="laterality"
+                  value="Left"
                   className="peer hidden"
                 />
                 <label
@@ -523,6 +570,7 @@ const PreScreeningForm = () => {
                   type="radio"
                   id="right"
                   name="laterality"
+                  value="Right"
                   className="peer hidden"
                 />
                 <label
@@ -536,6 +584,7 @@ const PreScreeningForm = () => {
                   type="radio"
                   id="notsated"
                   name="laterality"
+                  value="Not stated"
                   className="peer hidden"
                 />
                 <label
@@ -549,6 +598,7 @@ const PreScreeningForm = () => {
                   type="radio"
                   id="bilateral"
                   name="laterality"
+                  value="Bilateral"
                   className="peer hidden"
                 />
                 <label
@@ -562,6 +612,7 @@ const PreScreeningForm = () => {
                   type="radio"
                   id="mild"
                   name="laterality"
+                  value="Mild"
                   className="peer hidden"
                 />
                 <label
@@ -634,12 +685,13 @@ const PreScreeningForm = () => {
             </div>
           </div>
           <div className="flex flex-col gap-5">
-            <p className="text-[#6B7280]">Primary Sites</p>
+            <p className="text-[#6B7280]">Sites of Distant Metastasis</p>
             <div className="grid grid-cols-3 gap-x-10 gap-y-5">
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="none"
+                  name="distant_metastasis_sites_none"
+                  value="None"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>None</label>
@@ -647,7 +699,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="distantLymphNodes"
+                  name="distant_metastasis_sites_distantLymphNodes"
+                  value="Destant Lymph Nodes"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Destant Lymph Nodes</label>
@@ -655,7 +708,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="bone"
+                  name="distant_metastasis_sites_bone"
+                  value="Bone"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Bone</label>
@@ -663,7 +717,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="liverPleura"
+                  name="distant_metastasis_sites_liverPleura"
+                  value="Liver(Pleura)"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Liver(Pleura)</label>
@@ -671,7 +726,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="kidneyMetastasis"
+                  name="distant_metastasis_sites_kidneyMetastasis"
+                  value="Kidney"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Kidney</label>
@@ -679,7 +735,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="brainMetastasis"
+                  name="distant_metastasis_sites_brainMetastasis"
+                  value="Brain"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Brain</label>
@@ -687,7 +744,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="ovaryMetastasis"
+                  name="distant_metastasis_sites_ovaryMetastasis"
+                  value="Ovary"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Ovary</label>
@@ -695,7 +753,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="skinMetastasis"
+                  name="distant_metastasis_sites_skinMetastasis"
+                  value="Skin"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Skin</label>
@@ -703,7 +762,8 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="prostateMetastasis"
+                  name="distant_metastasis_sites_prostateMetastasis"
+                  value="Prostate"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label>Prostate</label>
@@ -711,10 +771,11 @@ const PreScreeningForm = () => {
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
                   type="checkbox"
-                  name="unknownMetastasis"
+                  name="distant_metastasis_sites_unknownMetastasis"
+                  value="Unknown"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Unkwon</label>
+                <label>Unknown</label>
               </div>
             </div>
             <div>
@@ -859,7 +920,8 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   id="surgery"
-                  name="surgery"
+                  name="adjuvant_treatments_received_surgery"
+                  value="Surgery"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label htmlFor="surgery" className="text-[#374151] text-sm">
@@ -870,7 +932,8 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   id="radiotherapy"
-                  name="radiotherapy"
+                  name="adjuvant_treatments_received_radiotherapy"
+                  value="Radiotherapy"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label
@@ -884,7 +947,8 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   id="chemotherapy"
-                  name="chemotherapy"
+                  name="adjuvant_treatments_received_chemotherapy"
+                  value="Chemotherapy"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label
@@ -901,7 +965,8 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   id="immunotherapy"
-                  name="immunotherapy"
+                  name="adjuvant_treatments_received_immunotherapy"
+                  value="Immunotherapy/Cytrotherapy"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label
@@ -915,7 +980,8 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   id="hormonal"
-                  name="hormonal"
+                  name="adjuvant_treatments_received_hormonal"
+                  value="Hormonal"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label htmlFor="hormonal" className="text-[#374151] text-sm">
@@ -926,7 +992,8 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   id="unknown"
-                  name="unknownTreatment"
+                  name="adjuvant_treatments_received_unknownTreatment"
+                  value="Unknown"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label htmlFor="unknown" className="text-[#374151] text-sm">
@@ -955,7 +1022,8 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   id="surgeryOther"
-                  name="surgeryOther"
+                  name="other_source_treatments_surgeryOther"
+                  value="Surgery"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label
@@ -969,7 +1037,8 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   id="radiotherapyOther"
-                  name="radiotherapyOther"
+                  name="other_source_treatments_radiotherapyOther"
+                  value="Radiotherapy"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label
@@ -983,7 +1052,8 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   id="chemotherapyOther"
-                  name="chemotherapyOther"
+                  name="other_source_treatments_chemotherapyOther"
+                  value="Chemotherapy"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label
@@ -1000,7 +1070,8 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   id="immunotherapyOther"
-                  name="immunotherapyOther"
+                  name="other_source_treatments_immunotherapyOther"
+                  value="Immunotherapy/Cytrotherapy"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label
@@ -1014,7 +1085,8 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   id="hormonalOther"
-                  name="hormonalOther"
+                  name="other_source_treatments_hormonalOther"
+                  value="Hormonal"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label
@@ -1028,7 +1100,8 @@ const PreScreeningForm = () => {
                 <input
                   type="checkbox"
                   id="unknownOther"
-                  name="unknownOther"
+                  name="other_source_treatments_unknownOther"
+                  value="Unknown"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label

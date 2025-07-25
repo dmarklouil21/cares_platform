@@ -1,36 +1,21 @@
 import { useRef, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import api from "src/api/axiosInstance";
+import { useAuth } from "src/context/AuthContext";
 
 const IndividualScreening = () => {
   const navigate = useNavigate();
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [formValues, setFormValues] = useState({
-    screeningprocedure: "",
-    proceduredetails: "",
-    cancersite: "",
+  const [screening_procedure, setScreening_procedure] = useState({
+    screening_procedure_name: "",
+    procedure_details: "",
+    cancer_site: "",
   });
   const fileInputRef = useRef();
 
-  // Print form values whenever they change
-  useEffect(() => {
-    console.log("Current form values:", formValues);
-  }, [formValues]);
-
-  // Print uploaded files whenever they change
-  useEffect(() => {
-    console.log(
-      "Current uploaded files:",
-      uploadedFiles.map((file) => ({
-        name: file.file.name,
-        type: file.file.type,
-        size: file.file.size,
-      }))
-    );
-  }, [uploadedFiles]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormValues((prev) => ({
+    setScreening_procedure((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -68,7 +53,7 @@ const IndividualScreening = () => {
       "/Beneficiary/services/cancer-screening/pre-screening-form"; */
     navigate("/Beneficiary/services/cancer-screening/pre-screening-form", {
       state: {
-        formValues,
+        screening_procedure,
         uploadedFiles,
       },
     });
@@ -106,11 +91,11 @@ const IndividualScreening = () => {
               <label htmlFor="screeningprocedure">Screening Procedure:</label>
               <input
                 type="text"
-                name="screeningprocedure"
-                id="screeningprocedure"
+                name="screening_procedure_name"
+                id="screening_procedure_name"
                 placeholder="ex: Mammogram, MRI"
                 className="w-[85%] p-3 border border-gray2 rounded-md"
-                value={formValues.screeningprocedure}
+                value={screening_procedure.screening_procedure_name}
                 onChange={handleInputChange}
                 required
               />
@@ -119,11 +104,11 @@ const IndividualScreening = () => {
               <label htmlFor="proceduredetials">Procedure Details</label>
               <input
                 type="text"
-                name="proceduredetials"
-                id="proceduredetials"
+                name="procedure_details"
+                id="procedure_details"
                 placeholder="ex: Breast screening due to palpable mass"
                 className="w-[85%] p-3 border border-gray2 rounded-md"
-                value={formValues.proceduredetials}
+                value={screening_procedure.procedure_details}
                 onChange={handleInputChange}
                 required
               />
@@ -132,11 +117,11 @@ const IndividualScreening = () => {
               <label htmlFor="cancetsite">Cancer Site</label>
               <input
                 type="text"
-                name="cancetsite"
-                id="cancetsite"
+                name="cancer_site"
+                id="cancer_site"
                 placeholder="ex: Breast"
                 className="w-[85%] p-3 border border-gray2 rounded-md"
-                value={formValues.cancetsite}
+                value={screening_procedure.cancer_site}
                 onChange={handleInputChange}
                 required
               />

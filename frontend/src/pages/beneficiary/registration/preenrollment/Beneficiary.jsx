@@ -1,5 +1,9 @@
 import { use, useEffect, useState } from "react";
-// Notification component for showing popup messages
+import barangayData from "src/constants/barangayData";
+import { useNavigate } from "react-router-dom";
+import api from "src/api/axiosInstance";
+import { useAuth } from "src/context/AuthContext";
+
 function Notification({ message, onClose }) {
   if (!message) return null;
   return (
@@ -15,10 +19,6 @@ function Notification({ message, onClose }) {
     </div>
   );
 }
-import barangayData from "src/constants/barangayData";
-import { useNavigate } from "react-router-dom";
-import api from "src/api/axiosInstance";
-import { useAuth } from "src/context/AuthContext";
 
 export default function PatinetProfileForm() {
   const navigate = useNavigate();
