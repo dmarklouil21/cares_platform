@@ -28,6 +28,7 @@ import AdminScreeningRequest from "./pages/admin/cancerscreening/ScreeningReques
 // ----------- ADMIN VIEW SIDE ------------------
 import AdminPreenrollmentDetails from "./pages/admin/patient/view/PreenrollmentView";
 import AdminIndividualScreeningView from "./pages/admin/cancerscreening/view/IndividualScreeningView";
+import ViewAttachments from "./pages/admin/cancerscreening/view/ViewAttachments";
 
 // ----------- User Management actions ------------------
 import AdminManagementAddUser from "./pages/admin/usermanagement/add/AddUser";
@@ -134,6 +135,7 @@ const App = () => {
                   path="AdminIndividualScreeningView"
                   element={<AdminIndividualScreeningView />}
                 />
+                <Route path="ViewAttachments" element={<ViewAttachments />} />
               </Route>
             </Route>
           </Route>
