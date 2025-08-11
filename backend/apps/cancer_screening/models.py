@@ -66,7 +66,7 @@ class PreScreeningForm(models.Model):
     max_length=50,
     choices=[
       ('Left', 'Left'), ('Right', 'Right'), ('Not Stated', 'Not Stated'),
-      ('Bilateral', 'Bilateral'), ('Mid', 'Mid')
+      ('Bilateral', 'Bilateral'), ('Mild', 'Mild')
     ],
     blank=True
   )
@@ -131,25 +131,26 @@ class PreScreeningForm(models.Model):
 
 class IndividualScreening(models.Model):
   patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='individual_screening')
-  screening_procedure = models.ForeignKey(ScreeningProcedure, on_delete=models.CASCADE)
-  pre_screening_form = models.ForeignKey(PreScreeningForm, on_delete=models.CASCADE)
+  screening_procedure = models.OneToOneField(ScreeningProcedure, on_delete=models.SET_NULL, blank=True, null=True)
+  pre_screening_form = models.OneToOneField(PreScreeningForm, on_delete=models.CASCADE)
   status = models.CharField(
     max_length=50,
     choices=[
       ('Pending', 'Pending'),
-      ('Approved', 'Approved'),
+      ('Approve', 'Approve'),
+      ('LOA Generation', 'LOA Generation'),
       ('In Progress', 'In Progress'),
-      ('Completed', 'Completed')
+      ('Complete', 'Complete'),
+      ('Reject', 'Reject'),
     ],
     default='Pending'
   )
+  date_approved = models.DateField(blank=True, null=True)
   loa_generated = models.FileField(upload_to='attachments/loa/', blank=True, null=True)
-  loa_uploaded = models.FileField(upload_to='attachments/loa/', blank=True, null=True)
+  # loa_uploaded = models.FileField(upload_to='attachments/loa/', blank=True, null=True)
   uploaded_result = models.FileField(upload_to='attachments/result/', blank=True, null=True)
+  has_patient_response = models.BooleanField(default=False)
+  response_description = models.CharField(max_length=255, blank=True, null=True)
+  screening_date = models.DateField(blank=True, null=True)
   
   created_at = models.DateTimeField(auto_now_add=True)
-
-# Required Documents
-# medical_certificate = models.FileField(upload_to='attachments/medical_certificates/', blank=True, null=True)
-# laboratory_results = models.FileField(upload_to='attachments/laboratory_results/', blank=True, null=True)
-# barangay_certificate_of_indigency = models.FileField(upload_to='attachments/barangay_certificates/', blank=True, null=True)

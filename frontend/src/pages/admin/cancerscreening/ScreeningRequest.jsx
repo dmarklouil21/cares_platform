@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "src/api/axiosInstance";
 
 // Simple Modal component
 function ConfirmationModal({ open, text, onConfirm, onCancel }) {
@@ -52,137 +53,42 @@ const ScreeningRequest = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null); // {id, action}
+  const [tableData, setTableData] = useState([]);
   const navigate = useNavigate();
 
-  const tableData = [
-    {
-      id: "001",
-      name: "Juan Dela Cruz",
-      submissionDate: "2025-04-12",
-      lgu: "Municipality of Argao",
-      status: "Pending",
-      screeningProcedure: "Mammogram",
-      screeningtype: "Individual Screening",
-      procedureDetails: "Breast screening due to palpable mass",
-      cancerSite: "Breast",
-      requirements: [
-        {
-          name: "MRIReport.pdf",
-          type: "pdf",
-          url: "/files/shit.pdf",
-        },
-        {
-          name: "ClinicReferral.docx",
-          type: "doc",
-          url: "/files/Project-Adviser-Appointment-Form-EDITED.docx",
-        },
-        {
-          name: "BrainScan.jpg",
-          type: "image",
-          url: "/src/assets/images/admin/patient/individualscreening/Image.svg",
-        },
-      ],
-      preScreeningDetails: {
-        referredFrom: "Barangay Health Center",
-        referringDoctor: "Dr. Smith",
-        referralReason: "Suspicious lump",
-        chiefComplaint: "Lump in left breast",
-        consultationDate: "2025-04-01",
-        diagnosisDate: "2025-04-05",
-      },
-      diagnosis: ["Microscopic", "Histology of Primary"],
-      multiplePrimaries: ["1"],
-      primarySites: ["Breast", "Liver"],
-      laterality: "left",
-      histology: "Invasive ductal carcinoma",
-      staging: "Localized",
-      tnm: { t: "2", n: "1", m: "0" },
-      metastasisSites: ["none"],
-      finalDiagnosis: "Stage II breast cancer",
-      icd10Code: "C50.9",
-      treatment: {
-        purpose: "Curative-Complete",
-        primaryAssistance: "Chemotherapy",
-        assistanceDate: "2025-04-15",
-        adjuvant: ["Surgery", "Chemotherapy"],
-        adjuvantOther: "",
-        otherSources: ["Radiotherapy"],
-        otherSourcesOther: "",
-      },
-    },
-    {
-      id: "002",
-      name: "Maria Santos",
-      submissionDate: "2025-04-10",
-      lgu: "Municipality of Argao",
-      status: "Verified",
-      screeningProcedure: "MRI",
-      screeningtype: "Mass Screening",
-      procedureDetails: "Brain MRI for persistent headache",
-      cancerSite: "Brain",
-      requirements: [
-        {
-          name: "MRIReport.pdf",
-          type: "pdf",
-          url: "/files/shit.pdf",
-        },
-        {
-          name: "ClinicReferral.docx",
-          type: "doc",
-          url: "/files/Project-Adviser-Appointment-Form-EDITED.docx",
-        },
-        {
-          name: "BrainScan.jpg",
-          type: "image",
-          url: "/src/assets/images/admin/patient/individualscreening/Image.svg",
-        },
-      ],
-      preScreeningDetails: {
-        referredFrom: "Private Clinic",
-        referringDoctor: "Dr. Lee",
-        referralReason: "Chronic headache",
-        chiefComplaint: "Headache",
-        consultationDate: "2025-03-20",
-        diagnosisDate: "2025-03-25",
-      },
-      diagnosis: ["Clinical Investigation"],
-      multiplePrimaries: ["2"],
-      primarySites: ["Brain"],
-      laterality: "right",
-      histology: "Glioblastoma",
-      staging: "Distant Metastasis",
-      tnm: { t: "3", n: "2", m: "1" },
-      metastasisSites: ["bone", "brainMetastasis"],
-      finalDiagnosis: "Advanced brain tumor",
-      icd10Code: "C71.9",
-      treatment: {
-        purpose: "Palliative Only",
-        primaryAssistance: "Radiotherapy",
-        assistanceDate: "2025-04-20",
-        adjuvant: ["Radiotherapy"],
-        adjuvantOther: "",
-        otherSources: ["Chemotherapy"],
-        otherSourcesOther: "Experimental drug",
-      },
-    },
-  ];
+  const fetchData = async () => {
+    try {
+      const response = await api.get("/cancer-screening/individual-screening-list/?status=Pending");
+      setTableData(response.data);
+    } catch (error) {
+      console.error("Error fetching pre-enrollment requests:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+  console.log(tableData);
 
   const filteredData = tableData.filter((record) => {
     const statusMatch =
       statusFilter === "All" || record.status === statusFilter;
     const searchMatch =
       !searchQuery ||
-      record.id.includes(searchQuery) ||
-      record.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const dateMatch = !dateFilter || record.submissionDate === dateFilter;
+      record.patient.patient_id.includes(searchQuery) ||
+      record.patient.full_name.toLowerCase().includes(searchQuery.toLowerCase());
+    const dateMatch = !dateFilter || record.created_at === dateFilter;
 
     return statusMatch && searchMatch && dateMatch;
   });
 
   const handleViewClick = (patientId) => {
-    const selected = tableData.find((item) => item.id === patientId);
+    const selected = tableData.find((item) => item.patient.patient_id === patientId);
     navigate(`/Admin/cancerscreening/view/AdminIndividualScreeningView`, {
-      state: { record: selected },
+      state: { 
+        pre_screening_form: selected.pre_screening_form, 
+        screening_procedure: selected.screening_procedure
+      },
     });
   };
 
@@ -213,15 +119,27 @@ const ScreeningRequest = () => {
   };
 
   // Show modal for verify/reject
-  const handleActionClick = (id, action) => {
-    if (action === "verify") {
-      setModalText("Confirm verification?");
-      setModalAction({ id, action });
-      setModalOpen(true);
-    } else if (action === "reject") {
-      setModalText("Confirm Rejection?");
-      setModalAction({ id, action });
-      setModalOpen(true);
+  const handleActionClick = async (id, action) => {
+    try {
+      if (action === "approve") {
+        // setModalText("Confirm verification?");
+        // setModalAction({ id, action });
+        // setModalOpen(true); ejacc/individual-screening/approve/<str:patient_id>/
+        const response = await api.patch(`/ejacc/individual-screening/approve/${id}/`, {
+          status: "Next Steps Needed",
+        });
+        if (response.status === 200) {
+          setNotification("Screening Verified Successfully");
+          setTimeout(() => setNotification(""), 3500);
+          fetchData(); // Refresh data after verification
+        }
+      } else if (action === "reject") {
+        setModalText("Confirm Rejection?");
+        setModalAction({ id, action });
+        setModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error performing action:", error);
     }
   };
 
@@ -248,7 +166,7 @@ const ScreeningRequest = () => {
           </h2>
 
           <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-3">
-            <p className="text-md font-semibold text-yellow">Screening List</p>
+            <p className="text-md font-semibold text-yellow">Screening Request List</p>
 
             <div className="flex justify-between flex-wrap gap-3">
               <input
@@ -286,19 +204,19 @@ const ScreeningRequest = () => {
                 <thead>
                   <tr className="bg-lightblue">
                     <th className="w-[10%] text-center text-sm py-3 !bg-lightblue">
-                      Request No.
+                      Patient ID
                     </th>
                     <th className="w-[15%] text-sm py-3">Name</th>
                     <th className="w-[15%] text-center text-sm py-3 !bg-lightblue">
-                      Screening Type
+                      Type
                     </th>
                     <th className="w-[13%] text-center text-sm py-3">
-                      Submission Date
+                      Date Submitted
                     </th>
                     <th className="w-[15%] text-center text-sm py-3">LGU</th>
-                    <th className="w-[13.4%] text-center text-sm py-3">
+                    {/* <th className="w-[13.4%] text-center text-sm py-3">
                       Status
-                    </th>
+                    </th> */}
                     <th className="w-[17%] text-center text-sm py-3">
                       Actions
                     </th>
@@ -323,16 +241,16 @@ const ScreeningRequest = () => {
                     {filteredData.map((item) => (
                       <tr key={item.id}>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {item.id}
+                          {item.patient.patient_id}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {item.name}
+                          {item.patient.full_name}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {item.screeningtype}
+                          Individual Screening
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {new Date(item.submissionDate).toLocaleDateString(
+                          {new Date(item.created_at).toLocaleDateString(
                             "en-US",
                             {
                               year: "numeric",
@@ -342,7 +260,7 @@ const ScreeningRequest = () => {
                           )}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {item.lgu}
+                          {item.patient.beneficiary.city}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
                           <span className="px-3 py-1 inline-flex text-xs font-semibold rounded-md bg-amber-50 text-amber-600">
@@ -351,20 +269,20 @@ const ScreeningRequest = () => {
                         </td>
                         <td className="text-center text-sm py-4 flex gap-2 justify-center">
                           <button
-                            onClick={() => handleViewClick(item.id)}
+                            onClick={() => handleViewClick(item.patient.patient_id)}
                             className="text-white py-1 px-3 rounded-md shadow bg-primary"
                           >
                             View
                           </button>
-                          {/* <button
+                          <button
                             className="text-white py-1 px-3 rounded-md shadow bg-green-500"
-                            onClick={() => handleActionClick(item.id, "verify")}
+                            onClick={() => handleActionClick(item.patient.patient_id, "approve")}
                           >
-                            Verify
-                          </button> */}
+                            Approve
+                          </button>
                           <button
                             className="text-white py-1 px-3 rounded-md shadow bg-red-500"
-                            onClick={() => handleActionClick(item.id, "reject")}
+                            onClick={() => handleActionClick(item.patient.patient_id, "reject")}
                           >
                             Reject
                           </button>

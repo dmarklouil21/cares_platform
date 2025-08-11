@@ -12,7 +12,8 @@ const screeningOptions = [
       "Private results with counseling",
     ],
     icon: "/src/assets/images/patient/services/cancerscreening/individualscreeningicon.png",
-    link: "/Beneficiary/services/cancer-screening/individual-screening-req",
+    // link: "/Beneficiary/services/cancer-screening/individual-screening-req", 
+    link: "/Beneficiary/services/cancer-screening/pre-screening-form-note",
     isLink: true,
   },
   {

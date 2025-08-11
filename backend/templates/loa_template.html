@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Letter of Authority</title>
+<style>
+  @page { margin: 0; }
+  body { margin: 0; font-family: Arial, sans-serif; }
+  .bg-primary { background-color: #2563eb; }
+  .bg-yellow { background-color: #facc15; }
+  .bg-lightblue { background-color: #bfdbfe; }
+  .text-gray2 { color: #4b5563; }
+  .font-bold { font-weight: bold; }
+  .text-sm { font-size: 0.875rem; }
+  .text-md { font-size: 1rem; }
+  .uppercase { text-transform: uppercase; }
+  .italic { font-style: italic; }
+  .flex { display: flex; }
+  .justify-between { justify-content: space-between; }
+  .justify-end { justify-content: flex-end; }
+  .justify-left { justify-content: flex-start; }
+  .items-center { align-items: center; }
+  .items-end { align-items: flex-end; }
+  .text-center { text-align: center; }
+  .w-full { width: 100%; }
+  .px-5 { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+  .pt-32 { padding-top: 8rem; }
+  .px-26 { padding-left: 6.5rem; padding-right: 6.5rem; }
+</style>
+</head>
+<body>
+
+<!-- Top Left Logo -->
+<div style="position: fixed; left: 2.5rem;" class="bg-primary px-5 py-4" >
+  <!-- <img src="{% static 'images/logo_white_text.png' %}" alt="Rafi Logo" style="height:40px;"> -->
+   <img src="file:///{{ logo_path }}" alt="Rafi Logo" style="height:40px;">
+</div>
+
+<!-- Yellow bar -->
+<div class="bg-yellow w-full flex justify-end items-end text-md" style="padding-right: 2rem; padding-bottom: 0.375rem; height:5%;">
+  <h1 class="text-gray2 font-bold">Touching People, Shaping the Future</h1>
+</div>
+
+<!-- Light Blue bar -->
+<div class="bg-lightblue w-full flex justify-end items-end" style="padding-right: 2rem; padding-top: 0.25rem; padding-bottom: 0.25rem;">
+  <p class="text-gray2 text-sm font-bold">
+    Upholding the dignity of man by working with communities to elevate their well-being
+  </p>
+</div>
+
+<!-- Main content -->
+<div class="flex-1 flex flex-col px-26 pt-32">
+  <h1 class="font-bold">CHONG HUA HOSPITAL-MANDAUE</h1>
+  <p style="margin-bottom: 1.75rem;">Cebu City</p>
+  <h1 class="font-bold" style="margin-bottom: 1.25rem; text-align:right;">Serial No {{ serial_no }}</h1>
+  <h1 class="font-bold" style="margin-bottom: 2.75rem; text-align:center;">LETTER OF AUTHORITY (LOA)</h1>
+
+  <div class="flex justify-between text-sm" style="margin-bottom: 2.5rem;">
+    <div>
+      <p><span class="font-bold">Patient Name: </span> {{ loa.patient.full_name }}</p>
+      <p><span class="font-bold">Address: </span> {{ loa.patient.beneficiary.city }}</p>
+    </div>
+    <div>
+      <p><span class="font-bold">Date: </span> {{ date }}</p>
+      <p><span class="font-bold">Age: </span> {{ loa.patient.beneficiary.age }} years old</p>
+    </div>
+  </div>
+
+  <div class="text-sm" style="margin-bottom: 2.5rem;">
+    <p>
+      <span class="font-bold">Diagnosis/ Impression: </span>
+      {{ loa.patient.diagnosis.0.diagnosis }}
+    </p>
+
+    <div>
+      <p class="font-bold">
+        Diagnostic/ Treatment / Procedure:
+        <span class="font-normal"> {{ loa.screening_procedure.screening_procedure_name }}</span>
+      </p>
+      <p class="italic" style="padding-left: 39%;">(Excluding Doctor's Professional Fee)</p>
+    </div>
+
+    <p class="font-bold">Please accommodate this request and send the result and bill of said patient to:</p>
+
+    <div>
+      <p>RAMON ABOITIZ FOUNDATION INC.</p>
+      <p>35 Eduardo Aboitiz St. Brgy Tinago, Cebu City</p>
+      <p>Tel. No. 411-1700</p>
+    </div>
+
+    <p class="font-bold">This serves as an original LOA.</p>
+    <div style="margin: 2rem 0;"></div>
+    <p>Thank you.</p>
+
+    <div class="flex justify-left" style="gap: 53.5%; margin-top: 2.5rem;">
+      <div><p>Prepared by:</p></div>
+      <div><p>Approved by:</p></div>
+    </div>
+
+    <div class="flex justify-between" style="margin-top: 2rem;">
+      <div class="text-center">
+        <p class="font-bold uppercase">Gina A. Mariquit</p>
+        <p>Senior Program Officer</p>
+        <p>RAFI-EJACC</p>
+      </div>
+      <div class="text-center">
+        <p class="font-bold uppercase">Karen Jane D. Wenceslao</p>
+        <p>Health Program-OIC</p>
+        <p>RAFI</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Yellow bar -->
+<div class="bg-yellow" style="height: 1.3%;"></div>
+
+<!-- Footer -->
+<div class="flex" style="gap: 0.5rem; justify-content: flex-end; align-items: center; padding-right: 2rem; padding-top: 0.5rem; padding-bottom: 0.5rem; background-color: #2563eb; color: white; font-size: 9.5px;">
+  <span>35 Eduardo Aboitiz Street, Cebu City 6000 Philippines</span>
+  <span>|</span>
+  <span>+63 (032) 265-5910, +63 998 967 1917, +63 998 966 0737</span>
+  <span>|</span>
+  <span>communicate@rafi.ph</span>
+  <span>|</span>
+  <span>www.rafi.org.ph</span>
+</div>
+
+</body>
+</html>

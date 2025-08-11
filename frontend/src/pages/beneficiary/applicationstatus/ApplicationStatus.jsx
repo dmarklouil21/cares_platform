@@ -286,13 +286,13 @@ const ApplicationStatus = () => {
                             )}
                             {app.status === "Rejected" && (
                               <>
-                                <button
+                                {/* <button
                                   type="button"
                                   class="custom-shadow w-[50%] cursor-pointer text-white text-[13px] bg-primary py-[5px] rounded-md px-3"
                                   onClick={() => handleViewRemarks(app.remarks)}
                                 >
                                   View Remarks
-                                </button>
+                                </button> */}
                                 <button
                                   type="button"
                                   class="custom-shadow w-[35%] cursor-pointer text-white bg-[red] py-[5px] rounded-md px-3"

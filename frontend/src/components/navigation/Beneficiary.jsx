@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ScanLine, ClipboardCheck } from "lucide-react";
+
 
 const BeneficiarySidebar = () => {
   const location = useLocation();
@@ -28,14 +30,14 @@ const BeneficiarySidebar = () => {
       path: "",
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
-    {
+    /* {
       name: "Application Status",
       icon: "/src/assets/images/navigation/admin/patient.svg",
       path: "/Beneficiary/applicationstatus",
       arrow: "",
-    },
+    }, */
     {
-      name: "Individual Screening status",
+      name: "Individual Screening",
       icon: "/src/assets/images/navigation/admin/patient.svg",
       path: "/Beneficiary/individualscreeningstatus",
       arrow: "",
@@ -231,7 +233,7 @@ const BeneficiarySidebar = () => {
                       >
                         <button
                           onClick={() => handleNavigation(subItem.path)}
-                          className="w-full text-left"
+                          className="w-full text-left cursor-pointer"
                         >
                           {subItem.name}
                         </button>
@@ -244,7 +246,7 @@ const BeneficiarySidebar = () => {
           })}
         </ul>
         <button
-          className="bg-white/5 py-1 flex items-center justify-between gap-5 px-5 rounded-md hover:bg-white/50"
+          className="bg-white/5 py-1 flex items-center justify-between gap-5 px-5 rounded-md hover:bg-white/50 cursor-pointer"
           onClick={() => {
             //usba lang
             localStorage.clear();

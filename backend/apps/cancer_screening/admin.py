@@ -8,10 +8,14 @@ class ScreeningProcedureAdmin(admin.ModelAdmin):
 class PreScreeningFormAdmin(admin.ModelAdmin):
     list_display = ('beneficiary', 'referred_from', 'referring_doctor_or_facility', 'reason_for_referral', 'chief_complaint', 'date_of_consultation', 'date_of_diagnosis')
 
+class ScreeningAttachmentAdmin(admin.ModelAdmin):
+    list_display = ('screening_procedure', 'file', 'uploaded_at')
+
 class IndividualScreeningAdmin(admin.ModelAdmin):
     list_display = ('patient__patient_id', 'patient__beneficiary__first_name', 'patient__beneficiary__last_name', 'patient__beneficiary__suffix', 
                     'patient__beneficiary__date_of_birth', 'patient__beneficiary__age', 'patient__beneficiary__sex', 'patient__beneficiary__address',)
 
 admin.site.register(models.IndividualScreening, IndividualScreeningAdmin)
 admin.site.register(models.ScreeningProcedure, ScreeningProcedureAdmin)
+admin.site.register(models.ScreeningAttachment, ScreeningAttachmentAdmin)
 admin.site.register(models.PreScreeningForm, PreScreeningFormAdmin)

@@ -33,40 +33,40 @@ const LOAPrintTemplate = ({ loaData }) => (
       <p className="mb-7">Cebu City</p>
       <h1 className="font-bold mb-5 text-right">Serial No DAA275</h1>
       <h1 className="font-bold mb-11 text-center">LETTER OF AUTHORITY (LOA)</h1>
-      <div class="flex justify-between text-sm mb-10">
+      <div className="flex justify-between text-sm mb-10">
         <div>
           <p>
-            <span class="font-bold">Patient Name: </span> {loaData.patientName}
+            <span className="font-bold">Patient Name: </span> {loaData?.patient.full_name}
           </p>
           <p>
-            <span class="font-bold">Address: </span> {loaData.address}
+            <span className="font-bold">Address: </span> {loaData?.patient.beneficiary.city}
           </p>
         </div>
 
-        <div class="text-left">
+        <div className="text-left">
           <p>
-            <span class="font-bold">Date: </span> {loaData.date}
+            <span className="font-bold">Date: </span> {new Date().toLocaleDateString()}
           </p>
           <p>
-            <span class="font-bold">Age: </span> {loaData.age} years old
+            <span className="font-bold">Age: </span> {loaData?.patient.beneficiary.age} years old
           </p>
         </div>
       </div>
-      <div class="text-sm space-y-6">
+      <div className="text-sm space-y-6">
         <p>
-          <span class="font-semibold">Diagnosis/ Impression: </span>
-          {loaData.diagnosis}
+          <span className="font-semibold">Diagnosis/ Impression: </span>
+          {loaData?.patient.diagnosis[0].diagnosis}
         </p>
 
         <div>
-          <p class="font-semibold">
+          <p className="font-semibold">
             Diagnostic/ Treatment / Procedure:
-            <span class="font-normal"> {loaData.procedure}</span>
+            <span className="font-normal"> {loaData?.screening_procedure.screening_procedure_name}</span>
           </p>
-          <p class="italic pl-[39%]">(Excluding Doctor's Professional Fee)</p>
+          <p className="italic pl-[39%]">(Excluding Doctor's Professional Fee)</p>
         </div>
 
-        <p class="font-semibold">
+        <p className="font-semibold">
           Please accommodate this request and send the result and bill of said
           patient to:
         </p>
@@ -77,11 +77,11 @@ const LOAPrintTemplate = ({ loaData }) => (
           <p>Tel. No. 411-1700</p>
         </div>
 
-        <p class="font-semibold ">This serves as an original LOA.</p>
-        <div class="my-8"></div>
+        <p className="font-semibold ">This serves as an original LOA.</p>
+        <div className="my-8"></div>
         <p>Thank you.</p>
 
-        <div class="flex justify-left gap-[53.5%] mt-10">
+        <div className="flex justify-left gap-[53.5%] mt-10">
           <div>
             <p>Prepared by:</p>
           </div>
@@ -90,14 +90,14 @@ const LOAPrintTemplate = ({ loaData }) => (
           </div>
         </div>
 
-        <div class="flex justify-between mt-8">
+        <div className="flex justify-between mt-8">
           <div className="text-center">
-            <p class="font-bold uppercase">Gina A. Mariquit</p>
+            <p className="font-bold uppercase">Gina A. Mariquit</p>
             <p>Senior Program Officer</p>
             <p>RAFI-EJACC</p>
           </div>
-          <div class="text-center">
-            <p class="font-bold uppercase">Karen Jane D. Wenceslao</p>
+          <div className="text-center">
+            <p className="font-bold uppercase">Karen Jane D. Wenceslao</p>
             <p>Health Program-OIC</p>
             <p>RAFI</p>
           </div>

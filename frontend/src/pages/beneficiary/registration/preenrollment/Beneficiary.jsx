@@ -1,8 +1,12 @@
 import { use, useEffect, useState } from "react";
-import barangayData from "src/constants/barangayData";
-import { useNavigate } from "react-router-dom";
-import api from "src/api/axiosInstance";
 import { useAuth } from "src/context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import barangayData from "src/constants/barangayData";
+import api from "src/api/axiosInstance";
+
+import ConfirmationModal from "src/components/ConfirmationModal";
+import NotificationModal from "src/components/NotificationModal";
+import LoadingModal from "src/components/LoadingModal";
 
 function Notification({ message, onClose }) {
   if (!message) return null;
@@ -21,6 +25,20 @@ function Notification({ message, onClose }) {
 }
 
 export default function PatinetProfileForm() {
+  // Notification Modal
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({
+    type: "success",
+    title: "Success!",
+    message: "The form has been submitted successfully.",
+  });
+  // Loading Modal 
+  const [loading, setLoading] = useState(false);
+  // Confirmation Modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("Confirm Status Change?");
+  const [modalAction, setModalAction] = useState(null); 
+
   const navigate = useNavigate();
   const { user } = useAuth();
   const [formData, setFormData] = useState({
@@ -106,26 +124,86 @@ export default function PatinetProfileForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      const response = await api.post("/beneficiary/pre-enrollment/", formData);
-      const fullName = `${formData.first_name} ${formData.middle_name ? formData.middle_name + ' ' : ''}${formData.last_name}`.trim();
-      navigate("/Beneficiary", { state: { fullName } });
-    } catch (error) {
-      if (error.response && error.response.data && error.response.data.exists) {
-        setNotification("You already registered as beneficiary");
-        setTimeout(() => setNotification(""), 3500);
-        return;
-      }
-      console.error("Error submitting form:", error);
-    }
+    setModalText('Submit this form?');
+    setModalAction({ type: "submit" }); 
+    setModalOpen(true);
   };
+
+  const handleModalConfirm = async () => {
+    if (modalAction?.type === "submit") {
+      try {
+        setLoading(true);
+        const response = await api.post("/beneficiary/pre-enrollment/", formData);
+        setModalInfo({
+          type: "success",
+          title: "Success!",
+          message: "Your form was submitted.",
+        });
+        setShowModal(true);
+        navigate("/Beneficiary");
+      } catch (error) {
+        let errorMessage = "Something went wrong while submitting the form."; 
+
+        if (error.response && error.response.data) {
+          // DRF ValidationError returns an object with arrays of messages
+          if (error.response.data.non_field_errors) {
+            errorMessage = error.response.data.non_field_errors[0];
+          } //else if (typeof error.response.data === "string") {
+            //errorMessage = error.response.data; // for plain text errors
+          //}
+        }
+        setModalInfo({
+          type: "error",
+          title: "Submission Failed",
+          message: errorMessage,
+        });
+        setShowModal(true);
+        /* setModalInfo({
+          type: "error",
+          title: "Submission Failed",
+          message: "Something went wrong while submitting the form.",
+        });
+        setShowModal(true); */
+        // if (error.response && error.response.data && error.response.data.exists) {
+        //   setNotification("You already registered as beneficiary");
+        //   setTimeout(() => setNotification(""), 3500);
+        //   return;
+        // }
+        console.error("Error submitting form:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    setModalOpen(false);
+    setModalAction(null);
+    setModalText("");
+  }
 
   return (
     <>
-      <Notification
+      {/* <Notification
         message={notification}
         onClose={() => setNotification("")}
+      /> */}
+      <ConfirmationModal
+        open={modalOpen}
+        text={modalText}
+        onConfirm={handleModalConfirm}
+        onCancel={() => {
+          setModalOpen(false);
+          setModalAction(null);
+          setModalText("");
+        }}
       />
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
+      />
+      <LoadingModal open={loading} text="Submitting your data..." />
       <div className="h-screen w-[75%] flex flex-col gap-12 bg-gray py-12 px-12 overflow-auto">
         <div className="w-full flex justify-between px-9">
           <h1 className="font-bold text-2xl">Patient Profile</h1>
@@ -722,14 +800,28 @@ export default function PatinetProfileForm() {
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end w-full mt-10">
+          <div className="flex w-full justify-between gap-9">
+            <Link
+              to="/NoteBeneficiary"
+              className=" border py-3 rounded-md text-center w-full hover:bg-black/10 hover:border-white"
+            >
+              Cancel
+            </Link>
+            <button
+              type="submit"
+              className="bg-[#749AB6] text-center font-bold text-white py-2 w-full border-[1px] border-[#749AB6] hover:border-[#C5D7E5] hover:bg-[#C5D7E5] rounded-md cursor-pointer"
+            >
+              Submit
+            </button>
+          </div>
+          {/* <div className="flex justify-end w-full mt-10">
             <button
               type="submit"
               className="text-center font-bold bg-primary text-white py-2 w-[45%] border-[1px] border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
             >
-              SUBMIT
+              Submit
             </button>
-          </div>
+          </div> */}
         </form>
       </div>
     </>

@@ -1,6 +1,6 @@
 const barangayData = {
   // Cebu City barangays
-  cebu_city: [
+  Cebu_City: [
     "Adlaon",
     "Agsungot",
     "Apas",
@@ -80,7 +80,7 @@ const barangayData = {
   ],
 
   // Mandaue City barangays
-  mandaue: [
+  Mandaue: [
     "Alang-alang",
     "Bakilid",
     "Banilad",
@@ -110,7 +110,7 @@ const barangayData = {
   ],
 
   // Lapu-Lapu City barangays
-  lapu_lapu: [
+  Lapu_Lapu: [
     "Agus",
     "Babag",
     "Bankal",
@@ -144,7 +144,7 @@ const barangayData = {
   ],
 
   // Talisay City barangays
-  talisay: [
+  Talisay: [
     "Biasong",
     "Bulacao",
     "Cansojong",
@@ -168,7 +168,7 @@ const barangayData = {
   ],
 
   // Danao City barangays
-  danao: [
+  Danao: [
     "Baliang",
     "Cabancalan",
     "Cahumayan",
@@ -194,7 +194,7 @@ const barangayData = {
   ],
 
   // Toledo City barangays
-  toledo: [
+  Toledo: [
     "Awihao",
     "Ibo",
     "Bato",
@@ -236,7 +236,7 @@ const barangayData = {
   ],
 
   // Carcar City barangays
-  carcar: [
+  Carcar: [
     "Bolinawan",
     "Calidngan",
     "Can-asujan",
@@ -254,7 +254,7 @@ const barangayData = {
   ],
 
   // Naga City barangays
-  naga: [
+  Naga: [
     "Alpaco",
     "Bairan",
     "Balirong",
@@ -286,7 +286,7 @@ const barangayData = {
   ],
 
   // Bogo City barangays
-  bogo: [
+  Bogo: [
     "Anonang Norte",
     "Anonang Sur",
     "Banban",
@@ -315,7 +315,7 @@ const barangayData = {
   ],
 
   // Argao barangays
-  argao: [
+  Argao: [
     "Anajao",
     "Apo",
     "Balisong",
@@ -363,7 +363,7 @@ const barangayData = {
   ],
 
   // Badian barangays
-  badian: [
+  Badian: [
     "Alawijao",
     "Balhaan",
     "Basak",
@@ -387,7 +387,7 @@ const barangayData = {
   ],
 
   // Balamban barangays
-  balamban: [
+  Balamban: [
     "Abucayan",
     "Aliwanay",
     "Binongkalan",
@@ -412,7 +412,7 @@ const barangayData = {
   ],
 
   // Bantayan barangays
-  bantayan: [
+  Bantayan: [
     "Atop-atop",
     "Baigad",
     "Binaobao",
@@ -438,7 +438,7 @@ const barangayData = {
   ],
 
   // Barili barangays
-  barili: [
+  Barili: [
     "Azucena",
     "Bagakay",
     "Balingasag",
@@ -481,7 +481,7 @@ const barangayData = {
   ],
 
   // Consolacion barangays
-  consolacion: [
+  Consolacion: [
     "Cabangahan",
     "Cansaga",
     "Danglag",
@@ -503,7 +503,7 @@ const barangayData = {
   ],
 
   // Cordova barangays
-  cordova: [
+  Cordova: [
     "Alegria",
     "Bangbang",
     "Buagsong",
@@ -520,7 +520,7 @@ const barangayData = {
   ],
 
   // Dalaguete barangays
-  dalaguete: [
+  Dalaguete: [
     "Ablayan",
     "Babayongan",
     "Balud",
@@ -555,7 +555,7 @@ const barangayData = {
   ],
 
   // Liloan barangays
-  liloan: [
+  Liloan: [
     "Cabadiangan",
     "Calero",
     "Catarman",
@@ -573,7 +573,7 @@ const barangayData = {
   ],
 
   // Minglanilla barangays
-  minglanilla: [
+  Minglanilla: [
     "Calajoan",
     "Camp 7",
     "Camp 8",
@@ -594,7 +594,7 @@ const barangayData = {
   ],
 
   // Moalboal barangays
-  moalboal: [
+  Moalboal: [
     "Agbalanga",
     "Bala",
     "Balabagon",
@@ -612,7 +612,7 @@ const barangayData = {
   ],
 
   // Oslob barangays
-  oslob: [
+  Oslob: [
     "Alo",
     "Bangcogon",
     "Bonbon",
@@ -637,7 +637,7 @@ const barangayData = {
   ],
 
   // Tagbilaran City barangays
-  tagbilaran: [
+  Tagbilaran: [
     "Bool",
     "Booy",
     "Cabawan",
@@ -656,7 +656,7 @@ const barangayData = {
   ],
 
   // Panglao barangays
-  panglao: [
+  Panglao: [
     "Bil-isan",
     "Bolod",
     "Danao",
@@ -671,7 +671,7 @@ const barangayData = {
   ],
 
   // Tubigon barangays
-  tubigon: [
+  Tubigon: [
     "Pinayagan Norte",
     "Pinayagan Sur",
     "Pooc Occidental",
@@ -696,7 +696,7 @@ const barangayData = {
   ],
 
   // Jagna barangays
-  jagna: [
+  Jagna: [
     "Alejawan",
     "Balili",
     "Boctol",
@@ -730,7 +730,7 @@ const barangayData = {
   ],
 
   // Anda barangays
-  anda: [
+  Anda: [
     "Bacong",
     "Bad-as",
     "Buenasuerte",

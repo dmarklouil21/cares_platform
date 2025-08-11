@@ -1,210 +1,91 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-// Simple Modal component
-function ConfirmationModal({ open, text, onConfirm, onCancel }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
-        <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
-        <div className="flex gap-4">
-          <button
-            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-          <button
-            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Notification component
-function Notification({ message, onClose }) {
-  if (!message) return null;
-  return (
-    <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
-      <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="Rafi Logo"
-          className="h-[25px]"
-        />
-        <span>{message}</span>
-      </div>
-    </div>
-  );
-}
+import api from "src/api/axiosInstance";
+import ConfirmationModal from "src/components/ConfirmationModal";
+import NotificationModal from "src/components/NotificationModal";
+import LoadingModal from "src/components/LoadingModal";
+import { Info } from "lucide-react"; 
 
 const IndividualScreening = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("");
-  const [notification, setNotification] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("");
-  const [modalAction, setModalAction] = useState(null); // {id, action}
+  const [tableData, setTableData] = useState([]);
   const navigate = useNavigate();
 
-  const tableData = [
-    {
-      id: "001",
-      name: "Juan Dela Cruz",
-      Dateapproved: "2025-04-12",
-      lgu: "Municipality of Argao",
-      status: "Pending",
-      screeningProcedure: "Mammogram",
-      procedureDetails: "Breast screening due to palpable mass",
-      cancerSite: "Breast",
-      requirements: [
-        {
-          name: "MRIReport.pdf",
-          type: "pdf",
-          url: "/files/shit.pdf",
-        },
-        {
-          name: "ClinicReferral.docx",
-          type: "doc",
-          url: "/files/Project-Adviser-Appointment-Form-EDITED.docx",
-        },
-        {
-          name: "BrainScan.jpg",
-          type: "image",
-          url: "/src/assets/images/admin/cancerscreening/individualscreening/Image.svg",
-        },
-      ],
-      preScreeningDetails: {
-        referredFrom: "Barangay Health Center",
-        referringDoctor: "Dr. Smith",
-        referralReason: "Suspicious lump",
-        chiefComplaint: "Lump in left breast",
-        consultationDate: "2025-04-01",
-        diagnosisDate: "2025-04-05",
-      },
-      diagnosis: ["Microscopic", "Histology of Primary"],
-      multiplePrimaries: ["1"],
-      primarySites: ["Breast", "Liver"],
-      laterality: "left",
-      histology: "Invasive ductal carcinoma",
-      staging: "Localized",
-      tnm: { t: "2", n: "1", m: "0" },
-      metastasisSites: ["none"],
-      finalDiagnosis: "Stage II breast cancer",
-      icd10Code: "C50.9",
-      treatment: {
-        purpose: "Curative-Complete",
-        primaryAssistance: "Chemotherapy",
-        assistanceDate: "2025-04-15",
-        adjuvant: ["Surgery", "Chemotherapy"],
-        adjuvantOther: "",
-        otherSources: ["Radiotherapy"],
-        otherSourcesOther: "",
-      },
-    },
-    {
-      id: "002",
-      name: "Maria Santos",
-      Dateapproved: "2025-04-10",
-      lgu: "Municipality of Argao",
-      status: "Verified",
-      screeningProcedure: "MRI",
-      procedureDetails: "Brain MRI for persistent headache",
-      cancerSite: "Brain",
-      requirements: [
-        {
-          name: "MRIReport.pdf",
-          type: "pdf",
-          url: "/files/shit.pdf",
-        },
-        {
-          name: "ClinicReferral.docx",
-          type: "doc",
-          url: "/files/Project-Adviser-Appointment-Form-EDITED.docx",
-        },
-        {
-          name: "BrainScan.jpg",
-          type: "image",
-          url: "/src/assets/images/admin/cancerscreening/individualscreening/Image.svg",
-        },
-      ],
-      preScreeningDetails: {
-        referredFrom: "Private Clinic",
-        referringDoctor: "Dr. Lee",
-        referralReason: "Chronic headache",
-        chiefComplaint: "Headache",
-        consultationDate: "2025-03-20",
-        diagnosisDate: "2025-03-25",
-      },
-      diagnosis: ["Clinical Investigation"],
-      multiplePrimaries: ["2"],
-      primarySites: ["Brain"],
-      laterality: "right",
-      histology: "Glioblastoma",
-      staging: "Distant Metastasis",
-      tnm: { t: "3", n: "2", m: "1" },
-      metastasisSites: ["bone", "brainMetastasis"],
-      finalDiagnosis: "Advanced brain tumor",
-      icd10Code: "C71.9",
-      treatment: {
-        purpose: "Palliative Only",
-        primaryAssistance: "Radiotherapy",
-        assistanceDate: "2025-04-20",
-        adjuvant: ["Radiotherapy"],
-        adjuvantOther: "",
-        otherSources: ["Chemotherapy"],
-        otherSourcesOther: "Experimental drug",
-      },
-    },
-  ];
+  // Notification Modal
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({
+    type: "success",
+    title: "Success!",
+    message: "The form has been submitted successfully.",
+  });
+  // Loading Modal 
+  const [loading, setLoading] = useState(false);
+  // Confirmation Modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("");
+  const [modalAction, setModalAction] = useState(null); 
+
+  const fetchData = async () => {
+    try {
+      const response = await api.get("/cancer-screening/individual-screening-list/");
+      setTableData(response.data);
+    } catch (error) {
+      console.error("Error fetching pre-enrollment requests:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const filteredData = tableData.filter((record) => {
     const statusMatch =
       statusFilter === "All" || record.status === statusFilter;
     const searchMatch =
       !searchQuery ||
-      record.id.includes(searchQuery) ||
-      record.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const dateMatch = !dateFilter || record.Dateapproved === dateFilter;
+      record.patient.patient_id.includes(searchQuery) ||
+      record.patient.full_name.toLowerCase().includes(searchQuery.toLowerCase());
+    const dateMatch = !dateFilter || record.created_at === dateFilter;
 
     return statusMatch && searchMatch && dateMatch;
   });
 
   const handleViewClick = (patientId) => {
-    const selected = tableData.find((item) => item.id === patientId);
+    const selected = tableData.find((item) => item.patient.patient_id === patientId);
     navigate(`/Admin/cancerscreening/view/AdminIndividualScreeningView`, {
       state: { record: selected },
     });
   };
 
-  // Modal confirm handler
-  const handleModalConfirm = () => {
-    if (modalAction) {
-      setTimeout(() => {
-        let actionWord =
-          modalAction.action === "verify"
-            ? "Verified"
-            : modalAction.action === "cancel"
-            ? "Canceled"
-            : "";
-        setNotification(`${actionWord} Successfully`);
-        setTimeout(() => setNotification(""), 3500);
-      }, 300);
-    }
-    setModalOpen(false);
-    setModalAction(null);
-    setModalText("");
-  };
 
-  // Modal cancel handler (just close modal, no action)
-  const handleModalCancel = () => {
+  // Modal confirm handler
+  const handleModalConfirm = async () => {
+    if (modalAction?.action === "delete" || modalAction?.action === "reject") {
+      try {
+        setLoading(true);
+        const response = await api.delete(`/cancer-screening/individual-screening/delete/${modalAction.id}/`);
+        setModalInfo({
+          type: "success",
+          title: "Success!",
+          message: "Deleted Successfully.",
+        });
+        setShowModal(true);
+      } catch (error) {
+        setModalInfo({
+          type: "error",
+          title: "Failed to delete this object",
+          message: "Something went wrong while submitting the request.",
+        });
+        setShowModal(true);
+        console.error(error);
+      } finally {
+        fetchData();
+        setLoading(false);
+      }
+    }
+
     setModalOpen(false);
     setModalAction(null);
     setModalText("");
@@ -212,12 +93,8 @@ const IndividualScreening = () => {
 
   // Show modal for verify/reject
   const handleActionClick = (id, action) => {
-    if (action === "verify") {
-      setModalText("Confirm verification?");
-      setModalAction({ id, action });
-      setModalOpen(true);
-    } else if (action === "cancel") {
-      setModalText("Confirm Cancelation?");
+    if (action === "delete") {
+      setModalText("Confirm delete?");
       setModalAction({ id, action });
       setModalOpen(true);
     }
@@ -225,17 +102,24 @@ const IndividualScreening = () => {
 
   return (
     <>
-      {/* Confirmation Modal */}
       <ConfirmationModal
         open={modalOpen}
         text={modalText}
         onConfirm={handleModalConfirm}
-        onCancel={handleModalCancel}
+        onCancel={() => {
+          setModalOpen(false);
+          setModalAction(null);
+          setModalText("");
+        }}
       />
-      <Notification
-        message={notification}
-        onClose={() => setNotification("")}
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
       />
+      <LoadingModal open={loading} text="Submitting changes..." />
       <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
         <div className="bg-white h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Admin</h1>
@@ -266,7 +150,10 @@ const IndividualScreening = () => {
               >
                 <option value="All">All</option>
                 <option value="Pending">Pending</option>
-                <option value="Verified">Verified</option>
+                <option value="LOA Generation">LOA Generation</option>
+                <option value="In Progress">In Progress</option> 
+                <option value="Complete">Complete</option>
+                <option value="Reject">Reject</option>
               </select>
 
               <input
@@ -290,7 +177,7 @@ const IndividualScreening = () => {
                     </th>
                     <th className="w-[20%] text-sm py-3">Name</th>
                     <th className="w-[15%] text-center text-sm py-3">
-                      Date Approved
+                      Date Created
                     </th>
                     <th className="w-[15%] text-center text-sm py-3">LGU</th>
                     <th className="w-[13.4%] text-center text-sm py-3">
@@ -319,13 +206,13 @@ const IndividualScreening = () => {
                     {filteredData.map((item) => (
                       <tr key={item.id}>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {item.id}
+                          {item.patient.patient_id}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {item.name}
+                          {item.patient.full_name}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {new Date(item.Dateapproved).toLocaleDateString(
+                          {new Date(item.created_at).toLocaleDateString(
                             "en-US",
                             {
                               year: "numeric",
@@ -335,31 +222,42 @@ const IndividualScreening = () => {
                           )}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {item.lgu}
+                          {item.patient.beneficiary.city}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          <span className="px-3 py-1 inline-flex text-xs font-semibold rounded-md bg-amber-50 text-amber-600">
+                          <span className="px-3 py-1 inline-flex items-center gap-1 text-xs font-semibold rounded-md text-[#1976D2]">
                             {item.status}
+                            <span
+                              title={
+                                item.has_patient_response
+                                  ? item.response_description
+                                  : "Info icon."
+                              }
+                              className="cursor-pointer"
+                            >
+                              <Info
+                                size={14}
+                                className={
+                                  item.has_patient_response
+                                    ? "text-blue-500"
+                                    : "text-gray-300"
+                                }
+                              />
+                            </span>
                           </span>
                         </td>
                         <td className="text-center text-sm py-4 flex gap-2 justify-center">
                           <button
-                            onClick={() => handleViewClick(item.id)}
-                            className="text-white py-1 px-3 rounded-md shadow bg-primary"
+                            onClick={() => handleViewClick(item.patient.patient_id)}
+                            className="text-white py-1 px-3 rounded-md shadow bg-primary cursor-pointer"
                           >
                             View
                           </button>
-                          {/* <button
-                            className="text-white py-1 px-3 rounded-md shadow bg-green-500"
-                            onClick={() => handleActionClick(item.id, "verify")}
-                          >
-                            Verify
-                          </button> */}
                           <button
-                            className="text-white py-1 px-3 rounded-md shadow bg-red-500"
-                            onClick={() => handleActionClick(item.id, "cancel")}
+                            className="text-white py-1 px-3 rounded-md shadow bg-red-500 cursor-pointer"
+                            onClick={() => handleActionClick(item.id, "delete")}
                           >
-                            Cancel
+                            Delete
                           </button>
                         </td>
                       </tr>
