@@ -15,28 +15,24 @@ const Login = () => {
 
     try {
       const loggedInUser = await login(email, password);
-
-      console.log("Logged In User:", loggedInUser);
+      console.log("Logged in user:", loggedInUser);
       if (loggedInUser.is_superuser) {
         navigate("/Admin");
       } else if (loggedInUser.is_first_login) {
-        navigate("/resetpassword");
+        navigate("/ResetPassword");
       } else if (loggedInUser.is_active) {
-        // If user is active, check pre-enrollment status
         try {
           const response = await api.get("/beneficiary/details/");
-          if (response.data.status === "validated") {
+          if (response.data.status) {
             navigate("/Beneficiary");
-          } else {
-            navigate("/PreEnrollmentBeneficiary");
           }
         } catch (error) {
           // If no beneficiary record, go to pre-enrollment
-          navigate("/PreEnrollmentBeneficiary");
+          navigate("/NoteBeneficiary");
         }
       } else {
         // Not active, go to reset password
-        navigate("/resetpassword");
+        navigate("/ResetPassword");
       }
     } catch (err) {
       alert("Login failed. Please check your credentials.");

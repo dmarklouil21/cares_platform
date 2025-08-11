@@ -12,59 +12,59 @@ from .pagination import BeneficiaryPagination
 # Beneficiary
 
 class BeneficiaryCreateView(generics.CreateAPIView):
-    queryset = Beneficiary.objects.all()
-    serializer_class = BeneficiarySerializer
+  queryset = Beneficiary.objects.all()
+  serializer_class = BeneficiarySerializer
 
-    permission_classes = [IsAuthenticated]
+  permission_classes = [IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
-        user = request.user
+  def create(self, request, *args, **kwargs):
+    user = request.user
 
-        # Check if the user is already a beneficiary
-        if Beneficiary.objects.filter(user=user).exists():
-            return Response(
-                {"exists": True},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        return super().create(request, *args, **kwargs)
+    # Check if the user is already a beneficiary
+    if Beneficiary.objects.filter(user=user).exists():
+      return Response(
+        {"exists": True},
+        status=status.HTTP_400_BAD_REQUEST
+      )
+    
+    return super().create(request, *args, **kwargs)
 
 class BeneficiaryDetailView(generics.RetrieveAPIView):
-    serializer_class = BeneficiarySerializer
-    permission_classes = [IsAuthenticated]
+  serializer_class = BeneficiarySerializer
+  permission_classes = [IsAuthenticated]
 
-    def get_object(self):
-        try:
-            return Beneficiary.objects.get(user=self.request.user)
-        except Beneficiary.DoesNotExist:
-            raise NotFound("No beneficiary record found for this user.")
+  def get_object(self):
+    try:
+      return Beneficiary.objects.get(user=self.request.user)
+    except Beneficiary.DoesNotExist:
+      raise NotFound("No beneficiary record found for this user.")
 
 # EJACC
 
 class BeneficiaryListView(generics.ListAPIView):
-    queryset = Beneficiary.objects.all()
-    serializer_class = BeneficiarySerializer
-    lookup_field = 'beneficiary_id'
+  queryset = Beneficiary.objects.all()
+  serializer_class = BeneficiarySerializer
+  lookup_field = 'beneficiary_id'
 
-    permission_classes = [IsAuthenticated, IsAdminUser]
-    pagination_class = BeneficiaryPagination
+  permission_classes = [IsAuthenticated, IsAdminUser]
+  pagination_class = BeneficiaryPagination
 
 class BeneficiaryPreEnrollmentDetailView(generics.RetrieveAPIView):
-    queryset = Beneficiary.objects.all()
-    serializer_class = BeneficiarySerializer
-    lookup_field = 'beneficiary_id'
+  queryset = Beneficiary.objects.all()
+  serializer_class = BeneficiarySerializer
+  lookup_field = 'beneficiary_id'
 
-    permission_classes = [IsAuthenticated, IsAdminUser]
+  permission_classes = [IsAuthenticated, IsAdminUser]
 
 class BeneficiaryPreEnrollmentStatusUpdateView(generics.UpdateAPIView):
-    queryset = Beneficiary.objects.all()
-    serializer_class = BeneficiarySerializer
-    lookup_field = 'beneficiary_id'
+  queryset = Beneficiary.objects.all()
+  serializer_class = BeneficiarySerializer
+  lookup_field = 'beneficiary_id'
 
-    permission_classes = [IsAuthenticated, IsAdminUser]
+  permission_classes = [IsAuthenticated, IsAdminUser]
 
 class BeneficiaryPreEnrollmentDeleteView(generics.DestroyAPIView):
-    queryset = Beneficiary.objects.all()
-    lookup_field = 'beneficiary_id'
+  queryset = Beneficiary.objects.all()
+  lookup_field = 'beneficiary_id'
 
-    permission_classes = [IsAuthenticated, IsAdminUser]
+  permission_classes = [IsAuthenticated, IsAdminUser]

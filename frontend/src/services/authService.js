@@ -4,6 +4,7 @@ const API_URL = "http://localhost:8000";
 
 export const loginAPI = async (email, password) => {
   const response = await axios.post(`http://localhost:8000/api/registration/login/`, {
+  // const response = await axios.post(`http://localhost:8000/user/login/`, {
     email,
     password,
   });

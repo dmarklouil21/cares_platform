@@ -45,13 +45,13 @@ const AdminSidebar = () => {
   ];
 
   const cancerscreeningSubNav = [
+    /* {
+      name: "Screening Request",
+      path: "/Admin/cancerscreening/AdminScreeningRequest",
+    }, */
     {
       name: "Individual Screening",
       path: "/Admin/cancerscreening/AdminIndividualScreening",
-    },
-    {
-      name: "Screening Request",
-      path: "/Admin/cancerscreening/AdminScreeningRequest",
     },
     { name: "Mass Screening", path: "/Admin/MassScreening" },
   ];
@@ -274,7 +274,7 @@ const AdminSidebar = () => {
                       >
                         <button
                           onClick={() => handleNavigation(subItem.path)}
-                          className="w-full text-left"
+                          className="w-full text-left cursor-pointer"
                         >
                           {subItem.name}
                         </button>
@@ -287,7 +287,7 @@ const AdminSidebar = () => {
           })}
         </ul>
         <button
-          className="bg-white/5 py-1 flex items-center justify-between gap-5 px-5 rounded-md hover:bg-white/50"
+          className="bg-white/5 py-1 flex items-center justify-between gap-5 px-5 rounded-md hover:bg-white/50 cursor-pointer"
           onClick={() => {
             //usba lang
             localStorage.clear();

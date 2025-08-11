@@ -1,8 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 
-const NotValidated = () => {
+const NotValidated = ({ fullName }) => {
   const location = useLocation();
-  const fullName = location.state?.fullName || "";
+  // const fullName = location.state?.fullName || "";
   return (
     <div className="h-screen w-full flex  flex-col justify-center items-center p-5 gap-7">
       <img
@@ -11,7 +11,7 @@ const NotValidated = () => {
         alt="RAFI LOGO"
       />
 
-      <h2 className="text-5xl font-bold text-center border ">
+      <h2 className="text-5xl font-bold text-center">
         {fullName}, your pre-enrollment is still
         <span className="flex items-center justify-center gap-2">
           pending for validation

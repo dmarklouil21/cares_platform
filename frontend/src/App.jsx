@@ -28,6 +28,10 @@ import AdminScreeningRequest from "./pages/admin/cancerscreening/ScreeningReques
 // ----------- ADMIN VIEW SIDE ------------------
 import AdminPreenrollmentDetails from "./pages/admin/patient/view/PreenrollmentView";
 import AdminIndividualScreeningView from "./pages/admin/cancerscreening/view/IndividualScreeningView";
+import ViewPreScreeningForm from "./pages/admin/cancerscreening/view/ViewPreScreeningForm";
+import ViewScreeningProcedure from "./pages/admin/cancerscreening/view/ViewScreeningProcedure";
+import ViewAttachments from "./pages/admin/cancerscreening/view/ViewAttachments";
+import ViewResults from "./pages/admin/cancerscreening/view/ViewResults";
 
 // ----------- User Management actions ------------------
 import AdminManagementAddUser from "./pages/admin/usermanagement/add/AddUser";
@@ -41,6 +45,7 @@ import CancerManagement from "./pages/beneficiary/services/CancerManagement";
 import Survivorship from "./pages/beneficiary/services/Survivorship";
 import BeneficiaryApplicationStatus from "./pages/beneficiary/applicationstatus/ApplicationStatus";
 import BeneficiaryIndividualScreeningStatus from "./pages/beneficiary/individualscreeningstatus/IndividualScreeningStatus";
+import UploadAttachments from "./pages/beneficiary/individualscreeningstatus/UploadAttachments";
 
 // ----------- Application actions ------------------
 import BeneficiaryApplicationView from "./pages/beneficiary/applicationstatus/view/ViewApplication";
@@ -49,9 +54,10 @@ import BeneficiaryApplicationView from "./pages/beneficiary/applicationstatus/vi
 import BeneficiaryIndividualScreeningStatusView from "./pages/beneficiary/individualscreeningstatus/view/ViewIndividualStatus";
 
 // ----------- Services: Cancer Screening ------------------
-import BeneficiaryIndividualScreeningReq from "./pages/beneficiary/services/pages/cancerscreening/Requirements";
-import BeneficiaryIndividualScreening from "./pages/beneficiary/services/pages/cancerscreening/IndividualScreening";
+import ScreeningRequirementsNote from "./pages/beneficiary/individualscreeningstatus/Requirements";
+import ScreeningProcedure from "./pages/beneficiary/individualscreeningstatus/ScreeningProcedure";
 import BeneficiaryPreScreeningForm from "./pages/beneficiary/services/pages/cancerscreening/PreScreeningForm";
+import PreScreeningFormNote from "./pages/beneficiary/services/pages/cancerscreening/PreScreeningFormNote";
 
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
@@ -106,7 +112,7 @@ const App = () => {
                 path="AdminPreEnrollment"
                 element={<AdminPreEnrollment />}
               />
-              <Route path="view">
+              <Route path="view"> 
                 <Route
                   path="AdminPreenrollmentDetails/:beneficiary_id"
                   element={<AdminPreenrollmentDetails />}
@@ -132,8 +138,12 @@ const App = () => {
               <Route path="view">
                 <Route
                   path="AdminIndividualScreeningView"
-                  element={<AdminIndividualScreeningView />}
+                  element={<AdminIndividualScreeningView />} 
                 />
+                <Route path="ViewAttachments" element={<ViewAttachments />} />
+                <Route path="ViewPreScreeningForm" element={<ViewPreScreeningForm />} />
+                <Route path="ViewScreeningProcedure" element={<ViewScreeningProcedure />} />
+                <Route path="ViewResults" element={<ViewResults />} />
               </Route>
             </Route>
           </Route>
@@ -150,12 +160,8 @@ const App = () => {
               <Route path="cancer-screening">
                 <Route index element={<BeneficiaryCancerScreening />} />
                 <Route
-                  path="individual-screening-req"
-                  element={<BeneficiaryIndividualScreeningReq />}
-                />
-                <Route
-                  path="individual-screening"
-                  element={<BeneficiaryIndividualScreening />}
+                  path="pre-screening-form-note"
+                  element={<PreScreeningFormNote />}
                 />
                 <Route
                   path="pre-screening-form"
@@ -181,6 +187,18 @@ const App = () => {
               <Route
                 path="individualstatus-view"
                 element={<BeneficiaryIndividualScreeningStatusView />}
+              />
+              <Route
+                path="screening-requirements-note"
+                element={<ScreeningRequirementsNote />}
+              />
+              <Route
+                path="screening-procedure"
+                element={<ScreeningProcedure />} 
+              />
+              <Route
+                path="upload-attachments"
+                element={<UploadAttachments />} 
               />
             </Route>
           </Route>

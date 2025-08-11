@@ -15,12 +15,12 @@ const Requirements = () => {
       </div>
       <div className="py-6 px-10 flex flex-col flex-1 overflow-auto">
         <div className="flex justify-between">
-          <h2 className="text-xl font-semibold mb-6">Individual Screening</h2>
-          <p className="font-bold text-gray2 text-sm text-right">
+          <h2 className="text-xl font-semibold mb-6">Screening Procedure</h2>
+          {/* <p className="font-bold text-gray2 text-sm text-right">
             Screening and
             <br />
             Diagnostics
-          </p>
+          </p> */}
         </div>
         <div className="flex flex-col gap-5 w-full justify-between bg-white rounded-2xl py-7 px-8 flex-1 overflow-auto">
           <div className="flex flex-col gap-3">
@@ -39,7 +39,11 @@ const Requirements = () => {
             <div className="font-bold px-3 flex flex-col gap-4">
               <div className="flex gap-5">
                 <img src="/public/images/check-icon.svg" alt="check icon" />
-                <p>Laboratory Request from Doctor</p>
+                <p>Medical Certificate</p>
+              </div>
+              <div className="flex gap-5">
+                <img src="/public/images/check-icon.svg" alt="check icon" />
+                <p>Laboratory Results</p>
               </div>
               <div className="flex gap-5">
                 <img src="/public/images/check-icon.svg" alt="check icon" />
@@ -53,13 +57,13 @@ const Requirements = () => {
           </div>
           <div className="flex justify-between gap-5">
             <Link
-              to="/Beneficiary/services/cancer-screening"
+              to="/Beneficiary/individualscreeningstatus"
               className=" border  py-3 rounded-md text-center w-full hover:bg-black/10 hover:border-white"
             >
               I can't comply
             </Link>
             <Link
-              to="/Beneficiary/services/cancer-screening/individual-screening"
+              to="/Beneficiary/individualscreeningstatus/screening-procedure"
               className="bg-primary text-white py-3 rounded-md font-bold text-center w-full hover:bg-primary/50"
             >
               Continue

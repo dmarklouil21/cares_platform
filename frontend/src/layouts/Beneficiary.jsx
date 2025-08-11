@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import BeneficiarySidebar from "../components/navigation/Beneficiary";
 import NotValidated from "../pages/beneficiary/registration/note/preenrollment/NotValidated";
 import { useAuth } from "../context/AuthContext";
@@ -8,6 +8,7 @@ import PropagateLoaderComponent from "../components/loading/PropagateLoaderCompo
 import TextLoader from "../components/loading/TextLoader";
 
 const BeneficiaryLayout = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isValidated, setIsValidated] = useState(false);
@@ -16,13 +17,15 @@ const BeneficiaryLayout = () => {
     const fetchPreEnrollmentStatus = async () => {
       try {
         const response = await api.get("/beneficiary/details/");
-        if (response.data.status === "validated") {
+        const status = response.data.status;
+        if (status === "validated") {
           setIsValidated(true);
-        } else if (response.data.status === "pending") {
+        } else if (status === "pending") {
           setIsValidated(false);
-        }
+        } 
       } catch (error) {
         console.error("Error fetching pre-enrollment data:", error);
+        // navigate("/PreEnrollmentBeneficiary");
         setIsValidated(false);
       } finally {
         setLoading(false);
