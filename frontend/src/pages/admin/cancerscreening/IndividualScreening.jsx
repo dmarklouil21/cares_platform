@@ -120,8 +120,8 @@ const IndividualScreening = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting changes..." />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
-        <div className="bg-white h-[10%] px-5 w-full flex justify-between items-center">
+      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Admin</h1>
         </div>
         <div className="w-full flex-1 py-5 flex flex-col justify-around px-5">
@@ -129,7 +129,7 @@ const IndividualScreening = () => {
             Individual Screening
           </h2>
 
-          <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-3">
+          <div className="flex flex-col bg-white rounded-[4px] w-full shadow-md px-5 py-5 gap-3">
             <p className="text-md font-semibold text-yellow">
               Individual Screening
             </p>
@@ -163,7 +163,7 @@ const IndividualScreening = () => {
                 onChange={(e) => setDateFilter(e.target.value)}
               />
 
-              <button className="px-7 rounded-md text-sm text-white bg-lightblue">
+              <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
                 Filter
               </button>
             </div>
@@ -177,7 +177,7 @@ const IndividualScreening = () => {
                     </th>
                     <th className="w-[20%] text-sm py-3">Name</th>
                     <th className="w-[15%] text-center text-sm py-3">
-                      Date Created
+                      Submission Date
                     </th>
                     <th className="w-[15%] text-center text-sm py-3">LGU</th>
                     <th className="w-[13.4%] text-center text-sm py-3">
@@ -249,12 +249,12 @@ const IndividualScreening = () => {
                         <td className="text-center text-sm py-4 flex gap-2 justify-center">
                           <button
                             onClick={() => handleViewClick(item.patient.patient_id)}
-                            className="text-white py-1 px-3 rounded-md shadow bg-primary cursor-pointer"
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-primary cursor-pointer"
                           >
                             View
                           </button>
                           <button
-                            className="text-white py-1 px-3 rounded-md shadow bg-red-500 cursor-pointer"
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
                             onClick={() => handleActionClick(item.id, "delete")}
                           >
                             Delete

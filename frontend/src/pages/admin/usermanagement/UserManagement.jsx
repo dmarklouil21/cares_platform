@@ -221,8 +221,8 @@ const UserManagement = () => {
         message={notification}
         onClose={() => setNotification("")}
       />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
-        <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
+      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+        <div className="bg-[#F0F2F5] w-full py-1 px-5 flex h-[10%] justify-between items-end">
           <h1 className="text-md font-bold h-full flex items-center ">Admin</h1>
           <Link
             to="/Admin/UserManagement/add-user"
@@ -240,7 +240,7 @@ const UserManagement = () => {
           <h2 className="text-xl font-bold text-left w-full pl-5">
             User Management
           </h2>
-          <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-3">
+          <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-5 gap-3">
             <p className="text-md font-semibold text-yellow">
               Manage all system users
             </p>
@@ -267,7 +267,7 @@ const UserManagement = () => {
                 type="date"
                 className="border border-gray-200 py-2 px-5 rounded-md"
               />
-              <button className="px-7 rounded-md text-sm text-white bg-lightblue">
+              <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
                 Filter
               </button>
             </div>
@@ -328,13 +328,13 @@ const UserManagement = () => {
                         <td className="text-center text-sm py-4 flex gap-2 justify-center">
                           <button
                             onClick={() => handleViewClick(user.id)}
-                            className="text-white py-1 px-3 rounded-md shadow bg-primary"
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-primary"
                           >
                             View
                           </button>
                           <button
                             onClick={() => handleEditClick(user.id)}
-                            className="text-white py-1 px-3 rounded-md shadow bg-yellow-500"
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-yellow-500"
                           >
                             Edit
                           </button>
@@ -343,7 +343,7 @@ const UserManagement = () => {
                               console.log('Delete button clicked for user:', user); // Debug log
                               handleActionClick(user.id, "delete");
                             }}
-                            className="text-white py-1 px-3 rounded-md shadow bg-red-500"
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
                           >
                             Delete
                           </button>

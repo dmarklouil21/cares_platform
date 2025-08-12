@@ -35,7 +35,7 @@ const IndividualScreeningStatus = () => {
 
   const fetchData = async () => {
     try {
-      const response = await api.get(`/beneficiary/individual-screening/`);
+      const response = await api.get(`/beneficiary/individual-screening/list/`);
       setTableData(response.data);
     } catch (error) {
       console.error("Error fetching pre-enrollment requests:", error);
@@ -94,14 +94,14 @@ const IndividualScreeningStatus = () => {
     setModalText("");
   };
 
-  const handleView = (app) => {
-    console.log("Value Passed: ", app);
+  const handleView = (id) => {
+    // console.log("Value Passed: ", app);
     navigate("/Beneficiary/individualscreeningstatus/individualstatus-view", {
-      state: { status: app.status, application: app },
+      state: { id: id },
     });
   };
 
-  /* const filteredData = tableData.filter((record) => {
+  const filteredData = tableData.filter((record) => {
     const statusMatch =
       statusFilter === "All" || record.status === statusFilter;
     const searchMatch =
@@ -112,8 +112,8 @@ const IndividualScreeningStatus = () => {
     const dateMatch = !dateFilter || recordDate === dateFilter;
 
     return statusMatch && searchMatch && dateMatch;
-  }); */
-  const filteredData = tableData;
+  });
+  // const filteredData = tableData;
   console.log("Filtered Data:", filteredData);
 
   return (
@@ -249,48 +249,48 @@ const IndividualScreeningStatus = () => {
                         </td>
                       </tr>
                     ) : (
-                      // filteredData.map((app) => (
-                        <tr key={filteredData.id}>
+                      filteredData.map((app) => (
+                        <tr key={app.id}>
                           <td className=" py-2 text-sm text-center text-[#333333]">
-                            {filteredData.patient.patient_id}
+                            {app.patient.patient_id}
                           </td>
                           <td className=" py-2 text-sm text-center text-[#333333]"> 
-                            {filteredData.created_at.split("T")[0]}
+                            {app.created_at.split("T")[0]}
                           </td>
                           <td className=" py-2 text-sm text-center text-[#333333]"> 
-                            {filteredData.date_approved ? (
-                              filteredData.date_approved.split("T")[0]
+                            {app.date_approved ? (
+                              app.date_approved.split("T")[0]
                             ) : (
                               '--'
                             )}
                           </td>
                           <td className=" py-2 text-sm text-center text-[#333333]">
                             <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full text-[#1976D2]">
-                                {filteredData.status}
+                                {app.status}
                             </span>
                           </td>
                           <td className="text-center text-sm py-4 flex gap-2 justify-center"> {/*flex py-2 gap-2 px-2 justify-around text-sm text-center text-[#333333]" */}
-                            {filteredData.status !== "Pending" && (
+                            {app.status !== "Pending" && (
                               <button
                                 type="button" 
                                 className="text-white py-1 px-3 rounded-md shadow bg-primary cursor-pointer" 
-                                onClick={() => handleView(filteredData)}
+                                onClick={() => handleView(app.id)}
                               > {/*custom-shadow w-[50%] cursor-pointer text-white bg-primary py-[5px] rounded-md px-3 */}
                                 View
                               </button>
                             )}
-                            {filteredData.status !== "Complete" && (
+                            {app.status !== "Complete" && (
                               <button
                                 type="button"
                                 className="text-white py-1 px-3 rounded-md shadow bg-red-500 cursor-pointer"
-                                onClick={() => handleCancel(filteredData.id)}
+                                onClick={() => handleCancel(app.id)}
                               >
                                 Cancel
                               </button>
                             )}
                           </td>
                         </tr>
-                      // ))
+                      ))
                     )}
                   </tbody>
                 </table>

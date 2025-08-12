@@ -17,7 +17,8 @@ const getStepIndexByStatus = (status) => STATUS_TO_STEP[status] ?? 0;
 
 export default function ViewIndividualStatus() {
   const { user } = useAuth();
-  // const location = useLocation();
+  const location = useLocation();
+  const id = location?.state.id
   const [individualScreening, setIndividualScreening] = useState(null);
 
   const activeStep = getStepIndexByStatus(individualScreening?.status || "");
@@ -111,7 +112,7 @@ export default function ViewIndividualStatus() {
 
     const fetchData = async () => {
       try {
-        const { data } = await api.get(`/beneficiary/individual-screening/`);
+        const { data } = await api.get(`/beneficiary/individual-screening/${id}/`);
         setIndividualScreening(data);
       } catch (error) {
         console.error("Error fetching screening data:", error);

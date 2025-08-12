@@ -198,8 +198,8 @@ const PreEnrollment = () => {
         message={notification}
         onClose={() => setNotification("")}
       />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
-        <div className="bg-white h-[10%] px-5 w-full flex justify-between items-center">
+      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Admin</h1>
         </div>
         <div className="w-full flex-1 py-5 flex flex-col justify-around px-5">
@@ -207,7 +207,7 @@ const PreEnrollment = () => {
             Pre-Enrollment
           </h2>
 
-          <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-3">
+          <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-5 gap-3">
             <p className="text-md font-semibold text-yellow">
               Pre-Enrollment Requests
             </p>
@@ -239,7 +239,7 @@ const PreEnrollment = () => {
                 onChange={(e) => setDateFilter(e.target.value)}
               />
 
-              <button className="px-7 rounded-md text-sm text-white bg-lightblue">
+              <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
                 Filter
               </button>
             </div>
@@ -309,7 +309,7 @@ const PreEnrollment = () => {
                               onClick={() =>
                                 handleViewClick(item.beneficiary_id)
                               }
-                              className="text-white py-1 px-3 rounded-md shadow bg-primary"
+                              className="text-white py-1 px-3 rounded-[5px] shadow bg-primary"
                             >
                               View
                             </button>
@@ -321,7 +321,7 @@ const PreEnrollment = () => {
                                     "validate"
                                   )
                                 }
-                                className="text-white py-1 px-3 rounded-md shadow bg-green-500"
+                                className="text-white py-1 px-3 rounded-[5px] shadow bg-green-500"
                               >
                                 Validate
                               </button>
@@ -334,7 +334,7 @@ const PreEnrollment = () => {
                                     "reject"
                                   )
                                 }
-                                className="text-white py-1 px-3 rounded-md shadow bg-red-500"
+                                className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
                               >
                                 Reject
                               </button>
@@ -346,7 +346,7 @@ const PreEnrollment = () => {
                                     "delete"
                                   )
                                 }
-                                className="text-white py-1 px-3 rounded-md shadow bg-red-500"
+                                className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
                               >
                                 Delete
                               </button>
