@@ -41,7 +41,7 @@ class PreScreeningCreateView(generics.CreateAPIView):
 
         patient, _ = Patient.objects.get_or_create(beneficiary=beneficiary)
         
-        existing_screening = IndividualScreening.objects.filter(patient=patient).order_by('-created_at').first()
+        existing_screening = IndividualScreening.objects.filter(patient=patient).exclude(status='Complete').order_by('-created_at').first()
 
         if existing_screening and existing_screening.status != 'Completed':
           raise ValidationError({'non_field_errors': ['You currently have an ongoing request. Please complete or cancel it before submitting a new one.']})
@@ -99,16 +99,22 @@ class ScreeningProcedureCreateView(generics.CreateAPIView):
     except Exception as e:
       logger.error(f"Error creating screening procedure: {str(e)}")
       raise e
-
-class IndividualScreeningDetailView(generics.RetrieveAPIView):
+ 
+class IndividualScreeningListView(generics.ListAPIView):
   serializer_class = IndividualScreeningSerializer
   permission_classes = [IsAuthenticated]
 
-  def get_object(self):
+  def get_queryset(self):
     user = self.request.user
     beneficiary = get_object_or_404(Beneficiary, user=user)
     # patient_id = self.kwargs.get("patient_id")
-    return get_object_or_404(IndividualScreening, patient__beneficiary=beneficiary)
+    return IndividualScreening.objects.filter(patient__beneficiary=beneficiary)
+
+class IndividualScreeningDetailView(generics.RetrieveAPIView):
+  queryset = IndividualScreening.objects.all()
+  serializer_class = IndividualScreeningSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
 
 class IndividualScreeningCancelRequestView(generics.DestroyAPIView):
   queryset = IndividualScreening.objects.all()
