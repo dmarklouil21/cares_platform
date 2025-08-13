@@ -61,7 +61,7 @@ const LOAPrintTemplate = ({ loaData }) => (
         <div>
           <p className="font-semibold">
             Diagnostic/ Treatment / Procedure:
-            <span className="font-normal"> {loaData?.screening_procedure.screening_procedure_name}</span>
+            <span className="font-normal"> {loaData?.screening_procedure?.screening_procedure_name}</span>
           </p>
           <p className="italic pl-[39%]">(Excluding Doctor's Professional Fee)</p>
         </div>
