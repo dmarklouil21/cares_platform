@@ -234,23 +234,23 @@ const IndividualScreeningView = () => {
       {/* Schedule Modal */}
       {dateModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-[400px]">
-            <h2 className="text-xl font-semibold mb-4">Set Screening Date</h2>
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">Set Screening Date</h2>
             <input
               type="date"
-              className="w-full p-3 border border-gray2 rounded-md mb-4"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none mb-4"
               value={tempDate}
               onChange={(e) => setTempDate(e.target.value)}
             />
             <div className="flex justify-end gap-3">
               <button
-                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+                className="px-5 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
                 onClick={() => setDateModalOpen(false)}
               >
                 Cancel
               </button>
               <button
-                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/50"
+                className="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors"
                 onClick={handleDateModalConfirm}
               >
                 Confirm
@@ -263,10 +263,10 @@ const IndividualScreeningView = () => {
       {/* Return remarks Modal */}
       {remarksModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-[400px]">
-            <h2 className="text-xl font-semibold mb-4">Remarks</h2>
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">Remarks</h2>
             <textarea
-              className="w-full p-3 border border-gray2 rounded-md mb-4 resize-none"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none mb-4 resize-none"
               rows={4}
               placeholder="Enter your remarks here..."
               value={remarks}
@@ -274,13 +274,13 @@ const IndividualScreeningView = () => {
             />
             <div className="flex justify-end gap-3">
               <button
-                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+                className="px-5 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
                 onClick={() => setRemarksModalOpen(false)}
               >
                 Cancel
               </button>
               <button
-                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/50"
+                className="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors"
                 onClick={handleReturn}
               >
                 Send
@@ -290,150 +290,145 @@ const IndividualScreeningView = () => {
         </div>
       )}
 
-      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        <div className="py-6 px-10 flex flex-col">
-          <div className="flex justify-between p-3 items-center">
-            <h3 className="ttext-2xl font-bold text-secondary">INDIVIDUAL SCREENING</h3>
+      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+        <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
+          <h1 className="text-md font-bold">View Screening</h1>
+          <div className="p-3">
+            {/* <h3 className="ttext-2xl font-bold text-secondary">INDIVIDUAL SCREENING</h3> */}
             <Link to={"/Admin/cancerscreening/AdminIndividualScreening"}>
               <img
                 src="/images/back.png"
                 alt="Back button icon"
-                className="h-7"
+                className="h-6"
               />
             </Link>
           </div>
-          <div className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-8">
-            <div className="flex flex-col">
+        </div>
+        <div className="h-full w-full p-5 flex flex-col justify-between">
+          <div className="border border-black/15 p-3 bg-white rounded-sm">
+            {/* <div className="flex flex-col">
               <h2 className="text-2xl font-semibold">
                 {record?.patient.full_name}
               </h2>
+            </div> */}
+            <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
+              <h1 className="text-md font-bold">Patient ID - {record?.patient.patient_id}</h1>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="flex flex-col gap-2">
-                <label htmlFor="patient_id">Patient ID</label>
-                <input
-                  type="text"
-                  id="patient_id"
-                  name="patient_id"
-                  className="w-[85%] p-3 border border-gray2 rounded-md"
-                  value={record?.patient.patient_id}
-                  readOnly
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="patient_name">Name</label>
-                <input
-                  type="text"
-                  name="patient_name"
-                  id="patient_name"
-                  className="w-[85%] p-3 border border-gray2 rounded-md"
-                  value={record?.patient.full_name}
-                  readOnly
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="date_approved">Date Created</label>
-                <input
-                  type="text"
-                  name="date_approved"
-                  id="date_approved"
-                  className="w-[85%] p-3 border border-gray2 rounded-md"
-                  value="June 1, 2025"
-                  readOnly
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="lgu">LGU</label>
-                <input
-                  type="text"
-                  name="lgu"
-                  id="lgu"
-                  className="w-[85%] p-3 border border-gray2 rounded-md"
-                  value="Argao"
-                  readOnly
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="status">Status</label>
-                <select
-                  name="status"
-                  id="status"
-                  className="w-[85%] p-3 border border-gray2 rounded-md"
-                  value={status}
-                  onChange={handleStatusChange}
-                  // onChange={(e) => setStatus(e.target.value)}
-                >
-                  <option value="Pending">Pending</option>
-                  <option value="Approve">Approve</option>
-                  <option value="LOA Generation">LOA Generation</option>
-                  <option value="In Progress">In Progress</option> 
-                  <option value="Complete">Complete</option>
-                  <option value="Return">Return</option>
-                  <option value="Reject">Reject</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="screening_schedule">Screening Date</label>
-                <div className="flex items-center gap-2">
+            <div className="flex flex-row gap-8 p-4">
+              {/* First Column */}
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label htmlFor="patient_name" className="block text-gray-700 mb-1">Name</label>
                   <input
-                    type="date"
-                    name="screening_schedule"
-                    id="screening_schedule"
-                    className="w-[85%] p-3 border border-gray2 rounded-md"
-                    value={screeningDate}
+                    type="text"
+                    name="patient_name"
+                    id="patient_name"
+                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                    value={record?.patient.full_name}
                     readOnly
                   />
-                  {screeningDate && (
-                    <button
-                      className="p-3 bg-gray-300 rounded-md hover:bg-gray-400"
-                      onClick={() => {
-                        setTempDate(screeningDate || "");
-                        setDateModalOpen(true);
-                      }}
-                    >
-                      Edit
-                    </button>
-                  )}
                 </div>
-                {/* <input
-                  type="date"
-                  name="screening_schedule"
-                  id="screening_schedule"
-                  className="w-[85%] p-3 border border-gray2 rounded-md"
-                  value="2025-08-06"
-                /> */}
+                <div>
+                  <label htmlFor="date_approved" className="block text-gray-700 mb-1">Date Submitted</label>
+                  <input
+                    type="text"
+                    name="date_approved"
+                    id="date_approved"
+                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                    value="June 1, 2025"
+                    readOnly
+                  />
+                </div>
+                <div>
+                  <label htmlFor="lgu" className="block text-gray-700 mb-1">LGU</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    id="lgu"
+                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                    value="Argao"
+                    readOnly
+                  />
+                </div>
+              </div>
+              {/* Second Column */}
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label htmlFor="status" className="block text-gray-700 mb-1">Status</label>
+                  <select
+                    name="status"
+                    id="status"
+                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                    value={status}
+                    onChange={handleStatusChange}
+                    // onChange={(e) => setStatus(e.target.value)}
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Approve">Approve</option>
+                    <option value="LOA Generation">LOA Generation</option>
+                    <option value="In Progress">In Progress</option> 
+                    <option value="Complete">Complete</option>
+                    <option value="Return">Return</option>
+                    <option value="Reject">Reject</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="screening_schedule" className="block text-gray-700 mb-1">Screening Date</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      name="screening_schedule"
+                      id="screening_schedule"
+                      className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                      value={screeningDate}
+                      readOnly
+                    />
+                    {screeningDate && (
+                      <button
+                        className="px-3 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        onClick={() => {
+                          setTempDate(screeningDate || "");
+                          setDateModalOpen(true);
+                        }}
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="flex justify-between w-full ">
-              <Link 
-                className="bg-primary w-[23%] hover:bg-primary/50 text-center py-2.5 text-white rounded-md"
-                to="/Admin/cancerscreening/view/ViewScreeningProcedure"
-                state={record}
-              >
-                Screening Procedure
-              </Link>
-              <Link 
-                className="bg-primary w-[23%] hover:bg-primary/50 text-center py-2.5 text-white rounded-md"
-                to="/Admin/cancerscreening/view/ViewPreScreeningForm"
-                state={record}
-              >
-                Pre Screening Form
-              </Link>
-              <Link
-                className="bg-primary w-[23%] hover:bg-primary/50 text-center py-2.5 text-white rounded-md"
-                to={"/Admin/cancerscreening/view/ViewAttachments"}
-                state={record}
-              >
-                View Attachments
-              </Link>
-              <Link 
-                className="bg-primary w-[23%] hover:bg-primary/50 text-center py-2.5 text-white rounded-md"
-                to={"/Admin/cancerscreening/view/ViewResults"}
-                state={record}
-              >
-                View Results
-              </Link>
-            </div>
+          </div> 
+          {/* <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5"> */}
+          <div className="w-full flex justify-around">
+            <Link 
+              className="text-center font-bold bg-primary text-white py-2 w-[20%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+              to="/Admin/cancerscreening/view/ViewScreeningProcedure"
+              state={record}
+            >
+              Screening Procedure
+            </Link>
+            <Link 
+              className="text-center font-bold bg-primary text-white py-2 w-[20%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+              to="/Admin/cancerscreening/view/ViewPreScreeningForm"
+              state={record}
+            >
+              Pre Screening Form
+            </Link>
+            <Link
+              className="text-center font-bold bg-primary text-white py-2 w-[20%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+              to={"/Admin/cancerscreening/view/ViewAttachments"}
+              state={record}
+            >
+              View Attachments
+            </Link>
+            <Link 
+              className="text-center font-bold bg-primary text-white py-2 w-[20%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+              to={"/Admin/cancerscreening/view/ViewResults"}
+              state={record}
+            >
+              View Results
+            </Link>
           </div>
         </div>
 

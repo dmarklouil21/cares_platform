@@ -135,21 +135,10 @@ const ViewScreeningProcedure = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting changes..." />
-      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        {/* <div className="bg-white py-4 px-10 flex justify-between items-center">
-          <div className="font-bold">Beneficary</div>
-          <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-            <img
-              src="/images/Avatar.png"
-              alt="User Profile"
-              className="rounded-full"
-            />
-          </div>
-        </div> */}
-
-        <div className="py-6 px-10 flex flex-col flex-1">
-          <div className="flex justify-between p-3 items-center">
-            <h2 className="text-xl font-semibold">{record?.patient.full_name || ""} - {record?.patient.patient_id}</h2>
+      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+        <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
+          <h1 className="text-md font-bold">Screening Procedure</h1>
+          <div className="p-3">
             <Link 
               to={"/Admin/cancerscreening/view/AdminIndividualScreeningView"}
               state={{record: record}}
@@ -157,95 +146,108 @@ const ViewScreeningProcedure = () => {
               <img
                 src="/images/back.png"
                 alt="Back button icon"
-                className="h-7"
+                className="h-6"
               />
             </Link>
           </div>
-          {!screening_procedure ? (
-            <div className="flex-1 flex flex-col justify-center items-center bg-white rounded-2xl py-10 px-8 text-center">
-              <h2 className="text-2xl font-semibold text-gray-600">No Screening Procedure Found</h2>
-              <p className="text-gray-500 mt-2">
-                This patient does not have a screening procedure record yet.
-              </p>
-              <Link
-                to="/Admin/cancerscreening/view/AdminIndividualScreeningView"
-                state={{ record }}
-                className="mt-6 px-6 py-3 bg-[#749AB6] text-white rounded-md hover:bg-[#5a7e9c]"
-              >
-                Go Back
-              </Link>
+        </div>
+
+        <div className="h-full w-full p-5 flex flex-col justify-between">
+          <div className="border border-black/15 p-3 bg-white rounded-sm">
+            <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
+              <h1 className="text-md font-bold">Patient ID - {record?.patient.patient_id}</h1>
             </div>
-          ) : (
-            <form 
-              className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-8 flex-1 overflow-auto"
-              onSubmit={handleSave}
-            >
-              {/* <div className="flex flex-col gap-3">
-                <h3 className="text-2xl font-bold text-secondary">
-                  INDIVIDUAL SCREENING
-                </h3>
-                <p className="text-gray2 ">
-                  Monitor and manage cancer screening procedures, generate LOA, and
-                  upload diagnostic results.
+            {/* <div className="flex justify-between p-3 items-center">
+              <h2 className="text-xl font-semibold">{record?.patient.full_name || ""} - {record?.patient.patient_id}</h2>
+              <Link 
+                to={"/Admin/cancerscreening/view/AdminIndividualScreeningView"}
+                state={{record: record}}
+              >
+                <img
+                  src="/images/back.png"
+                  alt="Back button icon"
+                  className="h-7"
+                />
+              </Link>
+            </div> */}
+            {!screening_procedure ? (
+              <div className="flex-1 flex flex-col justify-center items-center bg-white rounded-2xl py-10 px-8 text-center">
+                <h2 className="text-2xl font-semibold text-gray-600">No Screening Procedure Found</h2>
+                <p className="text-gray-500 mt-2">
+                  This patient doesn't have a screening procedure record yet.
                 </p>
-              </div> */}
-              <div className="flex flex-col gap-6">
-                <h1 className="font-bold text-xl">Screening Procedure</h1>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="screening_procedure_name">Screening Procedure:</label>
-                  <input
-                    type="text"
-                    name="screening_procedure_name"
-                    id="screening_procedure_name"
-                    placeholder="ex: Mammogram, MRI"
-                    className="w-[85%] p-3 border border-gray2 rounded-md"
-                    value={screening_procedure?.screening_procedure_name}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="proceduredetials">Procedure Details</label>
-                  <input
-                    type="text"
-                    name="procedure_details"
-                    id="procedure_details"
-                    placeholder="ex: Breast screening due to palpable mass"
-                    className="w-[85%] p-3 border border-gray2 rounded-md"
-                    value={screening_procedure?.procedure_details}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="cancetsite">Cancer Site</label>
-                  <input
-                    type="text"
-                    name="cancer_site"
-                    id="cancer_site"
-                    placeholder="ex: Breast"
-                    className="w-[85%] p-3 border border-gray2 rounded-md"
-                    value={screening_procedure?.cancer_site}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-              <div className="flex w-full justify-between gap-8">
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  className=" border  py-3 rounded-md text-center w-full hover:bg-black/10 hover:border-white"
-                  // to="/Admin/cancerscreening/view/AdminIndividualScreeningView"
-                  // state={{record: record}}
+                <Link
+                  to="/Admin/cancerscreening/view/AdminIndividualScreeningView"
+                  state={{ record }}
+                  className="text-center font-bold bg-primary text-white mt-5 py-2 w-[15%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
                 >
-                  Delete
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#749AB6] text-center font-bold text-white py-2 w-full border-[1px] border-[#749AB6] hover:border-[#C5D7E5] hover:bg-[#C5D7E5] rounded-md cursor-pointer"
-                >
-                  Save
-                </button>
+                  Go Back
+                </Link>
               </div>
-            </form>
+            ) : (
+              <form 
+                className="flex flex-row gap-8 p-4"
+                // onSubmit={handleSave}
+              >
+                <div className="flex flex-col gap-3 w-1/2">
+                  <div>
+                    <label htmlFor="screening_procedure_name" className="block text-gray-700 mb-1">Screening Procedure:</label>
+                    <input
+                      type="text"
+                      name="screening_procedure_name"
+                      id="screening_procedure_name"
+                      placeholder="ex: Mammogram, MRI"
+                      className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                      value={screening_procedure?.screening_procedure_name}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="proceduredetials" className="block text-gray-700 mb-1">Procedure Details</label>
+                    <input
+                      type="text"
+                      name="procedure_details"
+                      id="procedure_details"
+                      placeholder="ex: Breast screening due to palpable mass"
+                      className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                      value={screening_procedure?.procedure_details}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="cancer_site" className="block text-gray-700 mb-1">Cancer Site</label>
+                    <input
+                      type="text"
+                      name="cancer_site"
+                      id="cancer_site"
+                      placeholder="ex: Breast"
+                      className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                      value={screening_procedure?.cancer_site}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+              </form>
+            )}
+          </div>
+          {screening_procedure && (
+            <div className="w-full flex justify-around">
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+              >
+                Delete
+              </button>
+              <button
+                // type="submit"
+                type="button"
+                onClick={handleSave}
+                className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+              >
+                Save
+              </button>
+            </div>
           )}
         </div>
 

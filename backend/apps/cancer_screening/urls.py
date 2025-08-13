@@ -14,7 +14,8 @@ urlpatterns = [
   path('individual-screening/screening-procedure/update/<int:id>/', views.ScreeningProcedureUpdateView.as_view(), name='invidividual_screening_screening_procedure_update'),
   path('individual-screening/screening-procedure/delete/<str:id>/', views.ScreeningProcedureDeleteView.as_view(), name='individual_screening_screening_procedure_delete'),
   path('individual-screening/attachments-update/<str:procedure_id>/', views.ScreeningAttachmentUpdateView.as_view(), name='individual_screening_attachments_update'),
-  path('individual-screening/attachments-delete/<int:attachment_id>/', views.AttachmentDeleteView.as_view(), name='individual_screening_attachments_delete'),
+  path('individual-screening/attachments-delete/<int:id>/', views.AttachmentDeleteView.as_view(), name='individual_screening_attachments_delete'),
+  path('individual-screening/results-upload/<str:screening_id>/', views.ResultAttachmentUploadView.as_view(), name='individual_screening_results_upload'),
   path('individual-screening/results-attachment-delete/<str:screening_id>/', views.ResultDeleteView.as_view(), name='individual_screening_results_attachments_delete'),
   path('individual-screening/return-remarks/<int:id>/', views.send_return_remarks, name='return_remarks'),
 ]

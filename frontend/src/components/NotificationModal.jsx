@@ -11,15 +11,15 @@ export default function NotificationModal ({ show, type = "success", title = "Su
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
         <div className="flex flex-col items-center text-center">
-          <h2 className="text-2xl font-bold mb-2">{title}</h2>
+          <h2 className="text-2xl font-bold mb-2 text-gray-800">{title}</h2>
           {iconMap[type]}
           <p className="text-gray-600 mb-6">{message}</p>
           <button
             onClick={onClose}
-            className="bg-[#749AB6] text-white font-bold py-2 px-6 rounded-md hover:bg-[#C5D7E5] transition-colors"
+            className="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors"
           >
             OK
           </button>

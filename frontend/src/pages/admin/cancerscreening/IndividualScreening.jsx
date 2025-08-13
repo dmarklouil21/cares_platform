@@ -52,8 +52,8 @@ const IndividualScreening = () => {
     return statusMatch && searchMatch && dateMatch;
   });
 
-  const handleViewClick = (patientId) => {
-    const selected = tableData.find((item) => item.patient.patient_id === patientId);
+  const handleViewClick = (id) => {
+    const selected = tableData.find((item) => item.id === id);
     navigate(`/Admin/cancerscreening/view/AdminIndividualScreeningView`, {
       state: { record: selected },
     });
@@ -98,6 +98,15 @@ const IndividualScreening = () => {
       setModalAction({ id, action });
       setModalOpen(true);
     }
+  };
+
+  const statusColors = {
+    Pending: "bg-yellow-100 text-yellow-700",
+    "LOA Generation": "bg-blue-100 text-blue-700",
+    "In Progress": "bg-orange-100 text-orange-700",
+    Complete: "bg-green-100 text-green-700",
+    Reject: "bg-red-100 text-red-700",
+    Default: "bg-gray-100 text-gray-700",
   };
 
   return (
@@ -225,7 +234,10 @@ const IndividualScreening = () => {
                           {item.patient.beneficiary.city}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          <span className="px-3 py-1 inline-flex items-center gap-1 text-xs font-semibold rounded-md text-[#1976D2]">
+                          <span className={`px-3 py-1 inline-flex items-center gap-1 text-xs font-semibold rounded-md ${
+                            statusColors[item.status] || statusColors.Default
+                            }`}
+                          >
                             {item.status}
                             <span
                               title={
@@ -248,7 +260,7 @@ const IndividualScreening = () => {
                         </td>
                         <td className="text-center text-sm py-4 flex gap-2 justify-center">
                           <button
-                            onClick={() => handleViewClick(item.patient.patient_id)}
+                            onClick={() => handleViewClick(item.id)}
                             className="text-white py-1 px-3 rounded-[5px] shadow bg-primary cursor-pointer"
                           >
                             View

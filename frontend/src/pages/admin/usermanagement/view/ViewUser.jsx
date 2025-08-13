@@ -7,7 +7,7 @@ const ViewUser = () => {
   const user = location.state?.user || {};
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
+    <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
       <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">View User</h1>
       </div>

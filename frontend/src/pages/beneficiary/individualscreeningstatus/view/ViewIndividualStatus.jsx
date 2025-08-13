@@ -108,11 +108,12 @@ export default function ViewIndividualStatus() {
   ], [activeStep]);
 
   useEffect(() => {
-    if (!user?.patient_id) return;
+    // if (!user?.patient_id) return;
 
     const fetchData = async () => {
       try {
         const { data } = await api.get(`/beneficiary/individual-screening/${id}/`);
+        console.log("Data: ", data)
         setIndividualScreening(data);
       } catch (error) {
         console.error("Error fetching screening data:", error);
@@ -120,7 +121,7 @@ export default function ViewIndividualStatus() {
     };
 
     fetchData();
-  }, [user?.patient_id]);
+  }, [user]);
   console.log('Screening Data: ', individualScreening);
 
   return (
