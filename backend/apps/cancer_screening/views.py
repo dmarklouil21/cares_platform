@@ -16,7 +16,8 @@ from .models import IndividualScreening, PreScreeningForm
 from .serializers import (
   PreScreeningFormSerializer,
   IndividualScreeningSerializer,
-  ScreeningProcedureSerializer
+  ScreeningProcedureSerializer,
+  ScreeningAttachmentSerializer
 )
 
 import logging
@@ -104,12 +105,13 @@ class ScreeningProcedureDeleteView(generics.DestroyAPIView):
 
 class AttachmentDeleteView(generics.DestroyAPIView):
   queryset = ScreeningAttachment.objects.all()
+  serializer_class = ScreeningAttachmentSerializer
   lookup_field = 'id'
   permission_classes = [IsAuthenticated, IsAdminUser]
 
-  def perform_destroy(self, instance):
-    instance.file.delete(save=False)
-    super().perform_destroy(instance)
+  # def perform_destroy(self, instance):
+  #   instance.file.delete(save=False)
+  #   super().perform_destroy(instance)
 
 class IndividualScreeningStatusUpdateView(generics.UpdateAPIView):
   queryset = IndividualScreening.objects.all()
@@ -149,12 +151,29 @@ class IndividualScreeningStatusRejectView(APIView):
     send_individual_screening_status_email(patient=patient, status=status_value, remarks=remarks)
     return Response({"message": "Rejected successfully."})
 
+class ResultAttachmentUploadView(APIView):
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+
+  def patch(self, request, screening_id):
+    individual_screening = get_object_or_404(IndividualScreening, id=screening_id)
+    # individual_screening = get_object_or_404(IndividualScreening, screening_procedure=screening_procedure)
+    
+    attachments = request.FILES.getlist('attachments')
+
+    validate_attachment(attachments[0])
+
+    individual_screening.uploaded_result = attachments[0]
+    individual_screening.save()
+
+    return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
+
 class ResultDeleteView(APIView):
   permission_classes = [IsAuthenticated, IsAdminUser]
 
   def delete(self, request, screening_id):
     individual_screening = get_object_or_404(IndividualScreening, id=screening_id)
-    individual_screening.uploaded_result.delete(save=False)
+    individual_screening.uploaded_result.delete()
     return Response({"message": "Attachment deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['POST'])

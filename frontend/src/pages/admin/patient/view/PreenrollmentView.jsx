@@ -71,13 +71,11 @@ const Details = () => {
     return <div className="p-6">Loading patient details...</div>;
   }
   return (
-    <div className="h-screen w-full bg-white">
-      <div className="bg-primary/50 h-[10%] px-5 flex justify-between items-center">
+    <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+      <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">Beneficiary Details</h1>
-      </div>
-      <div className="h-[90%] overflow-auto  px-5 py-3 flex flex-col gap-3">
-        <div className="flex justify-between px-5">
-          <h2 className="text-xl font-bold">Beneficiary ID: {patient.beneficiary_id}</h2>
+        <div className="p-3">
+          {/* <h3 className="ttext-2xl font-bold text-secondary">INDIVIDUAL SCREENING</h3> */}
           <Link to={"/Admin/patient/AdminPreEnrollment"}>
             <img
               src="/images/back.png"
@@ -86,13 +84,26 @@ const Details = () => {
             />
           </Link>
         </div>
+      </div>
+      {/* <div className="h-[90%] overflow-auto  px-5 py-3 flex flex-col gap-3"> */}
+      <div className="h-full w-full overflow-auto p-5 flex flex-col justify-between">
+        {/* <div className="flex justify-between px-5">
+          <h2 className="text-xl font-bold">Beneficiary ID: {patient.beneficiary_id}</h2>
+          <Link to={"/Admin/patient/AdminPreEnrollment"}>
+            <img
+              src="/images/back.png"
+              alt="Back button icon"
+              className="h-6"
+            />
+          </Link>
+        </div> */}
 
-        <div className="border rounded-md flex flex-col border-black/30">
+        <div className="border border-black/15 p-3 bg-white rounded-sm">
           <div className="flex flex-col">
             <div className="bg-gray rounded-t-md py-2 px-5 flex justify-between items-center">
               <h1 className="text-md font-bold">Beneficiary Profile</h1>
             </div>
-            <div className="flex justify-center bg-white p-5">
+            <div className="flex justify-center bg-white mt-4">
               <ul className="w-[100%] bg-gray/50">
                 <li className="border-b border-black/20 pl-4 py-2">
                   Last Name
@@ -147,11 +158,11 @@ const Details = () => {
               </ul>
             </div>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col mt-4">
             <div className="bg-gray py-2 px-5 flex justify-between items-center">
               <h1 className="text-md font-bold">Contact & Address</h1>
             </div>
-            <div className="flex  bg-white p-5">
+            <div className="flex  bg-white mt-4">
               <ul className="w-[100%] bg-gray/50">
                 <li className="border-b border-black/20 pl-4 py-2">
                   Permanent Address
@@ -188,11 +199,11 @@ const Details = () => {
               </ul>
             </div>
           </div>
-          <div className="flex h-fit flex-col">
+          <div className="flex h-fit flex-col mt-4">
             <div className="bg-gray rounded-t-md py-2 px-5 flex justify-between items-center">
               <h1 className="text-md font-bold">Additional Info</h1>
             </div>
-            <div className="flex flex-col bg-white p-5 ">
+            <div className="flex flex-col bg-white mt-4">
               <h1 className="bg-gray py-1.5 px-5 w-[60%] border-b border-black/30">
                 Source of Information (Where did you here about RAFI-EJACC?)
               </h1>
@@ -207,11 +218,11 @@ const Details = () => {
               </p>
             </div>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col mt-4">
             <div className="bg-gray py-2 px-5 flex justify-between items-center">
               <h1 className="text-md font-bold">Socioeconomic Info</h1>
             </div>
-            <div className="flex  bg-white p-5">
+            <div className="flex  bg-white mt-4">
               <ul className="w-[100%] bg-gray/50">
                 <li className="border-b border-black/20 pl-4 py-2">
                   Highest Educational Attainment
@@ -240,11 +251,11 @@ const Details = () => {
               </ul>
             </div>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col mt-4">
             <div className="bg-gray rounded-t-md py-2 px-5 flex justify-between items-center">
               <h1 className="text-md font-bold">Emergency Contact 1</h1>
             </div>
-            <div className="flex justify-center bg-white p-5">
+            <div className="flex justify-center bg-white mt-4">
               <ul className="w-[100%] bg-gray/50">
                 <li className="border-b border-black/20 pl-4 py-2">Name</li>
                 <li className="border-b border-black/20 pl-4 py-2">
@@ -287,11 +298,11 @@ const Details = () => {
               </ul>
             </div>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col mt-4">
             <div className="bg-gray rounded-t-md py-2 px-5 flex justify-between items-center">
               <h1 className="text-md font-bold">Emergency Contact 2</h1>
             </div>
-            <div className="flex justify-center bg-white p-5">
+            <div className="flex justify-center bg-white mt-4">
               <ul className="w-[100%] bg-gray/50">
                 <li className="border-b border-black/20 pl-4 py-2">Name</li>
                 <li className="border-b border-black/20 pl-4 py-2">
@@ -337,17 +348,21 @@ const Details = () => {
         </div>
         {
           patient.status === "pending" ? 
-            <button 
-              onClick={() => handleActionClick(patient.beneficiary_id, "validate")}
-              className="flex justify-start px-12 py-1.5 bg-primary rounded-md w-fit font-bold text-white">
-              Verify
-            </button>
+            <div className="w-full flex justify-end mt-5">
+              <button 
+                onClick={() => handleActionClick(patient.beneficiary_id, "validate")}
+                className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md">
+                Verify
+              </button>
+            </div>
           : 
-            <button 
-              onClick={() => handleActionClick(patient.beneficiary_id, "delete")}
-              className="flex justify-start px-12 py-1.5 bg-primary rounded-md w-fit font-bold text-white">
-              Delete
-            </button>
+            <div className="w-full flex justify-end mt-5">
+              <button 
+                onClick={() => handleActionClick(patient.beneficiary_id, "delete")}
+                className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md">
+                Delete
+              </button>
+            </div>
         }
       </div>
     </div>

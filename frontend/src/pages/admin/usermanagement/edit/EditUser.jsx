@@ -353,7 +353,7 @@ const EditUser = () => {
         </div>
         <div className="w-full flex justify-around">
           <Link
-            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15  rounded-md"
+            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
             to="/Admin/UserManagement"
           >
             CANCEL
