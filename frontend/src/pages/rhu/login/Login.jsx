@@ -47,11 +47,11 @@ const Login = () => {
     >
       <div className="flex flex-col gap-2 items-center justify-center">
         <h2 className="text-5xl font-bold text-primary">
-          Login as Beneficiary
+          Login as RHU Focal Person
         </h2>
         <p className="text-center text-base text-black">
-          Welcome back — access your health updates and <br />
-          stay on track with your care.
+          Welcome back — continue delivering quality <br />
+          care to your community.
         </p>
       </div>
 
@@ -93,7 +93,7 @@ const Login = () => {
         <p className="text-sm text-black">
           Don't have an account?{" "}
           <Link
-            to="/beneficiary-registration"
+            to="/NoteRhu"
             className="text-primary font-semibold hover:underline"
           >
             Sign Up

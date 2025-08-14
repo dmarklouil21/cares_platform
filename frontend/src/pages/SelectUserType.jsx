@@ -4,21 +4,22 @@ import { Link } from "react-router-dom";
 const SelectUserType = () => {
   return (
     <div className="bg-gray w-[75%] h-screen flex flex-col items-center justify-between py-7">
-      <h2 className="text-5xl font-bold text-primary">Register Now!</h2>
+      <h2 className="text-5xl font-bold text-primary">Log in to Your Account</h2>
       <p className="text-center text-base text-black">
-        Select your role to proceed with
-        <br />
+        Access your account to manage patient <br />
+          services with ease.
+        {/* <br />
         registration and access the right services tailored
         <br />
-        for you.
+        for you. */}
       </p>
-      <div className="bg-white w-full max-w-md rounded-xl shadow px-8 py-6">
+      <div className="bg-white w-full max-w-md mt-10 mb-10 rounded-xl shadow px-8 py-6">
         <label className="block text-gray-700 font-medium mb-3">
           Select User Type
         </label>
         <div className="space-y-3 mb-3">
           <Link
-            to="/UserRegistration"
+            to="/beneficiary-login"
             className="flex gap-5 w-full text-black hover:text-[#636c72] font-bold text-xl px-4 py-3 rounded-lg hover:bg-lightblue focus:outline-none"
           >
             <img
@@ -29,7 +30,7 @@ const SelectUserType = () => {
             Beneficiary
           </Link>
           <Link
-            to="/NoteRhu"
+            to="/rhu-login"
             className="flex gap-5 w-full text-black hover:text-[#636c72] font-bold text-xl px-4 py-3 rounded-lg hover:bg-lightblue focus:outline-none"
           >
             <img
@@ -60,10 +61,10 @@ const SelectUserType = () => {
             <rect fill="#05a6f0" x="4" y="12.5" width="7" height="7" />
             <rect fill="#ffba08" x="13" y="12.5" width="7" height="7" />
           </svg>
-          <p className="text-sm">Sign up with Microsoft</p>
+          <p className="text-sm">Sign in with Microsoft</p>
         </button>
       </div>
-      <p className="text-sm font-medium text-black">
+      {/* <p className="text-sm font-medium text-black">
         Already have an account?{" "}
         <Link
           to="/Login"
@@ -71,7 +72,7 @@ const SelectUserType = () => {
         >
           Sign In
         </Link>
-      </p>
+      </p> */}
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 const ProtectedAdminRoute = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
 
-  if (!isAuthenticated) return <Navigate to="/Login" replace />;
+  if (!isAuthenticated) return <Navigate to="/admin-login" replace />;
 
   if (!user.is_superuser) {
     return <Navigate to="/Unauthorized" replace />; // No dedicated page for unauthorized access yet

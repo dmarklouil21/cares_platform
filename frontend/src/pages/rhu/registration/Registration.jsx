@@ -91,9 +91,9 @@ const Registration = () => {
   return (
     <div className="h-screen w-[75%] flex flex-col gap-12 bg-gray py-12 px-12 overflow-auto">
       <div className="w-full flex justify-between px-9">
-        <h1 className="font-bold text-2xl">Beneficiary registration</h1>
+        <h1 className="font-bold text-2xl">RHU Focal Person registration</h1>
         <div className="flex text-right flex-col">
-          <p className="text-sm">STEP 01/02</p>
+          <p className="text-sm">STEP 01/01</p>
           <h1 className="font-bold text-gray-600">Info</h1>
         </div>
       </div>
