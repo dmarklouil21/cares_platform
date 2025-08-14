@@ -277,7 +277,7 @@ const Info101 = () => {
 
         <div className="flex justify-between w-full">
           <Link
-            to="/"
+            to="/beneficiary-login"
             className="text-black text-center py-2 w-[45%] border hover:bg-gray border-black hover:border-white rounded-md"
           >
             BACK

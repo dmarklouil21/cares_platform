@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ScanLine, ClipboardCheck } from "lucide-react";
+import { logout } from "src/services/authService";
 
 
 const BeneficiarySidebar = () => {
@@ -249,9 +250,11 @@ const BeneficiarySidebar = () => {
           className="bg-white/5 py-1 flex items-center justify-between gap-5 px-5 rounded-md hover:bg-white/50 cursor-pointer"
           onClick={() => {
             //usba lang
-            localStorage.clear();
-            sessionStorage.clear();
-            navigate("/Login");
+            // localStorage.clear();
+            // sessionStorage.clear();
+            // navigate("/Login");
+            logout();
+            navigate(0);
           }}
         >
           <h1 className="text-white">Logout</h1>

@@ -21,7 +21,9 @@ import NotValidated from "./pages/beneficiary/registration/note/preenrollment/No
 // ----------- REGISTRATION RHU SIDE ------------------
 
 // ----------- LOGIN SIDE ------------------
-import Login from "./pages/beneficiary/login/Login";
+import BeneficiaryLogin from "./pages/beneficiary/login/Login";
+import RHULogin from "./pages/rhu/login/Login"
+import AdminLogin from "./pages/admin/login/Login"
 import ResetPassword from "./pages/beneficiary/login/resetpassword";
 
 // ----------- ADMIN SIDE ------------------
@@ -84,9 +86,11 @@ const App = () => {
         <Routes>
           <Route path="/" element={<RegisterLoginLayout />}>
             <Route index element={<SelectUserType />} />
-            <Route path="UserRegistration" element={<UserRegistration />} />
-            <Route path="Login" element={<Login />} />
-            <Route path="DetailsRhu" element={<DetailsRhu />} />
+            <Route path="beneficiary-login" element={<BeneficiaryLogin />} />
+            <Route path="rhu-login" element={<RHULogin />} />
+            <Route path="admin-login" element={<AdminLogin />} />
+            <Route path="beneficiary-registration" element={<UserRegistration />} />
+            <Route path="rhu-registration" element={<DetailsRhu />} />
             <Route path="NoteRhu" element={<NoteRhu />} />
             <Route
               path="ResetPassword"

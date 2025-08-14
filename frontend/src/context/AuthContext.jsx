@@ -26,7 +26,6 @@ export const AuthProvider = ({ children }) => {
         user_id, // Store user_id
       }; */
       const { access, refresh, user } = await loginAPI(email, password);
-      console.log("User: ", user);
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
       localStorage.setItem("user", JSON.stringify(user));

@@ -5,7 +5,7 @@ const NotePanel = ({ onAccept, onDecline }) => {
   return (
     <div className="w-[75%] bg-gray flex flex-col h-screen gap-5 px-8 py-8 ">
       <div className="w-full flex justify-between px-9">
-        <h1 className="font-bold text-2xl">Beneficiary registration</h1>
+        <h1 className="font-bold text-2xl">RHU Focal Person registration</h1>
         <div className="flex text-right flex-col">
           <p className="text-sm">STEP 01/01</p>
           <h1 className="font-bold text-gray-600">NOTE</h1>
@@ -26,13 +26,13 @@ const NotePanel = ({ onAccept, onDecline }) => {
         </h1>
         <div className="flex justify-between w-full ">
           <Link
-            to="/"
+            to="/rhu-login"
             className="text-black py-2 w-[45%] border-[1px] text-center hover:bg-gray border-black hover:border-white rounded-md"
           >
             I Don't Accept
           </Link>
           <Link
-            to={"/DetailsRhu"}
+            to={"/rhu-registration"}
             id="i-accept-btn"
             className="bg-primary font-bold text-center text-white py-2 w-[45%] border-[1px] border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
             onClick={onAccept}
