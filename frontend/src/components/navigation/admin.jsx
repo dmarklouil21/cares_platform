@@ -38,7 +38,10 @@ const AdminSidebar = () => {
   ];
 
   const patientSubNav = [
-    { name: "Patient Master List", path: "/Admin/PatientMasterList" },
+    {
+      name: "Patient Master List",
+      path: "/Admin/patient/AdminPatientMasterList",
+    },
 
     { name: "Pre-Enrollment", path: "/Admin/patient/AdminPreEnrollment" },
     { name: "Cancer Management", path: "/Admin/CancerManagement" },

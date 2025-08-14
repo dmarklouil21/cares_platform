@@ -5,14 +5,20 @@ import AdminLayout from "./layouts/Admin";
 import BeneficiaryLayout from "./layouts/Beneficiary";
 
 // ----------- REGISTRATION SIDE ------------------
-import SelectUserType from "./pages/beneficiary/registration/SelectUserType";
+import SelectUserType from "./pages/SelectUserType";
 // details - wala pay rhu and private
 import UserRegistration from "./pages/beneficiary/registration/details/Beneficiary";
-// note - wala pay rhu and private
+import DetailsRhu from "./pages/rhu/registration/Registration";
+
+// note - wala pay rhu private
 import NoteBeneficiary from "./pages/beneficiary/registration/note/registration/Beneficiary";
-//pre enrollment - wala pay rhu and private
+import NoteRhu from "./pages/rhu/registration/Note";
+
+//pre enrollment - wala pay private
 import PreEnrollmentBeneficiary from "./pages/beneficiary/registration/preenrollment/Beneficiary";
 import NotValidated from "./pages/beneficiary/registration/note/preenrollment/NotValidated";
+
+// ----------- REGISTRATION RHU SIDE ------------------
 
 // ----------- LOGIN SIDE ------------------
 import Login from "./pages/beneficiary/login/Login";
@@ -24,6 +30,7 @@ import AdminPreEnrollment from "./pages/admin/patient/PreEnrollment";
 import AdminIndividualScreening from "./pages/admin/cancerscreening/IndividualScreening";
 import AdminUserManagement from "./pages/admin/usermanagement/UserManagement";
 import AdminScreeningRequest from "./pages/admin/cancerscreening/ScreeningRequest";
+import AdminPatientMasterList from "./pages/admin/patient/PatientMasterList";
 
 // ----------- ADMIN VIEW SIDE ------------------
 import AdminPreenrollmentDetails from "./pages/admin/patient/view/PreenrollmentView";
@@ -32,6 +39,13 @@ import ViewPreScreeningForm from "./pages/admin/cancerscreening/view/ViewPreScre
 import ViewScreeningProcedure from "./pages/admin/cancerscreening/view/ViewScreeningProcedure";
 import ViewAttachments from "./pages/admin/cancerscreening/view/ViewAttachments";
 import ViewResults from "./pages/admin/cancerscreening/view/ViewResults";
+import AdminPatientMasterListView from "./pages/admin/patient/view/PatientMasterListView";
+
+// ----------- ADMIN EDIT SIDE ------------------
+import AdminPatientMasterListEdit from "./pages/admin/patient/edit/PatientMasterListEdit";
+
+// ----------- ADMIN ADD SIDE ------------------
+import AdminPatientMasterListAdd from "./pages/admin/patient/add/PatientMasterListAdd";
 
 // ----------- User Management actions ------------------
 import AdminManagementAddUser from "./pages/admin/usermanagement/add/AddUser";
@@ -72,6 +86,8 @@ const App = () => {
             <Route index element={<SelectUserType />} />
             <Route path="UserRegistration" element={<UserRegistration />} />
             <Route path="Login" element={<Login />} />
+            <Route path="DetailsRhu" element={<DetailsRhu />} />
+            <Route path="NoteRhu" element={<NoteRhu />} />
             <Route
               path="ResetPassword"
               element={
@@ -112,10 +128,30 @@ const App = () => {
                 path="AdminPreEnrollment"
                 element={<AdminPreEnrollment />}
               />
-              <Route path="view"> 
+              <Route
+                path="AdminPatientMasterList"
+                element={<AdminPatientMasterList />}
+              />
+              <Route path="view">
                 <Route
                   path="AdminPreenrollmentDetails/:beneficiary_id"
                   element={<AdminPreenrollmentDetails />}
+                />
+                <Route
+                  path="AdminPatientMasterListView"
+                  element={<AdminPatientMasterListView />}
+                />
+              </Route>
+              <Route path="edit">
+                <Route
+                  path="AdminPatientMasterListEdit"
+                  element={<AdminPatientMasterListEdit />}
+                />
+              </Route>
+              <Route path="add">
+                <Route
+                  path="AdminPatientMasterListAdd"
+                  element={<AdminPatientMasterListAdd />}
                 />
               </Route>
             </Route>
@@ -138,11 +174,17 @@ const App = () => {
               <Route path="view">
                 <Route
                   path="AdminIndividualScreeningView"
-                  element={<AdminIndividualScreeningView />} 
+                  element={<AdminIndividualScreeningView />}
                 />
                 <Route path="ViewAttachments" element={<ViewAttachments />} />
-                <Route path="ViewPreScreeningForm" element={<ViewPreScreeningForm />} />
-                <Route path="ViewScreeningProcedure" element={<ViewScreeningProcedure />} />
+                <Route
+                  path="ViewPreScreeningForm"
+                  element={<ViewPreScreeningForm />}
+                />
+                <Route
+                  path="ViewScreeningProcedure"
+                  element={<ViewScreeningProcedure />}
+                />
                 <Route path="ViewResults" element={<ViewResults />} />
               </Route>
             </Route>
@@ -194,11 +236,11 @@ const App = () => {
               />
               <Route
                 path="screening-procedure"
-                element={<ScreeningProcedure />} 
+                element={<ScreeningProcedure />}
               />
               <Route
                 path="upload-attachments"
-                element={<UploadAttachments />} 
+                element={<UploadAttachments />}
               />
             </Route>
           </Route>
