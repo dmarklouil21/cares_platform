@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import RegisterLoginLayout from "./layouts/RegisterLogin";
 import AdminLayout from "./layouts/Admin";
 import BeneficiaryLayout from "./layouts/Beneficiary";
+import RhuLayout from "./layouts/Rhu";
 
 // ----------- REGISTRATION SIDE ------------------
 import SelectUserType from "./pages/SelectUserType";
@@ -72,6 +73,15 @@ import ScreeningRequirementsNote from "./pages/beneficiary/individualscreeningst
 import ScreeningProcedure from "./pages/beneficiary/individualscreeningstatus/ScreeningProcedure";
 import BeneficiaryPreScreeningForm from "./pages/beneficiary/services/pages/cancerscreening/PreScreeningForm";
 import PreScreeningFormNote from "./pages/beneficiary/services/pages/cancerscreening/PreScreeningFormNote";
+
+// ----------- RHU SIDE ------------------
+import RhuDashboard from "./pages/rhu/dashboard/Dashboard";
+import RhuCancerAwarenss from "./pages/rhu/cancerawareness/CancerAwareness";
+
+// ----------- RHI SERVICES ------------------
+import RhuCancerManagement from "./pages/rhu/services/CancerManagement";
+import RhuCancerScreening from "./pages/rhu/services/CancerScreening";
+import RhuSurvivorship from "./pages/rhu/services/Survivorship";
 
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
@@ -242,6 +252,18 @@ const App = () => {
                 path="upload-attachments"
                 element={<UploadAttachments />}
               />
+            </Route>
+          </Route>
+          <Route path="/Rhu" element={<RhuLayout />}>
+            <Route index element={<RhuDashboard />} />
+            <Route path="cancerawareness" element={<RhuCancerAwarenss />} />
+            <Route path="services">
+              <Route path="cancer-screening" element={<RhuCancerScreening />} />
+              <Route
+                path="cancer-management"
+                element={<RhuCancerManagement />}
+              />
+              <Route path="survivorship" element={<RhuSurvivorship />} />
             </Route>
           </Route>
         </Routes>
