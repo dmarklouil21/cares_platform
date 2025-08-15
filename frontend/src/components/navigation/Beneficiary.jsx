@@ -9,6 +9,7 @@ const BeneficiarySidebar = () => {
   const navigate = useNavigate();
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isAwarenessOpen, setIsAwarenessOpen] = useState(false);
+  const [isApplicationOpen, setIsApplicationOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Home");
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -31,18 +32,19 @@ const BeneficiarySidebar = () => {
       path: "",
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
-    /* {
-      name: "Application Status",
-      icon: "/src/assets/images/navigation/admin/patient.svg",
-      path: "/Beneficiary/applicationstatus",
-      arrow: "",
-    }, */
     {
+      name: "Applications",
+      icon: "/src/assets/images/navigation/admin/patient.svg",
+      path: "",
+      // path: "/Beneficiary/applicationstatus",
+      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+    },
+    /* {
       name: "Individual Screening",
       icon: "/src/assets/images/navigation/admin/patient.svg",
       path: "/Beneficiary/individualscreeningstatus",
       arrow: "",
-    },
+    }, */
   ];
 
   const servicesSubNav = [
@@ -60,6 +62,10 @@ const BeneficiarySidebar = () => {
   const awarenessSubNav = [
     { name: "Sample 1", path: "/Beneficiary/awareness/sample1" },
     { name: "Sample 2", path: "/Beneficiary/awareness/sample2" },
+  ];
+
+  const applicationSubNav = [
+    { name: "Individual Screening", path: "/Beneficiary/individualscreeningstatus"},
   ];
 
   const debounce = (func, delay) => {
@@ -83,6 +89,7 @@ const BeneficiarySidebar = () => {
       setActiveNav("Services");
       setIsServicesOpen(true);
       setIsAwarenessOpen(false);
+      setIsApplicationOpen(false);
       return;
     }
 
@@ -96,11 +103,23 @@ const BeneficiarySidebar = () => {
       return;
     }
 
+    const activeApplication = applicationSubNav.find((item) => 
+      path.startsWith(item.path)
+    );
+    if (activeApplication) {
+      setActiveNav("Applications");
+      setIsApplicationOpen(true);
+      setIsServicesOpen(false);
+      setIsAwarenessOpen(false);
+      return;
+    }
+
     const activeMainNav = nav.find((item) => item.path && path === item.path);
     if (activeMainNav) {
       setActiveNav(activeMainNav.name);
       setIsServicesOpen(false);
       setIsAwarenessOpen(false);
+      setIsApplicationOpen(false);
     }
   }, [location.pathname]);
 
@@ -114,6 +133,7 @@ const BeneficiarySidebar = () => {
     if (isTransitioning) return;
     setIsServicesOpen((prev) => !prev);
     setIsAwarenessOpen(false);
+    setIsApplicationOpen(false);
     setActiveNav("Services");
   };
 
@@ -121,7 +141,16 @@ const BeneficiarySidebar = () => {
     if (isTransitioning) return;
     setIsAwarenessOpen((prev) => !prev);
     setIsServicesOpen(false);
+    setIsApplicationOpen(false);
     setActiveNav("Cancer Awareness");
+  };
+
+  const toggleApplications = () => {
+    if (isTransitioning) return;
+    setIsApplicationOpen((prev) => !prev);
+    setIsAwarenessOpen(false);
+    setIsServicesOpen(false);
+    setActiveNav("Applications");
   };
 
   const handleNavClick = (name) => {
@@ -131,10 +160,13 @@ const BeneficiarySidebar = () => {
       toggleServices();
     } else if (name === "Cancer Awareness") {
       toggleAwareness();
+    } else if (name == "Applications") {
+      toggleApplications();
     } else {
       setActiveNav(name);
       setIsServicesOpen(false);
       setIsAwarenessOpen(false);
+      setIsApplicationOpen(false);
       const targetPath = nav.find((item) => item.name === name)?.path;
       if (targetPath) handleNavigation(targetPath);
     }
@@ -158,11 +190,11 @@ const BeneficiarySidebar = () => {
           {nav.map((item, index) => {
             const isActive = activeNav === item.name;
             const isExpandable =
-              item.name === "Services" || item.name === "Cancer Awareness";
+              item.name === "Services" || item.name === "Cancer Awareness" || item.name === "Applications";
             const isOpen =
-              item.name === "Services" ? isServicesOpen : isAwarenessOpen;
+              item.name === "Services" ? isServicesOpen : item.name === "Applications" ? isApplicationOpen : isAwarenessOpen;
             const subNav =
-              item.name === "Services" ? servicesSubNav : awarenessSubNav;
+              item.name === "Services" ? servicesSubNav : item.name === "Applications" ? applicationSubNav : awarenessSubNav;
 
             return (
               <li key={index} className="flex flex-col gap-2">

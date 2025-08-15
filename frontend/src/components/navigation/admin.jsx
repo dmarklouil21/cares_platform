@@ -25,16 +25,16 @@ const AdminSidebar = () => {
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
     {
-      name: "User Management",
-      icon: "/src/assets/images/navigation/admin/usermanagementicon.svg",
-      path: "/Admin/UserManagement",
-      arrow: "",
-    },
-    {
       name: "Cancer Screening",
       icon: "/src/assets/images/navigation/admin/cancerscreeningicon.svg",
       path: "",
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
+    },
+    {
+      name: "User Management",
+      icon: "/src/assets/images/navigation/admin/usermanagementicon.svg",
+      path: "/Admin/UserManagement",
+      arrow: "",
     },
   ];
 
