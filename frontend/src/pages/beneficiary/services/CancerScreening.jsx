@@ -16,7 +16,7 @@ const screeningOptions = [
     link: "/Beneficiary/services/cancer-screening/pre-screening-form-note",
     isLink: true,
   },
-  {
+  /* {
     id: "mass",
     title: "Mass Screening",
     description:
@@ -28,7 +28,7 @@ const screeningOptions = [
     ],
     icon: "/src/assets/images/patient/services/cancerscreening/masscreeningicon.png",
     isLink: false,
-  },
+  }, */
 ];
 
 const CancerScreening = () => {
@@ -46,17 +46,17 @@ const CancerScreening = () => {
       </div>
 
       <div className="py-6 px-10">
-        <h2 className="text-xl font-semibold mb-6">Cancer Management</h2>
+        <h2 className="text-xl font-semibold mb-6">Cancer Screening</h2>
 
         <div className="flex flex-col gap-3 w-full bg-white rounded-2xl py-7 px-8">
           <h3 className="text-2xl font-bold text-secondary">
-            CANCER TREATMENT MANAGEMENT OPTION
+            CANCER SCREENING MANAGEMENT OPTION
           </h3>
           <p className="text-gray2 mb-4">
             Navigate your treatment journey with expert-guided support
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+          <div className="grid grid-cols-1 gap-3">
             {screeningOptions.map((option) => (
               <div
                 key={option.id}
