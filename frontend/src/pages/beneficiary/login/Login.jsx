@@ -15,8 +15,27 @@ const Login = () => {
 
     try {
       const loggedInUser = await login(email, password);
-      console.log("Logged in user:", loggedInUser);
-      if (loggedInUser.is_superuser) {
+      
+      if (loggedInUser.is_superuser || loggedInUser.is_rhu) {
+        alert('You need a beneficiary account to access the site for the beneficiary.');
+        return;
+      }
+
+      if (loggedInUser.is_active) {
+        try {
+          const response = await api.get("/beneficiary/details/");
+          if (response.data.status) {
+            navigate("/Beneficiary");
+          }
+        } catch (error) {
+          // If no beneficiary record, go to pre-enrollment
+          navigate("/NoteBeneficiary");
+        }
+      } else {
+        navigate("/ResetPassword");
+      }
+
+      /* if (loggedInUser.is_superuser) {
         navigate("/Admin");
       } else if (loggedInUser.is_first_login) {
         navigate("/ResetPassword");
@@ -33,7 +52,8 @@ const Login = () => {
       } else {
         // Not active, go to reset password
         navigate("/ResetPassword");
-      }
+      } */
+
     } catch (err) {
       alert("Login failed. Please check your credentials.");
       console.error("Login error:", err);

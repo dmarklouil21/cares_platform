@@ -87,6 +87,7 @@ import RhuSurvivorship from "./pages/rhu/services/Survivorship";
 
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
+import ProtectedRHURoute from "./components/ProtectedRHURoute"
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
@@ -258,7 +259,13 @@ const App = () => {
               />
             </Route>
           </Route>
-          <Route path="/Rhu" element={<RhuLayout />}>
+          <Route path="/Rhu" 
+            element={
+              <ProtectedRHURoute>
+                <RhuLayout />
+              </ProtectedRHURoute>
+            }
+          >
             <Route index element={<RhuDashboard />} />
             <Route path="cancerawareness" element={<RhuCancerAwarenss />} />
             <Route path="services">

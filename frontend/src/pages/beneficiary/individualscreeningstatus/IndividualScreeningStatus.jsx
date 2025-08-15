@@ -144,8 +144,8 @@ const IndividualScreeningStatus = () => {
           </div>
         </div>
       )}
-      <div class="w-full h-screen bg-gray overflow-auto">
-        <div className="bg-white py-4 px-10 flex justify-between items-center ">
+      <div class="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <div className="font-bold">Beneficary</div>
           <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
             <img
@@ -156,23 +156,30 @@ const IndividualScreeningStatus = () => {
           </div>
         </div>
 
-        <div className="px-10 h-[89%] p-5 bg-[#F0F2F5]">
-          <div className="bg-white flex flex-col gap-3 py-5 px-5 rounded-lg h-full">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">
-              Individual Screening
-            </h2>
-            <hr className="border-2 border-[#749AB6]" />
+        <div className="w-full flex-1 py-5 flex flex-col justify-around px-5">
+          <h2 className="text-xl font-bold text-left w-full pl-5">
+            Individual Screening
+          </h2>
 
-            <div className="flex justify-between">
+          <div className="lex flex-col bg-white rounded-[4px] w-full shadow-md px-5 py-5 gap-3">
+            <p className="text-md font-semibold text-yellow mb-3">
+              Individual Screening
+            </p>
+            {/* <h2 className="text-xl font-bold text-left w-full pl-5">
+              Individual Screening
+            </h2> */}
+            {/* <hr className="border-2 border-[#749AB6]" /> */}
+
+            <div className="flex justify-between flex-wrap gap-3 mb-3">
               <input
                 type="text"
                 placeholder="Search by application ID ..."
-                className="border-[1px] border-[#E1E4E8] py-2 w-[50%] px-5 rounded-md"
+                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <select
-                className="border-[1px] border-[#E1E4E8] rounded-md p-2 bg-white appearance-none pr-8"
+                className="border border-gray-200 rounded-md p-2 bg-white"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -183,12 +190,12 @@ const IndividualScreeningStatus = () => {
               </select>
               <input
                 type="date"
-                className="border-[1px] border-[#E1E4E8] py-2 px-5 rounded-md"
+                className="border border-gray-200 py-2 px-5 rounded-md"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
               />
               <button
-                className="bg-[#C5D7E5] px-7 rounded-md"
+                className="px-7 rounded-md text-sm bg-[#C5D7E5]"
                 onClick={(e) => {
                   e.preventDefault();
                 }}
@@ -196,7 +203,8 @@ const IndividualScreeningStatus = () => {
                 Filter
               </button>
             </div>
-            <div className="overflow-x-auto h-full bg-white shadow">
+
+            <div className="bg-white shadow">
               <table className="min-w-full divide-y divide-gray-200">
                 <colgroup>
                   <col className="w-[18%]" />
