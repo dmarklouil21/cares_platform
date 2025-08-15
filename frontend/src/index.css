@@ -93,6 +93,11 @@ tr:not(.bg-gray-100) td:nth-child(2) {
   }
 }
 .custom-scrollbar {
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: #fff transparent; /* thumb color and track color */
+  scrollbar-width: thin;
+  scrollbar-color: #fff transparent;
+}
+.custom-rightspaceSB {
+  overflow-y: scroll;
+  padding-right: 10px;
+  box-sizing: content-box;
 }
