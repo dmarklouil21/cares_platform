@@ -15,8 +15,17 @@ const Login = () => {
 
     try {
       const loggedInUser = await login(email, password);
-      console.log("Logged in user:", loggedInUser);
-      if (loggedInUser.is_superuser) {
+      
+      if (!loggedInUser.is_active) {
+        navigate("/ResetPassword");
+      } else if (!loggedInUser.is_superuser) {
+        alert('This account doesn\'t have priviliges to access the admin site.');
+        return;
+      } else {
+        navigate("/Admin");
+      }
+
+      /* if (loggedInUser.is_superuser) {
         navigate("/Admin");
       } else if (loggedInUser.is_first_login) {
         navigate("/ResetPassword");
@@ -33,7 +42,8 @@ const Login = () => {
       } else {
         // Not active, go to reset password
         navigate("/ResetPassword");
-      }
+      } */
+
     } catch (err) {
       alert("Login failed. Please check your credentials.");
       console.error("Login error:", err);

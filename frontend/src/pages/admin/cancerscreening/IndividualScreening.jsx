@@ -177,7 +177,7 @@ const IndividualScreening = () => {
               </button>
             </div>
 
-            <div className=" bg-white shadow">
+            <div className="bg-white shadow">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr className="bg-lightblue">
