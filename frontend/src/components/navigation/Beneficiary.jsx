@@ -3,12 +3,10 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ScanLine, ClipboardCheck } from "lucide-react";
 import { logout } from "src/services/authService";
 
-
 const BeneficiarySidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isServicesOpen, setIsServicesOpen] = useState(false);
-  const [isAwarenessOpen, setIsAwarenessOpen] = useState(false);
   const [isApplicationOpen, setIsApplicationOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Home");
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -23,8 +21,8 @@ const BeneficiarySidebar = () => {
     {
       name: "Cancer Awareness",
       icon: "/src/assets/images/navigation/patient/cancerwarenessicon.svg",
-      path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+      path: "/Beneficiary/cancerawareness",
+      arrow: "",
     },
     {
       name: "Services",
@@ -36,15 +34,8 @@ const BeneficiarySidebar = () => {
       name: "Applications",
       icon: "/src/assets/images/navigation/admin/patient.svg",
       path: "",
-      // path: "/Beneficiary/applicationstatus",
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
-    /* {
-      name: "Individual Screening",
-      icon: "/src/assets/images/navigation/admin/patient.svg",
-      path: "/Beneficiary/individualscreeningstatus",
-      arrow: "",
-    }, */
   ];
 
   const servicesSubNav = [
@@ -59,13 +50,11 @@ const BeneficiarySidebar = () => {
     { name: "Survivorship", path: "/Beneficiary/services/survivorship" },
   ];
 
-  const awarenessSubNav = [
-    { name: "Sample 1", path: "/Beneficiary/awareness/sample1" },
-    { name: "Sample 2", path: "/Beneficiary/awareness/sample2" },
-  ];
-
   const applicationSubNav = [
-    { name: "Individual Screening", path: "/Beneficiary/individualscreeningstatus"},
+    {
+      name: "Individual Screening",
+      path: "/Beneficiary/individualscreeningstatus",
+    },
   ];
 
   const debounce = (func, delay) => {
@@ -88,29 +77,17 @@ const BeneficiarySidebar = () => {
     if (activeService) {
       setActiveNav("Services");
       setIsServicesOpen(true);
-      setIsAwarenessOpen(false);
       setIsApplicationOpen(false);
       return;
     }
 
-    const activeAwareness = awarenessSubNav.find((item) =>
-      path.startsWith(item.path)
-    );
-    if (activeAwareness) {
-      setActiveNav("Cancer Awareness");
-      setIsAwarenessOpen(true);
-      setIsServicesOpen(false);
-      return;
-    }
-
-    const activeApplication = applicationSubNav.find((item) => 
+    const activeApplication = applicationSubNav.find((item) =>
       path.startsWith(item.path)
     );
     if (activeApplication) {
       setActiveNav("Applications");
       setIsApplicationOpen(true);
       setIsServicesOpen(false);
-      setIsAwarenessOpen(false);
       return;
     }
 
@@ -118,7 +95,6 @@ const BeneficiarySidebar = () => {
     if (activeMainNav) {
       setActiveNav(activeMainNav.name);
       setIsServicesOpen(false);
-      setIsAwarenessOpen(false);
       setIsApplicationOpen(false);
     }
   }, [location.pathname]);
@@ -132,23 +108,13 @@ const BeneficiarySidebar = () => {
   const toggleServices = () => {
     if (isTransitioning) return;
     setIsServicesOpen((prev) => !prev);
-    setIsAwarenessOpen(false);
     setIsApplicationOpen(false);
     setActiveNav("Services");
-  };
-
-  const toggleAwareness = () => {
-    if (isTransitioning) return;
-    setIsAwarenessOpen((prev) => !prev);
-    setIsServicesOpen(false);
-    setIsApplicationOpen(false);
-    setActiveNav("Cancer Awareness");
   };
 
   const toggleApplications = () => {
     if (isTransitioning) return;
     setIsApplicationOpen((prev) => !prev);
-    setIsAwarenessOpen(false);
     setIsServicesOpen(false);
     setActiveNav("Applications");
   };
@@ -158,14 +124,11 @@ const BeneficiarySidebar = () => {
 
     if (name === "Services") {
       toggleServices();
-    } else if (name === "Cancer Awareness") {
-      toggleAwareness();
-    } else if (name == "Applications") {
+    } else if (name === "Applications") {
       toggleApplications();
     } else {
       setActiveNav(name);
       setIsServicesOpen(false);
-      setIsAwarenessOpen(false);
       setIsApplicationOpen(false);
       const targetPath = nav.find((item) => item.name === name)?.path;
       if (targetPath) handleNavigation(targetPath);
@@ -186,15 +149,15 @@ const BeneficiarySidebar = () => {
         </h1>
       </div>
       <div className="h-[80%] flex flex-col justify-between overflow-auto">
-        <ul className="flex flex-col overflow-auto custom-scrollbar  flex-1">
+        <ul className="flex flex-col overflow-auto custom-scrollbar flex-1">
           {nav.map((item, index) => {
             const isActive = activeNav === item.name;
             const isExpandable =
-              item.name === "Services" || item.name === "Cancer Awareness" || item.name === "Applications";
+              item.name === "Services" || item.name === "Applications";
             const isOpen =
-              item.name === "Services" ? isServicesOpen : item.name === "Applications" ? isApplicationOpen : isAwarenessOpen;
+              item.name === "Services" ? isServicesOpen : isApplicationOpen;
             const subNav =
-              item.name === "Services" ? servicesSubNav : item.name === "Applications" ? applicationSubNav : awarenessSubNav;
+              item.name === "Services" ? servicesSubNav : applicationSubNav;
 
             return (
               <li key={index} className="flex flex-col gap-2">
@@ -281,10 +244,6 @@ const BeneficiarySidebar = () => {
         <button
           className="bg-white/5 py-1 flex items-center justify-between gap-5 px-5 rounded-md hover:bg-white/50 cursor-pointer"
           onClick={() => {
-            //usba lang
-            // localStorage.clear();
-            // sessionStorage.clear();
-            // navigate("/Login");
             logout();
             navigate(0);
           }}

@@ -23,8 +23,8 @@ import NotValidated from "./pages/beneficiary/registration/note/preenrollment/No
 
 // ----------- LOGIN SIDE ------------------
 import BeneficiaryLogin from "./pages/beneficiary/login/Login";
-import RHULogin from "./pages/rhu/login/Login"
-import AdminLogin from "./pages/admin/login/Login"
+import RHULogin from "./pages/rhu/login/Login";
+import AdminLogin from "./pages/admin/login/Login";
 import ResetPassword from "./pages/beneficiary/login/resetpassword";
 
 // ----------- ADMIN SIDE ------------------
@@ -62,6 +62,7 @@ import CancerManagement from "./pages/beneficiary/services/CancerManagement";
 import Survivorship from "./pages/beneficiary/services/Survivorship";
 import BeneficiaryApplicationStatus from "./pages/beneficiary/applicationstatus/ApplicationStatus";
 import BeneficiaryIndividualScreeningStatus from "./pages/beneficiary/individualscreeningstatus/IndividualScreeningStatus";
+import BeneficiaryCancerAwareness from "./pages/beneficiary/cancerawareness/CancerAwareness";
 import UploadAttachments from "./pages/beneficiary/individualscreeningstatus/UploadAttachments";
 
 // ----------- Application actions ------------------
@@ -87,7 +88,7 @@ import RhuSurvivorship from "./pages/rhu/services/Survivorship";
 
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
-import ProtectedRHURoute from "./components/ProtectedRHURoute"
+import ProtectedRHURoute from "./components/ProtectedRHURoute";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
@@ -100,7 +101,10 @@ const App = () => {
             <Route path="beneficiary-login" element={<BeneficiaryLogin />} />
             <Route path="rhu-login" element={<RHULogin />} />
             <Route path="admin-login" element={<AdminLogin />} />
-            <Route path="beneficiary-registration" element={<UserRegistration />} />
+            <Route
+              path="beneficiary-registration"
+              element={<UserRegistration />}
+            />
             <Route path="rhu-registration" element={<DetailsRhu />} />
             <Route path="NoteRhu" element={<NoteRhu />} />
             <Route
@@ -213,6 +217,10 @@ const App = () => {
             }
           >
             <Route index element={<BeneficiaryHomePage />} />
+            <Route
+              path="cancerawareness"
+              element={<BeneficiaryCancerAwareness />}
+            />
             <Route path="services">
               <Route path="cancer-screening">
                 <Route index element={<BeneficiaryCancerScreening />} />
@@ -259,7 +267,8 @@ const App = () => {
               />
             </Route>
           </Route>
-          <Route path="/Rhu" 
+          <Route
+            path="/Rhu"
             element={
               <ProtectedRHURoute>
                 <RhuLayout />
