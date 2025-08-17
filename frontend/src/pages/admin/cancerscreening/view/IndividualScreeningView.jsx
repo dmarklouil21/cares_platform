@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+
 import ConfirmationModal from "src/components/ConfirmationModal";
 import NotificationModal from "src/components/NotificationModal";
 import LoadingModal from "src/components/LoadingModal";
+
 import api from "src/api/axiosInstance";
 
 const IndividualScreeningView = () => {

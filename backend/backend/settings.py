@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'corsheaders',  # CORS headers for API
     'apps.beneficiary',
     'apps.patient',
+    'apps.partners',
     'apps.user',
     'apps.pre_enrollment',
     'apps.registration',
