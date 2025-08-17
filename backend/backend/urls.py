@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/', include('apps.user.urls')),
     path('beneficiary/', include('apps.beneficiary.urls')),
+    path('partners/', include('apps.partners.urls')),
     path('', include('apps.pre_enrollment.urls')), 
     path('cancer-screening/', include('apps.cancer_screening.urls')),
     path('api/registration/', include('apps.registration.urls')),
