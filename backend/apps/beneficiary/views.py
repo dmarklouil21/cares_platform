@@ -11,9 +11,11 @@ from rest_framework.exceptions import NotFound, ValidationError
 
 from apps.pre_enrollment.models import Beneficiary
 from apps.patient.models import Patient, CancerDiagnosis
-from apps.cancer_screening.models import ScreeningProcedure, ScreeningAttachment
+from apps.partners.models import CancerAwarenessActivity
+from apps.cancer_screening.models import ScreeningProcedure, ScreeningAttachment, IndividualScreening, PreScreeningForm
 
-from apps.cancer_screening.models import IndividualScreening, PreScreeningForm
+# from apps.cancer_screening.models import IndividualScreening, PreScreeningForm
+from apps.partners.serializers import CancerAwarenessActivitySerializer
 from apps.cancer_screening.serializers import (
   PreScreeningFormSerializer, 
   IndividualScreeningSerializer, 
@@ -99,6 +101,11 @@ class ScreeningProcedureCreateView(generics.CreateAPIView):
     except Exception as e:
       logger.error(f"Error creating screening procedure: {str(e)}")
       raise e
+
+class CancerAwarenessActivityListView(generics.ListAPIView):
+  queryset = CancerAwarenessActivity.objects.all()
+  serializer_class = CancerAwarenessActivitySerializer
+  permission_classes = [IsAuthenticated]
  
 class IndividualScreeningListView(generics.ListAPIView):
   serializer_class = IndividualScreeningSerializer
