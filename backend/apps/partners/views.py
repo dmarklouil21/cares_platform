@@ -54,6 +54,7 @@ class CancerAwarenessActivityUpdateView(generics.UpdateAPIView):
 class CancerAwarenessActivityListView(generics.ListAPIView):
   queryset = CancerAwarenessActivity.objects.all()
   serializer_class = CancerAwarenessActivitySerializer
+  permission_classes = [IsAuthenticated]
 
 class CancerAwarenessActivityDeleteView(generics.DestroyAPIView):
   queryset = CancerAwarenessActivity.objects.all()
