@@ -184,6 +184,6 @@ EMAIL_HOST_PASSWORD = 'tnymdneawgjtxljt'  # Gmail app password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 AUTHENTICATION_BACKENDS = [
-    'apps.user.auth_backend.EmailBackend',
+    # 'apps.user.auth_backend.EmailBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]

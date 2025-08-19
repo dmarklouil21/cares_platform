@@ -23,7 +23,11 @@ export const resetPasswordAPI = async (email, old_password, new_password) => {
   const response = await axios.post(`${API_URL}/user/reset-password/`, {
     email,
     old_password,
-    new_password,
+    new_password
+  }, {
+    headers: {
+      "Authorization": "Bearer " + getAccessToken(),
+    }
   });
   return response.data;
 };
