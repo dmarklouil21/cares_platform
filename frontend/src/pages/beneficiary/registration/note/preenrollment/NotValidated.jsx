@@ -27,7 +27,7 @@ const NotValidated = ({ fullName }) => {
 
       <div className="w-full flex flex-col items-center justify-center gap-6">
         <Link
-          to="/Login"
+          to="/beneficiary-login"
           className="text-center font-bold bg-primary text-white py-3 w-[25%] border-[1px] border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
         >
           Okay

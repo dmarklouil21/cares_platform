@@ -74,7 +74,7 @@ const Info101 = () => {
     setAnimationClass("bounce-out");
     setTimeout(() => {
       setShowPopup(false);
-      navigate("/Login");
+      navigate("/beneficiary-login");
     }, 400); // same as bounce-out animation time
   };
 

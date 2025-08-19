@@ -21,7 +21,9 @@ const Login = () => {
         return;
       }
 
-      if (loggedInUser.is_active) {
+      if (loggedInUser.is_first_login) {
+        navigate("/ResetPassword");
+      } else {
         try {
           const response = await api.get("/beneficiary/details/");
           if (response.data.status) {
@@ -31,28 +33,7 @@ const Login = () => {
           // If no beneficiary record, go to pre-enrollment
           navigate("/NoteBeneficiary");
         }
-      } else {
-        navigate("/ResetPassword");
       }
-
-      /* if (loggedInUser.is_superuser) {
-        navigate("/Admin");
-      } else if (loggedInUser.is_first_login) {
-        navigate("/ResetPassword");
-      } else if (loggedInUser.is_active) {
-        try {
-          const response = await api.get("/beneficiary/details/");
-          if (response.data.status) {
-            navigate("/Beneficiary");
-          }
-        } catch (error) {
-          // If no beneficiary record, go to pre-enrollment
-          navigate("/NoteBeneficiary");
-        }
-      } else {
-        // Not active, go to reset password
-        navigate("/ResetPassword");
-      } */
 
     } catch (err) {
       alert("Login failed. Please check your credentials.");

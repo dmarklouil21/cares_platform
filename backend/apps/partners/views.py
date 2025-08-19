@@ -60,4 +60,6 @@ class CancerAwarenessActivityDeleteView(generics.DestroyAPIView):
   queryset = CancerAwarenessActivity.objects.all()
   serializer_class = CancerAwarenessActivitySerializer
   lookup_field = 'id'
-  permission_classes = [IsAuthenticated]
+  permission_classes = [IsAuthenticated] 
+
+  
