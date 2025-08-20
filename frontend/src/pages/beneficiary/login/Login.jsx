@@ -5,7 +5,7 @@ import api from "src/api/axiosInstance";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); 
+  const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,9 +15,11 @@ const Login = () => {
 
     try {
       const loggedInUser = await login(email, password);
-      
+
       if (loggedInUser.is_superuser || loggedInUser.is_rhu) {
-        alert('You need a beneficiary account to access the site for the beneficiary.');
+        alert(
+          "You need a beneficiary account to access the site for the beneficiary."
+        );
         return;
       }
 
@@ -53,7 +55,6 @@ const Login = () => {
         // Not active, go to reset password
         navigate("/ResetPassword");
       } */
-
     } catch (err) {
       alert("Login failed. Please check your credentials.");
       console.error("Login error:", err);
@@ -63,10 +64,10 @@ const Login = () => {
   return (
     <div
       id="right-panel"
-      className="bg-gray w-[75%] h-screen flex flex-col items-center justify-between py-8"
+      className="bg-gray w-[100%]  md:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10"
     >
-      <div className="flex flex-col gap-2 items-center justify-center">
-        <h2 className="text-5xl font-bold text-primary">
+      <div className="flex flex-col gap-2 items-center justify-center mt-36 md:mt-0">
+        <h2 className="text-3xl md:text-5xl font-bold text-primary text-center">
           Login as Beneficiary
         </h2>
         <p className="text-center text-base text-black">
@@ -77,7 +78,7 @@ const Login = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col items-center gap-2 bg-white w-full max-w-md rounded-xl shadow px-8 py-6"
+        className="flex flex-col items-center gap-2 bg-white w-[400px]  md:w-[450px] rounded-xl shadow px-8 py-6 "
       >
         <div className="w-full space-y-3 mb-3">
           <div className="flex gap-2 flex-col">
