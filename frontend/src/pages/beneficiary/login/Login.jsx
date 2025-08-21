@@ -27,7 +27,7 @@ const Login = () => {
         navigate("/ResetPassword");
       } else {
         try {
-          const response = await api.get("/beneficiary/details/");
+          const response = await api.get("/patient/details/");
           if (response.data.status) {
             navigate("/Beneficiary");
           }

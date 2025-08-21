@@ -80,16 +80,23 @@ import PreScreeningFormNote from "./pages/beneficiary/services/pages/cancerscree
 // ----------- RHU SIDE ------------------
 import RhuDashboard from "./pages/rhu/dashboard/Dashboard";
 import RhuCancerAwarenss from "./pages/rhu/cancerawareness/CancerAwareness";
-
-// ----------- RHI SERVICES ------------------
+import RhuPreEnrollment from "./pages/rhu/rhu/PreEnrollment";
+// ----------- RHU SERVICES ------------------
 import RhuCancerManagement from "./pages/rhu/services/CancerManagement";
 import RhuCancerScreening from "./pages/rhu/services/CancerScreening";
 import RhuSurvivorship from "./pages/rhu/services/Survivorship";
+
+// ----------- RHU rhu actions ------------------
+import RhuPreEnrollmentView from "./pages/rhu/rhu/view/PreEnrollmentView";
+import RhuPreEnrollmentEdit from "./pages/rhu/rhu/edit/PreEnrollmentEdit";
+import RhuPreEnrollmentAdd from "./pages/rhu/rhu/add/PreEnrollmentAdd";
 
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import ProtectedRHURoute from "./components/ProtectedRHURoute";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedAuthenticatedRoute from "./components/ProtectedAuthenticatedRoute";
+import AccountNotSupported from "./pages/AccountNotSupported";
 
 const App = () => {
   return (
@@ -110,9 +117,9 @@ const App = () => {
             <Route
               path="ResetPassword"
               element={
-                <ProtectedRoute>
+                <ProtectedAuthenticatedRoute>
                   <ResetPassword />
-                </ProtectedRoute>
+                </ProtectedAuthenticatedRoute>
               }
             />
             <Route
@@ -132,6 +139,7 @@ const App = () => {
               }
             />
             <Route path="NotValidated" element={<NotValidated />} />
+            <Route path="AccountNotSupported" element={<AccountNotSupported />} />
           </Route>
           <Route
             path="/Admin"
@@ -284,6 +292,27 @@ const App = () => {
                 element={<RhuCancerManagement />}
               />
               <Route path="survivorship" element={<RhuSurvivorship />} />
+            </Route>
+            <Route path="rhu">
+              <Route path="pre-enrollment" element={<RhuPreEnrollment />} />
+              <Route path="view">
+                <Route
+                  path="RhuPreEnrollmentView/:preenrollment_id"
+                  element={<RhuPreEnrollmentView />}
+                />
+              </Route>
+              <Route path="edit">
+                <Route
+                  path="RhuPreEnrollmentEdit/:preenrollment_id"
+                  element={<RhuPreEnrollmentEdit />}
+                />
+              </Route>
+              <Route path="add">
+                <Route
+                  path="RhuPreEnrollmentAdd"
+                  element={<RhuPreEnrollmentAdd />}
+                />
+              </Route>
             </Route>
           </Route>
         </Routes>

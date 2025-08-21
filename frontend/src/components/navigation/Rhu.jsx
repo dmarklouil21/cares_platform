@@ -8,6 +8,7 @@ const RhuSidebar = () => {
   const navigate = useNavigate();
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isAwarenessOpen, setIsAwarenessOpen] = useState(false);
+  const [isRhuOpen, setIsRhuOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Home");
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -27,6 +28,12 @@ const RhuSidebar = () => {
     {
       name: "Services",
       icon: "/src/assets/images/navigation/patient/services.svg",
+      path: "",
+      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+    },
+    {
+      name: "Rhu",
+      icon: "/src/assets/images/navigation/rhu/rhu.svg",
       path: "",
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
@@ -56,6 +63,14 @@ const RhuSidebar = () => {
     { name: "Survivorship", path: "/Rhu/services/survivorship" }, */
   ];
 
+  // NEW: Rhu subnav
+  const rhuSubNav = [
+    {
+      name: "Pre Enrollment",
+      path: "/Rhu/rhu/pre-enrollment",
+    },
+  ];
+
   const debounce = (func, delay) => {
     let timeoutId;
     return (...args) => {
@@ -70,12 +85,24 @@ const RhuSidebar = () => {
     const path = location.pathname;
     setIsTransitioning(false);
 
+    // services active check
     const activeService = servicesSubNav.find((item) =>
       path.startsWith(item.path)
     );
     if (activeService) {
       setActiveNav("Services");
       setIsServicesOpen(true);
+      setIsAwarenessOpen(false);
+      setIsRhuOpen(false);
+      return;
+    }
+
+    // rhu active check
+    const activeRhu = rhuSubNav.find((item) => path.startsWith(item.path));
+    if (activeRhu) {
+      setActiveNav("Rhu");
+      setIsRhuOpen(true);
+      setIsServicesOpen(false);
       setIsAwarenessOpen(false);
       return;
     }
@@ -87,6 +114,7 @@ const RhuSidebar = () => {
       setActiveNav(activeMainNav.name);
       setIsServicesOpen(false);
       setIsAwarenessOpen(false);
+      setIsRhuOpen(false);
     }
   }, [location.pathname]);
 
@@ -100,7 +128,16 @@ const RhuSidebar = () => {
     if (isTransitioning) return;
     setIsServicesOpen((prev) => !prev);
     setIsAwarenessOpen(false);
+    setIsRhuOpen(false);
     setActiveNav("Services");
+  };
+
+  const toggleRhu = () => {
+    if (isTransitioning) return;
+    setIsRhuOpen((prev) => !prev);
+    setIsServicesOpen(false);
+    setIsAwarenessOpen(false);
+    setActiveNav("Rhu");
   };
 
   // toggleAwareness removed
@@ -109,16 +146,17 @@ const RhuSidebar = () => {
 
     if (name === "Services") {
       toggleServices();
+    } else if (name === "Rhu") {
+      toggleRhu();
     } else {
       setActiveNav(name);
       setIsServicesOpen(false);
       setIsAwarenessOpen(false);
+      setIsRhuOpen(false);
       const targetPath = nav.find((item) => item.name === name)?.path;
       if (targetPath) handleNavigation(targetPath);
     }
   };
-
-  // ...existing code...
 
   return (
     <div className="flex flex-col h-screen justify-between px-3 py-7 bg-primary w-[30%]">
@@ -137,9 +175,24 @@ const RhuSidebar = () => {
         <ul className="flex flex-col overflow-auto custom-scrollbar  flex-1">
           {nav.map((item, index) => {
             const isActive = activeNav === item.name;
-            const isExpandable = item.name === "Services";
-            const isOpen = item.name === "Services" ? isServicesOpen : false;
-            const subNav = item.name === "Services" ? servicesSubNav : [];
+
+            // expanded groups: Services or Rhu
+            const isExpandable =
+              item.name === "Services" || item.name === "Rhu";
+
+            const isOpen =
+              item.name === "Services"
+                ? isServicesOpen
+                : item.name === "Rhu"
+                ? isRhuOpen
+                : false;
+
+            const subNav =
+              item.name === "Services"
+                ? servicesSubNav
+                : item.name === "Rhu"
+                ? rhuSubNav
+                : [];
 
             return (
               <li key={index} className="flex flex-col gap-2">
@@ -226,10 +279,6 @@ const RhuSidebar = () => {
         <button
           className="bg-white/5 py-1 flex items-center justify-between gap-5 px-5 rounded-md hover:bg-white/50 cursor-pointer"
           onClick={() => {
-            //usba lang
-            // localStorage.clear();
-            // sessionStorage.clear();
-            // navigate("/Login");
             logout();
             navigate(0);
           }}

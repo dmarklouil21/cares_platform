@@ -23,11 +23,17 @@ const Login = () => {
         return;
       }
 
-      if (!loggedInUser.is_active) {
+      if (loggedInUser.is_first_login) {
         navigate("/ResetPassword");
       } else {
         navigate("/Rhu");
       }
+
+      // if (!loggedInUser.is_active) {
+      //   navigate("/ResetPassword");
+      // } else {
+      //   navigate("/Rhu");
+      // }
 
       /* if (loggedInUser.is_superuser) {
         navigate("/Admin");

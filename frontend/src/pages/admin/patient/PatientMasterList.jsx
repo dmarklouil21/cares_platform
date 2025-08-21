@@ -26,6 +26,7 @@ function ConfirmationModal({ open, text, onConfirm, onCancel }) {
 
 import { useState, useEffect, useCallback } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
+import api from "src/api/axiosInstance";
 
 // Notification component for showing popup messages
 function Notification({ message, onClose }) {
@@ -46,6 +47,14 @@ function Notification({ message, onClose }) {
 
 const PatientMasterList = () => {
   // Sample patient data with historical updates
+  const [tableData, setTableData] = useState([]);
+  // const [statusFilter, setStatusFilter] = useState("pending");
+  // const [searchQuery, setSearchQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+  // const [recordsPerPage, setRecordsPerPage] = useState(10);
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const [notification, setNotification] = useState("");
+
   const samplePatients = [
     {
       id: 1,
@@ -131,7 +140,7 @@ const PatientMasterList = () => {
     },
   ];
 
-  const [patients, setPatients] = useState(samplePatients);
+  const [patients, setPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [notification, setNotification] = useState("");
   const [recordsPerPage, setRecordsPerPage] = useState(10);
@@ -142,9 +151,28 @@ const PatientMasterList = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const navigate = useNavigate();
 
+  const fetchData = async () => {
+    try {
+      const response = await api.get("/patient/list/");
+      setPatients(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error fetching patient data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line
+  }, []);
+
+  /* useEffect(() => {
+    setCurrentPage(1);
+  }, [tableData]); */
+
   const filteredResults = patients.filter((patient) => {
     const query = searchQuery.trim().toLowerCase();
-    const fullName = `${patient.name || ""} ${patient.last_name || ""} ${
+    const fullName = `${patient.first_name || ""} ${patient.last_name || ""} ${
       patient.middle_name || ""
     }`
       .trim()
@@ -154,15 +182,15 @@ const PatientMasterList = () => {
       patient.patient_id?.toString().toLowerCase().includes(query) ||
       fullName.includes(query) ||
       (patient.lgu || "").toLowerCase().includes(query);
-    const matchesStatus =
+    /* const matchesStatus =
       statusFilter === "all" ||
       (statusFilter === "active" && patient.is_active) ||
-      (statusFilter === "inactive" && !patient.is_active);
-    return matchesSearch && matchesStatus;
+      (statusFilter === "inactive" && !patient.is_active); */
+    return matchesSearch /* && matchesStatus; */
   });
 
   const handleViewClick = (id) => {
-    const patient = patients.find((p) => p.id === id);
+    const patient = patients.find((p) => p.patient_id === id);
     if (patient) {
       navigate(`/Admin/patient/view/AdminPatientMasterListView`, {
         state: { patient },
@@ -296,19 +324,19 @@ const PatientMasterList = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr className="bg-lightblue">
-                    <th className="w-[9%] text-center text-sm py-3 !bg-lightblue">
+                    <th className="w-[13%] text-center text-sm py-3 !bg-lightblue">
                       Patient ID
                     </th>
-                    <th className="w-[15%] text-center text-sm py-3">Name</th>
+                    <th className="w-[15%] text-center text-sm py-3">First Name</th>
                     <th className="w-[15%] text-center text-sm py-3">
                       Last Name
                     </th>
                     <th className="w-[15%] text-center text-sm py-3">
                       Middle Name
                     </th>
-                    <th className="w-[12%] text-center text-sm py-3">
+                    {/* <th className="w-[12%] text-center text-sm py-3">
                       Birthdate
-                    </th>
+                    </th> */}
                     <th className="w-[13%] text-center text-sm py-3">LGU</th>
                     <th className="w-[21%] text-center text-sm py-3 ">
                       Actions
@@ -319,22 +347,22 @@ const PatientMasterList = () => {
               <div className="max-h-[200px] min-h-[200px] overflow-auto">
                 <table className="min-w-full divide-y divide-gray-200 border-spacing-0">
                   <colgroup>
-                    <col className="w-[9%]" />
+                    <col className="w-[13%]" />
                     <col className="w-[15%]" />
                     <col className="w-[15%]" />
                     <col className="w-[15%]" />
                     <col className="w-[12%]" />
-                    <col className="w-[13%]" />
+                    {/* <col className="w-[13%]" /> */}
                     <col className="w-[21%]" />
                   </colgroup>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedData.map((patient) => (
-                      <tr key={patient.id}>
+                      <tr key={patient.patient_id}>
                         <td className="text-center text-sm py-4 text-gray-800">
                           {patient.patient_id}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {patient.name}
+                          {patient.first_name}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
                           {patient.last_name}
@@ -342,28 +370,28 @@ const PatientMasterList = () => {
                         <td className="text-center text-sm py-4 text-gray-800">
                           {patient.middle_name}
                         </td>
+                        {/* <td className="text-center text-sm py-4 text-gray-800">
+                          {patient.date_of_birth}
+                        </td> */}
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {patient.birthdate}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {patient.lgu}
+                          {patient.city}
                         </td>
                         <td className="text-center text-sm py-4 flex gap-2 justify-center">
                           <button
-                            onClick={() => handleViewClick(patient.id)}
+                            onClick={() => handleViewClick(patient.patient_id)}
                             className="text-white py-1 px-2 rounded-md shadow bg-primary"
                           >
                             View
                           </button>
                           <button
-                            onClick={() => handleEditClick(patient.id)}
+                            onClick={() => handleEditClick(patient.patient_id)}
                             className="text-white py-1 px-2 rounded-md shadow bg-yellow-500"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() =>
-                              handleActionClick(patient.id, "delete")
+                              handleActionClick(patient.patient_id, "delete")
                             }
                             className="text-white py-1 px-2 rounded-md shadow bg-red-500"
                           >

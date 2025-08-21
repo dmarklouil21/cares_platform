@@ -38,6 +38,9 @@ const ResetPasswordPanel = () => {
     }
     try {
       await resetPasswordAPI(email, formData.oldPassword, formData.newPassword);
+      // Optimistically mark user as active in localStorage
+      const updatedUser = { ...(user || {}), is_active: true };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
       setShowPopup(true);
     } catch (error) {
       if (error.response && error.response.data && error.response.data.message) {
@@ -52,7 +55,14 @@ const ResetPasswordPanel = () => {
     setAnimationClass("bounce-out");
     setTimeout(() => {
       setShowPopup(false);
-      navigate("/NoteBeneficiary");
+      const currentUser = JSON.parse(localStorage.getItem("user"));
+      if (currentUser?.is_superuser) {
+        navigate("/Admin");
+      } else if (currentUser?.is_rhu) {
+        navigate("/Rhu");
+      } else {
+        navigate("/NoteBeneficiary");
+      }
     }, 400);
   };
 

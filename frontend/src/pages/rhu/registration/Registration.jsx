@@ -6,15 +6,13 @@ const Registration = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    birthDate: "",
-    age: "",
-    email: "",
-    phone: "",
-    isResident: "",
     lgu: "",
     address: "",
+    phone_number: "",
+    email: "",
+    representative_first_name: "",
+    representative_last_name: "",
+    official_representative_name: "",
     agreed: false,
   });
 
@@ -36,13 +34,6 @@ const Registration = () => {
     // Print all form inputs to console
     console.log("Form inputs:", formData);
 
-    // Immediately navigate to login page
-    navigate("/Login");
-
-    // Prevent the rest of the form submission logic
-    return;
-
-    // The rest of this code will never execute
     const isValid = Object.values(formData).every((val) =>
       typeof val === "boolean" ? val === true : val.trim() !== ""
     );
@@ -53,16 +44,15 @@ const Registration = () => {
     setSubmitting(true);
     try {
       const payload = {
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        date_of_birth: formData.birthDate,
-        age: formData.age,
-        email: formData.email,
-        phone_number: formData.phone,
-        address: formData.address,
         lgu: formData.lgu,
+        address: formData.address,
+        phone_number: formData.phone_number,
+        email: formData.email,
+        representative_first_name: formData.representative_first_name,
+        representative_last_name: formData.representative_last_name,
+        official_representative_name: formData.official_representative_name,
       };
-      await api.post("/api/registration/register/", payload);
+      await api.post("/api/registration/rhu-register/", payload);
       setAnimationClass("bounce-in");
       setShowPopup(true);
     } catch (error) {
@@ -84,7 +74,7 @@ const Registration = () => {
     setAnimationClass("bounce-out");
     setTimeout(() => {
       setShowPopup(false);
-      navigate("/Login");
+      navigate("/rhu-login");
     }, 400);
   };
 
@@ -113,8 +103,8 @@ const Registration = () => {
           <div className="flex gap-2 flex-col">
             <label className="text-[12px] md:text-[16px]">LGU</label>
             <input
-              name="firstName"
-              value={formData.firstName}
+              name="lgu"
+              value={formData.lgu}
               onChange={handleChange}
               type="text"
               required
@@ -127,8 +117,8 @@ const Registration = () => {
           <div className="flex gap-2 flex-col">
             <label className="text-[12px] md:text-[16px]">Address</label>
             <input
-              name="lastName"
-              value={formData.lastName}
+              name="address"
+              value={formData.address}
               onChange={handleChange}
               type="text"
               required
@@ -154,8 +144,8 @@ const Registration = () => {
                 />
               </div>
               <input
-                name="phone"
-                value={formData.phone}
+                name="phone_number"
+                value={formData.phone_number}
                 onChange={handleChange}
                 type="tel"
                 required
@@ -194,8 +184,8 @@ const Registration = () => {
               Representative First Name
             </label>
             <input
-              name="age"
-              value={formData.age}
+              name="representative_first_name"
+              value={formData.representative_first_name}
               onChange={handleChange}
               type="text"
               required
@@ -206,8 +196,8 @@ const Registration = () => {
           <div className="flex justify-end gap-2 flex-col">
             <label className=" text-[12px] md:text-[16px]">Last Name</label>
             <input
-              name="lgu"
-              value={formData.lgu}
+              name="representative_last_name"
+              value={formData.representative_last_name}
               onChange={handleChange}
               type="text"
               required
@@ -220,8 +210,8 @@ const Registration = () => {
               Official Representative Name
             </label>
             <input
-              name="address"
-              value={formData.address}
+              name="official_representative_name"
+              value={formData.official_representative_name}
               onChange={handleChange}
               type="text"
               required
@@ -273,11 +263,11 @@ const Registration = () => {
           <div
             className={`bg-white py-5 px-20 rounded-xl shadow-xl text-center flex flex-col items-center gap-5 ${animationClass}`}
           >
-            <h2 className="text-2xl font-bold text-primary">CHECK SMS</h2>
+            <h2 className="text-2xl font-bold text-primary">CHECK EMAIL</h2>
             <p className="text-center">
-              Please check your messages. We've sent you an email and password
+              Please check your email. We've sent you a temporary password.
               <br />
-              to your mobile number, use them to log in and reset your password.
+              Use it to log in and reset your password.
             </p>
             <button
               onClick={handleOk}

@@ -42,12 +42,12 @@ export default function PatinetProfileForm() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [formData, setFormData] = useState({
-    user_id: user.user_id,
+    // user_id: user.user_id,
     first_name: "",
     middle_name: "",
     last_name: "",
     date_of_birth: "",
-    age: "",
+    suffix: "",
     sex: "",
     civil_status: "",
     number_of_children: 0,
@@ -268,6 +268,18 @@ export default function PatinetProfileForm() {
               />
             </div>
 
+             {/* Suffix */}
+            <div className="flex gap-2 flex-col">
+              <label className="text-black">Suffix</label>
+              <input
+                type="text"
+                name="suffix"
+                value={formData.suffix}
+                onChange={handleChange}
+                className="border-black border-[1px] rounded-md p-2"
+              />
+            </div>
+
             {/* Date of Birth */}
             <div className="flex gap-2 flex-col">
               <label className="text-black         text-[12px] md:text-[16px]">
@@ -304,7 +316,7 @@ export default function PatinetProfileForm() {
                 onChange={handleChange}
                 className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
-            </div>
+            </div> */
 
             {/* Sex */}
             <div className="flex gap-2 flex-col">

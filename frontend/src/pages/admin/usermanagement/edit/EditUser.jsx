@@ -37,8 +37,8 @@ const EditUser = () => {
     lastName: backendUser.last_name || "",
     email: backendUser.email || "",
     username: backendUser.username || backendUser.email || "",
-    password: backendUser.plain_password || "",
-    confirmPassword: backendUser.plain_password || "",
+    password: "",
+    confirmPassword: "",
     role: backendUser.is_superuser ? "admin" : backendUser.is_rhu ? "rhu" : backendUser.is_private ? "private" : "beneficiary",
     status: backendUser.is_active ? "active" : "inactive",
   });
@@ -59,8 +59,8 @@ const EditUser = () => {
       lastName: backendUser.last_name || "",
       email: backendUser.email || "",
       username: backendUser.username || backendUser.email || "",
-      password: backendUser.plain_password || "",
-      confirmPassword: backendUser.plain_password || "",
+      password: "",
+      confirmPassword: "",
       role: backendUser.is_superuser ? "admin" : backendUser.is_rhu ? "rhu" : backendUser.is_private ? "private" : "beneficiary",
       status: backendUser.is_active ? "active" : "inactive",
     });
