@@ -13,25 +13,48 @@ def send_registration_email(user, password):
       recipient_list=[user.email],
       fail_silently=False,
       html_message=f"""
-          <div style='font-family: Arial, sans-serif; color: #222;'>
-            <div style='background: #005baa; padding: 20px; border-radius: 8px 8px 0 0;'>
-              <img src='https://rafi.org.ph/wp-content/uploads/2021/03/RAFI-LOGO-1.png' alt='RAFI Logo' style='height: 50px; display: block; margin: 0 auto 10px auto;'>
-              <h2 style='color: #fff; text-align: center; margin: 0;'>Welcome to RAFI-EJACC</h2>
+        <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
+            <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <div style="background: #005baa; padding: 20px; text-align: center;">
+                    <img src="https://rafi.org.ph/wp-content/uploads/2021/03/RAFI-LOGO-1.png" alt="RAFI Logo" style="height: 50px; display: block; margin: 0 auto 10px;">
+                    <h2 style="color: #fff; margin: 0; font-weight: normal;">Welcome to RAFI-EJACC</h2>
+                </div>
+                
+                <!-- Content -->
+                <div style="padding: 30px;">
+                    <p style="margin: 0 0 15px 0;">Dear <b>{user.first_name} {user.last_name}</b>,</p>
+                    
+                    <p style="font-size: 15px; line-height: 1.6; color: #333;">Thank you for registering with <b>RAFI-Eduardo J. Aboitiz Cancer Center (EJACC)</b>.</p>
+                    
+                    <p style="font-size: 15px; line-height: 1.6; color: #333;">Your account has been created successfully. Please find your login credentials below:</p>
+
+                    <!-- Credentials Box -->
+                    <div style="background: #eaf3fb; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #005baa;">
+                        <p style="margin: 0 0 10px 0; font-size: 15px;"><b>Email:</b> {user.email}</p>
+                        <p style="margin: 0; font-size: 15px;"><b>Temporary Password:</b> <span style="color: #005baa; font-weight: bold;">{password}</span></p>
+                    </div>
+
+                    <!-- Important Notice -->
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 6px; border-left: 4px solid #ffc107; margin: 20px 0;">
+                        <p style="margin: 0; color: #856404; font-size: 14px;"><b>Important:</b> Your account will be activated after resetting your password. Please proceed to log in and reset your password immediately for security purposes.</p>
+                    </div>
+
+                    <!-- CTA Button -->
+                    <a href="/login" style="display: inline-block; margin-top: 20px; padding: 12px 20px; background: #005baa; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                        Login to Your Account
+                    </a>
+
+                    <p style="font-size: 15px; line-height: 1.6; color: #333; margin-top: 25px;">If you have any questions or need assistance, please contact our support team.</p>
+                </div>
+
+                <!-- Footer -->
+                <div style="background: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+                    <p>If you have any questions, please contact our support team at <a href="mailto:no-reply@gmail.com" style="color: #005baa;">no-reply@gmail.com</a>.</p>
+                    <p>This email was sent by RAFI-EJACC. Please do not share your password with anyone.</p>
+                </div>
             </div>
-            <div style='background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;'>
-              <p>Dear <b>{user.first_name} {user.last_name}</b>,</p>
-              <p>Thank you for registering with <b>RAFI-Eduardo J. Aboitiz Cancer Center (EJACC)</b>.</p>
-              <p>Your account has been created successfully. Please find your login credentials below:</p>
-              <ul style='background: #eaf3fb; padding: 15px; border-radius: 6px; list-style: none;'>
-                <li><b>Email:</b> {user.email}</li>
-                <li><b>Temporary Password:</b> <span style='color: #005baa;'>{password}</span></li>
-              </ul>
-              <p style='color: #b22222;'><b>Note:</b> Your account will be activated after resetting password. Please proceed to log in and reset your password.</p>
-              <p>If you have any questions or need assistance, please reply to this email or contact our support team.</p>
-              <hr style='margin: 30px 0;'>
-              <p style='font-size: 13px; color: #888;'>This email was sent by RAFI-EJACC. Please do not share your password with anyone.</p>
-            </div>
-          </div>
+        </div>
       """
     )
     return True

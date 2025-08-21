@@ -11,7 +11,7 @@ class UserManagementSerializer(serializers.ModelSerializer):
     fields = [
       'id', 'email', 'first_name', 'last_name', 'is_active', 'is_superuser',
       'date_of_birth', 'age', 'phone_number', 'is_resident_of_cebu', 'lgu', 'address',
-      'password', 'role', 'input_role', 'plain_password'
+      'password', 'role', 'input_role'
     ]
 
   def get_role(self, obj):
@@ -29,8 +29,7 @@ class UserManagementSerializer(serializers.ModelSerializer):
     email = validated_data.get('email')
     user = User(**validated_data)
     user.username = email  # Set username as email
-    user.set_password(password)
-    user.plain_password = password  
+    user.set_password(password)  
     # Set role fields
     user.is_superuser = (role == 'admin')
     user.is_rhu = (role == 'rhu')
@@ -47,7 +46,6 @@ class UserManagementSerializer(serializers.ModelSerializer):
     password = validated_data.get('password', None)
     if password is not None:
       instance.set_password(password)
-      instance.plain_password = password
 
     # Update other fields
     instance.first_name = validated_data.get('first_name', instance.first_name)

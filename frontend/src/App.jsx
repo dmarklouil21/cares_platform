@@ -95,6 +95,8 @@ import { AuthProvider } from "./context/AuthContext";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import ProtectedRHURoute from "./components/ProtectedRHURoute";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedAuthenticatedRoute from "./components/ProtectedAuthenticatedRoute";
+import AccountNotSupported from "./pages/AccountNotSupported";
 
 const App = () => {
   return (
@@ -115,9 +117,9 @@ const App = () => {
             <Route
               path="ResetPassword"
               element={
-                <ProtectedRoute>
+                <ProtectedAuthenticatedRoute>
                   <ResetPassword />
-                </ProtectedRoute>
+                </ProtectedAuthenticatedRoute>
               }
             />
             <Route
@@ -137,6 +139,7 @@ const App = () => {
               }
             />
             <Route path="NotValidated" element={<NotValidated />} />
+            <Route path="AccountNotSupported" element={<AccountNotSupported />} />
           </Route>
           <Route
             path="/Admin"
