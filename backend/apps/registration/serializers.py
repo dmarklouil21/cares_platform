@@ -17,3 +17,26 @@ class RegistrationSerializer(serializers.ModelSerializer):
     # Password will be set in the view
     email = validated_data.pop("email")
     return User.objects.create_user(username=email, email=email, **validated_data) 
+
+class RHURegistrationSerializer(serializers.Serializer):
+  lgu = serializers.CharField(max_length=100)
+  address = serializers.CharField(max_length=255)
+  phone_number = serializers.CharField(max_length=15)
+  email = serializers.EmailField()
+  representative_first_name = serializers.CharField(max_length=150)
+  representative_last_name = serializers.CharField(max_length=150)
+  official_representative_name = serializers.CharField(max_length=255)
+
+  def create(self, validated_data):
+    user = User.objects.create_user(
+      username=validated_data['email'],
+      email=validated_data['email'],
+      first_name=validated_data['representative_first_name'],
+      last_name=validated_data['representative_last_name'],
+      phone_number=validated_data['phone_number'],
+      lgu=validated_data['lgu'],
+      address=validated_data['address'],
+      is_rhu=True,
+      # is_active=False,
+    )
+    return user

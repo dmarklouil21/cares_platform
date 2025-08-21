@@ -3,6 +3,9 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 
+from apps.patient.models import Patient
+from apps.patient.serializers import PatientSerializer
+
 from .models import Beneficiary
 from .serializers import BeneficiarySerializer
 from .pagination import BeneficiaryPagination
@@ -41,30 +44,30 @@ class BeneficiaryDetailView(generics.RetrieveAPIView):
 
 # EJACC
 
-class BeneficiaryListView(generics.ListAPIView):
-  queryset = Beneficiary.objects.all()
-  serializer_class = BeneficiarySerializer
-  lookup_field = 'beneficiary_id'
+class PatientListView(generics.ListAPIView):
+  queryset = Patient.objects.all()
+  serializer_class = PatientSerializer
+  # lookup_field = 'patient_id'
 
   permission_classes = [IsAuthenticated, IsAdminUser]
-  pagination_class = BeneficiaryPagination
+  # pagination_class = BeneficiaryPagination
 
-class BeneficiaryPreEnrollmentDetailView(generics.RetrieveAPIView):
-  queryset = Beneficiary.objects.all()
-  serializer_class = BeneficiarySerializer
-  lookup_field = 'beneficiary_id'
-
-  permission_classes = [IsAuthenticated, IsAdminUser]
-
-class BeneficiaryPreEnrollmentStatusUpdateView(generics.UpdateAPIView):
-  queryset = Beneficiary.objects.all()
-  serializer_class = BeneficiarySerializer
-  lookup_field = 'beneficiary_id'
+class PatientPreEnrollmentDetailView(generics.RetrieveAPIView):
+  queryset = Patient.objects.all()
+  serializer_class = PatientSerializer
+  lookup_field = 'patient_id'
 
   permission_classes = [IsAuthenticated, IsAdminUser]
 
-class BeneficiaryPreEnrollmentDeleteView(generics.DestroyAPIView):
-  queryset = Beneficiary.objects.all()
-  lookup_field = 'beneficiary_id'
+class PatientPreEnrollmentStatusUpdateView(generics.UpdateAPIView):
+  queryset = Patient.objects.all()
+  serializer_class = PatientSerializer
+  lookup_field = 'patient_id'
+
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+class PatientPreEnrollmentDeleteView(generics.DestroyAPIView):
+  queryset = Patient.objects.all()
+  lookup_field = 'patient_id'
 
   permission_classes = [IsAuthenticated, IsAdminUser]

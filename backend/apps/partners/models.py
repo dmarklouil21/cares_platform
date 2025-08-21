@@ -11,6 +11,10 @@ class CancerAwarenessActivity(models.Model):
   attachment = models.FileField(upload_to='attachments/cancer_awareness_activity/', blank=True, null=True)
   created_at = models.DateTimeField(auto_now_add=True)
 
+  class Meta:
+    verbose_name = 'CancerAwarenessActivity'
+    verbose_name_plural = 'CancerAwarenessActivities'
+
   def __str__(self):
     return f"{self.title} ({self.date.date()})"
 
