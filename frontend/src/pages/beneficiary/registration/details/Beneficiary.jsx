@@ -79,13 +79,13 @@ const Info101 = () => {
   };
 
   return (
-    <div className=" md:w-[75%] flex flex-col  bg-gray py-12  overflow-auto h-full md:h-screen gap-3 md:gap-12 md:px-12 px-5">
+      <div className=" lg:w-[75%] flex flex-col  bg-gray py-12  overflow-auto h-screen md:min-h-screen gap-3 md:gap-12 md:px-12 px-5">
       <div className="w-full flex justify-between px-9">
         <h1 className="font-bold text-[12px] md:text-2xl">
           Beneficiary registration
         </h1>
         <div className="flex text-right flex-col">
-          <p className="text-[12px] md:text-sm">STEP 01/01</p>
+          <p className="text-[10px] md:text-sm">STEP 01/01</p>
           <h1 className="font-bold text-gray-600 text-[12px] md:text-[16px]">
             Info
           </h1>
@@ -99,7 +99,7 @@ const Info101 = () => {
       >
         <h1 className="font-bold md:text-2xl">Personal Details</h1>
 
-        <div className="grid grid-cols-2 gap-x-10 gap-y-5 ">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-5 md:gap-x-10  ">
           <div className="flex gap-2 flex-col">
             <label className="text-[12px] md:text-[16px]">First Name</label>
             <input

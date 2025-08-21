@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const SelectUserType = () => {
   return (
-    <div className="bg-gray w-[100%]  md:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10 ">
+    <div className="bg-gray w-full  lg:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10 ">
       <h2 className="text-3xl md:text-5xl font-bold text-primary mt-36 md:mt-0">Log in to Your Account</h2>
       <p className="text-center text-base text-black">
         Access your account to manage patient <br />
