@@ -42,12 +42,12 @@ export default function PatinetProfileForm() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [formData, setFormData] = useState({
-    user_id: user.user_id,
+    // user_id: user.user_id,
     first_name: "",
     middle_name: "",
     last_name: "",
     date_of_birth: "",
-    age: "",
+    suffix: "",
     sex: "",
     civil_status: "",
     number_of_children: 0,
@@ -133,7 +133,7 @@ export default function PatinetProfileForm() {
     if (modalAction?.type === "submit") {
       try {
         setLoading(true);
-        const response = await api.post("/beneficiary/pre-enrollment/", formData);
+        const response = await api.post("/patient/pre-enrollment/", formData);
         setModalInfo({
           type: "success",
           title: "Success!",
@@ -256,6 +256,18 @@ export default function PatinetProfileForm() {
               />
             </div>
 
+             {/* Suffix */}
+            <div className="flex gap-2 flex-col">
+              <label className="text-black">Suffix</label>
+              <input
+                type="text"
+                name="suffix"
+                value={formData.suffix}
+                onChange={handleChange}
+                className="border-black border-[1px] rounded-md p-2"
+              />
+            </div>
+
             {/* Date of Birth */}
             <div className="flex gap-2 flex-col">
               <label className="text-black">Date of Birth</label>
@@ -278,7 +290,7 @@ export default function PatinetProfileForm() {
             </div>
 
             {/* Age */}
-            <div className="flex gap-2 flex-col">
+            {/* <div className="flex gap-2 flex-col">
               <label className="text-black">Age</label>
               <input
                 type="text"
@@ -287,7 +299,7 @@ export default function PatinetProfileForm() {
                 onChange={handleChange}
                 className="border-black border-[1px] rounded-md p-2"
               />
-            </div>
+            </div> */}
 
             {/* Sex */}
             <div className="flex gap-2 flex-col">

@@ -63,6 +63,7 @@ const PreEnrollment = () => {
     try {
       const response = await api.get("/ejacc/pre-enrollment/list/");
       setTableData(response.data);
+      console.log(response.data);
     } catch (error) {
       console.error("Error fetching pre-enrollment requests:", error);
     }
@@ -77,11 +78,12 @@ const PreEnrollment = () => {
     setCurrentPage(1);
   }, [tableData, recordsPerPage]);
 
+  console.log("Table Data: ", tableData);
   const filteredResults =
-    tableData.results?.filter((record) => {
+    tableData.filter((record) => {
       const matchesSearch =
         !searchQuery ||
-        record.beneficiary_id?.toString().includes(searchQuery) ||
+        record.patient_id?.toString().includes(searchQuery) ||
         record.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus =
@@ -92,7 +94,7 @@ const PreEnrollment = () => {
         : null;
 
       const matchesDate =
-        !formattedDate || record.date_created === formattedDate;
+        !formattedDate || record.created_at === formattedDate;
 
       return matchesSearch && matchesStatus && matchesDate;
     }) || [];
@@ -119,25 +121,25 @@ const PreEnrollment = () => {
   );
 
   // Show modal for validate/reject, call API for delete
-  const handleActionClick = (beneficiary_id, action) => {
+  const handleActionClick = (patient_id, action) => {
     if (action === "validate") {
       setModalText("Confirm validation?");
-      setModalAction({ beneficiary_id, action });
+      setModalAction({ patient_id, action });
       setModalOpen(true);
     } else if (action === "reject") {
       setModalText("Confirm Rejection?");
-      setModalAction({ beneficiary_id, action });
+      setModalAction({ patient_id, action });
       setModalOpen(true);
     } else if (action === "delete") {
       // Delete does not need confirmation modal
-      performAction(beneficiary_id, action);
+      performAction(patient_id, action);
     }
   };
 
   // Actually perform the action after confirmation
-  const performAction = async (beneficiary_id, action) => {
+  const performAction = async (patient_id, action) => {
     try {
-      const url = `/ejacc/pre-enrollment/${action}/${beneficiary_id}/`;
+      const url = `/ejacc/pre-enrollment/${action}/${patient_id}/`;
       if (action === "delete") {
         await api.delete(url);
       } else {
@@ -167,7 +169,7 @@ const PreEnrollment = () => {
   // Modal confirm handler
   const handleModalConfirm = () => {
     if (modalAction) {
-      performAction(modalAction.beneficiary_id, modalAction.action);
+      performAction(modalAction.patient_id, modalAction.action);
     }
     setModalOpen(false);
     setModalAction(null);
@@ -181,8 +183,8 @@ const PreEnrollment = () => {
     setModalText("");
   };
 
-  const handleViewClick = (beneficiary_id) => {
-    navigate(`/Admin/patient/view/AdminPreenrollmentDetails/${beneficiary_id}`);
+  const handleViewClick = (patient_id) => {
+    navigate(`/Admin/patient/view/AdminPreenrollmentDetails/${patient_id}`);
   };
 
   return (
@@ -283,15 +285,15 @@ const PreEnrollment = () => {
                     </colgroup>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {paginatedData?.map((item) => (
-                        <tr key={item.beneficiary_id}>
+                        <tr key={item.patient_id}>
                           <td className="text-center text-sm py-4 text-gray-800">
-                            {item.beneficiary_id}
+                            {item.patient_id}
                           </td>
                           <td className="text-center text-sm py-4 text-gray-800">
                             {item.full_name}
                           </td>
                           <td className="text-center text-sm py-4 text-gray-800">
-                            {new Date(item.date_created).toLocaleDateString(
+                            {new Date(item.created_at).toLocaleDateString(
                               "en-US",
                               { year: "numeric", month: "long", day: "numeric" }
                             )}
@@ -307,7 +309,7 @@ const PreEnrollment = () => {
                           <td className="text-center text-sm py-4 flex gap-2 justify-center">
                             <button
                               onClick={() =>
-                                handleViewClick(item.beneficiary_id)
+                                handleViewClick(item.patient_id)
                               }
                               className="text-white py-1 px-3 rounded-[5px] shadow bg-primary"
                             >
@@ -317,7 +319,7 @@ const PreEnrollment = () => {
                               <button
                                 onClick={() =>
                                   handleActionClick(
-                                    item.beneficiary_id,
+                                    item.patient_id,
                                     "validate"
                                   )
                                 }
@@ -330,7 +332,7 @@ const PreEnrollment = () => {
                               <button
                                 onClick={() =>
                                   handleActionClick(
-                                    item.beneficiary_id,
+                                    item.patient_id,
                                     "reject"
                                   )
                                 }
@@ -342,7 +344,7 @@ const PreEnrollment = () => {
                               <button
                                 onClick={() =>
                                   handleActionClick(
-                                    item.beneficiary_id,
+                                    item.patient_id,
                                     "delete"
                                   )
                                 }

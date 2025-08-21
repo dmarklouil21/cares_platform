@@ -12,8 +12,8 @@ class ScreeningAttachmentAdmin(admin.ModelAdmin):
     list_display = ('screening_procedure', 'file', 'uploaded_at')
 
 class IndividualScreeningAdmin(admin.ModelAdmin):
-    list_display = ('patient__patient_id', 'patient__beneficiary__first_name', 'patient__beneficiary__last_name', 'patient__beneficiary__suffix', 
-                    'patient__beneficiary__date_of_birth', 'patient__beneficiary__age', 'patient__beneficiary__sex', 'patient__beneficiary__address',)
+    list_display = ('patient__patient_id', 'patient__first_name', 'patient__last_name', 'patient__suffix', 
+                    'patient__date_of_birth', 'patient__sex', 'patient__address',)
 
 admin.site.register(models.IndividualScreening, IndividualScreeningAdmin)
 admin.site.register(models.ScreeningProcedure, ScreeningProcedureAdmin)
