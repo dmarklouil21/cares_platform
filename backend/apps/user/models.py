@@ -17,7 +17,6 @@ class User(AbstractUser):
 
     # Check if the user logged in for the first time
     is_first_login = models.BooleanField(default=True)
-    plain_password = models.CharField(max_length=128, null=True, blank=True)
 
     class Meta:
         verbose_name = 'User'

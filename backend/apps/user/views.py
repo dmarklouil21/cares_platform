@@ -25,11 +25,10 @@ class ResetPasswordApiView(APIView):
     user = User.objects.filter(email=email).first()
     if not user:
       return Response({'message': 'User not found.'}, status=status.HTTP_400_BAD_REQUEST)
-    # Check if old_password matches current password or plain_password
-    if not user.check_password(old_password) and user.plain_password != old_password:
+    # Check if old_password matches current password
+    if not user.check_password(old_password):
       return Response({'message': 'Old password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
     user.set_password(new_password)
-    user.plain_password = new_password
     user.is_first_login = False
     user.is_active = True
     user.save()

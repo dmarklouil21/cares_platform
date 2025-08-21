@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'apps.registration',
     'apps.user_management',
     'apps.cancer_screening',
+    'apps.rhu',
 ]
 
 MIDDLEWARE = [
