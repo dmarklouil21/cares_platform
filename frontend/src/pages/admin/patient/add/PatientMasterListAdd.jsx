@@ -175,7 +175,7 @@ const PatientMasterListAdd = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="h-full w-full p-5 flex flex-col justify-between overflow-auto"
+        className="h-full w-full p-5 flex flex-col justify-between overflow-auto gap-5"
       >
         <div className="space-y-4">
           {/* Basic Information Section */}
@@ -230,6 +230,27 @@ const PatientMasterListAdd = () => {
                     </span>
                   )}
                 </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Civil Status:</label>
+                  <select
+                    name="civil_status"
+                    value={form.sex}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  >
+                    <option value="">Select Civil Status</option>
+                    <option value="single">Single</option>
+                    <option value="co-habitation">Co-Habitation</option>
+                    <option value="separated">Separated</option>
+                    <option value="widower">Widower</option>
+                    <option value="married">Married</option>
+                    <option value="annulled">Annulled</option>
+                  </select>
+                  {errors.sex && (
+                    <span className="text-red-500 text-xs">{errors.sex}</span>
+                  )}
+                </div>
+                
               </div>
 
               {/* Second Column */}
@@ -260,6 +281,18 @@ const PatientMasterListAdd = () => {
                   />
                 </div>
                 <div>
+                  <label className="block text-gray-700 mb-1">
+                    Number of Children:
+                  </label>
+                  <input
+                    type="text"
+                    name="age"
+                    value={form.middle_name}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
                   <label className="block text-gray-700 mb-1">Sex:</label>
                   <select
                     name="sex"
@@ -279,14 +312,37 @@ const PatientMasterListAdd = () => {
             </div>
           </div>
 
-          {/* Address Information Section */}
+          {/* Contact and Address Information Section */}
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
-              <h1 className="text-md font-bold">Address Information</h1>
+              <h1 className="text-md font-bold">Contact and Address Information</h1>
             </div>
             <div className="flex flex-row gap-8 p-4">
-              <div className="flex flex-col gap-3 w-full">
-                <div className="w-1/2">
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Permanent Address:</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={form.barangay}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">City/Municipality:</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                  {errors.lgu && (
+                    <span className="text-red-500 text-xs">{errors.lgu}</span>
+                  )}
+                </div>
+                <div>
                   <label className="block text-gray-700 mb-1">Barangay:</label>
                   <input
                     type="text"
@@ -301,8 +357,22 @@ const PatientMasterListAdd = () => {
                     </span>
                   )}
                 </div>
-                <div className="w-1/2">
-                  <label className="block text-gray-700 mb-1">LGU:</label>
+              </div>
+
+              {/* Second Column */}
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Email:</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={form.barangay}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Mobile Number:</label>
                   <input
                     type="text"
                     name="lgu"
@@ -310,9 +380,227 @@ const PatientMasterListAdd = () => {
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                   />
-                  {errors.lgu && (
-                    <span className="text-red-500 text-xs">{errors.lgu}</span>
-                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Information Section */}
+          <div className="border border-black/15 p-3 bg-white rounded-sm">
+            <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
+              <h1 className="text-md font-bold">Additional Info</h1>
+            </div>
+            <div className="flex flex-row gap-8 p-4">
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Source of Information (Where did you here about RAFI-EJACC?):</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={form.barangay}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Other RAFI program you availed:</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Socioeconomic Info Section */}
+          <div className="border border-black/15 p-3 bg-white rounded-sm">
+            <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
+              <h1 className="text-md font-bold">Socioeconomic Info</h1>
+            </div>
+            <div className="flex flex-row gap-8 p-4">
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Highest Educational Attainment:</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={form.barangay}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Source of Income:</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Second Column */}
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Occupation:</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={form.barangay}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Income:</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Emergency Contacts Section */}
+          <div className="border border-black/15 p-3 bg-white rounded-sm">
+            <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
+              <h1 className="text-md font-bold">Emergency Contacts</h1>
+            </div>
+            <div className="flex flex-row gap-8 p-4">
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Name:</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={form.barangay}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Relationship to Patient:</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Landline Number:</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Address:</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Email Address:</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Mobile Number::</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Second Column */}
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Name:</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={form.barangay}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Relationship to Patient:</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Landline Number:</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Address:</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Email Address:</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Mobile Number::</label>
+                  <input
+                    type="text"
+                    name="lgu"
+                    value={form.lgu}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
                 </div>
               </div>
             </div>

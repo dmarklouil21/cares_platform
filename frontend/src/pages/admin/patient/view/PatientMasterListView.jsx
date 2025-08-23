@@ -226,7 +226,7 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">Other RAFI program you availed::</label>
+                <label className="block text-gray-700 mb-1">Other RAFI program you availed:</label>
                 <input
                   type="text"
                   value={patient.other_rafi_programs_availed}
