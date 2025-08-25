@@ -63,6 +63,10 @@ class EmergencyContactAdmin(admin.ModelAdmin):
 class CancerDiagnosisAdmin(admin.ModelAdmin):
   list_display = ('patient', 'diagnosis', 'date_diagnosed', 'cancer_site', 'cancer_stage')
 
+class HistoricalUpdateAdmin(admin.ModelAdmin):
+  list_display = ('patient', 'date', 'note')
+
 admin.site.register(models.Patient, PatientAdmin)
 admin.site.register(models.EmergencyContact, EmergencyContactAdmin)
 admin.site.register(models.CancerDiagnosis, CancerDiagnosisAdmin)
+admin.site.register(models.HistoricalUpdate, HistoricalUpdateAdmin)

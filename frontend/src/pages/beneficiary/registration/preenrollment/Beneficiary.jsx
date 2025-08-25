@@ -343,9 +343,9 @@ export default function PatinetProfileForm() {
                     Select
                   </option>
                   <option value="single">Single</option>
-                  <option value="cohabitation">Co-Habitation</option>
+                  <option value="co-habitation">Co-Habitation</option>
                   <option value="separated">Separated</option>
-                  <option value="widow">Widow/er</option>
+                  <option value="widower">Widow/er</option>
                   <option value="married">Married</option>
                   <option value="annulled">Annulled</option>
                 </select>
@@ -590,7 +590,7 @@ export default function PatinetProfileForm() {
                 <div className="flex gap-2 flex-col">
                   <label className="text-black">Income</label>
                   <input
-                    type="text"
+                    type="number"
                     name="monthly_income"
                     value={formData.monthly_income}
                     onChange={handleChange}

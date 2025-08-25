@@ -16,7 +16,7 @@ const BeneficiaryLayout = () => {
   useEffect(() => {
     const fetchPreEnrollmentStatus = async () => {
       try {
-        const response = await api.get("/patient/details/");
+        const response = await api.get("/beneficiary/patient/details/");
         const status = response.data.status;
         if (status === "validated") {
           setIsValidated(true);

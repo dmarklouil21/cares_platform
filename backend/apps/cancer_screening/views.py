@@ -10,7 +10,7 @@ from rest_framework.exceptions import ValidationError
 
 from backend.utils.email import send_individual_screening_status_email, send_return_remarks_email
 from apps.pre_enrollment.models import Beneficiary
-from apps.patient.models import Patient
+from apps.patient.models import Patient, CancerDiagnosis, HistoricalUpdate
 from apps.cancer_screening.models import ScreeningProcedure, ScreeningAttachment
 from .models import IndividualScreening, PreScreeningForm
 from .serializers import (
@@ -122,8 +122,24 @@ class IndividualScreeningStatusUpdateView(generics.UpdateAPIView):
   def perform_update(self, serializer):
     instance = serializer.save(has_patient_response=False, response_description='')
 
-    if instance.status == 'Approve':
+    screening_status = instance.status
+
+    if screening_status == 'Approve':
       instance.date_approved = timezone.now().date()
+    elif screening_status == 'LOA Generation':
+      CancerDiagnosis.objects.create(
+        patient=instance.patient,
+        diagnosis=instance.pre_screening_form.final_diagnosis,
+        date_diagnosed=instance.pre_screening_form.date_of_diagnosis,
+        cancer_site=instance.screening_procedure.cancer_site,
+        cancer_stage=instance.pre_screening_form.staging,
+      )
+    elif screening_status == 'Complete':
+      HistoricalUpdate.objects.create(
+        patient=instance.patient,
+        note='Completed Individual Screening',
+        date=timezone.now().date(),
+      )
     
     instance.save()
 
