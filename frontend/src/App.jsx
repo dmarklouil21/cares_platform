@@ -161,7 +161,7 @@ const App = () => {
               />
               <Route path="view">
                 <Route
-                  path="AdminPreenrollmentDetails/:beneficiary_id"
+                  path="AdminPreenrollmentDetails/:patient_id"
                   element={<AdminPreenrollmentDetails />}
                 />
                 <Route

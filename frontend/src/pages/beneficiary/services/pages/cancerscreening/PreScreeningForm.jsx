@@ -67,6 +67,7 @@ const PreScreeningForm = () => {
             data[id] = value;
           }
         }
+
         setLoading(true);
         const response = await api.post("/beneficiary/individual-screening/pre-screening-form/", data);
         setModalInfo({
@@ -115,7 +116,6 @@ const PreScreeningForm = () => {
       e.target.value = e.target.value.slice(0, 1);
     }
   };
-
 
   return (
     <>

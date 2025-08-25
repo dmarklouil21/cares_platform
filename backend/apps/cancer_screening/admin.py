@@ -3,10 +3,10 @@ from . import models
 
 # Register your models here.
 class ScreeningProcedureAdmin(admin.ModelAdmin):
-    list_display = ('beneficiary', 'screening_procedure_name', 'procedure_details', 'cancer_site', 'created_at')
+    list_display = ('individual_screening', 'screening_procedure_name', 'procedure_details', 'cancer_site', 'created_at')
 
 class PreScreeningFormAdmin(admin.ModelAdmin):
-    list_display = ('beneficiary', 'referred_from', 'referring_doctor_or_facility', 'reason_for_referral', 'chief_complaint', 'date_of_consultation', 'date_of_diagnosis')
+    list_display = ('individual_screening', 'referred_from', 'referring_doctor_or_facility', 'reason_for_referral', 'chief_complaint', 'date_of_consultation', 'date_of_diagnosis')
 
 class ScreeningAttachmentAdmin(admin.ModelAdmin):
     list_display = ('screening_procedure', 'file', 'uploaded_at')

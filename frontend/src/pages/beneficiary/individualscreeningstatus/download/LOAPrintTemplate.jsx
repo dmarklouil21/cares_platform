@@ -39,7 +39,7 @@ const LOAPrintTemplate = ({ loaData }) => (
             <span className="font-bold">Patient Name: </span> {loaData?.patient.full_name}
           </p>
           <p>
-            <span className="font-bold">Address: </span> {loaData?.patient.beneficiary.city}
+            <span className="font-bold">Address: </span> {loaData?.patient.city}
           </p>
         </div>
 
@@ -48,14 +48,14 @@ const LOAPrintTemplate = ({ loaData }) => (
             <span className="font-bold">Date: </span> {new Date().toLocaleDateString()}
           </p>
           <p>
-            <span className="font-bold">Age: </span> {loaData?.patient.beneficiary.age} years old
+            <span className="font-bold">Age: </span> {loaData?.patient.age} years old
           </p>
         </div>
       </div>
       <div className="text-sm space-y-6">
         <p>
           <span className="font-semibold">Diagnosis/ Impression: </span>
-          {loaData?.patient.diagnosis[0].diagnosis}
+          {loaData?.patient.diagnosis[0]?.diagnosis}
         </p>
 
         <div>

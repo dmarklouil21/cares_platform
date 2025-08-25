@@ -24,7 +24,6 @@ PATIENT_STATUS_CHOICES = [
 ]
 
 class Patient(models.Model):
-  # beneficiary = models.OneToOneField(Beneficiary, on_delete=models.CASCADE, related_name='patient')
   user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='patient')
   patient_id = models.CharField(max_length=20, unique=True)
 
@@ -109,4 +108,15 @@ class CancerDiagnosis(models.Model):
 
   def __str__(self):
     return f"Diagnosis for {self.patient.full_name}: {self.cancer_site or 'N/A'} - Stage {self.cancer_stage or 'N/A'}"
-    
+  
+class HistoricalUpdate(models.Model):
+  patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='historical_updates')
+  date = models.DateField(blank=True, null=True)
+  note = models.CharField(max_length=255, blank=True, null=True)
+
+  class Meta:
+    verbose_name = 'HistoricalUpdate'
+    verbose_name_plural = 'HistoricalUpdates'
+
+  def __str__(self):
+    return f'Update for {self.patient.full_name} on {self.date}: {self.note or 'No note'}'

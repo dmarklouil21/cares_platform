@@ -231,7 +231,7 @@ const IndividualScreening = () => {
                           )}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {item.patient.beneficiary.city}
+                          {item.patient.city}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
                           <span className={`px-3 py-1 inline-flex items-center gap-1 text-xs font-semibold rounded-md ${

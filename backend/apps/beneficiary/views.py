@@ -12,9 +12,11 @@ from rest_framework.exceptions import NotFound, ValidationError
 from apps.pre_enrollment.models import Beneficiary
 from apps.patient.models import Patient, CancerDiagnosis
 from apps.partners.models import CancerAwarenessActivity
-from apps.cancer_screening.models import ScreeningProcedure, ScreeningAttachment, IndividualScreening, PreScreeningForm
+from apps.cancer_screening.models import ScreeningProcedure, ScreeningAttachment, IndividualScreening # PreScreeningForm
 
-# from apps.cancer_screening.models import IndividualScreening, PreScreeningForm
+from apps.cancer_screening.models import IndividualScreening, PreScreeningForm
+from apps.patient.models import Patient, CancerDiagnosis
+from apps.patient.serializers import PatientSerializer
 from apps.partners.serializers import CancerAwarenessActivitySerializer
 from apps.cancer_screening.serializers import (
   PreScreeningFormSerializer, 
@@ -27,35 +29,21 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class PatientDetailView(generics.RetrieveAPIView):
+  serializer_class = PatientSerializer
+  permission_classes = [IsAuthenticated]
+
+  def get_object(self):
+    try:
+      return Patient.objects.get(user=self.request.user)
+    except Patient.DoesNotExist:
+      raise NotFound("No patient record found for this user.")
+
 class PreScreeningCreateView(generics.CreateAPIView):
   queryset = PreScreeningForm.objects.all()
   serializer_class = PreScreeningFormSerializer
   permission_classes = [IsAuthenticated]
 
-  def perform_create(self, serializer):
-    try:
-      with transaction.atomic():
-        pre_screening_form = serializer.save()
-        beneficiary = pre_screening_form.beneficiary
-
-        if not beneficiary:
-          raise ValidationError('Beneficiary is required.')
-
-        patient, _ = Patient.objects.get_or_create(beneficiary=beneficiary)
-        
-        existing_screening = IndividualScreening.objects.filter(patient=patient).exclude(status='Complete').order_by('-created_at').first()
-
-        if existing_screening and existing_screening.status != 'Completed':
-          raise ValidationError({'non_field_errors': ['You currently have an ongoing request. Please complete or cancel it before submitting a new one.']})
-        
-        IndividualScreening.objects.create(
-          patient=patient,
-          pre_screening_form=pre_screening_form
-        )
-    except Exception as e:
-      logger.error(f"Failed to create PreScreeningForm and related records: {e}")
-      raise e
-    
 class ScreeningProcedureCreateView(generics.CreateAPIView):
   queryset = ScreeningProcedure.objects.all()
   serializer_class = ScreeningProcedureSerializer
@@ -65,30 +53,31 @@ class ScreeningProcedureCreateView(generics.CreateAPIView):
   def perform_create(self, serializer):
     try:
       with transaction.atomic():
-        beneficiary = get_object_or_404(Beneficiary, user=self.request.user)
+        patient = get_object_or_404(Patient, user=self.request.user)
 
         individual_screening = get_object_or_404(
-          IndividualScreening, patient__beneficiary=beneficiary
+          IndividualScreening, patient=patient
         )
-        if individual_screening.screening_procedure:
+
+        if ScreeningProcedure.objects.filter(individual_screening=individual_screening).exists():
           raise ValidationError({'non_field_errors': ['You already submitted your screening procedure. Please wait for it\'s feedback before submitting another.']})
 
-        screening_procedure = serializer.save(beneficiary=beneficiary)
+        screening_procedure = serializer.save(individual_screening=individual_screening)
 
-        individual_screening.screening_procedure = screening_procedure
+        # individual_screening.screening_procedure = screening_procedure
         individual_screening.has_patient_response = True
         individual_screening.response_description = 'Submitted screening procedure'
         individual_screening.save()
 
-        pre_screening_form = individual_screening.pre_screening_form
+        # pre_screening_form = individual_screening.pre_screening_form
 
-        CancerDiagnosis.objects.create(
-          patient=individual_screening.patient,
-          diagnosis=pre_screening_form.final_diagnosis,
-          date_diagnosed=pre_screening_form.date_of_diagnosis,
-          cancer_site=screening_procedure.cancer_site,
-          cancer_stage=pre_screening_form.staging,
-        )
+        # CancerDiagnosis.objects.create(
+        #   patient=individual_screening.patient,
+        #   diagnosis=pre_screening_form.final_diagnosis,
+        #   date_diagnosed=pre_screening_form.date_of_diagnosis,
+        #   cancer_site=screening_procedure.cancer_site,
+        #   cancer_stage=pre_screening_form.staging,
+        # )
 
         attachments = self.request.FILES.getlist('attachments')
         for file in attachments:
@@ -113,9 +102,9 @@ class IndividualScreeningListView(generics.ListAPIView):
 
   def get_queryset(self):
     user = self.request.user
-    beneficiary = get_object_or_404(Beneficiary, user=user)
+    patient = get_object_or_404(Patient, user=user)
     # patient_id = self.kwargs.get("patient_id")
-    return IndividualScreening.objects.filter(patient__beneficiary=beneficiary)
+    return IndividualScreening.objects.filter(patient=patient)
 
 class IndividualScreeningDetailView(generics.RetrieveAPIView):
   queryset = IndividualScreening.objects.all()

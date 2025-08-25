@@ -1,32 +1,11 @@
-// Modal component for confirmation
-function ConfirmationModal({ open, text, onConfirm, onCancel }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
-        <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
-        <div className="flex gap-4">
-          <button
-            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-          <button
-            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 import { useState, useEffect, useCallback } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
+
 import api from "src/api/axiosInstance";
+
+import ConfirmationModal from "src/components/ConfirmationModal";
+import NotificationModal from "src/components/NotificationModal";
+import LoadingModal from "src/components/LoadingModal";
 
 // Notification component for showing popup messages
 function Notification({ message, onClose }) {
@@ -46,7 +25,6 @@ function Notification({ message, onClose }) {
 }
 
 const PatientMasterList = () => {
-  // Sample patient data with historical updates
   const [tableData, setTableData] = useState([]);
   // const [statusFilter, setStatusFilter] = useState("pending");
   // const [searchQuery, setSearchQuery] = useState("");
@@ -55,107 +33,32 @@ const PatientMasterList = () => {
   // const [currentPage, setCurrentPage] = useState(1);
   // const [notification, setNotification] = useState("");
 
-  const samplePatients = [
-    {
-      id: 1,
-      patient_id: "PT-001",
-      name: "Juan",
-      last_name: "Dela Cruz",
-      middle_name: "Reyes",
-      suffix: "Jr.",
-      birthdate: "1990-05-15",
-      sex: "Male",
-      barangay: "Ermita",
-      lgu: "Manila",
-      date_diagnosed: "2022-01-10",
-      diagnosis: "Lung Cancer",
-      cancer_stage: "III",
-      cancer_site: "Left Lung",
-      historical_updates: [
-        { date: "2022-01-10", note: "Initial diagnosis confirmed" },
-        { date: "2022-02-15", note: "Started chemotherapy" },
-        { date: "2022-04-20", note: "First follow-up checkup" },
-      ],
-    },
-    {
-      id: 2,
-      patient_id: "PT-002",
-      name: "Maria",
-      last_name: "Santos",
-      middle_name: "Lopez",
-      suffix: "",
-      birthdate: "1985-08-22",
-      sex: "Female",
-      barangay: "Kamuning",
-      lgu: "Quezon City",
-      date_diagnosed: "2021-11-05",
-      diagnosis: "Breast Cancer",
-      cancer_stage: "II",
-      cancer_site: "Right Breast",
-      historical_updates: [
-        { date: "2021-11-05", note: "Initial mammogram results" },
-        { date: "2021-11-20", note: "Biopsy confirmed malignancy" },
-      ],
-    },
-    {
-      id: 3,
-      patient_id: "PT-003",
-      name: "Pedro",
-      last_name: "Gonzales",
-      middle_name: "Martinez",
-      suffix: "Sr.",
-      birthdate: "1978-11-30",
-      sex: "Male",
-      barangay: "San Antonio",
-      lgu: "Makati",
-      date_diagnosed: "2023-02-18",
-      diagnosis: "Colon Cancer",
-      cancer_stage: "IV",
-      cancer_site: "Colon",
-      historical_updates: [
-        { date: "2023-02-18", note: "Colonoscopy results" },
-        { date: "2023-03-05", note: "Started targeted therapy" },
-      ],
-    },
-    {
-      id: 4,
-      patient_id: "PT-004",
-      name: "Ana",
-      last_name: "Ramos",
-      middle_name: "Diaz",
-      suffix: "",
-      birthdate: "1995-03-10",
-      sex: "Female",
-      barangay: "San Miguel",
-      lgu: "Pasig",
-      date_diagnosed: "2022-09-12",
-      diagnosis: "Leukemia",
-      cancer_stage: "I",
-      cancer_site: "Blood",
-      historical_updates: [
-        { date: "2022-09-12", note: "Blood test results" },
-        { date: "2022-10-01", note: "Bone marrow biopsy" },
-        { date: "2022-10-15", note: "Started treatment plan" },
-      ],
-    },
-  ];
-
   const [patients, setPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [notification, setNotification] = useState("");
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("");
-  const [modalAction, setModalAction] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const navigate = useNavigate();
 
+  // Notification Modal
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({
+    type: "success",
+    title: "Success!",
+    message: "The form has been submitted successfully.",
+  });
+  // Loading Modal 
+  const [loading, setLoading] = useState(false);
+  // Confirmation Modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("");
+  const [modalAction, setModalAction] = useState(null); 
+
   const fetchData = async () => {
     try {
-      const response = await api.get("/patient/list/");
+      const response = await api.get("/patient/list/?status=validated");
       setPatients(response.data);
-      console.log(response.data);
     } catch (error) {
       console.error("Error fetching patient data:", error);
     }
@@ -199,7 +102,7 @@ const PatientMasterList = () => {
   };
 
   const handleEditClick = (id) => {
-    const patient = patients.find((p) => p.id === id);
+    const patient = patients.find((p) => p.patient_id === id);
     if (patient) {
       navigate(`/Admin/patient/edit/AdminPatientMasterListEdit`, {
         state: { patient },
@@ -230,21 +133,30 @@ const PatientMasterList = () => {
   const handleModalConfirm = async () => {
     if (modalAction && modalAction.action === "delete" && modalAction.id) {
       try {
-        setPatients(
-          patients.filter((patient) => patient.id !== modalAction.id)
-        );
-        setNotification("Patient deleted successfully");
+        setLoading(true);
+        const response = await api.delete(`/patient/delete/${modalAction.id}/`);
+        setModalInfo({
+          type: "success",
+          title: "Success!",
+          message: "Deleted Successfully.",
+        });
+        setShowModal(true);
       } catch (error) {
-        setNotification("Failed to delete patient");
+        // setNotification("Failed to delete patient");
+        setModalInfo({
+          type: "error",
+          title: "Failed to delete this object",
+          message: "Something went wrong while submitting the request.",
+        });
+        setShowModal(true);
+        console.error(error);
+      } finally {
+        fetchData();
+        setLoading(false);
       }
-      setTimeout(() => setNotification(""), 3500);
+      // setTimeout(() => setNotification(""), 3500);
     }
-    setModalOpen(false);
-    setModalAction(null);
-    setModalText("");
-  };
 
-  const handleModalCancel = () => {
     setModalOpen(false);
     setModalAction(null);
     setModalText("");
@@ -264,12 +176,20 @@ const PatientMasterList = () => {
         open={modalOpen}
         text={modalText}
         onConfirm={handleModalConfirm}
-        onCancel={handleModalCancel}
+        onCancel={() => {
+          setModalOpen(false);
+          setModalAction(null);
+          setModalText("");
+        }}
       />
-      <Notification
-        message={notification}
-        onClose={() => setNotification("")}
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
       />
+      <LoadingModal open={loading} text="Submitting changes..." />
       <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
         <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
           <h1 className="text-md font-bold h-full flex items-center ">Admin</h1>

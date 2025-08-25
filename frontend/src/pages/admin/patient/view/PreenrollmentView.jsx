@@ -4,16 +4,16 @@ import { Link } from "react-router-dom";
 import api from "src/api/axiosInstance"; 
 
 const Details = () => {
-  const { beneficiary_id } = useParams();
+  const { patient_id } = useParams();
   const [patient, setPatient] = useState(null);
-  console.log("Beneficiary ID:", beneficiary_id);
+  console.log("Patient ID:", patient_id);
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchData = async () => {
       try {
-        const response = await api.get(`/ejacc/pre-enrollment/details/${beneficiary_id}/`);
+        const response = await api.get(`/patient/details/${patient_id}/`);
         if (isMounted) {
           setPatient(response.data);
         }
@@ -28,11 +28,11 @@ const Details = () => {
       isMounted = false;
     };
 
-  }, [beneficiary_id]);
+  }, [patient_id]);
 
-  const handleActionClick = async (beneficiary_id, action) => {
+  const handleActionClick = async (patient_id, action) => {
     try {
-      const url = `/ejacc/pre-enrollment/${action}/${beneficiary_id}/`;
+      const url = `/ejacc/pre-enrollment/${action}/${patient_id}/`;
 
       if (action === "delete") {
         await api.delete(url);
@@ -49,18 +49,18 @@ const Details = () => {
     }
   };
 
-  const handleVerifyClick = async (beneficiary_id) => {
+  const handleVerifyClick = async (patient_id) => {
     try{
-      await api.post(`/ejacc/pre-enrollment/verify/${beneficiary_id}/`);
+      await api.post(`/ejacc/pre-enrollment/verify/${patient_id}/`);
       alert("Validated Successfully");
     } catch (error) {
       console.error("There's an error occured while verifying this beneficiary", error);
     }
   };
 
-  const handleDeleteClick = async (beneficiary_id) => {
+  const handleDeleteClick = async (patient_id) => {
       try{
-        await api.delete(`/ejacc/pre-enrollment/delete/${beneficiary_id}/`);
+        await api.delete(`/ejacc/pre-enrollment/delete/${patient_id}/`);
       alert("Deleted Successfully");
     } catch (error) {
       console.error("There's an error occured while deleting this beneficiary", error);
@@ -350,7 +350,7 @@ const Details = () => {
           patient.status === "pending" ? 
             <div className="w-full flex justify-end mt-5">
               <button 
-                onClick={() => handleActionClick(patient.beneficiary_id, "validate")}
+                onClick={() => handleActionClick(patient.patient_id, "validate")}
                 className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md">
                 Verify
               </button>
@@ -358,7 +358,7 @@ const Details = () => {
           : 
             <div className="w-full flex justify-end mt-5">
               <button 
-                onClick={() => handleActionClick(patient.beneficiary_id, "delete")}
+                onClick={() => handleActionClick(patient.patient_id, "delete")}
                 className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md">
                 Delete
               </button>
