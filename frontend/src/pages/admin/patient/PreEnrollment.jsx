@@ -56,12 +56,12 @@ const PreEnrollment = () => {
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
-  const [modalAction, setModalAction] = useState(null); // {beneficiary_id, action}
+  const [modalAction, setModalAction] = useState(null); 
 
   // Fetch data function so it can be reused
   const fetchData = async () => {
     try {
-      const response = await api.get("/ejacc/pre-enrollment/list/");
+      const response = await api.get("/patient/list/?status=pending");
       setTableData(response.data);
       console.log(response.data);
     } catch (error) {
@@ -139,8 +139,8 @@ const PreEnrollment = () => {
   // Actually perform the action after confirmation
   const performAction = async (patient_id, action) => {
     try {
-      const url = `/ejacc/pre-enrollment/${action}/${patient_id}/`;
-      if (action === "delete") {
+      const url = `/patient/pre-enrollment/${action}/${patient_id}/`;
+      if (action === "reject") {
         await api.delete(url);
       } else {
         await api.patch(url, {
@@ -150,8 +150,8 @@ const PreEnrollment = () => {
       let actionWord =
         action === "validate"
           ? "Validated"
-          : action === "reject"
-          ? "Rejected"
+          // : action === "reject"
+          // ? "Rejected"
           : action.charAt(0).toUpperCase() + action.slice(1);
       setNotification(`${actionWord} Successfully`);
       fetchData();

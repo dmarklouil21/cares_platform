@@ -27,28 +27,33 @@ class TreatmentOption(models.Model):
   def __str__(self):
     return self.name
 
-
-class ScreeningProcedure(models.Model):
-  beneficiary = models.ForeignKey(Beneficiary, on_delete=models.CASCADE, related_name='screening_procedure')
-  screening_procedure_name = models.CharField(max_length=100, blank=True)
-  procedure_details = models.CharField(max_length=200, blank=True)
-  cancer_site = models.CharField(max_length=100, blank=True)
-
+class IndividualScreening(models.Model):
+  patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='individual_screening')
+  status = models.CharField(
+    max_length=50,
+    choices=[
+      ('Pending', 'Pending'),
+      ('Approve', 'Approve'),
+      ('LOA Generation', 'LOA Generation'),
+      ('In Progress', 'In Progress'),
+      ('Complete', 'Complete'),
+      ('Reject', 'Reject'),
+    ],
+    default='Pending'
+  )
+  date_approved = models.DateField(blank=True, null=True)
+  date_completed = models.DateField(blank=True, null=True)
+  loa_generated = models.FileField(upload_to='attachments/loa/', blank=True, null=True)
+  # loa_uploaded = models.FileField(upload_to='attachments/loa/', blank=True, null=True)
+  uploaded_result = models.FileField(upload_to='attachments/result/', blank=True, null=True)
+  has_patient_response = models.BooleanField(default=False)
+  response_description = models.CharField(max_length=255, blank=True, null=True)
+  screening_date = models.DateField(blank=True, null=True)
+  
   created_at = models.DateTimeField(auto_now_add=True)
 
-  def __str__(self):
-    return self.beneficiary.full_name
-
-class ScreeningAttachment(models.Model):
-  screening_procedure = models.ForeignKey(ScreeningProcedure, on_delete=models.CASCADE, related_name='attachments')
-  file = models.FileField(upload_to='attachments/screening_files/')
-  uploaded_at = models.DateTimeField(auto_now_add=True)
-
-  def __str__(self):
-    return f"Attachment for {self.screening_procedure}"
-
 class PreScreeningForm(models.Model):
-  beneficiary = models.ForeignKey(Beneficiary, on_delete=models.CASCADE, related_name='pre_screening_form')
+  individual_screening = models.OneToOneField(IndividualScreening, on_delete=models.CASCADE, related_name='pre_screening_form', null=True)
   referred_from = models.CharField(max_length=255, blank=True)
   referring_doctor_or_facility = models.CharField(max_length=255, blank=True)
   reason_for_referral = models.TextField(blank=True)
@@ -128,29 +133,22 @@ class PreScreeningForm(models.Model):
 
   def __str__(self):
     return f"Cancer Screening - {self.referred_from or 'Unknown'}"
-
-class IndividualScreening(models.Model):
-  patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='individual_screening')
-  screening_procedure = models.OneToOneField(ScreeningProcedure, on_delete=models.SET_NULL, blank=True, null=True)
-  pre_screening_form = models.OneToOneField(PreScreeningForm, on_delete=models.CASCADE)
-  status = models.CharField(
-    max_length=50,
-    choices=[
-      ('Pending', 'Pending'),
-      ('Approve', 'Approve'),
-      ('LOA Generation', 'LOA Generation'),
-      ('In Progress', 'In Progress'),
-      ('Complete', 'Complete'),
-      ('Reject', 'Reject'),
-    ],
-    default='Pending'
-  )
-  date_approved = models.DateField(blank=True, null=True)
-  loa_generated = models.FileField(upload_to='attachments/loa/', blank=True, null=True)
-  # loa_uploaded = models.FileField(upload_to='attachments/loa/', blank=True, null=True)
-  uploaded_result = models.FileField(upload_to='attachments/result/', blank=True, null=True)
-  has_patient_response = models.BooleanField(default=False)
-  response_description = models.CharField(max_length=255, blank=True, null=True)
-  screening_date = models.DateField(blank=True, null=True)
   
+class ScreeningProcedure(models.Model):
+  individual_screening = models.OneToOneField(IndividualScreening, on_delete=models.CASCADE, related_name='screening_procedure')
+  screening_procedure_name = models.CharField(max_length=100, blank=True)
+  procedure_details = models.CharField(max_length=200, blank=True)
+  cancer_site = models.CharField(max_length=100, blank=True)
+
   created_at = models.DateTimeField(auto_now_add=True)
+
+  def __str__(self):
+    return self.individual_screening.patient.full_name 
+
+class ScreeningAttachment(models.Model):
+  screening_procedure = models.ForeignKey(ScreeningProcedure, on_delete=models.CASCADE, related_name='attachments')
+  file = models.FileField(upload_to='attachments/screening_files/')
+  uploaded_at = models.DateTimeField(auto_now_add=True)
+
+  def __str__(self):
+    return f"Attachment for {self.screening_procedure}"

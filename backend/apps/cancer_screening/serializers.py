@@ -1,8 +1,9 @@
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound, ValidationError
 from django.shortcuts import get_object_or_404
 from .models import (
   DiagnosisBasis, PrimarySite, DistantMetastasisSite, TreatmentOption,
-  ScreeningProcedure, PreScreeningForm, IndividualScreening, ScreeningAttachment
+  ScreeningProcedure, IndividualScreening, ScreeningAttachment, PreScreeningForm
 )
 from apps.patient.models import Patient, CancerDiagnosis
 from apps.patient.serializers import PatientSerializer
@@ -76,8 +77,14 @@ class PreScreeningFormSerializer(serializers.ModelSerializer):
     other_source_treatments_data = validated_data.pop('other_source_treatments')
 
     request = self.context.get('request')
-    beneficiary = get_object_or_404(Beneficiary, user=request.user)
-    pre_screening_form = PreScreeningForm.objects.create(beneficiary=beneficiary, **validated_data)
+    patient = get_object_or_404(Patient, user=request.user)
+    existing_screening = IndividualScreening.objects.filter(patient=patient).exclude(status='Complete').order_by('-created_at').first()
+    
+    if existing_screening and existing_screening.status != 'Complete':
+      raise ValidationError({'non_field_errors': ['You currently have an ongoing request. Please complete or cancel it before submitting a new one.']})
+
+    individual_screening = IndividualScreening.objects.create(patient=patient)
+    pre_screening_form = PreScreeningForm.objects.create(individual_screening=individual_screening, **validated_data)
 
     for item in diagnosis_basis_data:
       diagnosis_basis, _ = DiagnosisBasis.objects.get_or_create(**item)
@@ -145,7 +152,7 @@ class PreScreeningFormSerializer(serializers.ModelSerializer):
 class IndividualScreeningSerializer(serializers.ModelSerializer):
   patient = PatientSerializer(read_only=True)
   screening_procedure = ScreeningProcedureSerializer()
-  pre_screening_form = PreScreeningFormSerializer()
+  pre_screening_form = PreScreeningFormSerializer(read_only=True)
 
   class Meta:
     model = IndividualScreening

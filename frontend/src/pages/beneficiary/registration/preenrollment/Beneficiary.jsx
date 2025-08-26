@@ -364,9 +364,9 @@ export default function PatinetProfileForm() {
                     Select
                   </option>
                   <option value="single">Single</option>
-                  <option value="cohabitation">Co-Habitation</option>
+                  <option value="co-habitation">Co-Habitation</option>
                   <option value="separated">Separated</option>
-                  <option value="widow">Widow/er</option>
+                  <option value="widower">Widow/er</option>
                   <option value="married">Married</option>
                   <option value="annulled">Annulled</option>
                 </select>
@@ -625,7 +625,7 @@ export default function PatinetProfileForm() {
                     Income
                   </label>
                   <input
-                    type="text"
+                    type="number"
                     name="monthly_income"
                     value={formData.monthly_income}
                     onChange={handleChange}

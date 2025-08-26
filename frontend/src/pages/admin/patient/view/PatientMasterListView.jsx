@@ -5,24 +5,6 @@ const PatientMasterListView = () => {
   const location = useLocation();
   const patient = location.state?.patient || {};
 
-  // Sample historical updates data with date and note
-  const historicalUpdates = [
-    { date: "2023-05-15", note: "Initial diagnosis confirmed" },
-    { date: "2023-06-20", note: "Started chemotherapy treatment" },
-    { date: "2023-08-10", note: "Progress checkup - positive response" },
-  ];
-
-  // Function to format full name
-  const getFullName = () => {
-    let fullName = `${patient.first_name || ""} ${
-      patient.middle_name ? patient.middle_name.charAt(0) + "." : ""
-    } ${patient.last_name || ""}`;
-    if (patient.suffix) {
-      fullName += ` ${patient.suffix}`;
-    }
-    return fullName;
-  };
-
   return (
     <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
       <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
@@ -44,7 +26,7 @@ const PatientMasterListView = () => {
                 <label className="block text-gray-700 mb-1">Full Name:</label>
                 <input
                   type="text"
-                  value={getFullName()}
+                  value={patient.full_name || ""}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -115,15 +97,6 @@ const PatientMasterListView = () => {
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
               </div>
-              {/* <div>
-                <label className="block text-gray-700 mb-1">Barangay:</label>
-                <input
-                  type="text"
-                  value={patient.barangay || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div> */}
               <div>
                 <label className="block text-gray-700 mb-1">Civil Status:</label>
                 <input
@@ -226,7 +199,7 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">Other RAFI program you availed::</label>
+                <label className="block text-gray-700 mb-1">Other RAFI program you availed:</label>
                 <input
                   type="text"
                   value={patient.other_rafi_programs_availed}
@@ -301,7 +274,7 @@ const PatientMasterListView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient.emergency_contacts.name}
+                  value={patient.emergency_contacts[0].name}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -310,7 +283,7 @@ const PatientMasterListView = () => {
                 <label className="block text-gray-700 mb-1">Relationship to Patient:</label>
                 <input
                   type="text"
-                  value={patient.emergency_contacts.relationship_to_patient}
+                  value={patient.emergency_contacts[0].relationship_to_patient}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -321,7 +294,7 @@ const PatientMasterListView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient.emergency_contacts.landline_number}
+                  value={patient.emergency_contacts[0].landline_number}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -332,7 +305,7 @@ const PatientMasterListView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient.emergency_contacts.address}
+                  value={patient.emergency_contacts[0].address}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -343,7 +316,7 @@ const PatientMasterListView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient.emergency_contacts.email}
+                  value={patient.emergency_contacts[0].email}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -354,7 +327,7 @@ const PatientMasterListView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient.emergency_contacts.mobile_number}
+                  value={patient.emergency_contacts[0].mobile_number}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -368,7 +341,7 @@ const PatientMasterListView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient.emergency_contacts.name}
+                  value={patient.emergency_contacts[1].name}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -377,7 +350,7 @@ const PatientMasterListView = () => {
                 <label className="block text-gray-700 mb-1">Relationship to Patient:</label>
                 <input
                   type="text"
-                  value={patient.emergency_contacts.relationship_to_patient}
+                  value={patient.emergency_contacts[1].relationship_to_patient}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -388,7 +361,7 @@ const PatientMasterListView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient.emergency_contacts.landline_number}
+                  value={patient.emergency_contacts[1].landline_number}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -399,7 +372,7 @@ const PatientMasterListView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient.emergency_contacts.address}
+                  value={patient.emergency_contacts[1].address}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -410,7 +383,7 @@ const PatientMasterListView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient.emergency_contacts.email}
+                  value={patient.emergency_contacts[1].email}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -421,7 +394,7 @@ const PatientMasterListView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient.emergency_contacts.mobile_number}
+                  value={patient.emergency_contacts[1].mobile_number}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -442,7 +415,7 @@ const PatientMasterListView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient.date_diagnosed || ""}
+                  value={patient.diagnosis[0]?.date_diagnosed || ""}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -451,7 +424,7 @@ const PatientMasterListView = () => {
                 <label className="block text-gray-700 mb-1">Diagnosis:</label>
                 <input
                   type="text"
-                  value={patient.diagnosis || ""}
+                  value={patient.diagnosis[0]?.diagnosis || ""}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -462,7 +435,7 @@ const PatientMasterListView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient.cancer_stage || ""}
+                  value={patient.diagnosis[0]?.cancer_stage || ""}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -474,7 +447,7 @@ const PatientMasterListView = () => {
                 <label className="block text-gray-700 mb-1">Cancer Site:</label>
                 <input
                   type="text"
-                  value={patient.cancer_site || ""}
+                  value={patient.diagnosis[0]?.cancer_site || ""}
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
@@ -496,7 +469,7 @@ const PatientMasterListView = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {historicalUpdates.map((update, index) => (
+                  {patient.historical_updates.map((update, index) => (
                     <tr
                       key={index}
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
