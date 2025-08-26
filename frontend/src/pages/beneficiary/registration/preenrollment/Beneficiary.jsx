@@ -270,13 +270,13 @@ export default function PatinetProfileForm() {
 
              {/* Suffix */}
             <div className="flex gap-2 flex-col">
-              <label className="text-black">Suffix</label>
+              <label className="text-black text-[12px] md:text-[16px]">Suffix</label>
               <input
                 type="text"
                 name="suffix"
                 value={formData.suffix}
                 onChange={handleChange}
-                className="border-black border-[1px] rounded-md p-2"
+                className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
             </div>
 
@@ -316,7 +316,7 @@ export default function PatinetProfileForm() {
                 onChange={handleChange}
                 className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
-            </div> */
+            </div> 
 
             {/* Sex */}
             <div className="flex gap-2 flex-col">
