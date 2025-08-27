@@ -3,16 +3,20 @@ import { Link } from "react-router-dom";
 
 const NotePanel = ({ onAccept, onDecline }) => {
   return (
-    <div className="w-[75%] bg-gray flex flex-col h-screen gap-5 px-8 py-8 ">
+    <div className="w-full lg:w-[75%] bg-gray flex flex-col h-screen gap-5 px-8 py-8 ">
       <div className="w-full flex justify-between px-9">
-        <h1 className="font-bold text-2xl">Beneficiary registration</h1>
+        <h1 className="font-bold text-[16px] md:text-2xl">
+          Beneficiary <br/> registration
+        </h1>
         <div className="flex text-right flex-col">
-          <p className="text-sm">STEP 01/02</p>
-          <h1 className="font-bold text-gray-600">NOTE</h1>
+          <p className="text-[10px] md:text-sm">STEP 01/02</p>
+          <h1 className="font-bold text-gray-600 text-[12px] md:text-[16px]">
+            NOTE
+          </h1>
         </div>
       </div>
       <div className="flex flex-col gap-5 bg-white w-full rounded-xl shadow px-8 py-6">
-        <h1 className="font-bold text-[17px]">
+        <h1 className="font-bold md:text-[28px]">
           NOTE: Completion of this form does not guarantee assistance from RAFI
           and Eduardo J. Aboitiz Cancer Center (EJACC). All applications are
           subject to review by the EJACC team.

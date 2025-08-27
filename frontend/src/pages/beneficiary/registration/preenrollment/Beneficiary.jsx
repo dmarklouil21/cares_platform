@@ -32,12 +32,12 @@ export default function PatinetProfileForm() {
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalAction, setModalAction] = useState(null); 
+  const [modalAction, setModalAction] = useState(null);
 
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -125,8 +125,8 @@ export default function PatinetProfileForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setModalText('Submit this form?');
-    setModalAction({ type: "submit" }); 
+    setModalText("Submit this form?");
+    setModalAction({ type: "submit" });
     setModalOpen(true);
   };
 
@@ -143,14 +143,14 @@ export default function PatinetProfileForm() {
         setShowModal(true);
         navigate("/Beneficiary");
       } catch (error) {
-        let errorMessage = "Something went wrong while submitting the form."; 
+        let errorMessage = "Something went wrong while submitting the form.";
 
         if (error.response && error.response.data) {
           // DRF ValidationError returns an object with arrays of messages
           if (error.response.data.non_field_errors) {
             errorMessage = error.response.data.non_field_errors[0];
           } //else if (typeof error.response.data === "string") {
-            //errorMessage = error.response.data; // for plain text errors
+          //errorMessage = error.response.data; // for plain text errors
           //}
         }
         setModalInfo({
@@ -179,7 +179,7 @@ export default function PatinetProfileForm() {
     setModalOpen(false);
     setModalAction(null);
     setModalText("");
-  }
+  };
 
   return (
     <>
@@ -205,78 +205,90 @@ export default function PatinetProfileForm() {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting your data..." />
-      <div className="h-screen w-[75%] flex flex-col gap-12 bg-gray py-12 px-12 overflow-auto">
+      <div className="h-screen w-full lg:w-[75%] flex flex-col gap-3 md:gap-12 bg-gray py-12 px-5 overflow-auto">
         <div className="w-full flex justify-between px-9">
-          <h1 className="font-bold text-2xl">Patient Profile</h1>
+          <h1 className="font-bold text-[15px] md:text-2xl">Patient Profile</h1>
           <div className="flex text-right flex-col">
-            <p className="text-sm">STEP 01/02</p>
-            <h1 className="font-bold text-black">General Data</h1>
+            <p className="text-[10px] md:text-sm">STEP 01/02</p>
+            <h1 className="font-bold text-black text-[12px] md:text-[16px]">
+              General Data
+            </h1>
           </div>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white p-9 flex flex-col gap-10 rounded-2xl"
+          className="bg-white p-5 md:p-9 flex flex-col gap-8 rounded-2xl "
         >
           {/* Patient Name Section */}
-          <h1 className="font-bold text-2xl">Patient Name</h1>
-          <div className="grid grid-cols-2 gap-x-10 gap-y-5">
+          <h1 className="font-bold md:text-2xl">Patient Name</h1>
+
+          <div className="grid grid-cols-2 md:gap-x-10 gap-3">
             {/* First Name */}
             <div className="flex gap-2 flex-col">
-              <label className="text-gray2">First Name</label>
+              <label className="text-[12px] md:text-[16px]">First Name</label>
               <input
                 type="text"
                 name="first_name"
                 value={formData.first_name}
                 onChange={handleChange}
-                className="border-black border-[1px] rounded-md p-2"
+                className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
             </div>
 
             {/* Middle Name */}
             <div className="flex gap-2 flex-col">
-              <label className="text-black">Middle Name</label>
+              <label className="text-black       text-[12px] md:text-[16px]">
+                Middle Name
+              </label>
               <input
                 type="text"
                 name="middle_name"
                 value={formData.middle_name}
                 onChange={handleChange}
-                className="border-black border-[1px] rounded-md p-2"
+                className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
             </div>
 
             {/* Last Name */}
             <div className="flex gap-2 flex-col">
-              <label className="text-black">Last Name</label>
+              <label className="text-black          text-[12px] md:text-[16px]">
+                Last Name
+              </label>
               <input
                 type="text"
                 name="last_name"
                 value={formData.last_name}
                 onChange={handleChange}
-                className="border-black border-[1px] rounded-md p-2"
+                className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
             </div>
 
-             {/* Suffix */}
+            {/* Suffix */}
             <div className="flex gap-2 flex-col">
-              <label className="text-black">Suffix</label>
+              <label className="text-black text-[12px] md:text-[16px]">
+                Suffix
+              </label>
               <input
                 type="text"
                 name="suffix"
                 value={formData.suffix}
                 onChange={handleChange}
-                className="border-black border-[1px] rounded-md p-2"
+                className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
             </div>
 
             {/* Date of Birth */}
             <div className="flex gap-2 flex-col">
-              <label className="text-black">Date of Birth</label>
+              <label className="text-black         text-[12px] md:text-[16px]">
+                Date of Birth
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
                     src="/src/assets/images/input_icons/datebirth.svg"
                     alt="Date of Birth Icon"
+                    className="md:w-5 md:h-5 w-4 h-4"
                   />
                 </div>
                 <input
@@ -284,33 +296,37 @@ export default function PatinetProfileForm() {
                   name="date_of_birth"
                   value={formData.date_of_birth}
                   onChange={handleChange}
-                  className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                  className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                   placeholder="Select date"
                 />
               </div>
             </div>
 
             {/* Age */}
-            {/* <div className="flex gap-2 flex-col">
-              <label className="text-black">Age</label>
+            <div className="flex gap-2 flex-col">
+              <label className="text-black        text-[12px] md:text-[16px]">
+                Age
+              </label>
               <input
                 type="text"
                 name="age"
                 value={formData.age}
                 onChange={handleChange}
-                className="border-black border-[1px] rounded-md p-2"
+                className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
-            </div> */}
+            </div>
 
             {/* Sex */}
             <div className="flex gap-2 flex-col">
-              <label className="text-black">Sex</label>
+              <label className="text-black       text-[12px] md:text-[16px]">
+                Sex
+              </label>
               <div className="relative">
                 <select
                   name="sex"
                   value={formData.sex}
                   onChange={handleChange}
-                  className="border-black w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8"
+                  className="border-black w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8 text-[12px] md:text-[16px] "
                 >
                   <option value="" disabled>
                     Select
@@ -332,13 +348,15 @@ export default function PatinetProfileForm() {
 
             {/* Civil Status */}
             <div className="flex gap-2 flex-col">
-              <label className="text-black">Civil Status</label>
+              <label className="text-black      text-[12px] md:text-[16px]">
+                Civil Status
+              </label>
               <div className="relative">
                 <select
                   name="civil_status"
                   value={formData.civil_status}
                   onChange={handleChange}
-                  className="border-black w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8"
+                  className="border-black w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8 text-[12px] md:text-[16px]"
                 >
                   <option value="" disabled>
                     Select
@@ -364,15 +382,17 @@ export default function PatinetProfileForm() {
 
             {/* Number of Children */}
             <div className="flex gap-2 flex-col">
-              <label className="text-black">Number of Children</label>
+              <label className="text-black     text-[12px] md:text-[16px]">
+                Number of Children
+              </label>
               <input
                 id="children-input"
                 type="number"
                 name="number_of_children"
                 value={formData.number_of_children}
                 onChange={handleChange}
-                className="border-black border-[1px] rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                min="0"
+                className="text-[12px] md:text-[16px] border-black border-[1px] rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                min="0 "
               />
             </div>
           </div>
@@ -380,11 +400,11 @@ export default function PatinetProfileForm() {
           {/* Contact & Address Section */}
           <div className="flex flex-col gap-10">
             <div className="flex flex-col gap-5">
-              <h1 className="font-bold text-2xl">Contact & Address</h1>
-              <div className="grid grid-cols-2 gap-x-10 gap-y-5">
+              <h1 className="font-bold md:text-2xl">Contact & Address</h1>
+              <div className="grid grid-cols-2 md:gap-x-10 gap-3">
                 {/* Permanent Address */}
                 <div className="flex gap-2 flex-col col-span-2">
-                  <label className="text-black">
+                  <label className="text-black    text-[12px] md:text-[16px]">
                     Permanent Address (Number & Street)
                   </label>
                   <input
@@ -392,19 +412,21 @@ export default function PatinetProfileForm() {
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2"
+                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                 </div>
 
                 {/* City/Municipality */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">City/Municipality</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    City/Municipality
+                  </label>
                   <div className="relative">
                     <select
                       name="city"
                       value={formData.city}
                       onChange={handleChange}
-                      className="border-black w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8"
+                      className="border-black w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8 text-[12px] md:text-[16px]"
                     >
                       <option value="" disabled>
                         Select City/Municipality
@@ -435,13 +457,15 @@ export default function PatinetProfileForm() {
 
                 {/* Barangay */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Barangay</label>
+                  <label className="text-black  text-[12px] md:text-[16px]">
+                    Barangay
+                  </label>
                   <div className="relative">
                     <select
                       name="barangay"
                       value={formData.barangay}
                       onChange={handleChange}
-                      className="border-black w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8"
+                      className="border-black w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8 text-[12px] md:text-[16px]"
                       disabled={!formData.city}
                     >
                       <option value="">
@@ -469,7 +493,7 @@ export default function PatinetProfileForm() {
 
                 {/* Contact Number */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">
+                  <label className="text-black text-[12px] md:text-[16px]">
                     Landline Number/Mobile Number
                   </label>
                   <div className="relative">
@@ -484,14 +508,16 @@ export default function PatinetProfileForm() {
                       name="mobile_number"
                       value={formData.mobile_number}
                       onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                     />
                   </div>
                 </div>
 
                 {/* Email */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black">Email</label>
+                <div className="flex gap-2 flex-col justify-between">
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Email
+                  </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <img
@@ -504,7 +530,7 @@ export default function PatinetProfileForm() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                       placeholder="ejacc@gmail.com"
                     />
                   </div>
@@ -514,11 +540,11 @@ export default function PatinetProfileForm() {
 
             {/* Additional Info Section */}
             <div className="flex flex-col gap-5">
-              <h1 className="font-bold text-2xl">Additional Info</h1>
+              <h1 className="font-bold md:text-2xl">Additional Info</h1>
               <div className="grid grid-cols-2 gap-x-10 gap-y-5">
                 {/* Source of Information */}
                 <div className="flex gap-2 flex-col col-span-2">
-                  <label className="text-black">
+                  <label className="text-black text-[12px] md:text-[16px]">
                     Source of Information (Where did you hear about
                     RAFI-EJACC?):
                   </label>
@@ -526,20 +552,20 @@ export default function PatinetProfileForm() {
                     name="source_of_information"
                     value={formData.source_of_information}
                     onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 h-36 w-[60%] resize-none"
+                    className="border-black border-[1px] rounded-md p-2 h-36 resize-none text-[12px] md:text-[16px] w-full md:w-[60%]"
                   />
                 </div>
 
                 {/* Other RAFI Programs */}
                 <div className="flex gap-2 flex-col col-span-2">
-                  <label className="text-black">
+                  <label className="text-black text-[12px] md:text-[16px]">
                     Other RAFI programs you availed:
                   </label>
                   <textarea
                     name="other_rafi_programs_availed"
                     value={formData.other_rafi_programs_availed}
                     onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 h-36 w-[60%] resize-none"
+                    className="border-black border-[1px] rounded-md p-2 h-36 resize-none text-[12px] md:text-[16px] w-full md:w-[60%]"
                   />
                 </div>
               </div>
@@ -547,11 +573,11 @@ export default function PatinetProfileForm() {
 
             {/* Socioeconomic Info Section */}
             <div className="flex flex-col gap-5">
-              <h1 className="font-bold text-2xl">Socioeconomic Info</h1>
-              <div className="grid grid-cols-2 gap-x-10 gap-y-5">
+              <h1 className="font-bold md:text-2xl">Socioeconomic Info</h1>
+              <div className="grid grid-cols-2 md:gap-x-10 gap-4">
                 {/* Education */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">
+                  <label className="text-black text-[12px] md:text-[16px]">
                     Highest Educational Attainment
                   </label>
                   <input
@@ -559,43 +585,49 @@ export default function PatinetProfileForm() {
                     name="highest_educational_attainment"
                     value={formData.highest_educational_attainment}
                     onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2"
+                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                 </div>
 
                 {/* Occupation */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black">Occupation</label>
+                <div className="flex gap-2 flex-col justify-between">
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Occupation
+                  </label>
                   <input
                     type="text"
                     name="occupation"
                     value={formData.occupation}
                     onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2"
+                    className="border-black border-[1px] rounded-md p-2   text-[12px] md:text-[16px]"
                   />
                 </div>
 
                 {/* Income Source */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Source of Income</label>
+                  <label className="text-black text-[12px] md:text-[16px]  ">
+                    Source of Income
+                  </label>
                   <input
                     type="text"
                     name="source_of_income"
                     value={formData.source_of_income}
                     onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2"
+                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                 </div>
 
                 {/* Income */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Income</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Income
+                  </label>
                   <input
                     type="number"
                     name="monthly_income"
                     value={formData.monthly_income}
                     onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2"
+                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                 </div>
               </div>
@@ -603,35 +635,41 @@ export default function PatinetProfileForm() {
 
             {/* Emergency Contact 1 Section */}
             <div className="flex flex-col gap-5">
-              <h1 className="font-bold text-2xl">Emergency Contact 1</h1>
-              <div className="grid grid-cols-2 gap-x-10 gap-y-5">
+              <h1 className="font-bold md:text-2xl">Emergency Contact 1</h1>
+              <div className="grid grid-cols-2 md:gap-x-10 gap-3">
                 {/* Name */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Name</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Name
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.name"
                     value={formData.emergency_contacts[0].name}
                     onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2"
+                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                 </div>
 
                 {/* Address */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Address</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Address
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.address"
                     value={formData.emergency_contacts[0].address}
                     onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2"
+                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                 </div>
 
                 {/* Relationship */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Relationship to Patient</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Relationship to Patient
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.relationship_to_patient"
@@ -639,13 +677,15 @@ export default function PatinetProfileForm() {
                       formData.emergency_contacts[0].relationship_to_patient
                     }
                     onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2"
+                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                 </div>
 
                 {/* Email */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Email</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Email
+                  </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <img
@@ -658,7 +698,7 @@ export default function PatinetProfileForm() {
                       name="emergencyContact1.email"
                       value={formData.emergency_contacts[0].email}
                       onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                       placeholder="ejacc@gmail.com"
                     />
                   </div>
@@ -666,7 +706,9 @@ export default function PatinetProfileForm() {
 
                 {/* Landline */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Landline Number</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Landline Number
+                  </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <img
@@ -679,14 +721,16 @@ export default function PatinetProfileForm() {
                       name="emergencyContact1.landline_number"
                       value={formData.emergency_contacts[0].landline_number}
                       onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                     />
                   </div>
                 </div>
 
                 {/* Phone */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Phone Number</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Phone Number
+                  </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <img
@@ -699,7 +743,7 @@ export default function PatinetProfileForm() {
                       name="emergencyContact1.mobile_number"
                       value={formData.emergency_contacts[0].mobile_number}
                       onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                     />
                   </div>
                 </div>
@@ -708,35 +752,41 @@ export default function PatinetProfileForm() {
 
             {/* Emergency Contact 2 Section */}
             <div className="flex flex-col gap-5">
-              <h1 className="font-bold text-2xl">Emergency Contact 2</h1>
-              <div className="grid grid-cols-2 gap-x-10 gap-y-5">
+              <h1 className="font-bold md:text-2xl">Emergency Contact 2</h1>
+              <div className="grid grid-cols-2 md:gap-x-10 gap-3">
                 {/* Name */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Name</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Name
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.name"
                     value={formData.emergency_contacts[1].name}
                     onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2"
+                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                 </div>
 
                 {/* Address */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Address</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Address
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.address"
                     value={formData.emergency_contacts[1].address}
                     onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2"
+                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                 </div>
 
                 {/* Relationship */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Relationship to Patient</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Relationship to Patient
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.relationship_to_patient"
@@ -744,13 +794,15 @@ export default function PatinetProfileForm() {
                       formData.emergency_contacts[1].relationship_to_patient
                     }
                     onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2"
+                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                 </div>
 
                 {/* Email */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Email</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Email
+                  </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <img
@@ -763,7 +815,7 @@ export default function PatinetProfileForm() {
                       name="emergencyContact2.email"
                       value={formData.emergency_contacts[1].email}
                       onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                       placeholder="ejacc@gmail.com"
                     />
                   </div>
@@ -771,7 +823,9 @@ export default function PatinetProfileForm() {
 
                 {/* Landline */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Landline Number</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Landline Number
+                  </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <img
@@ -784,14 +838,16 @@ export default function PatinetProfileForm() {
                       name="emergencyContact2.landline_number"
                       value={formData.emergency_contacts[1].landline_number}
                       onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                     />
                   </div>
                 </div>
 
                 {/* Phone */}
                 <div className="flex gap-2 flex-col">
-                  <label className="text-black">Phone Number</label>
+                  <label className="text-black text-[12px] md:text-[16px]">
+                    Phone Number
+                  </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <img
@@ -804,7 +860,7 @@ export default function PatinetProfileForm() {
                       name="emergencyContact2.mobile_number"
                       value={formData.emergency_contacts[1].mobile_number}
                       onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                     />
                   </div>
                 </div>

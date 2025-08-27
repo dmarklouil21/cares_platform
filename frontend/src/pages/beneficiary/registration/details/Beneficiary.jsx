@@ -79,55 +79,59 @@ const Info101 = () => {
   };
 
   return (
-    <div className="h-screen w-[75%] flex flex-col gap-12 bg-gray py-12 px-12 overflow-auto">
+      <div className=" lg:w-[75%] flex flex-col  bg-gray py-12  overflow-auto h-screen md:min-h-screen gap-3 md:gap-12 md:px-12 px-5">
       <div className="w-full flex justify-between px-9">
-        <h1 className="font-bold text-2xl">Beneficiary registration</h1>
+        <h1 className="font-bold text-[12px] md:text-2xl">
+          Beneficiary registration
+        </h1>
         <div className="flex text-right flex-col">
-          <p className="text-sm">STEP 01/01</p>
-          <h1 className="font-bold text-gray-600">Info</h1>
+          <p className="text-[10px] md:text-sm">STEP 01/01</p>
+          <h1 className="font-bold text-gray-600 text-[12px] md:text-[16px]">
+            Info
+          </h1>
         </div>
       </div>
 
       <form
         id="beneficiary-form"
         onSubmit={handleSubmit}
-        className="bg-white p-9 flex flex-col gap-8 rounded-2xl"
+        className="bg-white p-5 md:p-9 flex flex-col gap-8 rounded-2xl"
       >
-        <h1 className="font-bold text-2xl">Personal Details</h1>
+        <h1 className="font-bold md:text-2xl">Personal Details</h1>
 
-        <div className="grid grid-cols-2 gap-x-10 gap-y-5">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-5 md:gap-x-10  ">
           <div className="flex gap-2 flex-col">
-            <label>First Name</label>
+            <label className="text-[12px] md:text-[16px]">First Name</label>
             <input
               name="firstName"
               value={formData.firstName}
               onChange={handleChange}
               type="text"
               required
-              className="border border-gray-600 rounded-md p-2"
+              className="border border-gray-600 rounded-md p-2 text-[12px] md:text-[16px]"
             />
           </div>
 
           <div className="flex gap-2 flex-col">
-            <label>Last Name</label>
+            <label className=" text-[12px] md:text-[16px]">Last Name</label>
             <input
               name="lastName"
               value={formData.lastName}
               onChange={handleChange}
               type="text"
               required
-              className="border border-gray-600 rounded-md p-2"
+              className="border border-gray-600 rounded-md p-2 text-[12px] md:text-[16px]"
             />
           </div>
 
           <div className="flex gap-2 flex-col">
-            <label>Date of Birth</label>
+            <label className="text-[12px] md:text-[16px]">Date of Birth</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <img
                   src="/src/assets/images/input_icons/datebirth.svg"
                   alt="Date Icon"
-                  className="w-5 h-5"
+                  className="md:w-5 md:h-5 w-4 h-4"
                 />
               </div>
               <input
@@ -136,31 +140,31 @@ const Info101 = () => {
                 onChange={handleChange}
                 type="date"
                 required
-                className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
               />
             </div>
           </div>
 
           <div className="flex gap-2 flex-col">
-            <label>Age</label>
+            <label className=" text-[12px] md:text-[16px]">Age</label>
             <input
               name="age"
               value={formData.age}
               onChange={handleChange}
               type="text"
               required
-              className="border border-gray-600 rounded-md p-2"
+              className="border border-gray-600 rounded-md p-2 text-[12px] md:text-[16px]"
             />
           </div>
 
           <div className="flex gap-2 flex-col">
-            <label>Email</label>
+            <label className=" text-[12px] md:text-[16px]">Email</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <img
                   src="/src/assets/images/input_icons/email.svg"
                   alt="Email Icon"
-                  className="w-5 h-5"
+                  className="md:w-5 md:h-5 w-4 h-4"
                 />
               </div>
               <input
@@ -169,14 +173,16 @@ const Info101 = () => {
                 onChange={handleChange}
                 type="email"
                 required
-                className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                 placeholder="ejacc@gmail.com"
               />
             </div>
           </div>
 
           <div className="flex gap-2 flex-col">
-            <label className="text-gray-600">Phone Number</label>
+            <label className="text-gray-600  text-[12px] md:text-[16px]">
+              Phone Number
+            </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <img
@@ -191,15 +197,17 @@ const Info101 = () => {
                 onChange={handleChange}
                 type="tel"
                 required
-                className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                 placeholder="123-456-7890"
               />
             </div>
           </div>
 
           <div className="flex gap-2 flex-col">
-            <label>Are you a resident of Cebu (province)?</label>
-            <p className="text-[11px] text-gray-400">
+            <label className="text-[12px] md:text-[16px]">
+              Are you a resident of Cebu (province)?
+            </label>
+            <p className="text-[8px] md:text-[11px] text-gray-400">
               Our cancer care services are currently limited to residents of
               Cebu.
             </p>
@@ -209,7 +217,7 @@ const Info101 = () => {
                 value={formData.isResident}
                 onChange={handleChange}
                 required
-                className="border border-gray-600 w-full rounded-md p-2 bg-white appearance-none pr-8"
+                className="border border-gray-600 w-full rounded-md p-2 bg-white appearance-none pr-8 text-[12px] md:text-[16px]"
               >
                 <option value="" disabled>
                   Select
@@ -229,7 +237,7 @@ const Info101 = () => {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 flex-col h-23">
+          <div className="flex justify-end gap-2 flex-col  text-[12px] md:text-[16px] ">
             <label>LGU</label>
             <input
               name="lgu"
@@ -242,14 +250,14 @@ const Info101 = () => {
           </div>
 
           <div className="flex gap-2 flex-col col-span-2">
-            <label>Address</label>
+            <label className=" text-[12px] md:text-[16px]">Address</label>
             <input
               name="address"
               value={formData.address}
               onChange={handleChange}
               type="text"
               required
-              className="border border-gray-600 rounded-md p-2"
+              className="border border-gray-600 rounded-md p-2 text-[12px] md:text-[16px]"
             />
           </div>
         </div>
@@ -265,7 +273,7 @@ const Info101 = () => {
               className="accent-primary"
             />
             <p
-              className="underline text-[12px] cursor-pointer"
+              className="underline text-[10px] md:text-[12px] cursor-pointer"
               onClick={() =>
                 setFormData((prev) => ({ ...prev, agreed: !prev.agreed }))
               }

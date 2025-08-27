@@ -79,48 +79,62 @@ const Registration = () => {
   };
 
   return (
-    <div className="h-screen w-[75%] flex flex-col gap-12 bg-gray py-12 px-12 overflow-auto">
+    <div className=" w-full lg:w-[75%] flex flex-col  bg-gray py-12  overflow-auto h-screen lg:min-h-screen gap-3 md:gap-12 md:px-12 px-5">
       <div className="w-full flex justify-between px-9">
-        <h1 className="font-bold text-2xl">RHU Focal Person registration</h1>
+        <h1 className="font-bold text-[15px] md:text-2xl">
+          RHU Focal Person <br /> registration
+        </h1>
         <div className="flex text-right flex-col">
-          <p className="text-sm">STEP 01/01</p>
-          <h1 className="font-bold text-gray-600">Info</h1>
+          <p className="text-[10px] md:text-sm">STEP 01/01</p>
+          <h1 className="font-bold text-gray-600 text-[12px] md:text-[16px]">
+            Info
+          </h1>
         </div>
       </div>
 
       <form
         id="beneficiary-form"
         onSubmit={handleSubmit}
-        className="bg-white p-9 flex flex-col gap-8 rounded-2xl"
+        className="bg-white p-5 md:p-9 flex flex-col gap-8 rounded-2xl "
       >
-        <h1 className="font-bold text-2xl">Details</h1>
+        <h1 className="font-bold md:text-2xl">Details</h1>
 
-        <div className="grid grid-cols-2 gap-x-10 gap-y-5">
+        <div className="grid grid-cols-2 md:gap-x-10 gap-y-5 gap-x-4">
           <div className="flex gap-2 flex-col">
-            <label>LGU</label>
+            <label className="text-[12px] md:text-[16px]">LGU</label>
             <input
               name="lgu"
               value={formData.lgu}
               onChange={handleChange}
               type="text"
               required
-              className="border border-gray-600 rounded-md p-2"
+              className="border border-gray-600 rounded-md p-2
+              text-[14px] md:text-[16px]
+              "
             />
           </div>
 
           <div className="flex gap-2 flex-col">
-            <label>Address</label>
+            <label className="text-[12px] md:text-[16px]">Address</label>
             <input
               name="address"
               value={formData.address}
               onChange={handleChange}
               type="text"
               required
-              className="border border-gray-600 rounded-md p-2"
+              className="border border-gray-600 rounded-md p-2
+              text-[14px] md:text-[16px]
+              "
             />
           </div>
           <div className="flex gap-2 flex-col">
-            <label className="text-gray-600">Phone Number</label>
+            <label
+              className="
+            text-[12px] md:text-[16px]
+            "
+            >
+              Phone Number
+            </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <img
@@ -135,13 +149,16 @@ const Registration = () => {
                 onChange={handleChange}
                 type="tel"
                 required
-                className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5
+                text-[12px] md:text-[16px]
+
+                "
                 placeholder="123-456-7890"
               />
             </div>
           </div>
           <div className="flex gap-2 flex-col">
-            <label>Email</label>
+            <label className="text-[12px] md:text-[16px]">Email</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <img
@@ -156,14 +173,16 @@ const Registration = () => {
                 onChange={handleChange}
                 type="email"
                 required
-                className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                 placeholder="ejacc@gmail.com"
               />
             </div>
           </div>
 
           <div className="flex gap-2 flex-col">
-            <label>Representative First Name</label>
+            <label className=" text-[12px] md:text-[16px]">
+              Representative First Name
+            </label>
             <input
               name="representative_first_name"
               value={formData.representative_first_name}
@@ -175,7 +194,7 @@ const Registration = () => {
           </div>
 
           <div className="flex justify-end gap-2 flex-col">
-            <label>Last Name</label>
+            <label className=" text-[12px] md:text-[16px]">Last Name</label>
             <input
               name="representative_last_name"
               value={formData.representative_last_name}
@@ -187,7 +206,9 @@ const Registration = () => {
           </div>
 
           <div className="flex gap-2 flex-col col-span-2">
-            <label>Official Representative Name</label>
+            <label className=" text-[12px] md:text-[16px]">
+              Official Representative Name
+            </label>
             <input
               name="official_representative_name"
               value={formData.official_representative_name}
