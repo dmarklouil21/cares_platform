@@ -29,6 +29,7 @@ const PatientMasterListAdd = () => {
     occupation: "",
     source_of_income: "",
     monthly_income: "",
+    registered_by: "rafi",
     emergency_contacts: [
       {
         name: "",

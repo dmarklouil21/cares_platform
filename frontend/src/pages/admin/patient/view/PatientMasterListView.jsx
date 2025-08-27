@@ -5,6 +5,8 @@ const PatientMasterListView = () => {
   const location = useLocation();
   const patient = location.state?.patient || {};
 
+  console.log("Patient data:", patient); // Debugging line
+
   return (
     <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
       <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">

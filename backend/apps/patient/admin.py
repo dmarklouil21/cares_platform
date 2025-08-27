@@ -48,6 +48,7 @@ class PatientAdmin(admin.ModelAdmin):
     ("System Metadata", {
       "fields": (
         "created_at",
+        "registered_by",
       ),
       "classes": ("collapse",),
     }),

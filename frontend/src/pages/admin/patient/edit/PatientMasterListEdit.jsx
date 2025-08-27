@@ -625,7 +625,7 @@ const PatientMasterListEdit = () => {
                 <input
                   type="date"
                   name="cancer_diagnosis_date_diagnosed"
-                  value={form.diagnosis[0].date_diagnosed}
+                  value={form.diagnosis[0]?.date_diagnosed}
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                 />
@@ -635,7 +635,7 @@ const PatientMasterListEdit = () => {
                 <input
                   type="text"
                   name="cancer_diagnosis_diagnosis"
-                  value={form.diagnosis[0].diagnosis}
+                  value={form.diagnosis[0]?.diagnosis}
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                 />
@@ -646,7 +646,7 @@ const PatientMasterListEdit = () => {
                 </label>
                 <select
                   name="cancer_diagnosis_cancer_stage"
-                  value={form.diagnosis[0].cancer_stage}
+                  value={form.diagnosis[0]?.cancer_stage}
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                 >
@@ -664,7 +664,7 @@ const PatientMasterListEdit = () => {
                 <input
                   type="text"
                   name="cancer_diagnosis_cancer_site"
-                  value={form.diagnosis[0].cancer_site}
+                  value={form.diagnosis[0]?.cancer_site}
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                 />

@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+  path('pre-enrollment/', views.PatientCreateView.as_view(), name='patient_create'),
   path('patient/details/', views.PatientDetailView.as_view(), name='patient_detail'),
   path('cancer-awareness-activity/list/', views.CancerAwarenessActivityListView.as_view(), name='list_cancer_awareness_activity'),
   # path('individual-screening/submit-request/', views.IndividualScreeningCreateView.as_view(), name='individual_screening_request'),

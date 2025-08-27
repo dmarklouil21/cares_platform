@@ -143,7 +143,9 @@ const PreEnrollment = () => {
       if (action === "reject") {
         await api.delete(url);
       } else {
+        const patient = tableData.find((p) => p.patient_id === patient_id);
         await api.patch(url, {
+          ...patient,
           status: action === "validate" ? "validated" : "rejected",
         });
       }
