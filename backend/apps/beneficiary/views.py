@@ -16,7 +16,7 @@ from apps.cancer_screening.models import ScreeningProcedure, ScreeningAttachment
 
 from apps.cancer_screening.models import IndividualScreening, PreScreeningForm
 from apps.patient.models import Patient, CancerDiagnosis
-from apps.patient.serializers import PatientSerializer
+from apps.beneficiary.serializers import PatientSerializer
 from apps.partners.serializers import CancerAwarenessActivitySerializer
 from apps.cancer_screening.serializers import (
   PreScreeningFormSerializer, 
@@ -28,6 +28,10 @@ from apps.cancer_screening.serializers import (
 import logging
 
 logger = logging.getLogger(__name__)
+
+class PatientCreateView(generics.CreateAPIView):
+  queryset = Patient.objects.all()
+  serializer_class = PatientSerializer
 
 class PatientDetailView(generics.RetrieveAPIView):
   serializer_class = PatientSerializer

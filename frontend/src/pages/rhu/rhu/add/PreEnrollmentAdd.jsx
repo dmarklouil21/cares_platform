@@ -1,60 +1,86 @@
-// Modal component for confirmation
-function ConfirmationModal({ open, text, onConfirm, onCancel }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
-        <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
-        <div className="flex gap-4">
-          <button
-            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-          <button
-            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
+import api from "src/api/axiosInstance";
+
+import ConfirmationModal from "src/components/ConfirmationModal";
+import NotificationModal from "src/components/NotificationModal";
+import LoadingModal from "src/components/LoadingModal";
 
 const PatientMasterListAdd = () => {
   const [form, setForm] = useState({
     first_name: "",
-    last_name: "",
     middle_name: "",
+    last_name: "",
+    date_of_birth: "",
     suffix: "",
-    birthdate: "",
     sex: "",
+    civil_status: "",
+    number_of_children: 0,
+    address: "",
+    city: "",
     barangay: "",
-    lgu: "",
-    date_diagnosed: "",
-    diagnosis: "",
-    cancer_stage: "",
-    cancer_site: "",
+    mobile_number: "",
+    email: "",
+    status: "validated",
+    source_of_information: "",
+    other_rafi_programs_availed: "",
+    highest_educational_attainment: "",
+    occupation: "",
+    source_of_income: "",
+    monthly_income: "",
+    registered_by: "rhu",
+    emergency_contacts: [
+      {
+        name: "",
+        address: "",
+        relationship_to_patient: "",
+        email: "",
+        landline_number: "",
+        mobile_number: "",
+      },
+      {
+        name: "",
+        address: "",
+        relationship_to_patient: "",
+        email: "",
+        landline_number: "",
+        mobile_number: "",
+      },
+    ],
+    diagnosis: [{
+      diagnosis: "",
+      date_diagnosed: "",
+      cancer_stage: "",
+      cancer_site: "",
+    }],
+    historical_updates: [],
   });
 
   const [historicalUpdates, setHistoricalUpdates] = useState([
     {
-      update_date: "",
-      notes: "",
+      date: "",
+      note: "",
     },
   ]);
 
-  const [notification, setNotification] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("");
+  // const [notification, setNotification] = useState("");
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
+  // Notification Modal
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({
+    type: "success",
+    title: "Success!",
+    message: "The form has been submitted successfully.",
+  });
+  // Loading Modal 
+  const [loading, setLoading] = useState(false);
+  // Confirmation Modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("Confirm Status Change?");
+  const [modalAction, setModalAction] = useState(null); 
 
   const validate = () => {
     const newErrors = {};
@@ -65,28 +91,60 @@ const PatientMasterListAdd = () => {
     if (!form.sex) newErrors.sex = "Sex is required.";
     if (!form.barangay) newErrors.barangay = "Barangay is required.";
     if (!form.lgu) newErrors.lgu = "LGU is required.";
-    if (!form.date_diagnosed)
-      newErrors.date_diagnosed = "Date diagnosed is required.";
-    if (!form.diagnosis) newErrors.diagnosis = "Diagnosis is required.";
-    if (!form.cancer_stage)
-      newErrors.cancer_stage = "Cancer stage is required.";
-    if (!form.cancer_site) newErrors.cancer_site = "Cancer site is required.";
 
     // Validate historical updates
-    historicalUpdates.forEach((update, index) => {
-      if (!update.update_date)
-        newErrors[`update_date_${index}`] = "Update date is required.";
-      if (!update.notes.trim())
-        newErrors[`notes_${index}`] = "Notes are required.";
-    });
+    // historicalUpdates.forEach((update, index) => {
+    //   if (!update.update_date)
+    //     newErrors[`update_date_${index}`] = "Update date is required.";
+    //   if (!update.notes.trim())
+    //     newErrors[`notes_${index}`] = "Notes are required.";
+    // });
 
     return newErrors;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: undefined }));
+    if (name === "city") {
+      setForm((prev) => ({
+        ...prev,
+        [name]: value,
+        barangay: "", // Reset barangay when city changes
+      }));
+    } else if (name.startsWith("emergencyContact")) {
+      const [contactKey, field] = name.split(".");
+      const index = contactKey === "emergencyContact1" ? 0 : 1;
+
+      setForm((prev) => {
+        const updatedContacts = [...prev.emergency_contacts];
+        updatedContacts[index] = {
+          ...updatedContacts[index],
+          [field]: value,
+        };
+        return {
+          ...prev,
+          emergency_contacts: updatedContacts,
+        };
+      });
+    } else if (name.startsWith("cancer_diagnosis")) {
+      const field = name.split("_").slice(2).join("_"); // Extract field name after "cancer_diagnosis"
+      setForm((prev) => {
+        const updatedDiagnosis = [...prev.diagnosis];
+        updatedDiagnosis[0] = {
+          ...updatedDiagnosis[0],
+          [field]: value,
+        };
+        return {
+          ...prev,
+          diagnosis: updatedDiagnosis,
+        };
+      });
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        [name]: name === "children" ? parseInt(value) || 0 : value,
+      }));
+    }
   };
 
   const handleHistoricalUpdateChange = (index, e) => {
@@ -104,8 +162,8 @@ const PatientMasterListAdd = () => {
     setHistoricalUpdates([
       ...historicalUpdates,
       {
-        update_date: "",
-        notes: "",
+        date: "",
+        note: "",
       },
     ]);
   };
@@ -120,30 +178,56 @@ const PatientMasterListAdd = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
+    // if (Object.keys(validationErrors).length > 0) {
+    //   setErrors(validationErrors);
+    //   return;
+    // }
+    setForm(prev => ({
+      ...prev,
+      historical_updates: historicalUpdates,
+    }));
+
     setModalText("Are you sure you want to add this data?");
+    setModalAction({ type: "submit" }); 
     setModalOpen(true);
   };
 
   const handleModalConfirm = async () => {
-    setModalOpen(false);
-    const completeData = {
-      ...form,
-      historical_updates: historicalUpdates,
-    };
-    console.log("Complete form data to be submitted:", completeData);
-    setNotification("Data added successfully!");
-    setTimeout(() => {
-      setNotification("");
-      navigate("/Rhu/rhu/pre-enrollment");
-    }, 2000);
-  };
+    if (modalAction?.type === "submit") {
+      try {
+        console.log("Form Data:", form);
+        setLoading(true);
+        const response = await api.post("/patient/pre-enrollment/", form);
+        setModalInfo({
+          type: "success",
+          title: "Success!",
+          message: "Patient added successfully.",
+        });
+        setShowModal(true);
+        navigate("/Rhu/rhu/pre-enrollment/");
+      } catch (error) {
+        let errorMessage = "Something went wrong while submitting the form."; 
 
-  const handleModalCancel = () => {
+        if (error.response && error.response.data) {
+          // DRF ValidationError returns an object with arrays of messages
+          if (error.response.data.non_field_errors) {
+            errorMessage = error.response.data.non_field_errors[0];
+          } 
+        }
+        setModalInfo({
+          type: "error",
+          title: "Submission Failed",
+          message: errorMessage,
+        });
+        setShowModal(true);
+        console.error("Error submitting form:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
     setModalOpen(false);
+    setModalAction(null);
     setModalText("");
   };
 
@@ -153,10 +237,22 @@ const PatientMasterListAdd = () => {
         open={modalOpen}
         text={modalText}
         onConfirm={handleModalConfirm}
-        onCancel={handleModalCancel}
+        onCancel={() => {
+          setModalOpen(false);
+          setModalAction(null);
+          setModalText("");
+        }}
       />
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
+      />
+      <LoadingModal open={loading} text="Submitting your data..." />
 
-      {notification && (
+      {/* {notification && (
         <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
           <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
             <img
@@ -167,15 +263,15 @@ const PatientMasterListAdd = () => {
             <span>{notification}</span>
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
-        <h1 className="text-md font-bold">Add record</h1>
+        <h1 className="text-md font-bold">Add Patient</h1>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="h-full w-full p-5 flex flex-col justify-between overflow-auto"
+        className="h-full w-full p-5 flex flex-col justify-between overflow-auto gap-5"
       >
         <div className="space-y-4">
           {/* Basic Information Section */}
@@ -219,17 +315,38 @@ const PatientMasterListAdd = () => {
                   <label className="block text-gray-700 mb-1">Birthdate:</label>
                   <input
                     type="date"
-                    name="birthdate"
-                    value={form.birthdate}
+                    name="date_of_birth"
+                    value={form.date_of_birth}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                   />
-                  {errors.birthdate && (
+                  {errors.date_of_birth && (
                     <span className="text-red-500 text-xs">
-                      {errors.birthdate}
+                      {errors.date_of_birth}
                     </span>
                   )}
                 </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Civil Status:</label>
+                  <select
+                    name="civil_status"
+                    value={form.civil_status}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  >
+                    <option value="">Select Civil Status</option>
+                    <option value="single">Single</option>
+                    <option value="co-habitation">Co-Habitation</option>
+                    <option value="separated">Separated</option>
+                    <option value="widower">Widower</option>
+                    <option value="married">Married</option>
+                    <option value="annulled">Annulled</option>
+                  </select>
+                  {errors.civil_status && (
+                    <span className="text-red-500 text-xs">{errors.civil_status}</span>
+                  )}
+                </div>
+                
               </div>
 
               {/* Second Column */}
@@ -260,7 +377,19 @@ const PatientMasterListAdd = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-1">Sex:</label>
+                  <label className="block text-gray-700 mb-1">
+                    Number of Children:
+                  </label>
+                  <input
+                    type="text"
+                    name="number_of_children"
+                    value={form.number_of_children}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">sex:</label>
                   <select
                     name="sex"
                     value={form.sex}
@@ -268,8 +397,8 @@ const PatientMasterListAdd = () => {
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                   >
                     <option value="">Select Sex</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
                   </select>
                   {errors.sex && (
                     <span className="text-red-500 text-xs">{errors.sex}</span>
@@ -279,14 +408,40 @@ const PatientMasterListAdd = () => {
             </div>
           </div>
 
-          {/* Address Information Section */}
+          {/* Contact and Address Information Section */}
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
-              <h1 className="text-md font-bold">Address Information</h1>
+              <h1 className="text-md font-bold">Contact and Address Information</h1>
             </div>
             <div className="flex flex-row gap-8 p-4">
-              <div className="flex flex-col gap-3 w-full">
-                <div className="w-1/2">
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Permanent Address:</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={form.address}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                  {errors.address && (
+                    <span className="text-red-500 text-xs">{errors.address}</span>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">City/Municipality:</label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={form.city}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                  {errors.city && (
+                    <span className="text-red-500 text-xs">{errors.city}</span>
+                  )}
+                </div>
+                <div>
                   <label className="block text-gray-700 mb-1">Barangay:</label>
                   <input
                     type="text"
@@ -301,18 +456,255 @@ const PatientMasterListAdd = () => {
                     </span>
                   )}
                 </div>
-                <div className="w-1/2">
-                  <label className="block text-gray-700 mb-1">LGU:</label>
+              </div>
+
+              {/* Second Column */}
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Email:</label>
                   <input
                     type="text"
-                    name="lgu"
-                    value={form.lgu}
+                    name="email"
+                    value={form.email}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                   />
-                  {errors.lgu && (
-                    <span className="text-red-500 text-xs">{errors.lgu}</span>
+                  {errors.email && (
+                    <span className="text-red-500 text-xs">
+                      {errors.email}
+                    </span>
                   )}
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Mobile Number:</label>
+                  <input
+                    type="text"
+                    name="mobile_number"
+                    value={form.mobile_number}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Information Section */}
+          <div className="border border-black/15 p-3 bg-white rounded-sm">
+            <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
+              <h1 className="text-md font-bold">Additional Info</h1>
+            </div>
+            <div className="flex flex-row gap-8 p-4">
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Source of Information (Where did you here about RAFI-EJACC?):</label>
+                  <input
+                    type="text"
+                    name="source_of_information"
+                    value={form.source_of_information}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Other RAFI program you availed:</label>
+                  <input
+                    type="text"
+                    name="other_rafi_programs_availed"
+                    value={form.other_rafi_programs_availed}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Socioeconomic Info Section */}
+          <div className="border border-black/15 p-3 bg-white rounded-sm">
+            <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
+              <h1 className="text-md font-bold">Socioeconomic Info</h1>
+            </div>
+            <div className="flex flex-row gap-8 p-4">
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Highest Educational Attainment:</label>
+                  <input
+                    type="text"
+                    name="highest_educational_attainment"
+                    value={form.highest_educational_attainment}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Source of Income:</label>
+                  <input
+                    type="text"
+                    name="source_of_income"
+                    value={form.source_of_income}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Second Column */}
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Occupation:</label>
+                  <input
+                    type="text"
+                    name="occupation"
+                    value={form.occupation}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Income:</label>
+                  <input
+                    type="text"
+                    name="monthly_income"
+                    value={form.monthly_income}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Emergency Contacts Section */}
+          <div className="border border-black/15 p-3 bg-white rounded-sm">
+            <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
+              <h1 className="text-md font-bold">Emergency Contacts</h1>
+            </div>
+            <div className="flex flex-row gap-8 p-4">
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Name:</label>
+                  <input
+                    type="text"
+                    name="emergencyContact1.name"
+                    value={form.emergency_contacts[0].name}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Relationship to Patient:</label>
+                  <input
+                    type="text"
+                    name="emergencyContact1.relationship_to_patient"
+                    value={form.emergency_contacts[0].relationship_to_patient}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Landline Number:</label>
+                  <input
+                    type="text"
+                    name="emergencyContact1.landline_number"
+                    value={form.emergency_contacts[0].landline_number}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Address:</label>
+                  <input
+                    type="text"
+                    name="emergencyContact1.address"
+                    value={form.emergency_contacts[0].address}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Email Address:</label>
+                  <input
+                    type="text"
+                    name="emergencyContact1.email"
+                    value={form.emergency_contacts[0].email}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Mobile Number::</label>
+                  <input
+                    type="text"
+                    name="emergencyContact1.mobile_number"
+                    value={form.emergency_contacts[0].mobile_number}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Second Column */}
+              <div className="flex flex-col gap-3 w-1/2">
+                <div>
+                  <label className="block text-gray-700 mb-1">Name:</label>
+                  <input
+                    type="text"
+                    name="emergencyContact2.name"
+                    value={form.emergency_contacts[1].name}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Relationship to Patient:</label>
+                  <input
+                    type="text"
+                    name="emergencyContact2.relationship_to_patient"
+                    value={form.emergency_contacts[1].relationship_to_patient}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Landline Number:</label>
+                  <input
+                    type="text"
+                    name="emergencyContact2.landline_number"
+                    value={form.emergency_contacts[1].landline_number}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Address:</label>
+                  <input
+                    type="text"
+                    name="emergencyContact2.address"
+                    value={form.emergency_contacts[1].address}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Email Address:</label>
+                  <input
+                    type="text"
+                    name="emergencyContact2.email"
+                    value={form.emergency_contacts[1].email}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Mobile Number::</label>
+                  <input
+                    type="text"
+                    name="emergencyContact2.mobile_number"
+                    value={form.emergency_contacts[1].mobile_number}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
+                  />
                 </div>
               </div>
             </div>
@@ -331,8 +723,8 @@ const PatientMasterListAdd = () => {
                   </label>
                   <input
                     type="date"
-                    name="date_diagnosed"
-                    value={form.date_diagnosed}
+                    name="cancer_diagnosis_date_diagnosed"
+                    value={form.diagnosis.date_diagnosed}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                   />
@@ -346,8 +738,8 @@ const PatientMasterListAdd = () => {
                   <label className="block text-gray-700 mb-1">Diagnosis:</label>
                   <input
                     type="text"
-                    name="diagnosis"
-                    value={form.diagnosis}
+                    name="cancer_diagnosis_diagnosis"
+                    value={form.diagnosis.diagnosis}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                   />
@@ -362,8 +754,8 @@ const PatientMasterListAdd = () => {
                     Cancer Stage:
                   </label>
                   <select
-                    name="cancer_stage"
-                    value={form.cancer_stage}
+                    name="cancer_diagnosis_cancer_stage"
+                    value={form.diagnosis.cancer_stage}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                   >
@@ -385,8 +777,8 @@ const PatientMasterListAdd = () => {
                   </label>
                   <input
                     type="text"
-                    name="cancer_site"
-                    value={form.cancer_site}
+                    name="cancer_diagnosis_cancer_site"
+                    value={form.diagnosis.cancer_site}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                   />
@@ -427,8 +819,8 @@ const PatientMasterListAdd = () => {
                       </label>
                       <input
                         type="date"
-                        name="update_date"
-                        value={update.update_date}
+                        name="date"
+                        value={update.date}
                         onChange={(e) => handleHistoricalUpdateChange(index, e)}
                         className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                       />
@@ -441,8 +833,8 @@ const PatientMasterListAdd = () => {
                     <div className="w-1/2">
                       <label className="block text-gray-700 mb-1">Notes:</label>
                       <textarea
-                        name="notes"
-                        value={update.notes}
+                        name="note"
+                        value={update.note}
                         onChange={(e) => handleHistoricalUpdateChange(index, e)}
                         className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                         rows="3"

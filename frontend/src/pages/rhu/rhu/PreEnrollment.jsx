@@ -1,35 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 
-// ──────────────────────────────────────────────────────────────
-// Simple Confirmation Modal
-function ConfirmationModal({ open, text, onConfirm, onCancel }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
-        <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
-        <div className="flex gap-4">
-          <button
-            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-          <button
-            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+import api from "src/api/axiosInstance";
 
-// ──────────────────────────────────────────────────────────────
-// Simple Top Notification (toast-like)
+import ConfirmationModal from "src/components/ConfirmationModal";
+import NotificationModal from "src/components/NotificationModal";
+import LoadingModal from "src/components/LoadingModal";
+
+// Notification component for showing popup messages
 function Notification({ message, onClose }) {
   if (!message) return null;
   return (
@@ -46,91 +24,94 @@ function Notification({ message, onClose }) {
   );
 }
 
-// ──────────────────────────────────────────────────────────────
-const RhuPreEnrollment = () => {
-  const navigate = useNavigate();
-
-  // Table + filters
-  const [tableData, setTableData] = useState({ results: [] });
-  const [statusFilter, setStatusFilter] = useState("pending");
-  const [searchQuery, setSearchQuery] = useState("");
+const PatientMasterList = () => {
+  const [tableData, setTableData] = useState([]);
+  // const [statusFilter, setStatusFilter] = useState("pending");
+  // const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  // const [recordsPerPage, setRecordsPerPage] = useState(10);
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const [notification, setNotification] = useState("");
+
+  const [patients, setPatients] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [notification, setNotification] = useState("");
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const navigate = useNavigate();
 
-  // Notifications
-  const [notification, setNotification] = useState("");
-
-  // Modal state
+  // Notification Modal
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({
+    type: "success",
+    title: "Success!",
+    message: "The form has been submitted successfully.",
+  });
+  // Loading Modal 
+  const [loading, setLoading] = useState(false);
+  // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
-  const [modalAction, setModalAction] = useState(null); // { preenrollment_id, action }
+  const [modalAction, setModalAction] = useState(null); 
 
-  // ✅ Sample data only — now using preenrollment_id
-  const samplePatients = [
-    {
-      preenrollment_id: "PE-001",
-      full_name: "Juan Dela Cruz Jr.",
-      date_created: "2022-01-01",
-      city: "Manila",
-      status: "pending",
-    },
-    {
-      preenrollment_id: "PE-002",
-      full_name: "Maria Santos",
-      date_created: "2022-01-01",
-      city: "Quezon City",
-      status: "pending",
-    },
-    {
-      preenrollment_id: "PE-003",
-      full_name: "Pedro Gonzales Sr.",
-      date_created: "2022-01-01",
-      city: "Makati",
-      status: "pending",
-    },
-    {
-      preenrollment_id: "PE-004",
-      full_name: "Ana Ramos",
-      date_created: "2022-01-01",
-      city: "Pasig",
-      status: "pending",
-    },
-  ];
+  const fetchData = async () => {
+    try {
+      const response = await api.get("/patient/list/?status=validated");
+      setPatients(response.data);
+    } catch (error) {
+      console.error("Error fetching patient data:", error);
+    }
+  };
 
-  // Load sample data
   useEffect(() => {
-    setTableData({ results: samplePatients });
+    fetchData();
+    // eslint-disable-next-line
   }, []);
 
-  useEffect(() => {
+  /* useEffect(() => {
     setCurrentPage(1);
-  }, [tableData, recordsPerPage]);
+  }, [tableData]); */
 
-  // ──────────────────────────────────────────────────────────────
-  // Filters + pagination
-  const filteredResults =
-    tableData.results?.filter((record) => {
-      const matchesSearch =
-        !searchQuery ||
-        record.preenrollment_id?.toString().includes(searchQuery) ||
-        record.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredResults = patients.filter((patient) => {
+    const query = searchQuery.trim().toLowerCase();
+    const fullName = `${patient.first_name || ""} ${patient.last_name || ""} ${
+      patient.middle_name || ""
+    }`
+      .trim()
+      .toLowerCase();
+    const matchesSearch =
+      !query ||
+      patient.patient_id?.toString().toLowerCase().includes(query) ||
+      fullName.includes(query) ||
+      (patient.lgu || "").toLowerCase().includes(query);
+    /* const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && patient.is_active) ||
+      (statusFilter === "inactive" && !patient.is_active); */
+    return matchesSearch /* && matchesStatus; */
+  });
 
-      const matchesStatus =
-        statusFilter === "all" || record.status === statusFilter;
+  const handleViewClick = (id) => {
+    const patient = patients.find((p) => p.patient_id === id);
+    if (patient) {
+      navigate(`/Admin/patient/view/AdminPatientMasterListView`, {
+        state: { patient },
+      });
+    }
+  };
 
-      const formattedDate = dateFilter
-        ? new Date(dateFilter).toISOString().split("T")[0]
-        : null;
-      const matchesDate =
-        !formattedDate || record.date_created === formattedDate;
-
-      return matchesSearch && matchesStatus && matchesDate;
-    }) || [];
+  const handleEditClick = (id) => {
+    const patient = patients.find((p) => p.patient_id === id);
+    if (patient) {
+      navigate(`/Admin/patient/edit/AdminPatientMasterListEdit`, {
+        state: { patient },
+      });
+    }
+  };
 
   const totalRecords = filteredResults.length;
   const totalPages = Math.ceil(totalRecords / recordsPerPage);
-
   const paginatedData = filteredResults.slice(
     (currentPage - 1) * recordsPerPage,
     currentPage * recordsPerPage
@@ -141,95 +122,77 @@ const RhuPreEnrollment = () => {
     setCurrentPage(1);
   };
 
-  const handlePrev = () => setCurrentPage((p) => Math.max(p - 1, 1));
-  const handleNext = () => setCurrentPage((p) => Math.min(p + 1, totalPages));
-
-  // ──────────────────────────────────────────────────────────────
-  // Helpers
-  const getEnrollById = (id) =>
-    tableData?.results?.find((p) => p.preenrollment_id === id);
-
-  // VIEW: /Rhu/rhu/view/RhuPreEnrollmentView/:beneficiary_id
-  // (Route param name stays as beneficiary_id in your router; we pass the preenrollment_id value)
-  const handleViewClick = (preenrollment_id) => {
-    if (!preenrollment_id) {
-      console.warn("handleViewClick: missing preenrollment_id");
-      return;
-    }
-    const patient = getEnrollById(preenrollment_id);
-    navigate(
-      `/Rhu/rhu/view/RhuPreEnrollmentView/${encodeURIComponent(
-        preenrollment_id
-      )}`,
-      patient ? { state: { patient } } : undefined
-    );
+  const handlePrev = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
 
-  // EDIT: /Rhu/rhu/edit/RhuPreEnrollmentEdit/:beneficiary_id
-  const handleEditClick = (preenrollment_id) => {
-    if (!preenrollment_id) {
-      console.warn("handleEditClick: missing preenrollment_id");
-      return;
-    }
-    const patient = getEnrollById(preenrollment_id);
-    navigate(
-      `/Rhu/rhu/edit/RhuPreEnrollmentEdit/${encodeURIComponent(
-        preenrollment_id
-      )}`,
-      patient ? { state: { patient } } : undefined
-    );
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
-  // DELETE: open confirm modal only
-  const handleActionClick = (preenrollment_id, action) => {
+  const handleModalConfirm = async () => {
+    if (modalAction && modalAction.action === "delete" && modalAction.id) {
+      try {
+        setLoading(true);
+        const response = await api.delete(`/patient/delete/${modalAction.id}/`);
+        setModalInfo({
+          type: "success",
+          title: "Success!",
+          message: "Deleted Successfully.",
+        });
+        setShowModal(true);
+      } catch (error) {
+        // setNotification("Failed to delete patient");
+        setModalInfo({
+          type: "error",
+          title: "Failed to delete this object",
+          message: "Something went wrong while submitting the request.",
+        });
+        setShowModal(true);
+        console.error(error);
+      } finally {
+        fetchData();
+        setLoading(false);
+      }
+      // setTimeout(() => setNotification(""), 3500);
+    }
+
+    setModalOpen(false);
+    setModalAction(null);
+    setModalText("");
+  };
+
+  const handleActionClick = (id, action) => {
     if (action === "delete") {
       setModalText("Are you sure you want to delete this patient?");
-      setModalAction({ preenrollment_id, action });
+      setModalAction({ id, action });
       setModalOpen(true);
     }
   };
 
-  // Confirm: just show a notification (no actual data mutation)
-  const handleModalConfirm = () => {
-    if (modalAction?.action === "delete") {
-      const p = getEnrollById(modalAction.preenrollment_id);
-      setNotification(
-        `Deleted ${modalAction.preenrollment_id}${
-          p?.full_name ? ` - ${p.full_name}` : ""
-        } (sample only)`
-      );
-      setTimeout(() => setNotification(""), 3000);
-    }
-    setModalOpen(false);
-    setModalAction(null);
-    setModalText("");
-  };
-
-  const handleModalCancel = () => {
-    setModalOpen(false);
-    setModalAction(null);
-    setModalText("");
-  };
-
-  // ──────────────────────────────────────────────────────────────
   return (
     <>
-      {/* Modal + Notification */}
       <ConfirmationModal
         open={modalOpen}
         text={modalText}
         onConfirm={handleModalConfirm}
-        onCancel={handleModalCancel}
+        onCancel={() => {
+          setModalOpen(false);
+          setModalAction(null);
+          setModalText("");
+        }}
       />
-      <Notification
-        message={notification}
-        onClose={() => setNotification("")}
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
       />
-
-      {/* Layout */}
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Admin</h1>
+      <LoadingModal open={loading} text="Submitting changes..." />
+      <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
+        <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
+          <h1 className="text-md font-bold h-full flex items-center ">Admin</h1>
           <Link
             to="/Rhu/rhu/add/RhuPreEnrollmentAdd"
             className="bg-yellow gap-3 flex justify-center items-center px-5 py-1 rounded-sm"
@@ -239,25 +202,21 @@ const RhuPreEnrollment = () => {
               alt="Add User Icon"
               className="h-[18px]"
             />
-            <p className="text-white text-sm">Add</p>
+            <p className="text-white text-sm">Add Patient</p>
           </Link>
         </div>
-
-        <div className="w-full flex-1 py-5 flex flex-col justify-around px-5">
+        <div className=" w-full flex-1 py-5 flex flex-col justify-around px-5">
           <h2 className="text-xl font-bold text-left w-full pl-5">
-            Pre-Enrollment
+            Patient List
           </h2>
-
-          <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-5 gap-3">
+          <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-3">
             <p className="text-md font-semibold text-yellow">
-              Pre-Enrollment Requests
+              Manage all RHU patients
             </p>
-
-            {/* Filters */}
             <div className="flex justify-between flex-wrap gap-3">
               <input
                 type="text"
-                placeholder="Search by Pre-Enrollment ID ..."
+                placeholder="Search by patient ID, name, or LGU..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
@@ -269,93 +228,113 @@ const RhuPreEnrollment = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="all">All</option>
-                <option value="pending">Pending</option>
-                <option value="validated">Validated</option>
-                <option value="rejected">Rejected</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
               </select>
 
               <input
                 type="date"
                 className="border border-gray-200 py-2 px-5 rounded-md"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
               />
-
-              <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
+              <button className="px-7 rounded-md text-sm text-white bg-lightblue">
                 Filter
               </button>
             </div>
-
-            {/* Table */}
-            <div className="bg-white shadow">
-              <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
+            <div className="bg-white shadow overflow-auto">
+              <table className="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr className="bg-lightblue">
-                    <th className="w-[15%] text-center text-sm py-3">
-                      Pre-Enrollment ID
+                    <th className="w-[13%] text-center text-sm py-3 !bg-lightblue">
+                      Patient ID
                     </th>
-                    <th className="w-[20%] text-center text-sm py-3">Name</th>
+                    <th className="w-[15%] text-center text-sm py-3">First Name</th>
                     <th className="w-[15%] text-center text-sm py-3">
-                      Submission Date
+                      Last Name
                     </th>
-                    <th className="w-[15%] text-center text-sm py-3">LGU</th>
-                    <th className="w-[10%] text-center text-sm py-3">Status</th>
-                    <th className="w-[25%] text-center text-sm py-3">
+                    <th className="w-[15%] text-center text-sm py-3">
+                      Middle Name
+                    </th>
+                    {/* <th className="w-[12%] text-center text-sm py-3">
+                      Birthdate
+                    </th> */}
+                    <th className="w-[13%] text-center text-sm py-3">LGU</th>
+                    <th className="w-[21%] text-center text-sm py-3 ">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody>
-                  {paginatedData.map((item) => (
-                    <tr key={item.preenrollment_id}>
-                      <td className="text-center py-3">
-                        {item.preenrollment_id}
-                      </td>
-                      <td className="text-center py-3">{item.full_name}</td>
-                      <td className="text-center py-3">
-                        {new Date(item.date_created).toLocaleDateString()}
-                      </td>
-                      <td className="text-center py-3">{item.city}</td>
-                      <td className="text-center py-3">{item.status}</td>
-                      <td className="text-center py-3 flex gap-2 justify-center">
-                        <button
-                          onClick={() => handleViewClick(item.preenrollment_id)}
-                          className="text-white py-1 px-2 rounded-md shadow bg-primary"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleEditClick(item.preenrollment_id)}
-                          className="text-white py-1 px-2 rounded-md shadow bg-yellow-500"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleActionClick(item.preenrollment_id, "delete")
-                          }
-                          className="text-white py-1 px-2 rounded-md shadow bg-red-500"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {paginatedData.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan="6"
-                        className="text-center py-4 text-gray-500"
-                      >
-                        No records found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
               </table>
+              <div className="max-h-[200px] min-h-[200px] overflow-auto">
+                <table className="min-w-full divide-y divide-gray-200 border-spacing-0">
+                  <colgroup>
+                    <col className="w-[13%]" />
+                    <col className="w-[15%]" />
+                    <col className="w-[15%]" />
+                    <col className="w-[15%]" />
+                    <col className="w-[12%]" />
+                    {/* <col className="w-[13%]" /> */}
+                    <col className="w-[21%]" />
+                  </colgroup>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paginatedData.map((patient) => (
+                      <tr key={patient.patient_id}>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          {patient.patient_id}
+                        </td>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          {patient.first_name}
+                        </td>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          {patient.last_name}
+                        </td>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          {patient.middle_name}
+                        </td>
+                        {/* <td className="text-center text-sm py-4 text-gray-800">
+                          {patient.date_of_birth}
+                        </td> */}
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          {patient.city}
+                        </td>
+                        <td className="text-center text-sm py-4 flex gap-2 justify-center">
+                          <button
+                            onClick={() => handleViewClick(patient.patient_id)}
+                            className="text-white py-1 px-2 rounded-md shadow bg-primary"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleEditClick(patient.patient_id)}
+                            className="text-white py-1 px-2 rounded-md shadow bg-yellow-500"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleActionClick(patient.patient_id, "delete")
+                            }
+                            className="text-white py-1 px-2 rounded-md shadow bg-red-500"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {paginatedData.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan="8"
+                          className="text-center py-4 text-gray-500"
+                        >
+                          No records found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-
-            {/* Pagination */}
+            {/* Footer Pagination */}
             <div className="flex justify-end items-center py-2 gap-5">
               <div className="flex items-center gap-2">
                 <label
@@ -375,7 +354,6 @@ const RhuPreEnrollment = () => {
                   <option>50</option>
                 </select>
               </div>
-
               <div className="flex gap-3 items-center">
                 <span className="text-sm text-gray-700">
                   {Math.min(
@@ -408,4 +386,4 @@ const RhuPreEnrollment = () => {
   );
 };
 
-export default RhuPreEnrollment;
+export default PatientMasterList;

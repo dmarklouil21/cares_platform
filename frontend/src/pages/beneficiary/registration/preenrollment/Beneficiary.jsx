@@ -62,6 +62,7 @@ export default function PatinetProfileForm() {
     occupation: "",
     source_of_income: "",
     monthly_income: "",
+    registered_by: "self",
     emergency_contacts: [
       {
         name: "",
@@ -133,10 +134,7 @@ export default function PatinetProfileForm() {
     if (modalAction?.type === "submit") {
       try {
         setLoading(true);
-        const response = await api.post(
-          "/beneficiary/pre-enrollment/",
-          formData
-        );
+        const response = await api.post("/beneficiary/pre-enrollment/", formData);
         setModalInfo({
           type: "success",
           title: "Success!",

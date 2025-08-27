@@ -9,6 +9,7 @@ const RhuSidebar = () => {
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isAwarenessOpen, setIsAwarenessOpen] = useState(false);
   const [isRhuOpen, setIsRhuOpen] = useState(false);
+  const [isPatientOpen, setIsPatientOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Home");
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -26,17 +27,23 @@ const RhuSidebar = () => {
       arrow: "",
     },
     {
+      name: "Patient",
+      icon: "/src/assets/images/navigation/rhu/rhu.svg",
+      path: "",
+      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+    },
+    {
       name: "Services",
       icon: "/src/assets/images/navigation/patient/services.svg",
       path: "",
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
-    {
-      name: "Rhu",
-      icon: "/src/assets/images/navigation/rhu/rhu.svg",
-      path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg",
-    },
+    // {
+    //   name: "Rhu",
+    //   icon: "/src/assets/images/navigation/rhu/rhu.svg",
+    //   path: "",
+    //   arrow: "/src/assets/images/navigation/admin/arrow.svg",
+    // },
     /* {
       name: "Application Status",
       icon: "/src/assets/images/navigation/admin/patient.svg",
@@ -71,6 +78,13 @@ const RhuSidebar = () => {
     },
   ];
 
+  const patientSubNav = [
+    {
+      name: "Pre Enrollment",
+      path: "/Rhu/rhu/pre-enrollment",
+    },
+  ];
+
   const debounce = (func, delay) => {
     let timeoutId;
     return (...args) => {
@@ -93,15 +107,15 @@ const RhuSidebar = () => {
       setActiveNav("Services");
       setIsServicesOpen(true);
       setIsAwarenessOpen(false);
-      setIsRhuOpen(false);
+      setIsPatientOpen(false);
       return;
     }
 
     // rhu active check
-    const activeRhu = rhuSubNav.find((item) => path.startsWith(item.path));
-    if (activeRhu) {
-      setActiveNav("Rhu");
-      setIsRhuOpen(true);
+    const activePatient = patientSubNav.find((item) => path.startsWith(item.path));
+    if (activePatient) {
+      setActiveNav("Patient");
+      setIsPatientOpen(true);
       setIsServicesOpen(false);
       setIsAwarenessOpen(false);
       return;
@@ -114,7 +128,7 @@ const RhuSidebar = () => {
       setActiveNav(activeMainNav.name);
       setIsServicesOpen(false);
       setIsAwarenessOpen(false);
-      setIsRhuOpen(false);
+      setIsPatientOpen(false);
     }
   }, [location.pathname]);
 
@@ -128,16 +142,16 @@ const RhuSidebar = () => {
     if (isTransitioning) return;
     setIsServicesOpen((prev) => !prev);
     setIsAwarenessOpen(false);
-    setIsRhuOpen(false);
+    setIsPatientOpen(false);
     setActiveNav("Services");
   };
 
-  const toggleRhu = () => {
+  const togglePatient = () => {
     if (isTransitioning) return;
-    setIsRhuOpen((prev) => !prev);
+    setIsPatientOpen((prev) => !prev);
     setIsServicesOpen(false);
     setIsAwarenessOpen(false);
-    setActiveNav("Rhu");
+    setActiveNav("Patient");
   };
 
   // toggleAwareness removed
@@ -146,13 +160,13 @@ const RhuSidebar = () => {
 
     if (name === "Services") {
       toggleServices();
-    } else if (name === "Rhu") {
-      toggleRhu();
+    } else if (name === "Patient") {
+      togglePatient();
     } else {
       setActiveNav(name);
       setIsServicesOpen(false);
       setIsAwarenessOpen(false);
-      setIsRhuOpen(false);
+      setIsPatientOpen(false);
       const targetPath = nav.find((item) => item.name === name)?.path;
       if (targetPath) handleNavigation(targetPath);
     }
@@ -178,20 +192,20 @@ const RhuSidebar = () => {
 
             // expanded groups: Services or Rhu
             const isExpandable =
-              item.name === "Services" || item.name === "Rhu";
+              item.name === "Services" || item.name === "Patient";
 
             const isOpen =
               item.name === "Services"
                 ? isServicesOpen
-                : item.name === "Rhu"
-                ? isRhuOpen
+                : item.name === "Patient"
+                ? isPatientOpen
                 : false;
 
             const subNav =
               item.name === "Services"
                 ? servicesSubNav
-                : item.name === "Rhu"
-                ? rhuSubNav
+                : item.name === "Patient"
+                ? patientSubNav
                 : [];
 
             return (

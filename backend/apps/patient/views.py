@@ -13,7 +13,7 @@ class PatientCreateView(generics.CreateAPIView):
   queryset = Patient.objects.all()
   serializer_class = PatientSerializer
 
-  permission_classes = [IsAuthenticated, IsAdminUser]
+  permission_classes = [IsAuthenticated]
 
 class PatientDetailView(generics.RetrieveAPIView):
   queryset = Patient.objects.all()
@@ -30,7 +30,7 @@ class PatientUpdateView(generics.UpdateAPIView):
 
 class PatientListView(generics.ListAPIView):
   serializer_class = PatientSerializer
-  permission_classes = [IsAdminUser, IsAuthenticated]
+  permission_classes = [IsAuthenticated]
 
   def get_queryset(self):
     queryset = Patient.objects.all()
