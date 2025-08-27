@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 
 const SelectUserType = () => {
   return (
-    <div className="bg-gray w-[75%] h-screen flex flex-col items-center justify-between py-7">
-      <h2 className="text-5xl font-bold text-primary">Log in to Your Account</h2>
+    <div className="bg-gray w-full  lg:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10 ">
+      <h2 className="text-3xl md:text-5xl font-bold text-primary mt-36 md:mt-0">Log in to Your Account</h2>
       <p className="text-center text-base text-black">
         Access your account to manage patient <br />
           services with ease.
@@ -13,11 +13,12 @@ const SelectUserType = () => {
         <br />
         for you. */}
       </p>
-      <div className="bg-white w-full max-w-md mt-10 mb-10 rounded-xl shadow px-8 py-6">
+
+      <div className="flex flex-col items-center gap-2 bg-white w-[400px]  md:w-[450px] rounded-xl shadow px-8 py-6">
         <label className="block text-gray-700 font-medium mb-3">
           Select User Type
         </label>
-        <div className="space-y-3 mb-3">
+        <div className="space-y-3 mb-3 w-full">
           <Link
             to="/beneficiary-login"
             className="flex gap-5 w-full text-black hover:text-[#636c72] font-bold text-xl px-4 py-3 rounded-lg hover:bg-lightblue focus:outline-none"

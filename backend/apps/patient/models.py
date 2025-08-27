@@ -119,4 +119,4 @@ class HistoricalUpdate(models.Model):
     verbose_name_plural = 'HistoricalUpdates'
 
   def __str__(self):
-    return f'Update for {self.patient.full_name} on {self.date}: {self.note or 'No note'}'
+    return f"Update for {self.patient.full_name} on {self.date}: {self.note or 'No note'}"

@@ -67,7 +67,7 @@ const ResetPasswordPanel = () => {
   };
 
   return (
-    <div className="bg-gray w-[75%] h-screen flex flex-col items-center justify-center gap-5">
+    <div className="bg-gray w-full lg:w-[75%] h-screen flex flex-col items-center justify-center gap-5">
       <div className="flex flex-col gap-2 items-center justify-center">
         <h2 className="text-3xl font-bold">Reset Your Password</h2>
         <p className="text-center text-base text-black">

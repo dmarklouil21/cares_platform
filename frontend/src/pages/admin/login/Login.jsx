@@ -53,10 +53,10 @@ const Login = () => {
   return (
     <div
       id="right-panel"
-      className="bg-gray w-[75%] h-screen flex flex-col items-center justify-between py-8"
+      className="bg-gray w-full  lg:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10 justify-center"
     >
       <div className="flex flex-col gap-2 items-center justify-center">
-        <h2 className="text-5xl font-bold text-primary">
+        <h2 className="text-5xl font-bold text-primary text-center">
           Log in to your Account
         </h2>
         <p className="text-center text-base text-black">

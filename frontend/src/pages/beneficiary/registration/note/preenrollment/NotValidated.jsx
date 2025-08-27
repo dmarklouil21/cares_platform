@@ -11,7 +11,7 @@ const NotValidated = ({ fullName }) => {
         alt="RAFI LOGO"
       />
 
-      <h2 className="text-5xl font-bold text-center">
+      <h2 className="text-[30px] md:text-5xl font-bold text-center">
         {fullName}, your pre-enrollment is still
         <span className="flex items-center justify-center gap-2">
           pending for validation
@@ -19,7 +19,7 @@ const NotValidated = ({ fullName }) => {
         </span>
       </h2>
 
-      <p className="text-md">
+      <p className="text-[12px] md:text-[16px] text-center">
         Our admin is currently reviewing your pre-enrollment form. You will be
         able to log in once <br /> your account has been approved. Please check
         back later or wait for further instructions.
