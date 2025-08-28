@@ -1,5 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
+import ConfirmationModal from "src/components/ConfirmationModal";
+import NotificationModal from "src/components/NotificationModal";
+import LoadingModal from "src/components/LoadingModal";
+
 import api from "src/api/axiosInstance";
 
 const Info101 = () => {
@@ -22,6 +27,20 @@ const Info101 = () => {
   const [animationClass, setAnimationClass] = useState("bounce-in");
   const [submitting, setSubmitting] = useState(false);
 
+  // Notification Modal
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({
+    type: "success",
+    title: "Success!",
+    message: "The form has been submitted successfully.",
+  });
+  // Loading Modal
+  const [loading, setLoading] = useState(false);
+  // Confirmation Modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("Confirm Status Change?");
+  const [modalAction, setModalAction] = useState(null);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -39,7 +58,8 @@ const Info101 = () => {
       alert("Please fill in all fields and agree to the privacy notice.");
       return;
     }
-    setSubmitting(true);
+    // setSubmitting(true);
+    setLoading(true);
     try {
       // Map frontend fields to backend expected fields
       const payload = {
@@ -66,7 +86,8 @@ const Info101 = () => {
         alert("Registration failed. Please try again later.");
       }
     } finally {
-      setSubmitting(false);
+      // setSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -79,6 +100,8 @@ const Info101 = () => {
   };
 
   return (
+    <>
+      <LoadingModal open={loading} text="Submitting your data..." />
       <div className=" lg:w-[75%] flex flex-col  bg-gray py-12  overflow-auto h-screen md:min-h-screen gap-3 md:gap-12 md:px-12 px-5">
       <div className="w-full flex justify-between px-9">
         <h1 className="font-bold text-[12px] md:text-2xl">
@@ -320,7 +343,8 @@ const Info101 = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

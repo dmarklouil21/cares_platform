@@ -18,6 +18,13 @@ class CancerDiagnosisSerializer(serializers.ModelSerializer):
       'cancer_stage',
     ]
 
+    # extra_kwargs = {
+    #   'diagnosis': {'required': False, 'allow_blank': True},
+    #   'date_diagnosed': {'required': False, 'allow_null': True},
+    #   'cancer_site': {'required': False, 'allow_blank': True},
+    #   'cancer_stage': {'required': False, 'allow_blank': True},
+    # }
+
 class HistoricalUpdateSerializer(serializers.ModelSerializer):
   class Meta:
     model = HistoricalUpdate
@@ -26,11 +33,16 @@ class HistoricalUpdateSerializer(serializers.ModelSerializer):
       'note',
     ]
 
+    # extra_kwargs = {
+    #   'date': {'required': False, 'allow_null': True},
+    #   'note': {'required': False, 'allow_blank': True},
+    # }
+
 class PatientSerializer(serializers.ModelSerializer):
   # user = serializers.HiddenField(default=None)
   emergency_contacts = EmergencyContactSerializer(many=True)
-  diagnosis = CancerDiagnosisSerializer(many=True)  # optional field
-  historical_updates = HistoricalUpdateSerializer(many=True)  # optional field
+  diagnosis = CancerDiagnosisSerializer(many=True, required=False, allow_empty=True, allow_null=True, default=[]) 
+  historical_updates = HistoricalUpdateSerializer(many=True, required=False, allow_empty=True, allow_null=True, default=[]) 
 
   # computed fields
   age = serializers.ReadOnlyField()
@@ -46,10 +58,11 @@ class PatientSerializer(serializers.ModelSerializer):
       'historical_updates',
     ]
     read_only_fields = ('created_at', 'patient_id',)
-    extra_kwargs = {
-      'diagnosis': {'required': False, 'allow_blank': True},
-      'historical_updates': {'required': False, 'allow_blank': True},
-    }
+
+    # extra_kwargs = {
+    #   'diagnosis': {'required': False, 'allow_blank': True},
+    #   'historical_updates': {'required': False, 'allow_blank': True},
+    # }
   
   def create(self, validated_data):
     request = self.context.get("request")  # access the request

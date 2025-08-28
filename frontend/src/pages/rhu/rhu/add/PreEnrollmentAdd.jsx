@@ -48,14 +48,18 @@ const PatientMasterListAdd = () => {
         mobile_number: "",
       },
     ],
-    diagnosis: [{
-      diagnosis: "",
-      date_diagnosed: "",
-      cancer_stage: "",
-      cancer_site: "",
-    }],
+    diagnosis: [],
     historical_updates: [],
   });
+
+  const [diagnosis, setDiagnosis] = useState([
+    {
+      date_diagnosed: "",
+      diagnosis: "",
+      cancer_site: "",
+      cancer_stage: "",
+    },
+  ]);
 
   const [historicalUpdates, setHistoricalUpdates] = useState([
     {
@@ -147,6 +151,17 @@ const PatientMasterListAdd = () => {
     }
   };
 
+  const handleDiagnosisChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedDiagnosis = [...diagnosis];
+    updatedDiagnosis[index] = {
+      ...updatedDiagnosis[index],
+      [name]: value,
+    };
+    setDiagnosis(updatedDiagnosis);
+    // setErrors((prev) => ({ ...prev, [`${name}_${index}`]: undefined }));
+  };
+
   const handleHistoricalUpdateChange = (index, e) => {
     const { name, value } = e.target;
     const updatedUpdates = [...historicalUpdates];
@@ -182,10 +197,21 @@ const PatientMasterListAdd = () => {
     //   setErrors(validationErrors);
     //   return;
     // }
-    setForm(prev => ({
-      ...prev,
-      historical_updates: historicalUpdates,
-    }));
+    // setForm(prev => ({
+    //   ...prev,
+    //   historical_updates: historicalUpdates,
+    // }));
+
+    if (diagnosis.length > 0) {
+      form.diagnosis = diagnosis.filter(
+        (d) => d.date_diagnosed && d.diagnosis && d.cancer_site && d.cancer_stage
+      );
+    }
+    if (historicalUpdates.length > 0) {
+        form.historical_updates = historicalUpdates.filter(
+        (h) => h.date && h.note
+      );
+    }
 
     setModalText("Are you sure you want to add this data?");
     setModalAction({ type: "submit" }); 
@@ -195,7 +221,7 @@ const PatientMasterListAdd = () => {
   const handleModalConfirm = async () => {
     if (modalAction?.type === "submit") {
       try {
-        console.log("Form Data:", form);
+        setModalOpen(false);
         setLoading(true);
         const response = await api.post("/patient/pre-enrollment/", form);
         setModalInfo({
@@ -725,7 +751,7 @@ const PatientMasterListAdd = () => {
                     type="date"
                     name="cancer_diagnosis_date_diagnosed"
                     value={form.diagnosis.date_diagnosed}
-                    onChange={handleChange}
+                    onChange={(e) => handleDiagnosisChange(0, e)}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                   />
                   {errors.date_diagnosed && (
@@ -740,7 +766,7 @@ const PatientMasterListAdd = () => {
                     type="text"
                     name="cancer_diagnosis_diagnosis"
                     value={form.diagnosis.diagnosis}
-                    onChange={handleChange}
+                    onChange={(e) => handleDiagnosisChange(0, e)}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                   />
                   {errors.diagnosis && (
@@ -756,7 +782,7 @@ const PatientMasterListAdd = () => {
                   <select
                     name="cancer_diagnosis_cancer_stage"
                     value={form.diagnosis.cancer_stage}
-                    onChange={handleChange}
+                    onChange={(e) => handleDiagnosisChange(0, e)}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                   >
                     <option value="">Select Stage</option>
@@ -779,7 +805,7 @@ const PatientMasterListAdd = () => {
                     type="text"
                     name="cancer_diagnosis_cancer_site"
                     value={form.diagnosis.cancer_site}
-                    onChange={handleChange}
+                    onChange={(e) => handleDiagnosisChange(0, e)}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
                   />
                   {errors.cancer_site && (

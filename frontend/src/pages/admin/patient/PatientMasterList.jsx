@@ -133,6 +133,7 @@ const PatientMasterList = () => {
   const handleModalConfirm = async () => {
     if (modalAction && modalAction.action === "delete" && modalAction.id) {
       try {
+        setModalOpen(false);
         setLoading(true);
         const response = await api.delete(`/patient/delete/${modalAction.id}/`);
         setModalInfo({

@@ -145,6 +145,7 @@ const PatientMasterListEdit = () => {
   const handleModalConfirm = async () => {
     if (modalAction?.type === "submit") {
       try {
+        setModalOpen(false);
         setLoading(true);
         const response = await api.patch(`/patient/update/${patient.patient_id}/`, form);
         setModalInfo({
