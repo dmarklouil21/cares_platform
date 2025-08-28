@@ -83,7 +83,7 @@ const IndividualScreeningView = () => {
   const handleModalConfirm = async () => {
     if (modalAction?.newStatus) {
       setStatus(modalAction.newStatus);
-      
+      setModalOpen(false);
       setLoading(true);
       try {
         const payload = {
@@ -119,6 +119,7 @@ const IndividualScreeningView = () => {
         setLoading(false);
       }
     } else if(isNewDate) {
+      setModalOpen(false);
       setLoading(true);
       try {
         const response = await api.patch(`/cancer-screening/individual-screening/status-update/${record.id}/`, {
@@ -151,6 +152,7 @@ const IndividualScreeningView = () => {
 
   const handleReturn = async () => {
     if (modalAction?.newStatus === "Return") {
+      setModalOpen(false);
       setLoading(true);
       setRemarksModalOpen(false);
       try{
@@ -176,7 +178,7 @@ const IndividualScreeningView = () => {
       }
     } else if (modalAction?.newStatus === "Reject") {
       setStatus(modalAction.newStatus);
-      
+      setModalOpen(false);
       setLoading(true);
       setRemarksModalOpen(false);
       try {

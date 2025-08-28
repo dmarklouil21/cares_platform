@@ -297,13 +297,13 @@ const App = () => {
               <Route path="pre-enrollment" element={<RhuPreEnrollment />} />
               <Route path="view">
                 <Route
-                  path="RhuPreEnrollmentView/:preenrollment_id"
+                  path="RhuPreEnrollmentView"
                   element={<RhuPreEnrollmentView />}
                 />
               </Route>
               <Route path="edit">
                 <Route
-                  path="RhuPreEnrollmentEdit/:preenrollment_id"
+                  path="RhuPreEnrollmentEdit"
                   element={<RhuPreEnrollmentEdit />}
                 />
               </Route>

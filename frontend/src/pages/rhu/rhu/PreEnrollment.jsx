@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, use } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "src/context/AuthContext";
 
 import api from "src/api/axiosInstance";
 
@@ -25,6 +26,7 @@ function Notification({ message, onClose }) {
 }
 
 const PatientMasterList = () => {
+  const { user } = useAuth();
   const [tableData, setTableData] = useState([]);
   // const [statusFilter, setStatusFilter] = useState("pending");
   // const [searchQuery, setSearchQuery] = useState("");
@@ -55,9 +57,15 @@ const PatientMasterList = () => {
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null); 
 
-  const fetchData = async () => {
+  const fetchData = async () => { //?status=validated&registered_by=rhu&city=${user.city}
     try {
-      const response = await api.get("/patient/list/?status=validated");
+      const response = await api.get("/patient/list/", {
+        params: {
+          status: "validated",
+          registered_by: "rhu",
+          city: user.city,
+        },
+      }); 
       setPatients(response.data);
     } catch (error) {
       console.error("Error fetching patient data:", error);
@@ -95,7 +103,7 @@ const PatientMasterList = () => {
   const handleViewClick = (id) => {
     const patient = patients.find((p) => p.patient_id === id);
     if (patient) {
-      navigate(`/Admin/patient/view/AdminPatientMasterListView`, {
+      navigate(`/Rhu/rhu/view/RhuPreEnrollmentView`, { ///Admin/patient/view/AdminPatientMasterListView
         state: { patient },
       });
     }
@@ -104,7 +112,7 @@ const PatientMasterList = () => {
   const handleEditClick = (id) => {
     const patient = patients.find((p) => p.patient_id === id);
     if (patient) {
-      navigate(`/Admin/patient/edit/AdminPatientMasterListEdit`, {
+      navigate(`/Rhu/rhu/edit/RhuPreEnrollmentEdit`, {
         state: { patient },
       });
     }
@@ -133,6 +141,7 @@ const PatientMasterList = () => {
   const handleModalConfirm = async () => {
     if (modalAction && modalAction.action === "delete" && modalAction.id) {
       try {
+        setModalOpen(false);
         setLoading(true);
         const response = await api.delete(`/patient/delete/${modalAction.id}/`);
         setModalInfo({

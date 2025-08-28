@@ -34,9 +34,21 @@ class PatientListView(generics.ListAPIView):
 
   def get_queryset(self):
     queryset = Patient.objects.all()
-    status_param = self.request.query_params.get('status', None)
+    request = self.request.query_params
+
+    status_param = request.get('status', None) # self.request.query_params.get('status', None)
+    registered_by_param = request.get('registered_by', None)
+    city_param = request.get('city', None)
+
     if status_param:
       queryset = queryset.filter(status=status_param)
+
+    if registered_by_param:
+      queryset = queryset.filter(registered_by=registered_by_param)
+
+    if city_param:
+      queryset = queryset.filter(city=city_param)
+
     return queryset
 
 class PatientStatusUpdateView(generics.UpdateAPIView):
