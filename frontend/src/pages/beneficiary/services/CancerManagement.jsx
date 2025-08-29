@@ -90,7 +90,7 @@ const CancerManagementPage = () => {
                   {option.description}
                 </p>
                 <a
-                  href="/templates/registration/registrationStep4B.html"
+                  href="/Beneficiary/services/cancer-management-options/precancerousmeds"
                   className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
                 >
                   Apply
