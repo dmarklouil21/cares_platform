@@ -73,6 +73,7 @@ const ViewPreScreeningForm = () => {
   const handleModalConfirm = async () => {
     if (modalAction?.type === "submit") {
       try { 
+        setModalOpen(false);
         setLoading(true);
         const response = await api.patch(`/cancer-screening/individual-screening/pre-screening-form/update/${pre_screening_form.id}/`, pre_screening_form);
         setModalInfo({

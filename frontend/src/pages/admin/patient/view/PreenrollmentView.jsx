@@ -6,7 +6,6 @@ import api from "src/api/axiosInstance";
 const Details = () => {
   const { patient_id } = useParams();
   const [patient, setPatient] = useState(null);
-  console.log("Patient ID:", patient_id);
 
   useEffect(() => {
     let isMounted = true;

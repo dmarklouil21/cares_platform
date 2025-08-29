@@ -64,6 +64,7 @@ const IndividualScreening = () => {
   const handleModalConfirm = async () => {
     if (modalAction?.action === "delete" || modalAction?.action === "reject") {
       try {
+        setModalOpen(false);
         setLoading(true);
         const response = await api.delete(`/cancer-screening/individual-screening/delete/${modalAction.id}/`);
         setModalInfo({

@@ -88,8 +88,8 @@ const ViewAttachments = () => {
           URL.revokeObjectURL(fileToDelete.url);
           setFiles((prev) => prev.filter((f) => f !== fileToDelete));
         } else if (fileToDelete.id) {
-          setLoading(true);
           setModalOpen(false);
+          setLoading(true);
           await api.delete(`/cancer-screening/individual-screening/attachments-delete/${fileToDelete.id}/`);
           setModalInfo({
             type: "success",

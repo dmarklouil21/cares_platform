@@ -34,6 +34,7 @@ import AdminIndividualScreening from "./pages/admin/cancerscreening/IndividualSc
 import AdminUserManagement from "./pages/admin/usermanagement/UserManagement";
 import AdminScreeningRequest from "./pages/admin/cancerscreening/ScreeningRequest";
 import AdminPatientMasterList from "./pages/admin/patient/PatientMasterList";
+import Adminprecancerous from "./pages/admin/treatment/Precancerous";
 
 // ----------- ADMIN VIEW SIDE ------------------
 import AdminPreenrollmentDetails from "./pages/admin/patient/view/PreenrollmentView";
@@ -43,6 +44,7 @@ import ViewScreeningProcedure from "./pages/admin/cancerscreening/view/ViewScree
 import ViewAttachments from "./pages/admin/cancerscreening/view/ViewAttachments";
 import ViewResults from "./pages/admin/cancerscreening/view/ViewResults";
 import AdminPatientMasterListView from "./pages/admin/patient/view/PatientMasterListView";
+import AdminprecancerousView from "./pages/admin/treatment/view/precancerousview";
 
 // ----------- ADMIN EDIT SIDE ------------------
 import AdminPatientMasterListEdit from "./pages/admin/patient/edit/PatientMasterListEdit";
@@ -61,12 +63,18 @@ import BeneficiaryCancerScreening from "./pages/beneficiary/services/CancerScree
 import CancerManagement from "./pages/beneficiary/services/CancerManagement";
 import Survivorship from "./pages/beneficiary/services/Survivorship";
 import BeneficiaryApplicationStatus from "./pages/beneficiary/applicationstatus/ApplicationStatus";
+import BeneficiaryPreCancerousApplicationStatus from "./pages/beneficiary/applicationstatus/Precancerous";
 import BeneficiaryIndividualScreeningStatus from "./pages/beneficiary/individualscreeningstatus/IndividualScreeningStatus";
 import BeneficiaryCancerAwareness from "./pages/beneficiary/cancerawareness/CancerAwareness";
 import UploadAttachments from "./pages/beneficiary/individualscreeningstatus/UploadAttachments";
 
+// ----------- Beneficiary cancer management options ------------------
+
+import BeneficiaryPreCancerousMeds from "./pages/beneficiary/services/pages/cancermanagement/PreCancerousMeds";
+
 // ----------- Application actions ------------------
 import BeneficiaryApplicationView from "./pages/beneficiary/applicationstatus/view/ViewApplication";
+import BeneficiaryPreCancerousView from "./pages/beneficiary/applicationstatus/view/PreCancerousView";
 
 // ----------- IndividualScreeningStatus actions ------------------
 import BeneficiaryIndividualScreeningStatusView from "./pages/beneficiary/individualscreeningstatus/view/ViewIndividualStatus";
@@ -139,7 +147,10 @@ const App = () => {
               }
             />
             <Route path="NotValidated" element={<NotValidated />} />
-            <Route path="AccountNotSupported" element={<AccountNotSupported />} />
+            <Route
+              path="AccountNotSupported"
+              element={<AccountNotSupported />}
+            />
           </Route>
           <Route
             path="/Admin"
@@ -215,6 +226,15 @@ const App = () => {
                 <Route path="ViewResults" element={<ViewResults />} />
               </Route>
             </Route>
+            <Route path="treatment">
+              <Route path="precancerous" element={<Adminprecancerous />} />
+              <Route path="view">
+                <Route
+                  path="AdminprecancerousView/:patient_id"
+                  element={<AdminprecancerousView />}
+                />
+              </Route>
+            </Route>
           </Route>
           <Route
             path="/Beneficiary"
@@ -242,6 +262,12 @@ const App = () => {
                 />
               </Route>
               <Route path="cancer-management" element={<CancerManagement />} />
+              <Route path="cancer-management-options">
+                <Route
+                  path="precancerousmeds"
+                  element={<BeneficiaryPreCancerousMeds />}
+                />
+              </Route>
               <Route path="survivorship" element={<Survivorship />} />
             </Route>
             <Route path="awareness">
@@ -250,6 +276,16 @@ const App = () => {
             </Route>
             <Route path="applicationstatus">
               <Route index element={<BeneficiaryApplicationStatus />} />
+              <Route
+                path="precancerous"
+                element={<BeneficiaryPreCancerousApplicationStatus />}
+              />
+              <Route path="view">
+                <Route
+                  path="precancerous/:patient_id"
+                  element={<BeneficiaryPreCancerousView />}
+                />
+              </Route>
               <Route
                 path="application-view"
                 element={<BeneficiaryApplicationView />}
@@ -297,13 +333,13 @@ const App = () => {
               <Route path="pre-enrollment" element={<RhuPreEnrollment />} />
               <Route path="view">
                 <Route
-                  path="RhuPreEnrollmentView/:preenrollment_id"
+                  path="RhuPreEnrollmentView"
                   element={<RhuPreEnrollmentView />}
                 />
               </Route>
               <Route path="edit">
                 <Route
-                  path="RhuPreEnrollmentEdit/:preenrollment_id"
+                  path="RhuPreEnrollmentEdit"
                   element={<RhuPreEnrollmentEdit />}
                 />
               </Route>

@@ -55,6 +55,10 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       name: "Individual Screening",
       path: "/Beneficiary/individualscreeningstatus",
     },
+    {
+      name: "Pre Cancerous",
+      path: "/Beneficiary/applicationstatus/precancerous",
+    },
   ];
 
   const debounce = (func, delay) => {

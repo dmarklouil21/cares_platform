@@ -60,6 +60,7 @@ const ViewScreeningProcedure = () => {
   const handleModalConfirm = async () => {
     if (modalAction?.type === "submit") {
       try { 
+        setModalOpen(false);
         setLoading(true);
         const response = await api.patch(`/cancer-screening/individual-screening/screening-procedure/update/${screening_procedure.id}/`, screening_procedure);
         setModalInfo({
@@ -84,6 +85,7 @@ const ViewScreeningProcedure = () => {
       }
     } else if (modalAction?.type === "delete") {
       try {
+        setModalOpen(false);
         setLoading(true);
         await api.delete(
           `/cancer-screening/individual-screening/screening-procedure/delete/${screening_procedure.id}/`
