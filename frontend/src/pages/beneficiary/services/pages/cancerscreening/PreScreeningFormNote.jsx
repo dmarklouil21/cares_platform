@@ -3,16 +3,22 @@ import { Link } from "react-router-dom";
 
 const NotePanel = ({ onAccept, onDecline }) => {
   return (
-    <div className="w-[75%] bg-gray flex flex-col h-screen gap-5 px-8 py-8 ">
-      <div className="w-full flex justify-between">
-        <h1 className="font-bold text-2xl">Indiviudal Screening Registration</h1>
+    <div className=" lg:w-[75%] bg-gray flex flex-col h-screen gap-5 px-8 py-8 ">
+      <div className="w-full flex justify-between flex-col">
+        <div className="mb-10 md:hidden flex">
+          <div>humb</div>
+        </div>
+
+        <h1 className="font-bold text-[16px] md:text-2xl">
+          Indiviudal Screening Registration
+        </h1>
         {/* <div className="flex text-right flex-col">
           <p className="text-sm">STEP 01/02</p>
           <h1 className="font-bold text-gray-600">NOTE</h1>
         </div> */}
       </div>
       <div className="flex flex-col gap-5 bg-white w-full rounded-xl shadow px-8 py-6">
-        <h1 className="font-bold text-[17px]">
+        <h1 className="font-bold md:text-[28px]">
           NOTE: Completion of this form does not guarantee assistance from RAFI
           and Eduardo J. Aboitiz Cancer Center (EJACC). All applications are
           subject to review by the EJACC team.
@@ -26,9 +32,9 @@ const NotePanel = ({ onAccept, onDecline }) => {
         </h1>
         <div className="flex justify-between gap-5">
           <Link
-            to={"/Beneficiary/services/cancer-screening"} 
-            id="i-accept-btn" 
-            className="border  font-bold text-center py-2 w-[45%] border-[1px] hover:border-lightblue hover:bg-lightblue rounded-md"
+            to={"/Beneficiary/services/cancer-screening"}
+            id="i-accept-btn"
+            className="  font-bold text-center py-2 w-[45%] border-[1px] hover:border-lightblue hover:bg-lightblue rounded-md"
             onClick={onAccept}
           >
             I Don't Accept

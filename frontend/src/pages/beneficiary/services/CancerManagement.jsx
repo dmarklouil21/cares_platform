@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import BeneficiarySidebar from "../../../components/navigation/Beneficiary";
 
 const cancerTreatmentOptions = [
   {
@@ -46,29 +47,47 @@ const cancerTreatmentOptions = [
 ];
 
 const CancerManagementPage = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
     <div className="w-full h-screen bg-gray overflow-auto">
-      <div className="bg-white py-4 px-10 flex justify-between items-center">
-        <div className="font-bold">Beneficiary</div>
-        <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-          <img
-            src="/images/Avatar.png"
-            alt="User Profile"
-            className="rounded-full"
+
+      <div className="md:hidden">
+          <BeneficiarySidebar
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
           />
         </div>
-      </div>
+
+
+      <div className="bg-white py-4 px-10 flex justify-between items-center ">
+          {/* Menu Button for Mobile */}
+          <img
+            className="md:hidden size-5 cursor-pointer"
+            src="/images/menu-line.svg"
+            onClick={() => setIsSidebarOpen(true)}
+          />
+
+          <div className="font-bold">Beneficiary</div>
+          <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
+            <img
+              src="/images/Avatar.png"
+              alt="User Profile"
+              className="rounded-full"
+            />
+          </div>
+        </div>
 
       <div className="py-6 px-10 bg-gray">
-        <h2 className="text-xl font-semibold mb-6">
+        <h2 className="text-[16px] md:text-xl font-semibold mb-6">
           Cancer Management & Treatment Assistance
         </h2>
 
         <div className="flex flex-col gap-7 w-full bg-white rounded-2xl py-10 px-8">
-          <h3 className="text-2xl font-bold text-secondary">
+          <h3 className="text-[18px] md:text-[38px] font-bold text-secondary">
             CANCER TREATMENT OPTIONS
           </h3>
-          <p className="text-gray2 mb-4">
+          <p className="text-gray2 text-[16px] md:text-[24px] mb-4">
             Explore evidence-based therapies and supportive care at EJACC
           </p>
 
@@ -83,15 +102,15 @@ const CancerManagementPage = () => {
                   alt={`${option.title} Icon`}
                   className="h-8 w-8"
                 />
-                <h4 className="text-lg font-bold text-gray-800 text-center">
+                <h4 className="text-[16px] md:text-[22px] font-bold text-gray-800 text-center">
                   {option.title}
                 </h4>
-                <p className="text-gray2 text-center text-sm">
+                <p className="text-gray2 text-center text-[14px] md:text-[16px]">
                   {option.description}
                 </p>
                 <a
                   href="/templates/registration/registrationStep4B.html"
-                  className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                  className="px-7 py-1 bg-primary text-white text-lg rounded hover:bg-[#5a7c94] transition "
                 >
                   Apply
                 </a>

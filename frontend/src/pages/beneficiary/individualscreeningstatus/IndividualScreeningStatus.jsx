@@ -6,7 +6,7 @@ import api from "src/api/axiosInstance";
 import NotificationModal from "src/components/NotificationModal";
 import LoadingModal from "src/components/LoadingModal";
 import ConfirmationModal from "src/components/ConfirmationModal";
-
+import BeneficiarySidebar from "../../../components/navigation/Beneficiary";
 
 const IndividualScreeningStatus = () => {
   const { user } = useAuth();
@@ -23,14 +23,14 @@ const IndividualScreeningStatus = () => {
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
-  const [modalAction, setModalAction] = useState(null); 
+  const [modalAction, setModalAction] = useState(null);
   const [modalAppId, setModalAppId] = useState(null);
-
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   const fetchData = async () => {
@@ -49,7 +49,7 @@ const IndividualScreeningStatus = () => {
 
   const handleCancel = (id) => {
     setModalText("Are you sure you want to cancel this application?");
-    setModalAction({ type: "cancel", id: id }); 
+    setModalAction({ type: "cancel", id: id });
     setModalOpen(true);
     // setModalAppId(id);
     // setModalOpen(true);
@@ -59,7 +59,9 @@ const IndividualScreeningStatus = () => {
     if (modalAction?.type === "cancel") {
       try {
         setLoading(true);
-        const response = await api.delete(`/beneficiary/individual-screening/cancel-request/${modalAction.id}/`);
+        const response = await api.delete(
+          `/beneficiary/individual-screening/cancel-request/${modalAction.id}/`
+        );
         setModalInfo({
           type: "success",
           title: "Success!",
@@ -107,7 +109,9 @@ const IndividualScreeningStatus = () => {
     const searchMatch =
       !searchQuery ||
       record.patient.patient_id.includes(searchQuery) ||
-      record.patient.full_name.toLowerCase().includes(searchQuery.toLowerCase());
+      record.patient.full_name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
     const recordDate = new Date(record.created_at).toISOString().split("T")[0];
     const dateMatch = !dateFilter || recordDate === dateFilter;
 
@@ -144,9 +148,24 @@ const IndividualScreeningStatus = () => {
           </div>
         </div>
       )}
-      <div class="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
-          <div className="font-bold">Beneficary</div>
+      <div class="w-full h-screen  bg-gray overflow-auto">
+        {/*! mobile sidebar  */}
+        <div className="md:hidden">
+          <BeneficiarySidebar
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
+          />
+        </div>
+
+        <div className="bg-white py-4 px-10 flex justify-between items-center ">
+          {/* Menu Button for Mobile */}
+          <img
+            className="md:hidden size-5 cursor-pointer"
+            src="/images/menu-line.svg"
+            onClick={() => setIsSidebarOpen(true)}
+          />
+
+          <div className="font-bold">Beneficiary</div>
           <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
             <img
               src="/images/Avatar.png"
@@ -156,7 +175,7 @@ const IndividualScreeningStatus = () => {
           </div>
         </div>
 
-        <div className="w-full flex-1 py-5 flex flex-col justify-around px-5">
+        <div className="w-full flex-1 py-5 flex flex-col h-full px-5 gap-5 ">
           <h2 className="text-xl font-bold text-left w-full pl-5">
             Individual Screening
           </h2>
@@ -174,12 +193,12 @@ const IndividualScreeningStatus = () => {
               <input
                 type="text"
                 placeholder="Search by application ID ..."
-                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md text-[12px] md:text-[16px]"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <select
-                className="border border-gray-200 rounded-md p-2 bg-white"
+                className="border border-gray-200 rounded-md p-2 bg-white text-[12px] md:text-[16px]"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -190,12 +209,12 @@ const IndividualScreeningStatus = () => {
               </select>
               <input
                 type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
+                className="border border-gray-200 py-2 px-5 rounded-md text-[14px] md:text-[16px]"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
               />
               <button
-                className="px-7 rounded-md text-sm bg-[#C5D7E5]"
+                className="px-7 rounded-md text-[12px] md:text-sm bg-[#C5D7E5]"
                 onClick={(e) => {
                   e.preventDefault();
                 }}
@@ -217,22 +236,31 @@ const IndividualScreeningStatus = () => {
                   <tr className="bg-lightblue">
                     <th
                       scope="col"
-                      className=" text-center text-sm  py-3 !bg-lightblue"
+                      className=" text-center text-[10px] md:text-sm  py-3 !bg-lightblue"
                     >
                       Patient ID
                     </th>
-                    <th scope="col" className="  py-3 text-center text-sm">
+                    <th
+                      scope="col"
+                      className="  py-3 text-center text-[10px] md:text-sm"
+                    >
                       Date Created
                     </th>
-                    <th scope="col" className="  py-3 text-center text-sm">
+                    <th
+                      scope="col"
+                      className="  py-3 text-center text-[10px] md:text-sm"
+                    >
                       Date Approved
                     </th>
-                    <th scope="col" className="  py-3 text-center text-sm">
+                    <th
+                      scope="col"
+                      className="  py-3 text-center text-[10px] md:text-sm"
+                    >
                       Status
                     </th>
                     <th
                       scope="col"
-                      className="   py-3 text-center text-sm tracking-wider"
+                      className=" text-[10px] md:text-sm  py-3 text-center text-sm "
                     >
                       Actions
                     </th>
@@ -252,7 +280,10 @@ const IndividualScreeningStatus = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredData.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-4 text-gray-500">
+                        <td
+                          colSpan="6"
+                          className="text-center py-4 text-gray-500"
+                        >
                           No records found.
                         </td>
                       </tr>
@@ -262,28 +293,30 @@ const IndividualScreeningStatus = () => {
                           <td className=" py-2 text-sm text-center text-[#333333]">
                             {app.patient.patient_id}
                           </td>
-                          <td className=" py-2 text-sm text-center text-[#333333]"> 
+                          <td className=" py-2 text-sm text-center text-[#333333]">
                             {app.created_at.split("T")[0]}
                           </td>
-                          <td className=" py-2 text-sm text-center text-[#333333]"> 
-                            {app.date_approved ? (
-                              app.date_approved.split("T")[0]
-                            ) : (
-                              '--'
-                            )}
+                          <td className=" py-2 text-sm text-center text-[#333333]">
+                            {app.date_approved
+                              ? app.date_approved.split("T")[0]
+                              : "--"}
                           </td>
                           <td className=" py-2 text-sm text-center text-[#333333]">
                             <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full text-[#1976D2]">
-                                {app.status}
+                              {app.status}
                             </span>
                           </td>
-                          <td className="text-center text-sm py-4 flex gap-2 justify-center"> {/*flex py-2 gap-2 px-2 justify-around text-sm text-center text-[#333333]" */}
+                          <td className="text-center text-sm py-4 flex gap-2 justify-center">
+                            {" "}
+                            {/*flex py-2 gap-2 px-2 justify-around text-sm text-center text-[#333333]" */}
                             {app.status !== "Pending" && (
                               <button
-                                type="button" 
-                                className="text-white py-1 px-3 rounded-md shadow bg-primary cursor-pointer" 
+                                type="button"
+                                className="text-white py-1 px-3 rounded-md shadow bg-primary cursor-pointer"
                                 onClick={() => handleView(app.id)}
-                              > {/*custom-shadow w-[50%] cursor-pointer text-white bg-primary py-[5px] rounded-md px-3 */}
+                              >
+                                {" "}
+                                {/*custom-shadow w-[50%] cursor-pointer text-white bg-primary py-[5px] rounded-md px-3 */}
                                 View
                               </button>
                             )}
@@ -306,6 +339,7 @@ const IndividualScreeningStatus = () => {
             </div>
           </div>
         </div>
+        <div className="h-16 bg-secondary "></div>
       </div>
     </>
   );
