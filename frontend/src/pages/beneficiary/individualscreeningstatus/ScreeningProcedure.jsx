@@ -7,13 +7,14 @@ import api from "src/api/axiosInstance";
 import ConfirmationModal from "src/components/ConfirmationModal";
 import NotificationModal from "src/components/NotificationModal";
 import LoadingModal from "src/components/LoadingModal";
+import BeneficiarySidebar from "../../../components/navigation/Beneficiary";
 
 const IndividualScreening = () => {
   const navigate = useNavigate();
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [ screening_procedure_name, setScreening_procedure_name ] = useState("");
-  const [ procedure_details, setProcedure_details ] = useState("");
-  const [ cancer_site, setCancer_site ] = useState("");
+  const [screening_procedure_name, setScreening_procedure_name] = useState("");
+  const [procedure_details, setProcedure_details] = useState("");
+  const [cancer_site, setCancer_site] = useState("");
   const fileInputRef = useRef();
 
   // Notification Modal
@@ -23,12 +24,13 @@ const IndividualScreening = () => {
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalAction, setModalAction] = useState(null); 
+  const [modalAction, setModalAction] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -66,8 +68,8 @@ const IndividualScreening = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setModalText('Make sure all your inputs are correct!');
-    setModalAction({ type: "submit" }); 
+    setModalText("Make sure all your inputs are correct!");
+    setModalAction({ type: "submit" });
     setModalOpen(true);
   };
 
@@ -75,11 +77,15 @@ const IndividualScreening = () => {
     if (modalAction?.type === "submit") {
       try {
         setLoading(true);
-        const response = await api.post("/beneficiary/individual-screening/screening-procedure-form/", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const response = await api.post(
+          "/beneficiary/individual-screening/screening-procedure-form/",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
         setModalInfo({
           type: "success",
           title: "Success!",
@@ -87,14 +93,14 @@ const IndividualScreening = () => {
         });
         setShowModal(true);
       } catch (error) {
-        let errorMessage = "Something went wrong while submitting the form."; 
+        let errorMessage = "Something went wrong while submitting the form.";
 
         if (error.response && error.response.data) {
           // DRF ValidationError returns an object with arrays of messages
           if (error.response.data.non_field_errors) {
             errorMessage = error.response.data.non_field_errors[0];
           } //else if (typeof error.response.data === "string") {
-            //errorMessage = error.response.data; // for plain text errors
+          //errorMessage = error.response.data; // for plain text errors
           //}
         }
         setModalInfo({
@@ -112,7 +118,7 @@ const IndividualScreening = () => {
     setModalOpen(false);
     setModalAction(null);
     setModalText("");
-  }
+  };
 
   return (
     <>
@@ -135,8 +141,22 @@ const IndividualScreening = () => {
       />
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        <div className="bg-white py-4 px-10 flex justify-between items-center">
-          <div className="font-bold">Beneficary</div>
+        <div className="md:hidden">
+          <BeneficiarySidebar
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
+          />
+        </div>
+
+        <div className="bg-white py-4 px-10 flex justify-between items-center ">
+          {/* Menu Button for Mobile */}
+          <img
+            className="md:hidden size-5 cursor-pointer"
+            src="/images/menu-line.svg"
+            onClick={() => setIsSidebarOpen(true)}
+          />
+
+          <div className="font-bold">Beneficiary</div>
           <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
             <img
               src="/images/Avatar.png"
@@ -146,7 +166,7 @@ const IndividualScreening = () => {
           </div>
         </div>
 
-        <div className="py-6 px-10 flex flex-col flex-1">
+        <div className="py-6 px-5 md:px-10 flex flex-col flex-1">
           <h2 className="text-xl font-semibold mb-6">Cancer Screening</h2>
 
           <form className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-8 flex-1 overflow-auto">
@@ -168,7 +188,7 @@ const IndividualScreening = () => {
                   name="screening_procedure_name"
                   id="screening_procedure_name"
                   placeholder="ex: Mammogram, MRI"
-                  className="w-[85%] p-3 border border-gray2 rounded-md"
+                  className="md:w-[85%] p-3 border border-gray2 rounded-md"
                   value={screening_procedure_name}
                   onChange={(e) => setScreening_procedure_name(e.target.value)}
                   required
@@ -181,7 +201,7 @@ const IndividualScreening = () => {
                   name="procedure_details"
                   id="procedure_details"
                   placeholder="ex: Breast screening due to palpable mass"
-                  className="w-[85%] p-3 border border-gray2 rounded-md"
+                  className="md:w-[85%] p-3 border border-gray2 rounded-md"
                   value={procedure_details}
                   onChange={(e) => setProcedure_details(e.target.value)}
                   required
@@ -194,7 +214,7 @@ const IndividualScreening = () => {
                   name="cancer_site"
                   id="cancer_site"
                   placeholder="ex: Breast"
-                  className="w-[85%] p-3 border border-gray2 rounded-md"
+                  className="md:w-[85%] p-3 border border-gray2 rounded-md"
                   value={cancer_site}
                   onChange={(e) => setCancer_site(e.target.value)}
                   required
@@ -206,19 +226,25 @@ const IndividualScreening = () => {
               <div className="font-bold px-3 flex flex-col gap-4">
                 <div className="flex gap-5">
                   <img src="/public/images/check-icon.svg" alt="check icon" />
-                  <p>Medical Certificate</p>
+                  <p className="text-[14px] md:text-[16px]">
+                    Medical Certificate
+                  </p>
                 </div>
                 <div className="flex gap-5">
                   <img src="/public/images/check-icon.svg" alt="check icon" />
-                  <p>Laboratory Results</p>
+                  <p className="text-[14px] md:text-[16px]">
+                    Laboratory Results
+                  </p>
                 </div>
                 <div className="flex gap-5">
                   <img src="/public/images/check-icon.svg" alt="check icon" />
-                  <p>Barangay Certificate of Indigency</p>
+                  <p className="text-[14px] md:text-[16px]">
+                    Barangay Certificate of Indigency
+                  </p>
                 </div>
                 <div className="flex gap-5">
                   <img src="/public/images/check-icon.svg" alt="check icon" />
-                  <p>One 1x1 Photo</p>
+                  <p className="text-[14px] md:text-[16px]">One 1x1 Photo</p>
                 </div>
               </div>
               <div
@@ -240,8 +266,12 @@ const IndividualScreening = () => {
                     alt="Upload icon"
                   />
                 </div>
-                <p className="font-semibold mt-4">Choose file</p>
-                <p className="text-sm text-gray-500 mt-1">Size limit: 5MB</p>
+                <p className="font-semibold mt-4 text-[14px] md:text-[16px]">
+                  Choose file
+                </p>
+                <p className="text-[12px] md:text-sm text-gray-500 mt-1">
+                  Size limit: 5MB
+                </p>
 
                 {uploadedFiles.length > 0 && (
                   <div className="mt-6 w-full">

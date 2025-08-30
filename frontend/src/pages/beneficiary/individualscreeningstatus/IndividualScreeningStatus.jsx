@@ -223,7 +223,7 @@ const IndividualScreeningStatus = () => {
               </button>
             </div>
 
-            <div className="bg-white shadow">
+            <div className="bg-white shadow overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <colgroup>
                   <col className="w-[18%]" />
@@ -290,18 +290,18 @@ const IndividualScreeningStatus = () => {
                     ) : (
                       filteredData.map((app) => (
                         <tr key={app.id}>
-                          <td className=" py-2 text-sm text-center text-[#333333]">
+                          <td className=" p-2 text-[12px] md:text-sm text-center text-[#333333]">
                             {app.patient.patient_id}
                           </td>
-                          <td className=" py-2 text-sm text-center text-[#333333]">
+                          <td className=" p-2 text-[12px] md:text-sm text-center text-[#333333]">
                             {app.created_at.split("T")[0]}
                           </td>
-                          <td className=" py-2 text-sm text-center text-[#333333]">
+                          <td className=" p-2 text-[12px] md:text-sm text-center text-[#333333]">
                             {app.date_approved
                               ? app.date_approved.split("T")[0]
                               : "--"}
                           </td>
-                          <td className=" py-2 text-sm text-center text-[#333333]">
+                          <td className=" p-2 text-[12px] md:text-sm text-center text-[#333333]">
                             <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full text-[#1976D2]">
                               {app.status}
                             </span>

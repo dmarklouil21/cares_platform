@@ -1,6 +1,7 @@
 // src/pages/treatment/AdminprecancerousView.jsx
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
+import BeneficiarySidebar from "../../../../components/navigation/Beneficiary";
 
 // ----- inline sample data (fallback; list can pass selected via location.state) -----
 const SAMPLE_PATIENTS = [
@@ -70,6 +71,7 @@ const formatLongDate = (d) => {
 const PreCancerousView = () => {
   const { patient_id } = useParams();
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // prefer data passed from list (reflects current status), else fallback
   const patient = useMemo(() => {
@@ -95,7 +97,22 @@ const PreCancerousView = () => {
 
   return (
     <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-      <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
+      <div className="md:hidden">
+        <BeneficiarySidebar
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+        />
+      </div>
+
+      <div className="bg-lightblue h-[10%] px-5 w-full flex  items-center">
+        <div className="mr-16 md:hidden">
+          <img
+            className="md:hidden size-5 cursor-pointer"
+            src="/images/menu-line.svg"
+            onClick={() => setIsSidebarOpen(true)}
+          />
+        </div>
+
         <h1 className="text-md font-bold">Request Pre-Cancerous Meds</h1>
       </div>
 
@@ -142,7 +159,7 @@ const PreCancerousView = () => {
         </div>
 
         {/* Patient Row Table */}
-        <div className="bg-white rounded-md shadow border border-black/10">
+        <div className="bg-white rounded-md shadow border border-black/10 overflow-x-auto">
           <table className="min-w-full border-separate border-spacing-0">
             <thead>
               <tr className="bg-gray/30">
@@ -170,7 +187,7 @@ const PreCancerousView = () => {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-t">
+              <tr className="border-t ">
                 <td className="px-4 py-3 text-sm">1</td>
                 <td className="px-4 py-3 text-sm">{patient.patient_id}</td>
                 <td className="px-4 py-3 text-sm">{patient.last_name}</td>

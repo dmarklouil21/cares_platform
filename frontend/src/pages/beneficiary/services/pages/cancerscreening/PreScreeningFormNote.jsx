@@ -1,12 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import BeneficiarySidebar from "../../../../../components/navigation/Beneficiary";
 
 const NotePanel = ({ onAccept, onDecline }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
     <div className=" lg:w-[75%] bg-gray flex flex-col h-screen gap-5 px-8 py-8 ">
+      
+      <div className="md:hidden">
+        <BeneficiarySidebar
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+        />
+      </div>
+
       <div className="w-full flex justify-between flex-col">
         <div className="mb-10 md:hidden flex">
-          <div>humb</div>
+          <img
+            className="md:hidden size-5 cursor-pointer"
+            src="/images/menu-line.svg"
+            onClick={() => setIsSidebarOpen(true)}
+          />
         </div>
 
         <h1 className="font-bold text-[16px] md:text-2xl">
@@ -17,6 +32,7 @@ const NotePanel = ({ onAccept, onDecline }) => {
           <h1 className="font-bold text-gray-600">NOTE</h1>
         </div> */}
       </div>
+
       <div className="flex flex-col gap-5 bg-white w-full rounded-xl shadow px-8 py-6">
         <h1 className="font-bold md:text-[28px]">
           NOTE: Completion of this form does not guarantee assistance from RAFI
