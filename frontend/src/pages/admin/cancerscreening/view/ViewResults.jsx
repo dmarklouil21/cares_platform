@@ -213,7 +213,7 @@ const ViewResults = () => {
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
         <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Results</h1>
+          <h1 className="text-md font-bold">Individual Screening</h1>
           <div className="p-3">
             <Link 
               to={"/Admin/cancerscreening/view/AdminIndividualScreeningView"}
@@ -229,9 +229,9 @@ const ViewResults = () => {
         </div>
         <div className="h-full w-full p-5 flex flex-col justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
-            <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
+            {/* <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
               <h1 className="text-md font-bold">Patient ID - {record?.patient.patient_id}</h1>
-            </div>
+            </div> */}
           {files.length === 0 ? (
             <div className="flex-1 flex flex-col justify-center items-center bg-white rounded-[4px] py-10 px-8 text-center">
               <h2 className="text-2xl font-semibold text-gray-600">No Attachment Files Found</h2>

@@ -167,7 +167,7 @@ const UploadAttachments = () => {
             {/* <h3 className="text-2xl font-bold text-secondary">ATTACHMENTS</h3> */}
             <Link 
               to={"/Beneficiary/individualscreeningstatus/individualstatus-view"}
-              // state={{record: record}}
+              state={individualScreening}
             >
               <img
                 src="/images/back.png"

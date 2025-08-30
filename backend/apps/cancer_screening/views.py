@@ -11,12 +11,11 @@ from rest_framework.exceptions import ValidationError
 from backend.utils.email import send_individual_screening_status_email, send_return_remarks_email
 from apps.pre_enrollment.models import Beneficiary
 from apps.patient.models import Patient, CancerDiagnosis, HistoricalUpdate
-from apps.cancer_screening.models import ScreeningProcedure, ScreeningAttachment
+from apps.cancer_screening.models import ScreeningAttachment
 from .models import IndividualScreening, PreScreeningForm
 from .serializers import (
   PreScreeningFormSerializer,
   IndividualScreeningSerializer,
-  ScreeningProcedureSerializer,
   ScreeningAttachmentSerializer
 )
 
@@ -74,34 +73,36 @@ class PreScreeningFormUpdateView(generics.UpdateAPIView):
   lookup_field = 'id'
   permission_classes = [IsAuthenticated, IsAdminUser]
 
-class ScreeningProcedureUpdateView(generics.UpdateAPIView):
-  queryset = ScreeningProcedure.objects.all()
-  serializer_class = ScreeningProcedureSerializer
-  lookup_field = 'id'
-  permission_classes = [IsAuthenticated, IsAdminUser]
+# To be updated
+# class ScreeningProcedureUpdateView(generics.UpdateAPIView):
+#   queryset = ScreeningProcedure.objects.all()
+#   serializer_class = ScreeningProcedureSerializer
+#   lookup_field = 'id'
+#   permission_classes = [IsAuthenticated, IsAdminUser]
 
 class ScreeningAttachmentUpdateView(APIView):
   parser_classes = [MultiPartParser, FormParser]
   permission_classes = [IsAuthenticated, IsAdminUser]
 
   def patch(self, request, procedure_id):
-    screening_procedure = get_object_or_404(ScreeningProcedure, id=procedure_id)
-    attachments = request.FILES.getlist('attachments')
+    individual_screening = get_object_or_404(IndividualScreening, id=procedure_id)
+    attachments = request.FILES.getlist('screening_attachments')
 
     for file in attachments:
       validate_attachment(file)
       ScreeningAttachment.objects.create(
-        screening_procedure=screening_procedure,
+        individual_screening=individual_screening,
         file=file
       )
 
     return Response({"message": "Attachments updated successfully."})
-
-class ScreeningProcedureDeleteView(generics.DestroyAPIView):
-  queryset = ScreeningProcedure.objects.all()
-  serializer_class = ScreeningProcedureSerializer
-  lookup_field = 'id'
-  permission_classes = [IsAuthenticated, IsAdminUser]
+  
+# To be updated
+# class ScreeningProcedureDeleteView(generics.DestroyAPIView):
+#   queryset = ScreeningProcedure.objects.all()
+#   serializer_class = ScreeningProcedureSerializer
+#   lookup_field = 'id'
+#   permission_classes = [IsAuthenticated, IsAdminUser]
 
 class AttachmentDeleteView(generics.DestroyAPIView):
   queryset = ScreeningAttachment.objects.all()
@@ -131,7 +132,7 @@ class IndividualScreeningStatusUpdateView(generics.UpdateAPIView):
         patient=instance.patient,
         diagnosis=instance.pre_screening_form.final_diagnosis,
         date_diagnosed=instance.pre_screening_form.date_of_diagnosis,
-        cancer_site=instance.screening_procedure.cancer_site,
+        cancer_site=instance.cancer_site,
         cancer_stage=instance.pre_screening_form.staging,
       )
     elif screening_status == 'Complete':

@@ -12,7 +12,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 from apps.pre_enrollment.models import Beneficiary
 from apps.patient.models import Patient, CancerDiagnosis
 from apps.partners.models import CancerAwarenessActivity
-from apps.cancer_screening.models import ScreeningProcedure, ScreeningAttachment, IndividualScreening # PreScreeningForm
+from apps.cancer_screening.models import ScreeningAttachment, IndividualScreening # PreScreeningForm
 
 from apps.cancer_screening.models import IndividualScreening, PreScreeningForm
 from apps.patient.models import Patient, CancerDiagnosis
@@ -21,7 +21,7 @@ from apps.partners.serializers import CancerAwarenessActivitySerializer
 from apps.cancer_screening.serializers import (
   PreScreeningFormSerializer, 
   IndividualScreeningSerializer, 
-  ScreeningProcedureSerializer, 
+  # ScreeningProcedureSerializer, 
   ScreeningAttachmentSerializer
 )
 
@@ -48,46 +48,32 @@ class PreScreeningCreateView(generics.CreateAPIView):
   serializer_class = PreScreeningFormSerializer
   permission_classes = [IsAuthenticated]
 
-class ScreeningProcedureCreateView(generics.CreateAPIView):
-  queryset = ScreeningProcedure.objects.all()
-  serializer_class = ScreeningProcedureSerializer
+# To be updated
+class IndividualScreeningUpdateView(generics.UpdateAPIView):
+  queryset = IndividualScreening.objects.all()
+  serializer_class = IndividualScreeningSerializer
   parser_classes = [MultiPartParser, FormParser]
   permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
 
-  def perform_create(self, serializer):
+  def perform_update(self, serializer):
     try:
       with transaction.atomic():
-        patient = get_object_or_404(Patient, user=self.request.user)
+        instance = self.get_object()
 
-        individual_screening = get_object_or_404(
-          IndividualScreening, patient=patient
+        if instance.has_patient_response:
+          raise ValidationError({'non_field_errors': ['You already have an ongoing request. Please wait for it\'s feedback before submitting another.']})
+
+        instance = serializer.save(
+          has_patient_response=True,
+          response_description='Submitted screening procedure'
         )
-
-        if ScreeningProcedure.objects.filter(individual_screening=individual_screening).exists():
-          raise ValidationError({'non_field_errors': ['You already submitted your screening procedure. Please wait for it\'s feedback before submitting another.']})
-
-        screening_procedure = serializer.save(individual_screening=individual_screening)
-
-        # individual_screening.screening_procedure = screening_procedure
-        individual_screening.has_patient_response = True
-        individual_screening.response_description = 'Submitted screening procedure'
-        individual_screening.save()
-
-        # pre_screening_form = individual_screening.pre_screening_form
-
-        # CancerDiagnosis.objects.create(
-        #   patient=individual_screening.patient,
-        #   diagnosis=pre_screening_form.final_diagnosis,
-        #   date_diagnosed=pre_screening_form.date_of_diagnosis,
-        #   cancer_site=screening_procedure.cancer_site,
-        #   cancer_stage=pre_screening_form.staging,
-        # )
-
-        attachments = self.request.FILES.getlist('attachments')
-        for file in attachments:
+        
+        screening_attachments = self.request.FILES.getlist('screening_attachments')
+        for file in screening_attachments:
           validate_attachment(file)
           ScreeningAttachment.objects.create(
-            screening_procedure=screening_procedure,
+            individual_screening=instance,
             file=file
           )
 
@@ -128,8 +114,7 @@ class LOAAttachmentUploadView(APIView):
   permission_classes = [IsAuthenticated]
 
   def patch(self, request, procedure_id):
-    screening_procedure = get_object_or_404(ScreeningProcedure, id=procedure_id)
-    individual_screening = get_object_or_404(IndividualScreening, screening_procedure=screening_procedure)
+    individual_screening = get_object_or_404(IndividualScreening, id=procedure_id)
 
     if individual_screening.has_patient_response:
       raise ValidationError ({'non_field_errors': ['You can only submit once. Please wait for it\'s feedback before submitting again.']})
@@ -143,7 +128,7 @@ class LOAAttachmentUploadView(APIView):
     for file in attachments:
       validate_attachment(file)
       ScreeningAttachment.objects.create(
-        screening_procedure=screening_procedure,
+        individual_screening=individual_screening,
         file=file
       )
 

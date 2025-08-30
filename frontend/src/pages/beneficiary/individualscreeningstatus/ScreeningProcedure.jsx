@@ -10,6 +10,7 @@ import LoadingModal from "src/components/LoadingModal";
 
 const IndividualScreening = () => {
   const navigate = useNavigate();
+  const [ screeningID, setScreeningID ] = useState(null);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [ screening_procedure_name, setScreening_procedure_name ] = useState("");
   const [ procedure_details, setProcedure_details ] = useState("");
@@ -29,6 +30,27 @@ const IndividualScreening = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
   const [modalAction, setModalAction] = useState(null); 
+
+  useEffect(() => {
+    const fetchScreeningData = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/beneficiary/individual-screening/list/');
+        const screenings = response.data;
+        if (screenings.length > 0) {
+          const latestScreening = screenings[screenings.length - 1];
+          setScreeningID(latestScreening.id);
+        }
+      } catch (error) {
+        console.error("Error fetching screening data:", error);
+      }
+      finally {
+        setLoading(false);
+      }
+    };
+
+    fetchScreeningData();
+  }, []);
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -56,11 +78,11 @@ const IndividualScreening = () => {
   };
 
   const formData = new FormData();
-  formData.append("screening_procedure_name", screening_procedure_name);
+  formData.append("procedure_name", screening_procedure_name);
   formData.append("procedure_details", procedure_details);
   formData.append("cancer_site", cancer_site);
   uploadedFiles.forEach((item) => {
-    formData.append("attachments", item.file);
+    formData.append("screening_attachments", item.file);
   });
 
   const handleSubmit = async (e) => {
@@ -75,7 +97,7 @@ const IndividualScreening = () => {
     if (modalAction?.type === "submit") {
       try {
         setLoading(true);
-        const response = await api.post("/beneficiary/individual-screening/screening-procedure-form/", formData, {
+        const response = await api.patch(`/beneficiary/individual-screening/screening-procedure-form/${screeningID}/`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },

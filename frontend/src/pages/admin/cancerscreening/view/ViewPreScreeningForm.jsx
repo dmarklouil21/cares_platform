@@ -124,7 +124,7 @@ const ViewPreScreeningForm = () => {
       {/* <div className="w-full h-screen bg-[#F8F9FA] flex flex-col overflow-auto"> */}
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
         <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Pre Screening Form</h1>
+          <h1 className="text-md font-bold">Individual Screening</h1>
           <div className="p-3">
             <Link 
               to={"/Admin/cancerscreening/view/AdminIndividualScreeningView"}
@@ -157,9 +157,9 @@ const ViewPreScreeningForm = () => {
             className="border border-black/15 p-3 bg-white rounded-sm"
             // onSubmit={handleSave}
           >
-            <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
+            {/* <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
               <h1 className="text-md font-bold">Patient ID - {record?.patient.patient_id}</h1>
-            </div>
+            </div> */}
             <div className="flex flex-col gap-8">
               <div className="flex flex-row gap-8 mt-5">
                 <div className="flex flex-col gap-3 w-1/2">
