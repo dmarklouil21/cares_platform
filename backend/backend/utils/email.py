@@ -191,6 +191,42 @@ def send_return_remarks_email(patient, remarks):
     )
   except Exception as e:
     return str(e)
+  
+def send_loa_email(recipient_email, file_obj, patient_name=None):
+  """
+  Sends a Letter of Authorization (LOA) email with an attached file.
+
+  :param recipient_email: str - The email address of the patient.
+  :param file_obj: UploadedFile - The LOA file (from request.FILES).
+  :param patient_name: str - Optional, patient full name for personalization.
+  :return: True if success, or error string if failed.
+  """
+  try:
+    name_text = f"Dear <b>{patient_name}</b>," if patient_name else "Dear Patient,"
+
+    message = EmailMessage(
+      subject="RAFI-EJACC: Letter of Authorization (LOA) for Your Cancer Screening",
+      body=f"""
+          {name_text}<br><br>
+          We are pleased to inform you that your request for individual cancer screening has been approved.<br><br>
+          Please find attached your <b>Letter of Authorization (LOA)</b>. Kindly print and sign the document to proceed with your screening.<br><br>
+          Our team will contact you through email shortly once your screening date has been finalized.<br><br>
+          Thank you for your trust and cooperation.<br><br>
+          Best regards,<br>
+          <b>RAFI-EJACC Team</b>
+      """,
+      from_email=settings.DEFAULT_FROM_EMAIL,
+      to=[recipient_email],
+    )
+    message.content_subtype = "html"
+
+    # Attach uploaded file (works without saving to DB)
+    message.attach(file_obj.name, file_obj.read(), file_obj.content_type)
+
+    message.send(fail_silently=False)
+    return True
+  except Exception as e:
+    return str(e)
 
 
 # def send_individual_screening_status_email(patient, status, screening_date=None):

@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 
-from backend.utils.email import send_individual_screening_status_email, send_return_remarks_email
+from backend.utils.email import send_individual_screening_status_email, send_return_remarks_email, send_loa_email
 from apps.pre_enrollment.models import Beneficiary
 from apps.patient.models import Patient, CancerDiagnosis, HistoricalUpdate
 from apps.cancer_screening.models import ScreeningAttachment
@@ -192,6 +192,26 @@ class ResultDeleteView(APIView):
     individual_screening = get_object_or_404(IndividualScreening, id=screening_id)
     individual_screening.uploaded_result.delete()
     return Response({"message": "Attachment deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+
+class SendLOAView(APIView):
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def post(self, request):
+    file_obj = request.FILES.get("file")
+    email = request.data.get("email")
+    patient_name = request.data.get("patient_name")  # optional, from frontend
+
+    if not file_obj:
+      return Response({"error": "No LOA file uploaded."}, status=400)
+
+    if not email:
+      return Response({"error": "No recipient email provided."}, status=400)
+    
+    result = send_loa_email(email, file_obj, patient_name)
+
+    if result is True:
+      return Response({"message": "LOA sent successfully."}, status=200)
+    return Response({"error": f"Failed to send LOA: {result}"}, status=500)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

@@ -145,7 +145,7 @@ class ResultAttachmentUploadView(APIView):
     if individual_screening.uploaded_result and not request.user.is_superuser:
       raise ValidationError ({'non_field_errors': ['You can only submit once. Please wait for it\'s feedback before submitting again.']})
     
-    attachments = request.FILES.getlist('attachments')
+    attachments = request.FILES.getlist('screening_attachments')
 
     validate_attachment(attachments[0])
 

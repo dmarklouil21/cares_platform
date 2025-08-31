@@ -34,7 +34,7 @@ const IndividualScreening = () => {
   useEffect(() => {
     const fetchScreeningData = async () => {
       try {
-        setLoading(true);
+        // setLoading(true);
         const response = await api.get('/beneficiary/individual-screening/list/');
         const screenings = response.data;
         if (screenings.length > 0) {
@@ -96,18 +96,25 @@ const IndividualScreening = () => {
   const handleModalConfirm = async () => {
     if (modalAction?.type === "submit") {
       try {
+        setModalOpen(false);
         setLoading(true);
         const response = await api.patch(`/beneficiary/individual-screening/screening-procedure-form/${screeningID}/`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         });
-        setModalInfo({
-          type: "success",
-          title: "Success!",
-          message: "Your form was submitted.",
+
+        navigate("/Beneficiary/individualscreeningstatus", { 
+          state: { 
+            type: "success", message: "Submitted Successfully." 
+          } 
         });
-        setShowModal(true);
+        // setModalInfo({
+        //   type: "success",
+        //   title: "Success!",
+        //   message: "Your form was submitted.",
+        // });
+        // setShowModal(true);
       } catch (error) {
         let errorMessage = "Something went wrong while submitting the form."; 
 
@@ -313,7 +320,7 @@ const IndividualScreening = () => {
               </div>
               <div className="flex justify-between gap-5">
                 <Link
-                  to="/Beneficiary/individualscreeningstatus"
+                  to="/Beneficiary/services/cancer-screening"
                   className=" border  py-3 rounded-md text-center w-full hover:bg-black/10 hover:border-white"
                 >
                   Cancel

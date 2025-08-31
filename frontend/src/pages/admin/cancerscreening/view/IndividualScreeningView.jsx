@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import ConfirmationModal from "src/components/ConfirmationModal";
@@ -7,8 +7,11 @@ import LoadingModal from "src/components/LoadingModal";
 
 import api from "src/api/axiosInstance";
 
+import LOAPrintTemplate from "../download/LOAPrintTemplate";
+
 const IndividualScreeningView = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const record = location.state?.record;
 
   const [status, setStatus] = useState("");
@@ -38,6 +41,10 @@ const IndividualScreeningView = () => {
   // Remark Message Modal
   const [remarksModalOpen, setRemarksModalOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
+
+  // Send LOA Modal
+  const [sendLOAModalOpen, setSendLOAModalOpen] = useState(false);
+  const [loaFile, setLoaFile] = useState(null);
 
   useEffect(() => {
     if (record) {
@@ -75,6 +82,54 @@ const IndividualScreeningView = () => {
     setDateModalOpen(false);
   };
 
+  const handleSendLOA = async () => {
+    if (!loaFile) {
+      setSendLOAModalOpen(false);
+      setModalInfo({
+        type: "info",
+        title: "Note",
+        message: "Please select a file before sending.",
+      });
+      setShowModal(true);
+      return;
+    }
+    setSendLOAModalOpen(false);
+    setLoaFile(null);
+    
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", loaFile);
+      formData.append("patient_name", record.patient.full_name); 
+      formData.append("email", record.patient.email); 
+
+      await api.post(
+        `/cancer-screening/individual-screening/send-loa/`,
+        formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setModalInfo({
+        type: "success",
+        title: "LOA Sent",
+        message: "The LOA has been sent successfully.",
+      });
+      setShowModal(true);
+    } catch (error) {
+      setModalInfo({
+        type: "error",
+        title: "Failed",
+        message: "Something went wrong while sending the LOA.",
+      });
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleModalConfirm = async () => {
     if (modalAction?.newStatus) {
       setStatus(modalAction.newStatus);
@@ -88,13 +143,12 @@ const IndividualScreeningView = () => {
           `/cancer-screening/individual-screening/status-update/${record.id}/`,
           payload
         );
-
-        setModalInfo({
-          type: "success",
-          title: "Success!",
-          message: "Successfully updated status.",
+        navigate("/Admin/cancerscreening/AdminIndividualScreening", { 
+          state: { 
+            type: "success", message: "Updated Successfully." 
+          } 
         });
-        setShowModal(true);
+
       } catch (error) {
         setModalInfo({
           type: "error",
@@ -113,12 +167,12 @@ const IndividualScreeningView = () => {
           `/cancer-screening/individual-screening/status-update/${record.id}/`,
           { screening_date: screeningDate }
         );
-        setModalInfo({
-          type: "success",
-          title: "Success!",
-          message: "Screening date updated successfully.",
+
+        navigate("/Admin/cancerscreening/AdminIndividualScreening", { 
+          state: { 
+            type: "success", message: "Screening date updated Successfully." 
+          } 
         });
-        setShowModal(true);
       } catch (error) {
         setModalInfo({
           type: "error",
@@ -146,12 +200,12 @@ const IndividualScreeningView = () => {
           `/cancer-screening/individual-screening/return-remarks/${record.id}/`,
           { remarks }
         );
-        setModalInfo({
-          type: "success",
-          title: "Success!",
-          message: "Remarks sent successfully.",
+
+        navigate("/Admin/cancerscreening/AdminIndividualScreening", { 
+          state: { 
+            type: "success", message: "Return remarks sent." 
+          } 
         });
-        setShowModal(true);
       } catch {
         setModalInfo({
           type: "error",
@@ -172,12 +226,11 @@ const IndividualScreeningView = () => {
           `/cancer-screening/individual-screening/status-reject/${record.id}/`,
           { status: modalAction.newStatus, remarks }
         );
-        setModalInfo({
-          type: "success",
-          title: "Success!",
-          message: "Request rejected successfully.",
+        navigate("/Admin/cancerscreening/AdminIndividualScreening", { 
+          state: { 
+            type: "success", message: "Request Rejected." 
+          } 
         });
-        setShowModal(true);
       } catch {
         setModalInfo({
           type: "error",
@@ -282,13 +335,48 @@ const IndividualScreeningView = () => {
         </div>
       )}
 
-      {/* Screen layout */}
+      {/* Send LOA Modal */}
+      {sendLOAModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">Send LOA</h2>
+            
+            <p className="text-sm text-gray-600 mb-3">
+              Recipient: <span className="font-medium">{record.patient.email}</span>
+            </p>
+
+            <input
+              type="file"
+              accept="application/pdf"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none mb-4"
+              onChange={(e) => setLoaFile(e.target.files[0])}
+            />
+
+            <div className="flex justify-end gap-3">
+              <button
+                className="px-5 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                onClick={() => setSendLOAModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors"
+                onClick={handleSendLOA}
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Screen layout bg-lightblue */}
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
         {/* Header bar */}
-        <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
+        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Individual Screening</h1>
           <Link to={"/Admin/cancerscreening/AdminIndividualScreening"}>
-            <img src="/images/back.png" alt="Back" className="h-6" />
+            <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
           </Link>
         </div>
 
@@ -352,7 +440,7 @@ const IndividualScreeningView = () => {
                 >
                   <option value="Pending">Pending</option>
                   <option value="Approve">Approve</option>
-                  <option value="LOA Generation">LOA Generation</option>
+                  {/* <option value="LOA Generation">LOA Generation</option> */}
                   <option value="In Progress">In Progress</option>
                   <option value="Complete">Complete</option>
                   <option value="Return">Return</option>
@@ -404,12 +492,6 @@ const IndividualScreeningView = () => {
                 </Link>
               </div>
               <div className="flex gap-2">
-                <span className="font-medium w-40">Letter of Authority</span>
-                <span className="text-blue-700">
-                  View
-                </span>
-              </div>
-              <div className="flex gap-2">
                 <span className="font-medium w-40">Lab Results</span>
                 <Link 
                   className="text-blue-700"
@@ -422,17 +504,46 @@ const IndividualScreeningView = () => {
             </div>
           </div>
 
+          {/* Action Button */}
+          <div className="bg-white rounded-md shadow border border-black/10">
+            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+              <h2 className="text-lg font-semibold">LOA Actions</h2>
+            </div>
+            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Generate LOA</span>
+                <span 
+                  className="text-blue-700 cursor-pointer"
+                  onClick={() => window.print()}
+                >
+                  Download
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Send LOA</span>
+                <span 
+                  className="text-blue-700 cursor-pointer"
+                  onClick={() => setSendLOAModalOpen(true)}
+                  state={record}
+                >
+                  Send
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Navigation Links */}
-          <div className="w-full flex flex-col md:flex-row gap-3 justify-between">
-            {/* <Link
+          {/* <div className="w-full flex flex-col md:flex-row gap-3 justify-between">
+            <Link
               className="text-center font-bold bg-primary text-white py-2 w-full md:w-[23%] rounded-md shadow hover:opacity-90"
               to={"/Admin/cancerscreening/view/ViewResults"}
               state={record}
             >
               Save Changes
-            </Link> */}
-          </div>
+            </Link>
+          </div> */}
         </div>
+        <LOAPrintTemplate loaData={record} />
       </div>
     </>
   );

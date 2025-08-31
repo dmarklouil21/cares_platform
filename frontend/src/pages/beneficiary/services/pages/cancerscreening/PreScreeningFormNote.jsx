@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const NotePanel = ({ onAccept, onDecline }) => {
   return (
-    <div className="w-[75%] bg-gray flex flex-col h-screen gap-5 px-8 py-8 ">
+    <div className="w-full h-screen bg-gray flex flex-col h-screen gap-5 px-8 py-8 ">
       <div className="w-full flex justify-between">
         <h1 className="font-bold text-2xl">Indiviudal Screening Registration</h1>
         {/* <div className="flex text-right flex-col">
@@ -13,7 +13,8 @@ const NotePanel = ({ onAccept, onDecline }) => {
       </div>
       <div className="flex flex-col gap-5 bg-white w-full rounded-xl shadow px-8 py-6">
         <h1 className="font-bold text-[17px]">
-          NOTE: Completion of this form does not guarantee assistance from RAFI
+          NOTE: Before applying for this service, you must first complete the 
+          pre-screening form. Completion of this form does not guarantee assistance from RAFI
           and Eduardo J. Aboitiz Cancer Center (EJACC). All applications are
           subject to review by the EJACC team.
           <br />

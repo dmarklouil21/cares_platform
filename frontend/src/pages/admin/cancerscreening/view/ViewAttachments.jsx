@@ -211,7 +211,7 @@ const ViewAttachments = () => {
       />
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-        <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
+        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Individual Screening</h1>
           <div className="p-3">
             <Link 
@@ -296,21 +296,21 @@ const ViewAttachments = () => {
           </div>
           {files.length !== 0 && (
             <div className="w-full flex justify-around">
-            <button
-              onClick={handleAddFile}
-              className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
-              // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Add File
-            </button>
-            <button
-              onClick={handleSave}
-              className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-              // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Save
-            </button>
-          </div>
+              <button
+                onClick={handleAddFile}
+                className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+                // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Add File
+              </button>
+              <button
+                onClick={handleSave}
+                className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+                // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Save
+              </button>
+            </div>
           )}
         </div>
       </div>

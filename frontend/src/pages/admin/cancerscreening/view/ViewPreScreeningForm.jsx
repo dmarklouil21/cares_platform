@@ -123,7 +123,7 @@ const ViewPreScreeningForm = () => {
       <LoadingModal open={loading} text="Submitting changes..." />
       {/* <div className="w-full h-screen bg-[#F8F9FA] flex flex-col overflow-auto"> */}
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
-        <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
+        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Individual Screening</h1>
           <div className="p-3">
             <Link 
