@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import ConfirmationModal from "src/components/ConfirmationModal";
 import { useNavigate } from "react-router-dom";
+import {
+  listPreCancerousMeds,
+  cancelPreCancerousMeds,
+} from "src/api/precancerous";
 
 // ---- Inline Sample Data (Pre-cancerous Meds applications) ----
 const SAMPLE_PRE_CANCEROUS_APPS = [
@@ -68,9 +72,28 @@ const PreCancerStatus = () => {
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null); // { type: "cancel", id }
 
-  // Simulate fetch from server, but using inline sample data
+  // Fetch from API
   const fetchData = async () => {
-    setTableData(SAMPLE_PRE_CANCEROUS_APPS);
+    try {
+      const data = await listPreCancerousMeds();
+      const mapped = (Array.isArray(data) ? data : []).map((item) => ({
+        id: item.id,
+        patientNo: item.patient_id,
+        lastName: item.last_name,
+        firstName: item.first_name,
+        middleInitial: item.middle_initial || "",
+        dateOfBirth: item.date_of_birth,
+        interpretationOfResult: item.interpretation_of_result,
+        status: item.status,
+        created_at: item.created_at,
+      }));
+      setTableData(mapped);
+    } catch (e) {
+      // fallback to sample if API fails
+      setTableData(SAMPLE_PRE_CANCEROUS_APPS);
+      setNotification("Unable to load applications. Showing sample data.");
+      setTimeout(() => setNotification(""), 3000);
+    }
   };
 
   useEffect(() => {
@@ -87,16 +110,25 @@ const PreCancerStatus = () => {
 
   const handleModalConfirm = async () => {
     if (modalAction?.type === "cancel") {
-      // update local status to Cancelled
-      setTableData((prev) =>
-        prev.map((r) =>
-          r.id === modalAction.id ? { ...r, status: "Cancelled" } : r
-        )
-      );
-
-      // show top-center notification only
-      setNotification("Application cancelled successfully.");
-      setTimeout(() => setNotification(""), 3000);
+      try {
+        const res = await cancelPreCancerousMeds(modalAction.id);
+        // map response back to row shape
+        setTableData((prev) =>
+          prev.map((r) =>
+            r.id === modalAction.id
+              ? {
+                  ...r,
+                  status: res?.status || "Cancelled",
+                }
+              : r
+          )
+        );
+        setNotification("Application cancelled successfully.");
+      } catch (e) {
+        setNotification("Failed to cancel application.");
+      } finally {
+        setTimeout(() => setNotification(""), 3000);
+      }
     }
 
     setModalOpen(false);
@@ -110,27 +142,12 @@ const PreCancerStatus = () => {
     setModalAction(null);
   };
 
-  // View — navigate and pass a patient object that matches AdminprecancerousView.jsx needs
+  // View — navigate by id; detail page will fetch full record from API
   const handleView = (id) => {
     const app = tableData.find((r) => r.id === id);
     if (!app) return;
 
-    const patient = {
-      patient_id: app.patientNo,
-      first_name: app.firstName,
-      last_name: app.lastName,
-      middle_initial: app.middleInitial || "",
-      date_of_birth: app.dateOfBirth,
-      status: (app.status || "").toLowerCase(),
-      interpretation_of_result: app.interpretationOfResult,
-      // ✅ Pass the release date so the view can display it
-      release_date_of_meds: app.release_date_of_meds,
-    };
-
-    // You can keep the :id segment or remove it if your route doesn't use params
-    navigate(`/Beneficiary/applicationstatus/view/precancerous/${id}`, {
-      state: { patient },
-    });
+    navigate(`/Beneficiary/applicationstatus/view/precancerous/${id}`);
   };
 
   // Helpers
@@ -220,7 +237,7 @@ const PreCancerStatus = () => {
               >
                 <option value="All">All</option>
                 <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
+                <option value="Verified">Verified</option>
                 <option value="Rejected">Rejected</option>
                 <option value="Cancelled">Cancelled</option>
               </select>
@@ -303,6 +320,11 @@ const PreCancerStatus = () => {
                             {app.status === "Pending" && (
                               <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#FFEFD5] text-[#FF8C00]">
                                 Pending
+                              </span>
+                            )}
+                            {app.status === "Verified" && (
+                              <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-700">
+                                Verified
                               </span>
                             )}
                             {app.status === "Approved" && (

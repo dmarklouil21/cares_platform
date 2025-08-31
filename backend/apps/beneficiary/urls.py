@@ -13,4 +13,8 @@ urlpatterns = [
   path('individual-screening/list/', views.IndividualScreeningListView.as_view(), name='individual_screening_list_view'),
   path('individual-screening/<int:id>/', views.IndividualScreeningDetailView.as_view(), name='individual_screening_view'),
   path('individual-screening/cancel-request/<str:id>/', views.IndividualScreeningCancelRequestView.as_view(), name='individual_screening_cancel'),
+  path('precancerous-meds/submit/', views.PreCancerousMedsCreateView.as_view(), name='precancerous_meds_submit'),
+  path('precancerous-meds/list/', views.PreCancerousMedsListView.as_view(), name='precancerous_meds_list'),
+  path('precancerous-meds/<int:id>/', views.PreCancerousMedsDetailView.as_view(), name='precancerous_meds_detail'),
+  path('precancerous-meds/cancel/<int:id>/', views.PreCancerousMedsCancelView.as_view(), name='precancerous_meds_cancel'),
 ]

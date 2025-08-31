@@ -4,6 +4,32 @@ from django.core.files.base import ContentFile
 
 import os
 
+# ---------------------------
+# Helpers
+# ---------------------------
+def _extract_contact_info(entity):
+  """Return (first_name, last_name, email) for a Patient/Beneficiary-like object.
+
+  Priority for email:
+  1) entity.beneficiary.user.email
+  2) entity.user.email
+  3) entity.beneficiary.email
+  4) entity.email
+  """
+  # Names
+  first_name = getattr(getattr(entity, 'beneficiary', None), 'first_name', None) or getattr(entity, 'first_name', '')
+  last_name = getattr(getattr(entity, 'beneficiary', None), 'last_name', None) or getattr(entity, 'last_name', '')
+
+  # Email resolution with safe getattr chain
+  email = (
+    getattr(getattr(getattr(entity, 'beneficiary', None), 'user', None), 'email', None)
+    or getattr(getattr(entity, 'user', None), 'email', None)
+    or getattr(getattr(entity, 'beneficiary', None), 'email', None)
+    or getattr(entity, 'email', None)
+  )
+
+  return first_name, last_name, email
+
 def send_registration_email(user, password):
   try:
     send_mail(
@@ -63,6 +89,9 @@ def send_registration_email(user, password):
   
 def send_individual_screening_status_email(patient, status, screening_date=None, remarks=None):
   try:
+    first_name, last_name, recipient_email = _extract_contact_info(patient)
+    if not recipient_email:
+      raise ValueError("Recipient email not found for patient.")
     # Friendly but professional messages
     status_messages = {
       "Approve": (
@@ -120,6 +149,7 @@ def send_individual_screening_status_email(patient, status, screening_date=None,
                 
                 <!-- Content -->
                 <div style="padding: 30px;">
+
                     <p style="margin: 0 0 15px 0;">Dear <b>{patient.first_name} {patient.last_name}</b>,</p>
                     
                     <!-- Status Badge -->
@@ -150,6 +180,9 @@ def send_individual_screening_status_email(patient, status, screening_date=None,
 
 def send_return_remarks_email(patient, remarks):
   try:
+    first_name, last_name, recipient_email = _extract_contact_info(patient)
+    if not recipient_email:
+      raise ValueError("Recipient email not found for patient.")
     subject = "Return Remarks for Your Cancer Screening"
     # message = (
     #   f"Dear {patient.beneficiary.first_name},\n\n"
@@ -165,7 +198,7 @@ def send_return_remarks_email(patient, remarks):
       subject=subject,
       message='',
       from_email=settings.DEFAULT_FROM_EMAIL,  # Sender email
-      recipient_list=[patient.user.email],  # Recipient list
+      recipient_list=[recipient_email],  # Recipient list
       fail_silently=False,
       html_message=f"""
         <div style='font-family: Arial, sans-serif; color: #222;'>
@@ -174,7 +207,7 @@ def send_return_remarks_email(patient, remarks):
               <h2 style='color: #fff; text-align: center; margin: 0;'>Return Remarks</h2>
             </div>
             <div style='background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;'>
-              <p>Dear <b>{patient.first_name} {patient.last_name}</b>,</p>
+              <p>Dear <b>{first_name} {last_name}</b>,</p>
               <p>Your cancer screening submission has been reviewed, and we have some remarks for your attention:</p>
               <div style='background: #fff3cd; padding: 15px; border-radius: 6px; list-style: none;'>
                 <span><b>{remarks}</b></span>
@@ -228,6 +261,69 @@ def send_loa_email(recipient_email, file_obj, patient_name=None):
   except Exception as e:
     return str(e)
 
+
+def send_precancerous_meds_status_email(patient, status, release_date=None, remarks=None, med_request=None):
+  try:
+    # Prefer explicit names from PreCancerousMedsRequest when available
+    if med_request is not None:
+      first_name = getattr(med_request, 'first_name', '') or ''
+      last_name = getattr(med_request, 'last_name', '') or ''
+      # Email still resolved from patient record
+      _, _, recipient_email = _extract_contact_info(patient)
+    else:
+      first_name, last_name, recipient_email = _extract_contact_info(patient)
+    if not recipient_email:
+      raise ValueError("Recipient email not found for patient.")
+    status_messages = {
+      "Verified": (
+        "Your pre-cancerous medication application has been <b>verified</b>. "
+        + (f"You may claim your meds starting on <b>{release_date.strftime('%B %d, %Y')}</b>. " if hasattr(release_date, 'strftime') else "")
+        + "Please monitor your account for any updates."
+      ),
+      "Rejected": (
+        "Unfortunately, your pre-cancerous medication application has been <b>rejected</b>. "
+        + (f"<br><br><b>Remarks:</b> {remarks}" if remarks else "")
+      ),
+    }
+
+    message_body = status_messages.get(status, "Your application status has been updated.")
+
+    status_colors = {
+      "Verified": "#28a745",
+      "Rejected": "#dc3545",
+    }
+    badge_color = status_colors.get(status, "#6c757d")
+
+    send_mail(
+      subject="RAFI-EJACC: Pre-Cancerous Meds Application Update",
+      message="",
+      from_email=settings.DEFAULT_FROM_EMAIL,
+      recipient_list=[recipient_email],
+      fail_silently=False,
+      html_message=f"""
+        <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
+          <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+            <div style="background: #005baa; padding: 20px; text-align: center;">
+              <img src="https://rafi.org.ph/wp-content/uploads/2021/03/RAFI-LOGO-1.png" alt="RAFI Logo" style="height: 50px; display: block; margin: 0 auto 10px;">
+              <h2 style="color: #fff; margin: 0; font-weight: normal;">Pre-Cancerous Meds Application</h2>
+            </div>
+            <div style="padding: 30px;">
+              <p style="margin: 0 0 15px 0;">Dear <b>{first_name} {last_name}</b>,</p>
+              <div style="display: inline-block; background: {badge_color}; color: white; padding: 5px 12px; border-radius: 12px; font-size: 14px; margin-bottom: 15px;">{status}</div>
+              <p style="font-size: 15px; line-height: 1.6; color: #333;">{message_body}</p>
+              <a href="/login" style="display: inline-block; margin-top: 20px; padding: 12px 20px; background: #005baa; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">View Your Application</a>
+            </div>
+            <div style="background: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+              <p>If you have any questions, please contact our support team at <a href="mailto:no-reply@gmail.com" style="color: #005baa;">no-reply@gmail.com</a>.</p>
+              <p>This is an automated message from RAFI-EJACC. Please do not reply directly to this email.</p>
+            </div>
+          </div>
+        </div>
+      """
+    )
+    return True
+  except Exception as e:
+    return str(e)
 
 # def send_individual_screening_status_email(patient, status, screening_date=None):
 #   try:

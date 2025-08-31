@@ -8,15 +8,26 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 
-from backend.utils.email import send_individual_screening_status_email, send_return_remarks_email, send_loa_email
+from backend.utils.email import (
+  send_individual_screening_status_email,
+  send_return_remarks_email, send_loa_email,
+  send_precancerous_meds_status_email,
+)
+
 from apps.pre_enrollment.models import Beneficiary
 from apps.patient.models import Patient, CancerDiagnosis, HistoricalUpdate
 from apps.cancer_screening.models import ScreeningAttachment
+from apps.precancerous.models import PreCancerousMedsRequest
+
 from .models import IndividualScreening, PreScreeningForm
+
 from .serializers import (
   PreScreeningFormSerializer,
   IndividualScreeningSerializer,
-  ScreeningAttachmentSerializer
+  ScreeningAttachmentSerializer,
+  PreCancerousMedsRequestSerializer,
+  PreCancerousMedsReleaseDateSerializer,
+  PreCancerousMedsAdminStatusSerializer,
 )
 
 import logging
@@ -233,26 +244,95 @@ def send_return_remarks(request, id):
 
   return Response({"message": "Return remarks sent and saved successfully.", "remarks": remarks})
 
+# ---------------------------------------------
+# Admin: Pre-Cancerous Meds Requests Management
+# ---------------------------------------------
+class AdminPreCancerousMedsListView(generics.ListAPIView):
+  serializer_class = PreCancerousMedsRequestSerializer
+  permission_classes = [IsAuthenticated, IsAdminUser]
 
-""" if status == 'LOA Generation':
-      pdf_bytes, file_name = generate_loa_pdf(instance)
-      send_loa_email(patient.beneficiary.user.email, pdf_bytes, file_name) """
+  def get_queryset(self):
+    qs = PreCancerousMedsRequest.objects.all().order_by('-created_at')
+    status_filter = self.request.query_params.get('status')
+    if status_filter:
+      qs = qs.filter(status=status_filter)
+    patient_id = self.request.query_params.get('patient_id')
+    if patient_id:
+      qs = qs.filter(patient__patient_id=patient_id)
+    return qs
 
-""" class UploadLOAGenerated(generics.UpdateAPIView):
-  queryset = IndividualScreening.objects.all()
-  parser_classes = [MultiPartParser, FormParser]
-  serializer_class = IndividualScreeningSerializer
+class AdminPreCancerousMedsDetailView(generics.RetrieveAPIView):
+  queryset = PreCancerousMedsRequest.objects.all()
+  serializer_class = PreCancerousMedsRequestSerializer
+  permission_classes = [IsAuthenticated, IsAdminUser]
+  lookup_field = 'id'
 
-  permission_classes = [IsAuthenticated]
+class AdminPreCancerousMedsSetReleaseDateView(generics.UpdateAPIView):
+  queryset = PreCancerousMedsRequest.objects.all()
+  serializer_class = PreCancerousMedsReleaseDateSerializer
+  permission_classes = [IsAuthenticated, IsAdminUser]
+  lookup_field = 'id'
 
-  def get_object(self):
-    user = self.request.user
-    patient = get_object_or_404(Patient, beneficiary__user=user)
-    return get_object_or_404(IndividualScreening, patient=patient)
-  
-  def update(self, request, *args, **kwargs):
+  def perform_update(self, serializer):
     instance = self.get_object()
-    instance.status = "LOA Uploaded" 
-    instance.save() 
+    if instance.status not in ['Pending', 'Verified']:
+      raise ValidationError({'non_field_errors': ['Release date can only be set while Pending or Verified.']})
+    serializer.save()
 
-    return super().update(request, *args, **kwargs) """
+class AdminPreCancerousMedsVerifyView(APIView):
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def patch(self, request, id):
+    obj = get_object_or_404(PreCancerousMedsRequest, id=id)
+
+    # Allow passing release_date_of_meds here or require pre-set
+    release_date = request.data.get('release_date_of_meds')
+    if release_date:
+      # Reuse serializer validation for date format
+      date_serializer = PreCancerousMedsReleaseDateSerializer(instance=obj, data={'release_date_of_meds': release_date}, partial=True)
+      date_serializer.is_valid(raise_exception=True)
+      date_serializer.save()
+
+    if not obj.release_date_of_meds:
+      return Response({'detail': 'release_date_of_meds is required to verify.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    obj.status = 'Verified'
+    obj.save(update_fields=['status'])
+
+    email_status = send_precancerous_meds_status_email(
+      patient=obj.patient,
+      status='Verified',
+      release_date=obj.release_date_of_meds,
+      med_request=obj,
+    )
+    if email_status is not True:
+      logger.error(f"Email failed to send: {email_status}")
+
+    return Response(PreCancerousMedsRequestSerializer(obj).data, status=status.HTTP_200_OK)
+
+class AdminPreCancerousMedsRejectView(APIView):
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def patch(self, request, id):
+    obj = get_object_or_404(PreCancerousMedsRequest, id=id)
+    serializer = PreCancerousMedsAdminStatusSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    status_value = serializer.validated_data['status']
+    remarks = serializer.validated_data.get('remarks', '')
+
+    if status_value != 'Rejected':
+      return Response({'detail': 'Invalid status for this action.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    obj.status = 'Rejected'
+    obj.save(update_fields=['status'])
+
+    email_status = send_precancerous_meds_status_email(
+      patient=obj.patient,
+      status='Rejected',
+      remarks=remarks,
+      med_request=obj,
+    )
+    if email_status is not True:
+      logger.error(f"Email failed to send: {email_status}")
+
+    return Response(PreCancerousMedsRequestSerializer(obj).data, status=status.HTTP_200_OK)

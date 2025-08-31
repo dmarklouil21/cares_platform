@@ -1,59 +1,9 @@
 // src/pages/treatment/AdminprecancerousView.jsx
-import React, { useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
+import { getPreCancerousMedsDetail } from "src/api/precancerous";
 
-// ----- inline sample data (fallback; list can pass selected via location.state) -----
-const SAMPLE_PATIENTS = [
-  {
-    patient_id: "P-0001",
-    first_name: "Maria",
-    last_name: "Dela Cruz",
-    middle_initial: "S.",
-    date_of_birth: "1990-05-12",
-    status: "pending",
-    interpretation_of_result: "HPV Positive",
-    release_date_of_meds: "2025-04-20", // NEW
-  },
-  {
-    patient_id: "P-0002",
-    first_name: "Jose",
-    last_name: "Garcia",
-    middle_initial: "R.",
-    date_of_birth: "1987-11-03",
-    status: "pending",
-    interpretation_of_result: "ASC-US",
-    release_date_of_meds: "2025-04-22", // NEW
-  },
-  {
-    patient_id: "P-0003",
-    first_name: "Kimberly",
-    last_name: "Ytac",
-    middle_initial: "F.",
-    date_of_birth: "1999-02-22",
-    status: "verified",
-    interpretation_of_result: "Negative",
-    release_date_of_meds: null, // NEW (not yet released)
-  },
-  {
-    patient_id: "P-0004",
-    first_name: "Stayve",
-    last_name: "Alreach",
-    middle_initial: "",
-    date_of_birth: "2001-07-15",
-    status: "rejected",
-    interpretation_of_result: "Unsatisfactory",
-    release_date_of_meds: null, // NEW (not applicable)
-  },
-];
-
-// ----- header info (as in your card screenshot) -----
-const REQUEST_INFO = {
-  lgu_name: "City of Cebu",
-  date: new Date().toISOString().split("T")[0], // YYYY-MM-DD
-  contact_number: "032-123-4567",
-  prepared_by: "Nurse Jane Doe",
-  approved_by: "Dr. Juan Dela Cruz",
-};
+// No inline samples; detail view will use navigation state if present, otherwise fetch from API
 
 const formatLongDate = (d) => {
   if (!d) return "—";
@@ -68,22 +18,51 @@ const formatLongDate = (d) => {
 };
 
 const PreCancerousView = () => {
-  const { patient_id } = useParams();
+  const { id } = useParams();
   const location = useLocation();
 
-  // prefer data passed from list (reflects current status), else fallback
-  const patient = useMemo(() => {
-    return (
-      location.state?.patient ||
-      SAMPLE_PATIENTS.find((p) => p.patient_id === patient_id)
-    );
-  }, [location.state, patient_id]);
+  const [patient, setPatient] = useState(location.state?.patient || null);
+  const [loading, setLoading] = useState(!location.state?.patient);
+  const [error, setError] = useState("");
 
-  if (!patient) {
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      if (patient) return; // already provided via navigation state
+      try {
+        setLoading(true);
+        const data = await getPreCancerousMedsDetail(id);
+        if (!active) return;
+        setPatient(data || null);
+      } catch (e) {
+        if (!active) return;
+        setError("Unable to load request details.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  if (loading) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-[#F8F9FA]">
         <div className="bg-white p-6 rounded shadow">
-          <p className="font-semibold">Patient not found.</p>
+          <p className="font-semibold">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !patient) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-[#F8F9FA]">
+        <div className="bg-white p-6 rounded shadow">
+          <p className="font-semibold">{error || "Request not found."}</p>
         </div>
       </div>
     );
@@ -110,25 +89,23 @@ const PreCancerousView = () => {
           <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
             <div className="flex gap-2">
               <span className="font-medium w-40">LGU Name</span>
-              <span className="text-gray-700">{REQUEST_INFO.lgu_name}</span>
+              <span className="text-gray-700">{patient.lgu_name || "—"}</span>
             </div>
             <div className="flex gap-2">
               <span className="font-medium w-40">Date</span>
-              <span className="text-gray-700">{REQUEST_INFO.date}</span>
+              <span className="text-gray-700">{patient.date || "—"}</span>
             </div>
             <div className="flex gap-2">
               <span className="font-medium w-40">Contact Number</span>
-              <span className="text-gray-700">
-                {REQUEST_INFO.contact_number}
-              </span>
+              <span className="text-gray-700">{patient.contact_number || "—"}</span>
             </div>
             <div className="flex gap-2">
               <span className="font-medium w-40">Prepared by</span>
-              <span className="text-gray-700">{REQUEST_INFO.prepared_by}</span>
+              <span className="text-gray-700">{patient.prepared_by || "—"}</span>
             </div>
             <div className="flex gap-2">
               <span className="font-medium w-40">Approved by</span>
-              <span className="text-gray-700">{REQUEST_INFO.approved_by}</span>
+              <span className="text-gray-700">{patient.approved_by || "—"}</span>
             </div>
 
             {/* NEW: Release Date of Meds */}
