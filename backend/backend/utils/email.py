@@ -107,7 +107,7 @@ def send_individual_screening_status_email(patient, status, screening_date=None,
       subject="RAFI-EJACC: Screening Status Update",
       message="",  # Plain text fallback if needed
       from_email=settings.DEFAULT_FROM_EMAIL,
-      recipient_list=[patient.beneficiary.user.email],
+      recipient_list=[patient.user.email],
       fail_silently=False,
       html_message=f"""
         <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
@@ -120,7 +120,7 @@ def send_individual_screening_status_email(patient, status, screening_date=None,
                 
                 <!-- Content -->
                 <div style="padding: 30px;">
-                    <p style="margin: 0 0 15px 0;">Dear <b>{patient.beneficiary.first_name} {patient.beneficiary.last_name}</b>,</p>
+                    <p style="margin: 0 0 15px 0;">Dear <b>{patient.first_name} {patient.last_name}</b>,</p>
                     
                     <!-- Status Badge -->
                     <div style="display: inline-block; background: {badge_color}; color: white; padding: 5px 12px; border-radius: 12px; font-size: 14px; margin-bottom: 15px;">
@@ -165,7 +165,7 @@ def send_return_remarks_email(patient, remarks):
       subject=subject,
       message='',
       from_email=settings.DEFAULT_FROM_EMAIL,  # Sender email
-      recipient_list=[patient.beneficiary.user.email],  # Recipient list
+      recipient_list=[patient.user.email],  # Recipient list
       fail_silently=False,
       html_message=f"""
         <div style='font-family: Arial, sans-serif; color: #222;'>
@@ -174,7 +174,7 @@ def send_return_remarks_email(patient, remarks):
               <h2 style='color: #fff; text-align: center; margin: 0;'>Return Remarks</h2>
             </div>
             <div style='background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;'>
-              <p>Dear <b>{patient.beneficiary.first_name} {patient.beneficiary.last_name}</b>,</p>
+              <p>Dear <b>{patient.first_name} {patient.last_name}</b>,</p>
               <p>Your cancer screening submission has been reviewed, and we have some remarks for your attention:</p>
               <div style='background: #fff3cd; padding: 15px; border-radius: 6px; list-style: none;'>
                 <span><b>{remarks}</b></span>
@@ -189,6 +189,42 @@ def send_return_remarks_email(patient, remarks):
           </div>
       """
     )
+  except Exception as e:
+    return str(e)
+  
+def send_loa_email(recipient_email, file_obj, patient_name=None):
+  """
+  Sends a Letter of Authorization (LOA) email with an attached file.
+
+  :param recipient_email: str - The email address of the patient.
+  :param file_obj: UploadedFile - The LOA file (from request.FILES).
+  :param patient_name: str - Optional, patient full name for personalization.
+  :return: True if success, or error string if failed.
+  """
+  try:
+    name_text = f"Dear <b>{patient_name}</b>," if patient_name else "Dear Patient,"
+
+    message = EmailMessage(
+      subject="RAFI-EJACC: Letter of Authorization (LOA) for Your Cancer Screening",
+      body=f"""
+          {name_text}<br><br>
+          We are pleased to inform you that your request for individual cancer screening has been approved.<br><br>
+          Please find attached your <b>Letter of Authorization (LOA)</b>. Kindly print and sign the document to proceed with your screening.<br><br>
+          Our team will contact you through email shortly once your screening date has been finalized.<br><br>
+          Thank you for your trust and cooperation.<br><br>
+          Best regards,<br>
+          <b>RAFI-EJACC Team</b>
+      """,
+      from_email=settings.DEFAULT_FROM_EMAIL,
+      to=[recipient_email],
+    )
+    message.content_subtype = "html"
+
+    # Attach uploaded file (works without saving to DB)
+    message.attach(file_obj.name, file_obj.read(), file_obj.content_type)
+
+    message.send(fail_silently=False)
+    return True
   except Exception as e:
     return str(e)
 

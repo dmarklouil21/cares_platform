@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "src/context/AuthContext";
 
@@ -10,6 +10,7 @@ import LoadingModal from "src/components/LoadingModal";
 
 const PreScreeningForm = () => {
   // Notification Modal
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState({
     type: "success",
@@ -68,21 +69,17 @@ const PreScreeningForm = () => {
           }
         }
 
+        setModalOpen(false);
         setLoading(true);
         const response = await api.post("/beneficiary/individual-screening/pre-screening-form/", data);
-        setModalInfo({
-          type: "success",
-          title: "Success!",
-          message: "Your form was submitted.",
+
+        navigate("/Beneficiary/individualscreeningstatus", { 
+          state: { 
+            type: "success", message: "Submitted Successfully." 
+          } 
         });
-        setShowModal(true);
+
       } catch (error) {
-        /* setModalInfo({
-          type: "error",
-          title: "Submission Failed",
-          message: "Something went wrong while submitting the form.",
-        });
-        setShowModal(true); */
         let errorMessage = "Something went wrong while submitting the form."; 
 
         if (error.response && error.response.data) {
@@ -178,11 +175,10 @@ const PreScreeningForm = () => {
                 </div>
                 <div className="flex gap-2 flex-col">
                   <label>Chief Complaint</label>
-                  <input
-                    type="text"
+                  <textarea
                     name="chief_complaint"
                     className="border-[#6B7280] border-[1px] rounded-md p-2 resize-none h-28"
-                  />
+                  ></textarea>
                 </div>
                 <div className="flex gap-2 flex-col">
                   <label>Date of Consultation / Admission</label>

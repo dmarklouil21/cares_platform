@@ -1,17 +1,27 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import api from "src/api/axiosInstance";
+
 import ConfirmationModal from "src/components/ConfirmationModal";
 import NotificationModal from "src/components/NotificationModal";
+import Notification from "src/components/Notification";
 import LoadingModal from "src/components/LoadingModal";
 import { Info } from "lucide-react"; 
 
 const IndividualScreening = () => {
+  const location = useLocation();
+  // Filters and Table Data
   const [statusFilter, setStatusFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [tableData, setTableData] = useState([]);
   const navigate = useNavigate();
+
+  // Notification 
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState(location.state?.type || "");
+  const [notificationMessage, setNotificationMessage] = useState(location.state?.message || "");
 
   // Notification Modal
   const [showModal, setShowModal] = useState(false);
@@ -27,6 +37,16 @@ const IndividualScreening = () => {
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null); 
 
+  useEffect(() => {
+    if (notificationType && notificationMessage) {
+      setNotification(notificationMessage);
+
+      navigate(location.pathname, { replace: true, state: {} });
+
+      setTimeout(() => setNotification(""), 2000);
+    }
+  }, [notificationType, notificationMessage, navigate, location.pathname]);
+  
   const fetchData = async () => {
     try {
       const response = await api.get("/cancer-screening/individual-screening-list/");
@@ -67,12 +87,11 @@ const IndividualScreening = () => {
         setModalOpen(false);
         setLoading(true);
         const response = await api.delete(`/cancer-screening/individual-screening/delete/${modalAction.id}/`);
-        setModalInfo({
-          type: "success",
-          title: "Success!",
-          message: "Deleted Successfully.",
-        });
-        setShowModal(true);
+        
+        setNotificationMessage("Deleted Successfully.");
+        setNotificationType("success");
+        setNotification(notificationMessage);
+        setTimeout(() => setNotification(""), 2000);
       } catch (error) {
         setModalInfo({
           type: "error",
@@ -129,10 +148,21 @@ const IndividualScreening = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
+      <Notification 
+        message={notification} 
+        type={notificationType}
+      />
       <LoadingModal open={loading} text="Submitting changes..." />
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
         <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Admin</h1>
+          <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
+            <img
+              src="/images/Avatar.png"
+              alt="User Profile"
+              className="rounded-full"
+            />
+          </div>
         </div>
         <div className="w-full flex-1 py-5 flex flex-col justify-around px-5">
           <h2 className="text-xl font-bold text-left w-full pl-5">

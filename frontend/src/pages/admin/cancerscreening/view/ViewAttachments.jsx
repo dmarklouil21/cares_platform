@@ -26,8 +26,8 @@ const ViewAttachments = () => {
   const [modalAction, setModalAction] = useState(null); 
 
   useEffect(() => {
-    if (record.screening_procedure) {
-      const serverFiles = record.screening_procedure.attachments.map((fileObj) => {
+    if (record) {
+      const serverFiles = record.screening_attachments.map((fileObj) => {
         const fileUrl = fileObj.file;
         const fileName = fileUrl.split("/").pop();
         const fileExtension = fileName.split(".").pop().toLowerCase();
@@ -63,7 +63,6 @@ const ViewAttachments = () => {
     input.click();
   };
 
-  console.log("Files: ", files)
   const handleDelete = async (index, e) => {
     e.stopPropagation();
 
@@ -75,7 +74,6 @@ const ViewAttachments = () => {
   const handleModalConfirm = async () => {
     if (modalAction?.type === "delete") {
       const fileToDelete = modalAction.file;
-      console.log("Attachment ID: ", fileToDelete.id)
 
       if (!fileToDelete) {
         console.error("No file found for deletion.");
@@ -124,15 +122,15 @@ const ViewAttachments = () => {
       files.forEach((item) => {
         if (item.fileObject) {
           // Only include new files (not existing ones already saved on the backend)
-          formData.append("attachments", item.fileObject);
+          formData.append("screening_attachments", item.fileObject);
         }
       });
 
-      if (formData.has("attachments")) {
+      if (formData.has("screening_attachments")) {
         try {
           setLoading(true);
           setModalOpen(false);
-          await api.patch(`/cancer-screening/individual-screening/attachments-update/${record.screening_procedure.id}/`, formData, {
+          await api.patch(`/cancer-screening/individual-screening/attachments-update/${record.id}/`, formData, {
             headers: {
               "Content-Type": "multipart/form-data",
             },
@@ -213,8 +211,8 @@ const ViewAttachments = () => {
       />
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-        <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Attachments</h1>
+        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+          <h1 className="text-md font-bold">Individual Screening</h1>
           <div className="p-3">
             <Link 
               to={"/Admin/cancerscreening/view/AdminIndividualScreeningView"}
@@ -230,9 +228,9 @@ const ViewAttachments = () => {
         </div>
         <div className="h-full w-full p-5 flex flex-col justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
-            <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
+            {/* <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
               <h1 className="text-md font-bold">Patient ID - {record?.patient.patient_id}</h1>
-            </div>
+            </div> */}
             {files.length === 0 ? (
               <div className="flex-1 flex flex-col justify-center items-center bg-white rounded-[4px] py-10 px-8 text-center">
                 <h2 className="text-2xl font-semibold text-gray-600">No Attachment Files Found</h2>
@@ -298,21 +296,21 @@ const ViewAttachments = () => {
           </div>
           {files.length !== 0 && (
             <div className="w-full flex justify-around">
-            <button
-              onClick={handleAddFile}
-              className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
-              // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Add File
-            </button>
-            <button
-              onClick={handleSave}
-              className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-              // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Save
-            </button>
-          </div>
+              <button
+                onClick={handleAddFile}
+                className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+                // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Add File
+              </button>
+              <button
+                onClick={handleSave}
+                className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+                // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Save
+              </button>
+            </div>
           )}
         </div>
       </div>

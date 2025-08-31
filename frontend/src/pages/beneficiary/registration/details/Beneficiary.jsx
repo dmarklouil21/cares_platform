@@ -55,7 +55,13 @@ const Info101 = () => {
       typeof val === "boolean" ? val === true : val.trim() !== ""
     );
     if (!isValid) {
-      alert("Please fill in all fields and agree to the privacy notice.");
+      // alert("Please fill in all fields and agree to the privacy notice.");
+      setModalInfo({
+        type: "info",
+        title: "Note",
+        message: "Please fill in all fields and agree to the privacy notice.",
+      });
+      setShowModal(true);
       return;
     }
     // setSubmitting(true);
@@ -81,9 +87,21 @@ const Info101 = () => {
         error.response.data &&
         error.response.data.message
       ) {
-        alert(error.response.data.message);
+        // alert(error.response.data.message);
+        setModalInfo({
+          type: "error",
+          title: "Registration Failed",
+          message: error.response.data.message,
+        });
+        setShowModal(true);
       } else {
-        alert("Registration failed. Please try again later.");
+        // alert("Registration failed. Please try again later.");
+        setModalInfo({
+          type: "error",
+          title: "Registration Failed",
+          message: "Something went wrong while submitting your form",
+        });
+        setShowModal(true);
       }
     } finally {
       // setSubmitting(false);
@@ -101,6 +119,13 @@ const Info101 = () => {
 
   return (
     <>
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
+      />
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className=" lg:w-[75%] flex flex-col  bg-gray py-12  overflow-auto h-screen md:min-h-screen gap-3 md:gap-12 md:px-12 px-5">
       <div className="w-full flex justify-between px-9">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "src/api/axiosInstance";
 
 import NotificationModal from "src/components/NotificationModal";
@@ -8,6 +8,7 @@ import ConfirmationModal from "src/components/ConfirmationModal";
 
 const UploadAttachments = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const individualScreening = location.state.individual_screening;
   const purpose = location.state.purpose;
   const [files, setFiles] = useState([]);
@@ -61,27 +62,34 @@ const UploadAttachments = () => {
       const formData = new FormData();
 
       if (files.length > 0 && files[0].fileObject) {
-        formData.append("attachments", files[0].fileObject);
+        formData.append("screening_attachments", files[0].fileObject);
       } else {
         alert("Please select a file before submitting.");
         return;
       }
 
       try {
+        setModalOpen(false);
         setLoading(true);
-        const url = purpose === 'loa_upload' ? `/beneficiary/individual-screening/attachments-upload/${individualScreening.screening_procedure.id}/` : 
+        const url = purpose === 'loa_upload' ? `/beneficiary/individual-screening/attachments-upload/${individualScreening.id}/` : 
                     purpose === 'result_upload' ? `/beneficiary/individual-screening/results-upload/${individualScreening.id}/` : '';
          const response = await api.patch(url, formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
           }
         );
-        setModalInfo({
-          type: "success",
-          title: "Success!",
-          message: "Submitted successfully.",
+
+        navigate("/Beneficiary/individualscreeningstatus", { 
+          state: { 
+            type: "success", message: "Submitted Successfully." 
+          } 
         });
-        setShowModal(true);
+        // setModalInfo({
+        //   type: "success",
+        //   title: "Success!",
+        //   message: "Submitted successfully.",
+        // });
+        // setShowModal(true);
       } catch (error) {
         let errorMessage = "Something went wrong while submitting the attachment."; 
 
@@ -160,85 +168,88 @@ const UploadAttachments = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting your data..." />
-      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        <div className="py-6 px-10 flex flex-col">
-          <div className="flex justify-between p-3 items-center">
-            <h2 className="text-xl font-semibold">Upload Attachments</h2>
-            {/* <h3 className="text-2xl font-bold text-secondary">ATTACHMENTS</h3> */}
+      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+          <h1 className="text-md font-bold">Individual Screening</h1>
+          <div className="p-3">
             <Link 
               to={"/Beneficiary/individualscreeningstatus/individualstatus-view"}
-              // state={{record: record}}
+              state={individualScreening}
             >
               <img
                 src="/images/back.png"
                 alt="Back button icon"
-                className="h-7"
+                className="h-6 cursor-pointer"
               />
             </Link>
           </div>
-          <div className="w-full bg-white rounded-2xl py-7 px-8 ">
-            <h1 id="details_title" className="font-bold text-xl mb-5">
-              Attachments
-            </h1>
-            <div className="bg-gray-100 border border-dashed border-gray-300 rounded-xl p-6 flex flex-row gap-4 flex-wrap items-center justify-start min-h-[120px]">
-              {files.map((file, idx) => (
-                <div
-                  key={idx}
-                  className="relative group"
-                  onClick={(e) => handleViewFile(file, e)}
-                >
-                  <div className="w-32 h-32 bg-white rounded-lg shadow flex flex-col items-center justify-center cursor-pointer border border-gray-200 hover:shadow-lg transition">
-                    {file?.type?.match(/image/) ? (
-                      <img
-                        src={file.url}
-                        alt={file.name}
-                        className="w-16 h-16 object-contain mb-2"
-                      />
-                    ) : file.type.includes("pdf") ? (
-                      <img
-                        src="/src/assets/images/admin/cancerscreening/individualscreening/pdf.svg"
-                        alt="PDF"
-                        className="w-12 h-12 mb-2"
-                      />
-                    ) : file.type.match(/docx?/) ? (
-                      <img
-                        src="/src/assets/images/admin/cancerscreening/individualscreening/docs.svg"
-                        alt="DOC"
-                        className="w-12 h-12 mb-2"
-                      />
-                    ) : (
-                      <span className="w-12 h-12 mb-2 bg-gray-300 rounded" />
-                    )}
-                    <span className="text-xs text-center break-all px-1">
-                      {file.name}
-                    </span>
-                  </div>
-                  <button
-                    onClick={(e) => handleDelete(idx, e)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+        </div>
+        <div className="h-full w-full p-5 flex flex-col justify-between">
+          <div className="border border-black/15 p-3 bg-white rounded-sm">
+            <div className="w-full bg-white rounded-[4px] p-4 ">
+              <h1 id="details_title" className="text-md font-bold mb-3">
+                Upload Results
+              </h1>
+              <div className="bg-gray-100 border border-dashed border-gray-300 rounded-sm p-6 flex flex-row gap-4 flex-wrap items-center justify-start min-h-[120px]">
+                {files.map((file, idx) => (
+                  <div
+                    key={idx}
+                    className="relative group"
+                    onClick={(e) => handleViewFile(file, e)}
                   >
-                    ×
-                  </button>
-                </div>
-              ))}
+                    <div className="w-32 h-32 bg-white rounded-lg shadow flex flex-col items-center justify-center cursor-pointer border border-gray-200 hover:shadow-lg transition">
+                      {file?.type?.match(/image/) ? (
+                        <img
+                          src={file.url}
+                          alt={file.name}
+                          className="w-16 h-16 object-contain mb-2"
+                        />
+                      ) : file.type.includes("pdf") ? (
+                        <img
+                          src="/src/assets/images/admin/cancerscreening/individualscreening/pdf.svg"
+                          alt="PDF"
+                          className="w-12 h-12 mb-2"
+                        />
+                      ) : file.type.match(/docx?/) ? (
+                        <img
+                          src="/src/assets/images/admin/cancerscreening/individualscreening/docs.svg"
+                          alt="DOC"
+                          className="w-12 h-12 mb-2"
+                        />
+                      ) : (
+                        <span className="w-12 h-12 mb-2 bg-gray-300 rounded" />
+                      )}
+                      <span className="text-xs text-center break-all px-1">
+                        {file.name}
+                      </span>
+                    </div>
+                    <button
+                      onClick={(e) => handleDelete(idx, e)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
+          </div>
 
-            <div className="flex gap-5 mt-4">
-              <button
-                onClick={handleSave}
-                className="bg-[#749AB6] text-white px-4 py-2 rounded hover:bg-[#5a7e9c]"
-                // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Submit
-              </button>
-              <button
-                onClick={handleAddFile}
-                className="bg-[#749AB6] text-white px-4 py-2 rounded hover:bg-[#5a7e9c]"
-                // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Choose File
-              </button>
-            </div>
+          <div className="w-full flex justify-around">
+            <button
+              onClick={handleAddFile}
+              className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+              // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Choose File
+            </button>
+            <button
+              onClick={handleSave}
+              className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+              // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Submit
+            </button>
           </div>
         </div>
       </div>

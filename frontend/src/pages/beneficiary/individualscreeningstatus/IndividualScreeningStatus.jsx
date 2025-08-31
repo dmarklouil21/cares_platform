@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { data, useNavigate } from "react-router-dom";
+import { data, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
 import api from "src/api/axiosInstance";
+
+import Notification from "src/components/Notification";
 
 import NotificationModal from "src/components/NotificationModal";
 import LoadingModal from "src/components/LoadingModal";
@@ -9,12 +11,18 @@ import ConfirmationModal from "src/components/ConfirmationModal";
 
 
 const IndividualScreeningStatus = () => {
+  const location = useLocation();
   const { user } = useAuth();
   const [tableData, setTableData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("");
+  // const [notification, setNotification] = useState("");
+
+  // Notification 
   const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState(location.state?.type || "");
+  const [notificationMessage, setNotificationMessage] = useState(location.state?.message || "");
 
   // Notification Modal
   const [showModal, setShowModal] = useState(false);
@@ -32,6 +40,16 @@ const IndividualScreeningStatus = () => {
   const [modalAppId, setModalAppId] = useState(null);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (notificationType && notificationMessage) {
+      setNotification(notificationMessage);
+
+      navigate(location.pathname, { replace: true, state: {} });
+
+      setTimeout(() => setNotification(""), 2000);
+    }
+  }, [notificationType, notificationMessage, navigate, location.pathname]);
 
   const fetchData = async () => {
     try {
@@ -58,21 +76,31 @@ const IndividualScreeningStatus = () => {
   const handleModalConfirm = async () => {
     if (modalAction?.type === "cancel") {
       try {
+        setModalOpen(false);
         setLoading(true);
         const response = await api.delete(`/beneficiary/individual-screening/cancel-request/${modalAction.id}/`);
-        setModalInfo({
-          type: "success",
-          title: "Success!",
-          message: "Canceled Successfully.",
-        });
-        setShowModal(true);
+        
+        setNotificationMessage("Canceled Successfully.");
+        setNotificationType("success");
+        setNotification(notificationMessage);
+        setTimeout(() => setNotification(""), 2000);
+        // setModalInfo({
+        //   type: "success",
+        //   title: "Success!",
+        //   message: "Canceled Successfully.",
+        // });
+        // setShowModal(true);
       } catch (error) {
-        setModalInfo({
-          type: "error",
-          title: "Failed to delete this object",
-          message: "Something went wrong while submitting the request.",
-        });
-        setShowModal(true);
+        setNotificationMessage("Failed to cancel this request.");
+        setNotificationType("error");
+        setNotification(notificationMessage);
+        setTimeout(() => setNotification(""), 2000);
+        // setModalInfo({
+        //   type: "error",
+        //   title: "Failed to delete this object",
+        //   message: "Something went wrong while submitting the request.",
+        // });
+        // setShowModal(true);
         console.error(error);
       } finally {
         fetchData();
@@ -124,6 +152,10 @@ const IndividualScreeningStatus = () => {
         onConfirm={handleModalConfirm}
         onCancel={handleModalCancel}
       />
+      <Notification 
+        message={notification} 
+        type={notificationType}
+      />
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -132,7 +164,7 @@ const IndividualScreeningStatus = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting your data..." />
-      {notification && (
+      {/* {notification && (
         <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
           <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
             <img
@@ -143,7 +175,7 @@ const IndividualScreeningStatus = () => {
             <span>{notification}</span>
           </div>
         </div>
-      )}
+      )} */}
       <div class="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
         <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <div className="font-bold">Beneficary</div>
@@ -208,8 +240,9 @@ const IndividualScreeningStatus = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <colgroup>
                   <col className="w-[18%]" />
-                  <col className="w-[20%]" />
-                  <col className="w-[20%]" />
+                  <col className="w-[16%]" />
+                  <col className="w-[16%]" />
+                  <col className="w-[16%]" />
                   <col className="w-[17%]" />
                   <col className="w-[25%]" />
                 </colgroup>
@@ -228,6 +261,9 @@ const IndividualScreeningStatus = () => {
                       Date Approved
                     </th>
                     <th scope="col" className="  py-3 text-center text-sm">
+                      Screening Date
+                    </th>
+                    <th scope="col" className="  py-3 text-center text-sm">
                       Status
                     </th>
                     <th
@@ -243,9 +279,9 @@ const IndividualScreeningStatus = () => {
                 <table className="min-w-full divide-y divide-gray-200 border-spacing-0">
                   <colgroup>
                     <col className="w-[18%]" />
-                    {/* <col className="w-[20%] " /> */}
-                    <col className="w-[20%]" />
-                    <col className="w-[20%]" />
+                    <col className="w-[16%]" />
+                    <col className="w-[16%]" />
+                    <col className="w-[16%]" />
                     <col className="w-[17%]" />
                     <col className="w-[25%]" />
                   </colgroup>
@@ -268,6 +304,13 @@ const IndividualScreeningStatus = () => {
                           <td className=" py-2 text-sm text-center text-[#333333]"> 
                             {app.date_approved ? (
                               app.date_approved.split("T")[0]
+                            ) : (
+                              '--'
+                            )}
+                          </td>
+                          <td className=" py-2 text-sm text-center text-[#333333]"> 
+                            {app.screening_date ? (
+                              app.screening_date.split("T")[0]
                             ) : (
                               '--'
                             )}

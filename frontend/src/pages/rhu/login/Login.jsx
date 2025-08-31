@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
 
 import LoadingModal from "src/components/LoadingModal";
+import NotificationModal from "src/components/NotificationModal";
 
 import api from "src/api/axiosInstance";
 
@@ -16,6 +17,14 @@ const Login = () => {
   // Loading Modal 
   const [loading, setLoading] = useState(false);
 
+  // Notification Modal
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({
+    type: "success",
+    title: "Success!",
+    message: "The form has been submitted successfully.",
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent form reload
 
@@ -24,9 +33,15 @@ const Login = () => {
       const loggedInUser = await login(email, password);
 
       if (!loggedInUser.is_rhu) {
-        alert(
-          "You need an RHU account to access the site for the rhu/private partner site."
-        );
+        setModalInfo({
+          type: "info",
+          title: "Login Failed",
+          message: "You need an RHU account to access the site for the rhu/private partner portal.",
+        });
+        setShowModal(true);
+        // alert(
+        //   "You need an RHU account to access the site for the rhu/private partner site."
+        // );
         return;
       }
 
@@ -36,7 +51,13 @@ const Login = () => {
         navigate("/Rhu");
       }
     } catch (err) {
-      alert("Login failed. Please check your credentials.");
+      // alert("Login failed. Please check your credentials.");
+      setModalInfo({
+        type: "error",
+        title: "Login Failed",
+        message: "Login failed. Please check your credentials.",
+      });
+      setShowModal(true);
       console.error("Login error:", err);
     } finally {
       setLoading(false);
@@ -45,6 +66,13 @@ const Login = () => {
 
   return (
     <>
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
+      />
       <LoadingModal open={loading} text="Loading..." />
       <div
         id="right-panel"

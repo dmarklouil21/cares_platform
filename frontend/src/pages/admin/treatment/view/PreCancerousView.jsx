@@ -1,4 +1,3 @@
-// src/pages/treatment/AdminprecancerousView.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
 
