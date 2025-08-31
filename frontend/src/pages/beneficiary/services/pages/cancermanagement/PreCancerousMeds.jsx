@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { submitPreCancerousMeds } from "../../../../../api/precancerous";
 
 // Reusable confirmation modal
 function ConfirmationModal({ open, text, onConfirm, onCancel }) {
@@ -66,6 +67,8 @@ const PreCancerousMeds = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState(null); // "submit" | "back"
   const [notification, setNotification] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -82,15 +85,23 @@ const PreCancerousMeds = () => {
     setModalOpen(true);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (modalType === "submit") {
-      // Print to console on confirmed submit
-      // eslint-disable-next-line no-console
-      console.log("Pre-Cancerous Meds submission payload:", form);
-      // Clear inputs after successful submit
-      setForm(initialForm);
-      setNotification("Submitted successfully.");
-      setTimeout(() => setNotification(""), 3000);
+      try {
+        setSubmitting(true);
+        setErrorMsg("");
+        await submitPreCancerousMeds(form);
+        setForm(initialForm);
+        setNotification("Submitted successfully.");
+        setTimeout(() => setNotification(""), 3000);
+      } catch (err) {
+        const msg = err?.response?.data?.detail || err?.response?.data?.non_field_errors?.[0] || "Submission failed. Please try again.";
+        setErrorMsg(msg);
+        setNotification(msg);
+        setTimeout(() => setNotification(""), 4000);
+      } finally {
+        setSubmitting(false);
+      }
     } else if (modalType === "back") {
       navigate("/Beneficiary/services/cancer-management");
     }
@@ -300,15 +311,15 @@ const PreCancerousMeds = () => {
             </Link>
             <button
               onClick={openSubmit}
-              disabled={isSubmitDisabled}
+              disabled={isSubmitDisabled || submitting}
               className={`text-center font-bold w-[35%] py-2 px-6 rounded-md ${
-                isSubmitDisabled
+                isSubmitDisabled || submitting
                   ? "bg-primary/40 text-white cursor-not-allowed"
                   : "bg-primary text-white hover:bg-primary/80"
               }`}
-              title={isSubmitDisabled ? "Please fill all required fields" : ""}
+              title={isSubmitDisabled ? "Please fill all required fields" : submitting ? "Submitting..." : ""}
             >
-              Submit
+              {submitting ? "Submitting..." : "Submit"}
             </button>
           </div>
         </div>

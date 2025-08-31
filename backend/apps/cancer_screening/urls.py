@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from apps.precancerous import views as precancerous_views
 
 urlpatterns = [
   # path('individual-screening-request/', views.PreScreeningCreateView.as_view(), name='individual_screening_create'),
@@ -18,4 +19,11 @@ urlpatterns = [
   path('individual-screening/results-upload/<str:screening_id>/', views.ResultAttachmentUploadView.as_view(), name='individual_screening_results_upload'),
   path('individual-screening/results-attachment-delete/<str:screening_id>/', views.ResultDeleteView.as_view(), name='individual_screening_results_attachments_delete'),
   path('individual-screening/return-remarks/<int:id>/', views.send_return_remarks, name='return_remarks'),
+
+  # Admin: Pre-Cancerous Meds Management
+  path('precancerous/admin/list/', precancerous_views.AdminPreCancerousMedsListView.as_view(), name='admin_precancerous_meds_list'),
+  path('precancerous/admin/detail/<int:id>/', precancerous_views.AdminPreCancerousMedsDetailView.as_view(), name='admin_precancerous_meds_detail'),
+  path('precancerous/admin/set-release-date/<int:id>/', precancerous_views.AdminPreCancerousMedsSetReleaseDateView.as_view(), name='admin_precancerous_meds_set_release_date'),
+  path('precancerous/admin/verify/<int:id>/', precancerous_views.AdminPreCancerousMedsVerifyView.as_view(), name='admin_precancerous_meds_verify'),
+  path('precancerous/admin/reject/<int:id>/', precancerous_views.AdminPreCancerousMedsRejectView.as_view(), name='admin_precancerous_meds_reject'),
 ]

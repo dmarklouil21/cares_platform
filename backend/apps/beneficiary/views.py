@@ -13,6 +13,7 @@ from apps.pre_enrollment.models import Beneficiary
 from apps.patient.models import Patient, CancerDiagnosis
 from apps.partners.models import CancerAwarenessActivity
 from apps.cancer_screening.models import ScreeningProcedure, ScreeningAttachment, IndividualScreening # PreScreeningForm
+from apps.precancerous.models import PreCancerousMedsRequest
 
 from apps.cancer_screening.models import IndividualScreening, PreScreeningForm
 from apps.patient.models import Patient, CancerDiagnosis
@@ -22,7 +23,8 @@ from apps.cancer_screening.serializers import (
   PreScreeningFormSerializer, 
   IndividualScreeningSerializer, 
   ScreeningProcedureSerializer, 
-  ScreeningAttachmentSerializer
+  ScreeningAttachmentSerializer,
+  PreCancerousMedsRequestSerializer
 )
 
 import logging
@@ -148,6 +150,45 @@ class LOAAttachmentUploadView(APIView):
       )
 
     return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
+
+class PreCancerousMedsCreateView(generics.CreateAPIView):
+  queryset = PreCancerousMedsRequest.objects.all()
+  serializer_class = PreCancerousMedsRequestSerializer
+  permission_classes = [IsAuthenticated]
+
+class PreCancerousMedsListView(generics.ListAPIView):
+  serializer_class = PreCancerousMedsRequestSerializer
+  permission_classes = [IsAuthenticated]
+
+  def get_queryset(self):
+    patient = get_object_or_404(Patient, user=self.request.user)
+    return PreCancerousMedsRequest.objects.filter(patient=patient).order_by('-created_at')
+
+class PreCancerousMedsDetailView(generics.RetrieveAPIView):
+  serializer_class = PreCancerousMedsRequestSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def get_queryset(self):
+    patient = get_object_or_404(Patient, user=self.request.user)
+    return PreCancerousMedsRequest.objects.filter(patient=patient)
+
+class PreCancerousMedsCancelView(APIView):
+  permission_classes = [IsAuthenticated]
+
+  def post(self, request, id):
+    patient = get_object_or_404(Patient, user=request.user)
+    obj = get_object_or_404(PreCancerousMedsRequest, id=id, patient=patient)
+
+    if obj.status != 'Pending':
+      return Response({
+        'detail': 'Only Pending applications can be cancelled.'
+      }, status=status.HTTP_400_BAD_REQUEST)
+
+    obj.status = 'Cancelled'
+    obj.save(update_fields=['status'])
+
+    return Response(PreCancerousMedsRequestSerializer(obj).data, status=status.HTTP_200_OK)
 
 class ResultAttachmentUploadView(APIView):
   parser_classes = [MultiPartParser, FormParser]

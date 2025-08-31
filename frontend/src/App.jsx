@@ -44,7 +44,7 @@ import ViewScreeningProcedure from "./pages/admin/cancerscreening/view/ViewScree
 import ViewAttachments from "./pages/admin/cancerscreening/view/ViewAttachments";
 import ViewResults from "./pages/admin/cancerscreening/view/ViewResults";
 import AdminPatientMasterListView from "./pages/admin/patient/view/PatientMasterListView";
-import AdminprecancerousView from "./pages/admin/treatment/view/precancerousview";
+import AdminprecancerousView from "./pages/admin/treatment/view/PreCancerousView";
 
 // ----------- ADMIN EDIT SIDE ------------------
 import AdminPatientMasterListEdit from "./pages/admin/patient/edit/PatientMasterListEdit";
@@ -230,7 +230,7 @@ const App = () => {
               <Route path="precancerous" element={<Adminprecancerous />} />
               <Route path="view">
                 <Route
-                  path="AdminprecancerousView/:patient_id"
+                  path="AdminprecancerousView/:id"
                   element={<AdminprecancerousView />}
                 />
               </Route>
@@ -282,7 +282,7 @@ const App = () => {
               />
               <Route path="view">
                 <Route
-                  path="precancerous/:patient_id"
+                  path="precancerous/:id"
                   element={<BeneficiaryPreCancerousView />}
                 />
               </Route>
