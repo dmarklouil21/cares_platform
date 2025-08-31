@@ -3,7 +3,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 from django.shortcuts import get_object_or_404
 from .models import (
   DiagnosisBasis, PrimarySite, DistantMetastasisSite, TreatmentOption,
-  ScreeningProcedure, IndividualScreening, ScreeningAttachment, PreScreeningForm,
+  IndividualScreening, ScreeningAttachment, PreScreeningForm
 )
 from apps.precancerous.models import PreCancerousMedsRequest
 from apps.patient.models import Patient, CancerDiagnosis
@@ -37,14 +37,14 @@ class ScreeningAttachmentSerializer(serializers.ModelSerializer):
     model = ScreeningAttachment
     fields = ['id', 'file', 'uploaded_at']
 
-class ScreeningProcedureSerializer(serializers.ModelSerializer):
-  attachments = ScreeningAttachmentSerializer(many=True, read_only=True)
-  class Meta:
-    model = ScreeningProcedure
-    fields = [
-      'id', 'screening_procedure_name', 'procedure_details',
-      'cancer_site', 'attachments'
-    ]
+# class ScreeningProcedureSerializer(serializers.ModelSerializer):
+#   attachments = ScreeningAttachmentSerializer(many=True, read_only=True)
+#   class Meta:
+#     model = ScreeningProcedure
+#     fields = [
+#       'id', 'screening_procedure_name', 'procedure_details',
+#       'cancer_site', 'attachments'
+#     ]
 
 class PreScreeningFormSerializer(serializers.ModelSerializer):
   diagnosis_basis = DiagnosisBasisSerializer(many=True)
@@ -82,7 +82,7 @@ class PreScreeningFormSerializer(serializers.ModelSerializer):
     existing_screening = IndividualScreening.objects.filter(patient=patient).exclude(status='Complete').order_by('-created_at').first()
     
     if existing_screening and existing_screening.status != 'Complete':
-      raise ValidationError({'non_field_errors': ['You currently have an ongoing request. Please complete or cancel it before submitting a new one.']})
+      raise ValidationError({'non_field_errors': ['You already submitted your pre-screening form. Please wait for its feedback before submitting another.']})
 
     individual_screening = IndividualScreening.objects.create(patient=patient)
     pre_screening_form = PreScreeningForm.objects.create(individual_screening=individual_screening, **validated_data)
@@ -177,13 +177,13 @@ class PreCancerousMedsAdminStatusSerializer(serializers.Serializer):
 
 class IndividualScreeningSerializer(serializers.ModelSerializer):
   patient = PatientSerializer(read_only=True)
-  screening_procedure = ScreeningProcedureSerializer()
+  screening_attachments = ScreeningAttachmentSerializer(many=True, read_only=True)
   pre_screening_form = PreScreeningFormSerializer(read_only=True)
 
   class Meta:
     model = IndividualScreening
     fields = [
-      'id', 'patient', 'screening_procedure', 'pre_screening_form',
-      'status', 'loa_generated', 'created_at', 'has_patient_response', 
+      'id', 'patient', 'pre_screening_form', 'procedure_name', 'procedure_details', 'cancer_site',
+      'status', 'loa_generated', 'created_at', 'has_patient_response', 'screening_attachments',
       'response_description', 'date_approved', 'screening_date', 'uploaded_result',
     ]

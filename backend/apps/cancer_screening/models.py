@@ -29,6 +29,10 @@ class TreatmentOption(models.Model):
 
 class IndividualScreening(models.Model):
   patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='individual_screening')
+  procedure_name = models.CharField(max_length=100, null=True, blank=True)
+  procedure_details = models.CharField(max_length=200, null=True, blank=True)
+  cancer_site = models.CharField(max_length=100, null=True, blank=True)
+
   status = models.CharField(
     max_length=50,
     choices=[
@@ -133,25 +137,14 @@ class PreScreeningForm(models.Model):
 
   def __str__(self):
     return f"Cancer Screening - {self.referred_from or 'Unknown'}"
-  
-class ScreeningProcedure(models.Model):
-  individual_screening = models.OneToOneField(IndividualScreening, on_delete=models.CASCADE, related_name='screening_procedure')
-  screening_procedure_name = models.CharField(max_length=100, blank=True)
-  procedure_details = models.CharField(max_length=200, blank=True)
-  cancer_site = models.CharField(max_length=100, blank=True)
-
-  created_at = models.DateTimeField(auto_now_add=True)
-
-  def __str__(self):
-    return self.individual_screening.patient.full_name 
 
 class ScreeningAttachment(models.Model):
-  screening_procedure = models.ForeignKey(ScreeningProcedure, on_delete=models.CASCADE, related_name='attachments')
+  individual_screening = models.ForeignKey(IndividualScreening, on_delete=models.CASCADE, related_name='screening_attachments')
   file = models.FileField(upload_to='attachments/screening_files/')
   uploaded_at = models.DateTimeField(auto_now_add=True)
 
   def __str__(self):
-    return f"Attachment for {self.screening_procedure}"
+    return f"Attachment for {self.individual_screening}"
 
 class PreCancerousMedsRequest(models.Model):
 

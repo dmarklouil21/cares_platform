@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import api from "src/api/axiosInstance";
 import { useAuth } from "src/context/AuthContext";
@@ -7,8 +7,8 @@ import LOAPrintTemplate from "../download/LOAPrintTemplate";
 
 // Map status to step index
 const STATUS_TO_STEP = {
-  Approve: 0,
-  "LOA Generation": 1,
+  Pending: 0,
+  Approve: 1,
   "In Progress": 2,
   Complete: 3,
 };
@@ -18,20 +18,31 @@ const getStepIndexByStatus = (status) => STATUS_TO_STEP[status] ?? 0;
 export default function ViewIndividualStatus() {
   const { user } = useAuth();
   const location = useLocation();
-  const id = location?.state.id
+  const id = location?.state.id;
   const [individualScreening, setIndividualScreening] = useState(null);
 
   const activeStep = getStepIndexByStatus(individualScreening?.status || "");
 
-  // Step definitions only depend on activeStep
+  // Step definitions
   const stepList = useMemo(() => [
     {
-      title: "Screening Procedure",
+      title: "Pending",
       description: activeStep === 0 ? (
         <>
-          Fill out the Screening Procedure form and submit the required documents.{" "}
+          Your request for cancer screening has been submitted and is currently under review. 
+          Once approved, you’ll receive instructions on the next steps.
+        </>
+      ) : (
+        <>Your pre-screening form has been approved. You may now proceed to the next step.</>
+      ),
+    },
+    {
+      title: "Approve",
+      description: activeStep === 1 ? (
+        <>
+          To proceed with your application, fill out the Screening Procedure form and submit the required documents.{" "}
           <Link
-            to="/Beneficiary/individualscreeningstatus/screening-requirements-note"
+            to="/Beneficiary/services/cancer-screening/screening-requirements-note"
             className="text-blue-500 underline"
           >
             Click here to proceed!
@@ -42,37 +53,15 @@ export default function ViewIndividualStatus() {
       ),
     },
     {
-      title: "LOA Generation",
-      description: activeStep === 1 ? (
-        <>
-          Letter of Authorization (LOA) will be available for download after your documents are validated.{" "}
-          <span
-            onClick={() => window.print()}
-            className="text-blue-500 underline cursor-pointer"
-          >
-            Download
-          </span>{" "}
-          and submit it back after signing.{" "}
-          <Link
-            to="/Beneficiary/individualscreeningstatus/upload-attachments"
-            state={{ 
-              individual_screening: individualScreening,
-              purpose: "loa_upload"
-            }}
-            className="text-blue-500 underline"
-          >
-            Click here to upload!
-          </Link>
-        </>
-      ) : (
-        <>Letter of Authorization (LOA) will be available for download after your documents are validated.</>
-      ),
-    },
-    {
       title: "In Progress", 
       description: activeStep === 2 ? (
         <>
-          Your cancer screening has been scheduled for <b>{new Date(individualScreening?.screening_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}. </b> 
+          Your cancer screening has been scheduled for{" "}
+          <b>
+            {new Date(individualScreening?.screening_date).toLocaleDateString("en-US", { 
+              year: "numeric", month: "long", day: "numeric" 
+            })}
+          </b>. 
           Please make sure to arrive at least 15 minutes early and bring any required identification.
         </>
       ) : (
@@ -94,26 +83,17 @@ export default function ViewIndividualStatus() {
           >
             Click here to upload!
           </Link>
-          {/* <span
-            onClick={() => document.getElementById("results-upload")?.click()}
-            className="text-blue-500 underline cursor-pointer"
-          >
-            
-          </span> */}
         </>
       ) : (
         <>Upload the results of your cancer screening.</>
       ),
     },
-  ], [activeStep]);
+  ], [activeStep, individualScreening]);
 
   useEffect(() => {
-    // if (!user?.patient_id) return;
-
     const fetchData = async () => {
       try {
         const { data } = await api.get(`/beneficiary/individual-screening/${id}/`);
-        console.log("Data: ", data)
         setIndividualScreening(data);
       } catch (error) {
         console.error("Error fetching screening data:", error);
@@ -121,57 +101,76 @@ export default function ViewIndividualStatus() {
     };
 
     fetchData();
-  }, [user]);
-  console.log('Screening Data: ', individualScreening);
+  }, [user, id]);
 
   return (
-    <div className="w-full h-screen flex flex-col bg-gray overflow-auto">
-      {/* <div className="bg-white py-4 px-10 flex justify-between items-center">
-        <p className="font-bold">Beneficiary</p>
-        <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-          <img src="/images/Avatar.png" alt="User Profile" className="rounded-full" />
+    // <div className="h-screen w-full flex flex-col bg-[#F8F9FA]">
+    <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+      <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+        <h1 className="text-md font-bold">Individual Screening</h1>
+        <div className="p-3">
+          <Link 
+            to="/Beneficiary/individualscreeningstatus"
+          >
+            <img 
+              src="/images/back.png" 
+              alt="Back" 
+              className="h-6 cursor-pointer" 
+            />
+          </Link>
         </div>
-      </div> */}
+      </div>
 
-      <div className="flex-1 w-full flex justify-center items-center">
-        <div className="bg-white h-fit flex flex-col gap-7 rounded-lg shadow-md p-6 w-full max-w-2xl">
-          <div className="flex w-full justify-end gap-[25%] items-center">
-            <h2 className="text-2xl font-bold text-center text-gray-700">
-              Screening Progress
-            </h2>
-            <Link to="/Beneficiary/individualscreeningstatus">
-              <img src="/images/back.png" alt="Back" className="h-5" />
-            </Link>
-          </div>
+      {/* <div className="flex-1 w-full py-5 px-5 flex justify-center items-start"> */}
+      <div className="h-full w-full p-5 flex flex-col justify-between">
+        {/* <div className="bg-white flex flex-col gap-7 rounded-[4px] shadow-md p-6 w-full max-w-3xl"> */}
+        <div className="border border-black/15 p-3 bg-white rounded-sm">
+          <div className="w-full bg-white rounded-[4px] p-4 ">
+            <h2 className="text-md font-bold mb-3">Screening Progress</h2>
+            {/* <div className="flex justify-between items-center">
+              <h2 className="text-md font-bold mb-3">Screening Progress</h2>
+            </div> */}
 
-          <div>
-            {stepList.map((step, idx) => {
-              const isActive = idx === activeStep;
-              return (
-                <div key={idx} className="flex gap-5">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-10 h-10 flex justify-center items-center rounded-full ${
-                        idx <= activeStep ? "bg-yellow text-white" : "bg-gray-200 text-gray-400"
-                      }`}
-                    >
-                      <p className="font-bold text-lg">{idx + 1}</p>
+            {/* Stepper */}
+            <div className="flex flex-col gap-0">
+              {stepList.map((step, idx) => {
+                const isActive = idx === activeStep;
+                const isLast = idx === stepList.length - 1;
+                return (
+                  <div key={idx} className="flex gap-5 relative">
+                    {/* Step circle + connector */}
+                    <div className="flex flex-col items-center relative">
+                      <div
+                        className={`w-10 h-10 flex justify-center items-center rounded-full z-10 ${
+                          idx <= activeStep ? "bg-yellow text-white" : "bg-gray-200 text-gray-400"
+                        }`}
+                      >
+                        <p className="font-bold text-lg">{idx + 1}</p>
+                      </div>
+
+                      {/* Connector line */}
+                      {!isLast && (
+                        <div
+                          className={`absolute top-10 left-1/2 -translate-x-1/2 w-[2px] h-full ${
+                            idx < activeStep ? "bg-yellow" : "bg-gray-200"
+                          }`}
+                        />
+                      )}
                     </div>
-                    {idx !== stepList.length - 1 && (
-                      <div className={`w-1 h-16 ${idx < activeStep ? "bg-yellow" : "bg-gray-200"}`} />
-                    )}
-                  </div>
 
-                  <div className="flex flex-col gap-1">
-                    <h3 className="font-semibold text-lg text-gray-800">{step.title}</h3>
-                    <p className="text-gray-600 text-sm">{step.description}</p>
+                    {/* Step text */}
+                    <div className="flex flex-col gap-1 pb-8">
+                      <h3 className="font-semibold text-md text-gray-800">{step.title}</h3>
+                      <p className="text-gray-600 text-sm">{step.description}</p>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
+
       <LOAPrintTemplate loaData={individualScreening} />
     </div>
   );

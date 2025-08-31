@@ -80,8 +80,8 @@ import BeneficiaryPreCancerousView from "./pages/beneficiary/applicationstatus/v
 import BeneficiaryIndividualScreeningStatusView from "./pages/beneficiary/individualscreeningstatus/view/ViewIndividualStatus";
 
 // ----------- Services: Cancer Screening ------------------
-import ScreeningRequirementsNote from "./pages/beneficiary/individualscreeningstatus/Requirements";
-import ScreeningProcedure from "./pages/beneficiary/individualscreeningstatus/ScreeningProcedure";
+import ScreeningRequirementsNote from "./pages/beneficiary/services/pages/cancerscreening/Requirements";
+import ScreeningProcedure from "./pages/beneficiary/services/pages/cancerscreening/ScreeningProcedure";
 import BeneficiaryPreScreeningForm from "./pages/beneficiary/services/pages/cancerscreening/PreScreeningForm";
 import PreScreeningFormNote from "./pages/beneficiary/services/pages/cancerscreening/PreScreeningFormNote";
 
@@ -260,6 +260,14 @@ const App = () => {
                   path="pre-screening-form"
                   element={<BeneficiaryPreScreeningForm />}
                 />
+                <Route
+                  path="screening-requirements-note"
+                  element={<ScreeningRequirementsNote />}
+                />
+                <Route
+                  path="screening-procedure"
+                  element={<ScreeningProcedure />}
+                />
               </Route>
               <Route path="cancer-management" element={<CancerManagement />} />
               <Route path="cancer-management-options">
@@ -296,14 +304,6 @@ const App = () => {
               <Route
                 path="individualstatus-view"
                 element={<BeneficiaryIndividualScreeningStatusView />}
-              />
-              <Route
-                path="screening-requirements-note"
-                element={<ScreeningRequirementsNote />}
-              />
-              <Route
-                path="screening-procedure"
-                element={<ScreeningProcedure />}
               />
               <Route
                 path="upload-attachments"
