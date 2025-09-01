@@ -5,6 +5,7 @@ import {
   adminListPreCancerousMeds,
   adminVerifyPreCancerousMeds,
   adminRejectPreCancerousMeds,
+  adminDonePreCancerousMeds,
 } from "../../../api/precancerous";
 
 // Server-driven list; no inline sample data
@@ -54,10 +55,15 @@ function Notification({ message }) {
 // Lightweight inline calendar with month navigation and min-date support (YYYY-MM-DD)
 function MiniCalendar({ selected, min, onSelect }) {
   const parse = (s) => (s ? new Date(s + 'T00:00:00') : null);
-  const fmt = (d) => d.toISOString().slice(0, 10);
+  const fmt = (d) => {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
   const today = new Date();
   const sel = parse(selected);
-  const minDate = parse(min);
+  const minStr = min || null;
 
   const init = sel || today;
   const [y, setY] = useState(init.getFullYear());
@@ -75,7 +81,7 @@ function MiniCalendar({ selected, min, onSelect }) {
       const inMonth = day >= 1 && day <= daysInMonth;
       const dateObj = new Date(y, m, Math.max(1, Math.min(day, daysInMonth)));
       const dateStr = fmt(new Date(y, m, day));
-      const isPastMin = minDate ? new Date(dateStr) < minDate : false;
+      const isPastMin = minStr ? dateStr < minStr : false;
       row.push({
         inMonth,
         dateStr,
@@ -87,10 +93,10 @@ function MiniCalendar({ selected, min, onSelect }) {
   }
 
   const canGoPrev = (() => {
-    if (!minDate) return true;
-    // allow prev if last day of previous month is >= min
-    const prevLast = new Date(y, m, 0); // day 0 of month is last day prev month
-    return prevLast >= minDate;
+    if (!minStr) return true;
+    // allow prev if last day of previous month is >= min (string compare YYYY-MM-DD)
+    const prevLastStr = fmt(new Date(y, m, 0)); // day 0 of month is last day prev month
+    return prevLastStr >= minStr;
   })();
 
   const goPrev = () => {
@@ -175,7 +181,13 @@ function MiniCalendar({ selected, min, onSelect }) {
 
 function VerifyModal({ open, onClose, onConfirm, value, onChange, loading }) {
   if (!open) return null;
-  const today = new Date().toISOString().split("T")[0];
+  const today = (() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  })();
   const [openCal, setOpenCal] = useState(false);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px]">
@@ -341,12 +353,18 @@ const PreCancerous = () => {
     if (action === "verify") {
       setVerifyId(id);
       // Prefill with today's date (YYYY-MM-DD)
-      setVerifyDate(new Date().toISOString().split("T")[0]);
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      setVerifyDate(`${yyyy}-${mm}-${dd}`);
       setVerifyOpen(true);
       return;
     }
-    const verb = action === "reject" ? "Reject" : "Confirm";
-    setModalText(`${verb} this patient?`);
+    let text = "Confirm this action?";
+    if (action === "reject") text = "Reject this patient?";
+    if (action === "done") text = "Mark this request as Done?";
+    setModalText(text);
     setPendingAction({ id, action });
     setModalOpen(true);
   };
@@ -357,11 +375,12 @@ const PreCancerous = () => {
     try {
       if (action === "reject") {
         await adminRejectPreCancerousMeds(id);
-      } else {
-        // fallback: no-op
+      } else if (action === "done") {
+        await adminDonePreCancerousMeds(id);
       }
       await loadList(statusFilter);
-      setNotification(`Request ${id} Rejected successfully`);
+      const msg = action === "reject" ? "Rejected" : action === "done" ? "marked as Done" : "updated";
+      setNotification(`Request ${id} ${msg} successfully`);
     } catch (e) {
       setNotification("Action failed. Please try again.");
     } finally {
@@ -454,6 +473,7 @@ const PreCancerous = () => {
                 <option value="Pending">Pending</option>
                 <option value="Verified">Verified</option>
                 <option value="Rejected">Rejected</option>
+                <option value="Done">Done</option>
               </select>
 
               <input
@@ -537,6 +557,8 @@ const PreCancerous = () => {
                             className={`px-3 py-1 inline-flex text-xs font-semibold rounded-md ${
                               p.status === "Verified"
                                 ? "bg-green-50 text-green-600"
+                                : p.status === "Done"
+                                ? "bg-blue-50 text-blue-600"
                                 : p.status === "Rejected"
                                 ? "bg-rose-50 text-rose-600"
                                 : "bg-amber-50 text-amber-600"
@@ -568,6 +590,14 @@ const PreCancerous = () => {
                                   Reject
                                 </button>
                               </>
+                            )}
+                            {p.status === "Verified" && (
+                              <button
+                                onClick={() => openConfirm(p.id, "done")}
+                                className="text-white py-1 px-3 rounded-[5px] shadow bg-blue-600"
+                              >
+                                Mark done
+                              </button>
                             )}
                           </div>
                         </td>
