@@ -53,3 +53,9 @@ export const adminRejectPreCancerousMeds = async (id, remarks = '') => {
   const res = await api.patch(`/cancer-screening/precancerous/admin/reject/${id}/`, { status: 'Rejected', remarks });
   return res.data;
 };
+
+// Mark a verified request as Done
+export const adminDonePreCancerousMeds = async (id) => {
+  const res = await api.patch(`/cancer-screening/precancerous/admin/done/${id}/`);
+  return res.data;
+};

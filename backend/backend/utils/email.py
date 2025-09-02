@@ -284,6 +284,10 @@ def send_precancerous_meds_status_email(patient, status, release_date=None, rema
         "Unfortunately, your pre-cancerous medication application has been <b>rejected</b>. "
         + (f"<br><br><b>Remarks:</b> {remarks}" if remarks else "")
       ),
+      "Done": (
+        "Your pre-cancerous medication application has been <b>completed</b>. "
+        "Thank you for your cooperation. We wish you well."
+      ),
     }
 
     message_body = status_messages.get(status, "Your application status has been updated.")
@@ -291,6 +295,7 @@ def send_precancerous_meds_status_email(patient, status, release_date=None, rema
     status_colors = {
       "Verified": "#28a745",
       "Rejected": "#dc3545",
+      "Done": "#0d6efd",
     }
     badge_color = status_colors.get(status, "#6c757d")
 

@@ -240,6 +240,7 @@ const PreCancerStatus = () => {
                 <option value="Verified">Verified</option>
                 <option value="Rejected">Rejected</option>
                 <option value="Cancelled">Cancelled</option>
+                <option value="Done">Done</option>
               </select>
               <input
                 type="date"
@@ -325,6 +326,11 @@ const PreCancerStatus = () => {
                             {app.status === "Verified" && (
                               <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-700">
                                 Verified
+                              </span>
+                            )}
+                            {app.status === "Done" && (
+                              <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-700">
+                                Done
                               </span>
                             )}
                             {app.status === "Approved" && (

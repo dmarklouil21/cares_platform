@@ -4,7 +4,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   adminGetPreCancerousMedsDetail,
   adminSetReleaseDate,
-  adminVerifyPreCancerousMeds,
+  adminDonePreCancerousMeds,
 } from "../../../../api/precancerous";
 
 const PreCancerousView = () => {
@@ -77,10 +77,9 @@ const PreCancerousView = () => {
       }
 
       if (action === "done") {
-        const payload = releaseDate ? { release_date_of_meds: releaseDate } : {};
-        await adminVerifyPreCancerousMeds(id, payload);
-        setStatus("Verified");
-        setToast({ type: "success", message: "Request verified." });
+        await adminDonePreCancerousMeds(id);
+        setStatus("Done");
+        setToast({ type: "success", message: "Marked as done." });
       }
 
       // refresh details
@@ -149,6 +148,8 @@ const PreCancerousView = () => {
               className={`text-xs px-2 py-1 rounded ${
                 status === "Verified"
                   ? "bg-green-100 text-green-700 border border-green-200"
+                  : status === "Done"
+                  ? "bg-blue-100 text-blue-700 border border-blue-200"
                   : "bg-gray-100 text-gray-700 border border-gray-200"
               }`}
               title="Current status"
@@ -272,16 +273,12 @@ const PreCancerousView = () => {
           <button
             type="button"
             onClick={handleMarkDoneClick}
-            disabled={status === "Verified" || !releaseDate}
+            disabled={status !== "Verified"}
             title={
-              status === "Verified"
-                ? "Already verified"
-                : !releaseDate
-                ? "Please set a release date first"
-                : ""
+              status !== "Verified" ? "Only available when status is Verified" : ""
             }
             className={`text-center py-2 md:w-[30%] w-full rounded-md shadow ${
-              status === "Verified" || !releaseDate
+              status !== "Verified"
                 ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                 : "bg-primary text-white hover:opacity-90"
             }`}
