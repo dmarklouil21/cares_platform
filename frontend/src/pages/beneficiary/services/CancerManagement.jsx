@@ -1,45 +1,53 @@
 import React from "react";
+import { href } from "react-router-dom";
 
 const cancerTreatmentOptions = [
   {
     title: "Radiation Therapy",
     icon: "/src/assets/images/patient/services/cancermanagement/radiation.png",
+    href: "/Beneficiary/services/cancer-management-options/radiotherapy",
     description:
       "Radiotherapy uses high-energy radiation (like X-rays) to destroy cancer cells and shrink tumors. It targets a specific area to minimize damage to surrounding healthy tissue. Often used before or after surgery or with chemotherapy.",
   },
   {
     title: "Radioactive Iodine Therapy",
     icon: "/src/assets/images/patient/services/cancermanagement/radioactive.png",
+    href: "/Beneficiary/services/cancer-management-options/radioactive",
     description:
       "This therapy involves taking radioactive iodine (I-131) to destroy thyroid cancer cells. The iodine collects in thyroid tissues, making it highly effective and specific for thyroid cancer treatment.",
   },
   {
     title: "Brachytherapy",
     icon: "/src/assets/images/patient/services/cancermanagement/brachy.png",
+    href: "/Beneficiary/services/cancer-management-options/brachytherapy",
     description:
       "Brachytherapy delivers radiation directly inside or next to the tumor using implants or radioactive seeds. It allows for a high dose to the cancer with minimal effect on nearby tissues.",
   },
   {
     title: "Chemotherapy",
     icon: "/src/assets/images/patient/services/cancermanagement/chemo.png",
+    href: "/Beneficiary/services/cancer-management-options/chemotherapy",
     description:
       "Chemotherapy uses drugs to destroy cancer cells or slow their growth. It may be used alone or with other treatments like surgery and radiation. It often involves cycles of treatment and recovery.",
   },
   {
     title: "Surgery",
     icon: "/src/assets/images/patient/services/cancermanagement/surgery.png",
+    href: "/Beneficiary/services/cancer-management-options/surgery",
     description:
       "Surgical procedures remove cancerous tumors and affected tissues. It may be curative, preventive, or part of diagnosis and staging. Recovery time depends on cancer type and surgical complexity.",
   },
   {
     title: "Pre-Cancerous Medications",
     icon: "/src/assets/images/patient/services/cancermanagement/medication.png",
+    href: "/Beneficiary/services/cancer-management-options/precancerousmeds",
     description:
       "These medications are used to manage or prevent the development of cancer in high-risk individuals, especially with genetic predisposition or early signs. Includes hormone blockers and immunopreventive drugs.",
   },
   {
     title: "Post-Treatment Laboratory Tests",
     icon: "/src/assets/images/patient/services/cancermanagement/laboratory.png",
+    href: "",
     description:
       "Post-treatment lab tests help monitor a patient’s recovery, detect recurrence, and manage long-term effects of treatment. These may include blood counts, tumor markers, and imaging.",
   },
@@ -90,7 +98,7 @@ const CancerManagementPage = () => {
                   {option.description}
                 </p>
                 <a
-                  href="/Beneficiary/services/cancer-management-options/precancerousmeds"
+                  href={option.href}
                   className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
                 >
                   Apply
