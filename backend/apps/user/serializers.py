@@ -3,9 +3,6 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth import get_user_model
 
-from apps.pre_enrollment.models import Beneficiary
-from apps.pre_enrollment.serializers import BeneficiarySerializer
-
 """ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
@@ -35,7 +32,7 @@ class LoginSerializer(TokenObtainPairSerializer):
     #   if hasattr(self.user.beneficiary, 'patient') and self.user.beneficiary.patient:
     #     patient_id = self.user.beneficiary.patient.patient_id
     patient_id = getattr(
-      getattr(getattr(self.user, 'beneficiary', None), 'patient', None),
+      getattr(getattr(self.user, 'patient', None)),
       'patient_id',
       None
     )

@@ -9,11 +9,10 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError
 
-from apps.pre_enrollment.models import Beneficiary
 from apps.patient.models import Patient, CancerDiagnosis
 from apps.partners.models import CancerAwarenessActivity
 
-from apps.cancer_screening.models import ScreeningAttachment, IndividualScreening # PreScreeningForm
+from apps.cancer_screening.models import ScreeningAttachment, IndividualScreening 
 from apps.precancerous.models import PreCancerousMedsRequest
 
 from apps.cancer_screening.models import IndividualScreening, PreScreeningForm

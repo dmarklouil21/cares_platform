@@ -8,8 +8,6 @@ from .models import (
 from apps.precancerous.models import PreCancerousMedsRequest
 from apps.patient.models import Patient, CancerDiagnosis
 from apps.patient.serializers import PatientSerializer
-from apps.pre_enrollment.models import Beneficiary
-
 
 # --- Atomic Serializers ---
 class DiagnosisBasisSerializer(serializers.ModelSerializer):
