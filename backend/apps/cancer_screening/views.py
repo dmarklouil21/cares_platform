@@ -14,7 +14,6 @@ from backend.utils.email import (
   send_precancerous_meds_status_email,
 )
 
-from apps.pre_enrollment.models import Beneficiary
 from apps.patient.models import Patient, CancerDiagnosis, HistoricalUpdate
 from apps.cancer_screening.models import ScreeningAttachment
 from apps.precancerous.models import PreCancerousMedsRequest

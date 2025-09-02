@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'apps.patient',
     'apps.partners',
     'apps.user',
-    'apps.pre_enrollment',
+    'apps.pre_enrollment', # To be deleted 
     'apps.registration',
     'apps.user_management',
     'apps.cancer_screening',

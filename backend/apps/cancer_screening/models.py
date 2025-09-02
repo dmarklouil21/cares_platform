@@ -1,6 +1,5 @@
 from django.db import models
 from apps.patient.models import Patient
-from apps.pre_enrollment.models import Beneficiary
 
 # Create your models here.
 class DiagnosisBasis(models.Model):
