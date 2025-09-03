@@ -35,6 +35,7 @@ import AdminUserManagement from "./pages/admin/usermanagement/UserManagement";
 import AdminScreeningRequest from "./pages/admin/cancerscreening/ScreeningRequest";
 import AdminPatientMasterList from "./pages/admin/patient/PatientMasterList";
 import Adminprecancerous from "./pages/admin/treatment/Precancerous";
+import AdminCancerManagement from "./pages/admin/cancermanagement/CancerManagement";
 
 // ----------- ADMIN VIEW SIDE ------------------
 import AdminPreenrollmentDetails from "./pages/admin/patient/view/PreenrollmentView";
@@ -45,6 +46,11 @@ import ViewAttachments from "./pages/admin/cancerscreening/view/ViewAttachments"
 import ViewResults from "./pages/admin/cancerscreening/view/ViewResults";
 import AdminPatientMasterListView from "./pages/admin/patient/view/PatientMasterListView";
 import AdminprecancerousView from "./pages/admin/treatment/view/PreCancerousView";
+import AdminCancerManagementView from "./pages/admin/cancermanagement/view/CancerManagementView";
+import AdminCancerManagementViewAttachments from "./pages/admin/cancermanagement/view/ViewAttachments";
+import AdminCancerManagementViewPreScreeningForm from "./pages/admin/cancermanagement/view/ViewPreScreeningForm";
+import AdminCancerManagementViewResults from "./pages/admin/cancermanagement/view/ViewResults";
+import AdminCancerManagementViewScreeningProcedure from "./pages/admin/cancermanagement/view/ViewScreeningProcedure";
 
 // ----------- ADMIN EDIT SIDE ------------------
 import AdminPatientMasterListEdit from "./pages/admin/patient/edit/PatientMasterListEdit";
@@ -214,6 +220,31 @@ const App = () => {
               <Route path="add-user" element={<AdminManagementAddUser />} />
               <Route path="view-user" element={<AdminManagementViewUser />} />
               <Route path="edit-user" element={<AdminManagementEditUser />} />
+            </Route>
+            <Route path="CancerManagement">
+              <Route index element={<AdminCancerManagement />} />
+              <Route path="view">
+                <Route
+                  path="cancermanagementview/:id"
+                  element={<AdminCancerManagementView />}
+                />
+                <Route
+                  path="AdminCancerManagementViewAttachments"
+                  element={<AdminCancerManagementViewAttachments />}
+                />
+                <Route
+                  path="AdminCancerManagementViewPreScreeningForm"
+                  element={<AdminCancerManagementViewPreScreeningForm />}
+                />
+                <Route
+                  path="AdminCancerManagementViewResults"
+                  element={<AdminCancerManagementViewResults />}
+                />
+                <Route
+                  path="AdminCancerManagementViewScreeningProcedure"
+                  element={<AdminCancerManagementViewScreeningProcedure />}
+                />
+              </Route>
             </Route>
             <Route path="cancerscreening">
               <Route

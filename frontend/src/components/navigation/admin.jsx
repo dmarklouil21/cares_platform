@@ -43,6 +43,12 @@ const AdminSidebar = () => {
       path: "/Admin/UserManagement",
       arrow: "",
     },
+    {
+      name: "Cancer Management",
+      icon: "/src/assets/images/navigation/admin/cancermanagement.svg",
+      path: "/Admin/CancerManagement",
+      arrow: "",
+    },
   ];
 
   const patientSubNav = [
@@ -51,7 +57,6 @@ const AdminSidebar = () => {
       name: "Patient Master List",
       path: "/Admin/patient/AdminPatientMasterList",
     },
-    { name: "Cancer Management", path: "/Admin/CancerManagement" },
   ];
 
   const cancerscreeningSubNav = [
