@@ -71,6 +71,21 @@ import UploadAttachments from "./pages/beneficiary/individualscreeningstatus/Upl
 // ----------- Beneficiary cancer management options ------------------
 
 import BeneficiaryPreCancerousMeds from "./pages/beneficiary/services/pages/cancermanagement/PreCancerousMeds";
+import BeneficiaryRadioTherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/RadioTherapyPreScreening";
+import BeneficiaryRadioTherapyWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/RadioTherapyWellBeingTool";
+import BeneficiaryRadioTherapyDocuments from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/RadioTherapyDocuments";
+import BeneficiaryRadioactivePreScreening from "./pages/beneficiary/services/pages/cancermanagement/radioactive/RadioactivePreScreening";
+import BeneficiaryRadioactiveWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/radioactive/RadioactiveWellBeingTool";
+import BeneficiaryRadioactiveDocuments from "./pages/beneficiary/services/pages/cancermanagement/radioactive/RadioactiveDocuments";
+import BeneficiaryBrachytherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/brachyTherapyPreScreening";
+import BeneficiaryBrachytherapyWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/brachyTherapyWellBeingTool";
+import BeneficiaryBrachytherapyDocuments from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/brachyTherapyDocuments";
+import BeneficiarychemotherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/chemotherapyPreScreening";
+import BeneficiarychemotherapyWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/chemotherapyWellBeingTool";
+import BeneficiarychemotherapyDocuments from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/chemotherapyDocuments";
+import BeneficiarysurgeryPreScreening from "./pages/beneficiary/services/pages/cancermanagement/surgery/surgeryPreScreening";
+import BeneficiarysurgeryWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/surgery/surgeryWellBeingTool";
+import BeneficiarysurgeryDocuments from "./pages/beneficiary/services/pages/cancermanagement/surgery/surgeryDocuments";
 
 // ----------- Application actions ------------------
 import BeneficiaryApplicationView from "./pages/beneficiary/applicationstatus/view/ViewApplication";
@@ -271,6 +286,74 @@ const App = () => {
               </Route>
               <Route path="cancer-management" element={<CancerManagement />} />
               <Route path="cancer-management-options">
+                <Route path="radiotherapy">
+                  <Route
+                    index
+                    element={<BeneficiaryRadioTherapyPreScreening />}
+                  />
+                  <Route
+                    path="radio-therapy-well-being-tool"
+                    element={<BeneficiaryRadioTherapyWellBeingTool />}
+                  />
+                  <Route
+                    path="radio-therapy-documents"
+                    element={<BeneficiaryRadioTherapyDocuments />}
+                  />
+                </Route>
+                <Route path="radioactive">
+                  <Route
+                    index
+                    element={<BeneficiaryRadioactivePreScreening />}
+                  />
+                  <Route
+                    path="radio-active-well-being-tool"
+                    element={<BeneficiaryRadioactiveWellBeingTool />}
+                  />
+                  <Route
+                    path="radio-active-documents"
+                    element={<BeneficiaryRadioactiveDocuments />}
+                  />
+                </Route>
+                <Route path="brachytherapy">
+                  <Route
+                    index
+                    element={<BeneficiaryBrachytherapyPreScreening />}
+                  />
+                  <Route
+                    path="brachy-well-being-tool"
+                    element={<BeneficiaryBrachytherapyWellBeingTool />}
+                  />
+                  <Route
+                    path="brachy-documents"
+                    element={<BeneficiaryBrachytherapyDocuments />}
+                  />
+                </Route>
+                <Route path="chemotherapy">
+                  <Route
+                    index
+                    element={<BeneficiarychemotherapyPreScreening />}
+                  />
+                  <Route
+                    path="chemotherapy-well-being-tool"
+                    element={<BeneficiarychemotherapyWellBeingTool />}
+                  />
+                  <Route
+                    path="chemotherapy-documents"
+                    element={<BeneficiarychemotherapyDocuments />}
+                  />
+                </Route>
+                <Route path="surgery">
+                  <Route index element={<BeneficiarysurgeryPreScreening />} />
+                  <Route
+                    path="surgery-well-being-tool"
+                    element={<BeneficiarysurgeryWellBeingTool />}
+                  />
+                  <Route
+                    path="surgery-documents"
+                    element={<BeneficiarysurgeryDocuments />}
+                  />
+                </Route>
+
                 <Route
                   path="precancerousmeds"
                   element={<BeneficiaryPreCancerousMeds />}
