@@ -110,3 +110,27 @@ class AdminPreCancerousMedsRejectView(APIView):
       logger.error(f"Email failed to send: {email_status}")
 
     return Response(PreCancerousMedsRequestSerializer(obj).data, status=status.HTTP_200_OK)
+
+
+class AdminPreCancerousMedsDoneView(APIView):
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def patch(self, request, id):
+    obj = get_object_or_404(PreCancerousMedsRequest, id=id)
+
+    # Only allow marking as Done from Verified state
+    if obj.status != 'Verified':
+      return Response({'detail': 'Can only mark as Done from Verified status.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    obj.status = 'Done'
+    obj.save(update_fields=['status'])
+
+    email_status = send_precancerous_meds_status_email(
+      patient=obj.patient,
+      status='Done',
+      med_request=obj,
+    )
+    if email_status is not True:
+      logger.error(f"Email failed to send: {email_status}")
+
+    return Response(PreCancerousMedsRequestSerializer(obj).data, status=status.HTTP_200_OK)
