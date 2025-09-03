@@ -1,5 +1,5 @@
 import React from "react";
-import { href } from "react-router-dom";
+import { href, Link } from "react-router-dom";
 
 const cancerTreatmentOptions = [
   {
@@ -97,12 +97,13 @@ const CancerManagementPage = () => {
                 <p className="text-gray2 text-center text-sm">
                   {option.description}
                 </p>
-                <a
-                  href={option.href}
+                <Link
+                  to={option.href}
+                  state={option.title}
                   className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
                 >
                   Apply
-                </a>
+                </Link>
               </div>
             ))}
           </div>

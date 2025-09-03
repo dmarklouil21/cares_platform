@@ -70,6 +70,13 @@ import UploadAttachments from "./pages/beneficiary/individualscreeningstatus/Upl
 
 // ----------- Beneficiary cancer management options ------------------
 
+// Note 
+// import BrachytherapyServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/ServiceApplicationNote";
+// import ChemotherapyServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/ServiceApplicationNote";
+// import ServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/radioactive/ServiceApplicationNote";
+// import ServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/ServiceApplicationNote";
+// import ServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/surgery/ServiceApplicationNote";
+
 import BeneficiaryPreCancerousMeds from "./pages/beneficiary/services/pages/cancermanagement/PreCancerousMeds";
 import BeneficiaryRadioTherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/RadioTherapyPreScreening";
 import BeneficiaryRadioTherapyWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/RadioTherapyWellBeingTool";
