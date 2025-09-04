@@ -1,11 +1,12 @@
-import React from "react";
+import React, {useState} from "react";
 import { href, Link } from "react-router-dom";
 
 const cancerTreatmentOptions = [
   {
     title: "Radiation Therapy",
     icon: "/src/assets/images/patient/services/cancermanagement/radiation.png",
-    href: "/Beneficiary/services/cancer-management-options/radiotherapy",
+    // href: "/Beneficiary/services/cancer-management-options/radiotherapy",
+    href: "/Beneficiary/services/cancer-management-options/radiotherapy/form-note",
     description:
       "Radiotherapy uses high-energy radiation (like X-rays) to destroy cancer cells and shrink tumors. It targets a specific area to minimize damage to surrounding healthy tissue. Often used before or after surgery or with chemotherapy.",
   },
@@ -54,6 +55,7 @@ const cancerTreatmentOptions = [
 ];
 
 const CancerManagementPage = () => {
+  const [ isValidated, setIsValidated ] = useState(false);
   return (
     <div className="w-full h-screen bg-gray overflow-auto">
       <div className="bg-white py-4 px-10 flex justify-between items-center">
@@ -97,13 +99,29 @@ const CancerManagementPage = () => {
                 <p className="text-gray2 text-center text-sm">
                   {option.description}
                 </p>
-                <Link
+
+                {!isValidated ? (
+                  <a
+                    href={option.href}
+                    className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                  >
+                    Apply
+                  </a>
+                ) : (
+                  <a
+                    href="/Beneficiary/services/cancer-management-options/radiotherapy/radio-therapy-well-being-tool"
+                    className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                  >
+                    Apply
+                  </a>
+                )}
+                {/* <Link
                   to={option.href}
                   state={option.title}
                   className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
                 >
                   Apply
-                </Link>
+                </Link> */}
               </div>
             ))}
           </div>

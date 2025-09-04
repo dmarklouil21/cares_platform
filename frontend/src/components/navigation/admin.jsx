@@ -8,7 +8,7 @@ const AdminSidebar = () => {
   const [isPatientOpen, setIsPatientOpen] = useState(false);
   const [isSampleOpen, setIsSampleOpen] = useState(false);
   const [isCancerScreeningOpen, setIsCancerScreeningOpen] = useState(false);
-  const [isTreatmentOpen, setIsTreatmentOpen] = useState(false); // NEW
+  const [isTreatmentOpen, setIsTreatmentOpen] = useState(false); 
   const [activeNav, setActiveNav] = useState("Dashboard");
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -32,21 +32,21 @@ const AdminSidebar = () => {
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
     {
-      name: "Treatment", // NEW
+      name: "Treatment Assistance", 
       icon: "/src/assets/images/navigation/admin/treatment.svg",
       path: "",
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
     {
-      name: "User Management",
-      icon: "/src/assets/images/navigation/admin/usermanagementicon.svg",
-      path: "/Admin/UserManagement",
-      arrow: "",
-    },
-    {
       name: "Cancer Management",
       icon: "/src/assets/images/navigation/admin/cancermanagement.svg",
       path: "/Admin/CancerManagement",
+      arrow: "",
+    },
+    {
+      name: "User Management",
+      icon: "/src/assets/images/navigation/admin/usermanagementicon.svg",
+      path: "/Admin/UserManagement",
       arrow: "",
     },
   ];
@@ -69,8 +69,8 @@ const AdminSidebar = () => {
   ];
 
   const treatmentSubNav = [
-    // NEW
-    { name: "Pre cancerous", path: "/Admin/treatment/precancerous" },
+    { name: "Pre Cancerous", path: "/Admin/treatment/precancerous" },
+    { name: "Post Treatment", path: "/Admin/treatment/posttreatment" },
   ];
 
   const sampleSubNav = [
@@ -132,7 +132,7 @@ const AdminSidebar = () => {
       path.startsWith(item.path)
     ); // NEW
     if (activeTreatment) {
-      setActiveNav("Treatment");
+      setActiveNav("Treatment Assistance");
       setIsTreatmentOpen(true);
       setIsPatientOpen(false);
       setIsSampleOpen(false);
@@ -190,7 +190,7 @@ const AdminSidebar = () => {
     setIsPatientOpen(false);
     setIsSampleOpen(false);
     setIsCancerScreeningOpen(false);
-    setActiveNav("Treatment");
+    setActiveNav("Treatment Assistance");
   };
 
   const handleNavClick = (name) => {
@@ -202,7 +202,7 @@ const AdminSidebar = () => {
       toggleSample();
     } else if (name === "Cancer Screening") {
       toggleCancerScreening();
-    } else if (name === "Treatment") {
+    } else if (name === "Treatment Assistance") {
       // NEW
       toggleTreatment();
     } else {
@@ -237,7 +237,7 @@ const AdminSidebar = () => {
               item.name === "Patient" ||
               item.name === "Sample" ||
               item.name === "Cancer Screening" ||
-              item.name === "Treatment"; // NEW
+              item.name === "Treatment Assistance"; 
 
             const isOpen =
               item.name === "Patient"
@@ -246,7 +246,7 @@ const AdminSidebar = () => {
                 ? isSampleOpen
                 : item.name === "Cancer Screening"
                 ? isCancerScreeningOpen
-                : item.name === "Treatment"
+                : item.name === "Treatment Assistance"
                 ? isTreatmentOpen
                 : false;
 
@@ -257,7 +257,7 @@ const AdminSidebar = () => {
                 ? sampleSubNav
                 : item.name === "Cancer Screening"
                 ? cancerscreeningSubNav
-                : item.name === "Treatment"
+                : item.name === "Treatment Assistance"
                 ? treatmentSubNav
                 : [];
 

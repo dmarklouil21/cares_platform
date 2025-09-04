@@ -221,7 +221,7 @@ export default function PatinetProfileForm() {
           className="bg-white p-5 md:p-9 flex flex-col gap-8 rounded-2xl "
         >
           {/* Patient Name Section */}
-          <h1 className="font-bold md:text-2xl">Patient Name</h1>
+          <h1 className="font-bold md:text-2xl">Basic Information</h1>
 
           <div className="grid grid-cols-2 md:gap-x-10 gap-3">
             {/* First Name */}

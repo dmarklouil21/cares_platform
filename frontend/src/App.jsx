@@ -77,11 +77,11 @@ import UploadAttachments from "./pages/beneficiary/individualscreeningstatus/Upl
 // ----------- Beneficiary cancer management options ------------------
 
 // Note 
-// import BrachytherapyServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/ServiceApplicationNote";
-// import ChemotherapyServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/ServiceApplicationNote";
-// import ServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/radioactive/ServiceApplicationNote";
-// import ServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/ServiceApplicationNote";
-// import ServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/surgery/ServiceApplicationNote";
+import BrachytherapyServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/ServiceApplicationNote";
+import ChemotherapyServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/ServiceApplicationNote";
+import RadioactiveServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/radioactive/ServiceApplicationNote";
+import RadiotherapyServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/ServiceApplicationNote";
+import SurgeryServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/surgery/ServiceApplicationNote";
 
 import BeneficiaryPreCancerousMeds from "./pages/beneficiary/services/pages/cancermanagement/PreCancerousMeds";
 import BeneficiaryRadioTherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/RadioTherapyPreScreening";
@@ -330,6 +330,10 @@ const App = () => {
                     element={<BeneficiaryRadioTherapyPreScreening />}
                   />
                   <Route
+                    path="form-note"
+                    element={<RadiotherapyServiceApplicationNote />}
+                  />
+                  <Route
                     path="radio-therapy-well-being-tool"
                     element={<BeneficiaryRadioTherapyWellBeingTool />}
                   />
@@ -342,6 +346,10 @@ const App = () => {
                   <Route
                     index
                     element={<BeneficiaryRadioactivePreScreening />}
+                  />
+                  <Route
+                    path="form-note"
+                    element={<RadioactiveServiceApplicationNote />}
                   />
                   <Route
                     path="radio-active-well-being-tool"
@@ -358,6 +366,10 @@ const App = () => {
                     element={<BeneficiaryBrachytherapyPreScreening />}
                   />
                   <Route
+                    path="form-note"
+                    element={<BrachytherapyServiceApplicationNote />}
+                  />
+                  <Route
                     path="brachy-well-being-tool"
                     element={<BeneficiaryBrachytherapyWellBeingTool />}
                   />
@@ -372,6 +384,10 @@ const App = () => {
                     element={<BeneficiarychemotherapyPreScreening />}
                   />
                   <Route
+                    path="form-note"
+                    element={<ChemotherapyServiceApplicationNote />}
+                  />
+                  <Route
                     path="chemotherapy-well-being-tool"
                     element={<BeneficiarychemotherapyWellBeingTool />}
                   />
@@ -382,6 +398,10 @@ const App = () => {
                 </Route>
                 <Route path="surgery">
                   <Route index element={<BeneficiarysurgeryPreScreening />} />
+                  <Route
+                    path="form-note"
+                    element={<SurgeryServiceApplicationNote />}
+                  />
                   <Route
                     path="surgery-well-being-tool"
                     element={<BeneficiarysurgeryWellBeingTool />}
