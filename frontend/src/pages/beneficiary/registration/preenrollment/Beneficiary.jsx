@@ -225,7 +225,7 @@ export default function PatinetProfileForm() {
       />
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="h-screen w-full lg:w-[75%] flex flex-col gap-3 md:gap-12 bg-gray py-12 px-5 overflow-auto">
-        <div className="w-full flex justify-between px-9">
+        {/* <div className="w-full flex justify-between px-9">
           <h1 className="font-bold text-[15px] md:text-2xl">Patient Profile</h1>
           <div className="flex text-right flex-col">
             <p className="text-[10px] md:text-sm">STEP 01/02</p>
@@ -233,14 +233,67 @@ export default function PatinetProfileForm() {
               General Data
             </h1>
           </div>
-        </div>
+        </div> */}
 
         <form
           onSubmit={handleSubmit}
           className="bg-white p-5 md:p-9 flex flex-col gap-8 rounded-2xl "
         >
-          <div className="flex justify-between items-center">
-            <h1 className="font-bold md:text-3xl">Patient Name</h1>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            {/* Left Side: Title + Note + Date md:text-2xl text-gray-800*/}
+            <div className="flex flex-col gap-2"> 
+              <h1 className="font-bold text-xl">
+                PATIENT PROFILE
+              </h1>
+              <p className="text-sm text-gray-600 italic">
+                Note: Please put <span className="font-semibold">"NA"</span> for not applicable fields.
+              </p>
+            </div>
+
+            {/* Right Side: 2x2 Photo + Logo */}
+            <div className="flex items-center gap-6">
+              {/* 2x2 Upload */}
+              <label
+                htmlFor="photo2x2"
+                className="relative w-[120px] h-[120px] border-2 border rounded-md flex items-center justify-center text-xs text-gray-500 cursor-pointer overflow-hidden hover:bg-gray-50 transition"
+                title="Upload 2×2 photo"
+              >
+                {photoUrl ? (
+                  <img
+                    src={photoUrl}
+                    alt="2×2 preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="p-2 text-center leading-tight">
+                    Upload 2×2 photo
+                    <br />
+                    <span className="text-[11px] opacity-70">JPG/PNG</span>
+                  </span>
+                )}
+                <input
+                  id="photo2x2"
+                  type="file"
+                  accept="image/*"
+                  onChange={handle2x2Change}
+                  className="hidden"
+                />
+              </label>
+
+              {/* Logo */}
+              <img
+                src="/images/logo_black_text.png"
+                alt="rafi logo"
+                className="h-30 md:h-30 object-contain"
+              />
+            </div>
+          </div>
+
+          {/* <div className="flex justify-between items-center">
+            <h1 className="font-bold md:text-3xl">Patient Profile</h1>
+            <p>Note: Please put NA for not Applicable fields</p><br/>
+            <label>Date: </label>
+            <input type="date"></input>
 
             <div className="flex items-center gap-4">
               <label
@@ -272,7 +325,8 @@ export default function PatinetProfileForm() {
 
               <img src="/images/logo_black_text.png" alt="rafi icon" />
             </div>
-          </div>
+          </div> */}
+          <h2 className="text-md font-bold border-b pb-1">GENERAL DATA</h2>
 
           <div className="grid grid-cols-2 md:gap-x-10 gap-3">
             <div className="flex gap-2 flex-col">
@@ -288,7 +342,7 @@ export default function PatinetProfileForm() {
 
             {/* Middle Name */}
             <div className="flex gap-2 flex-col">
-              <label className="text-black       text-[12px] md:text-[16px]">
+              <label className="text-black text-[12px] md:text-[16px]">
                 Middle Name
               </label>
               <input
@@ -302,7 +356,7 @@ export default function PatinetProfileForm() {
 
             {/* Last Name */}
             <div className="flex gap-2 flex-col">
-              <label className="text-black          text-[12px] md:text-[16px]">
+              <label className="text-black text-[12px] md:text-[16px]">
                 Last Name
               </label>
               <input
@@ -353,7 +407,7 @@ export default function PatinetProfileForm() {
             </div>
 
             {/* Age */}
-            <div className="flex gap-2 flex-col">
+            {/* <div className="flex gap-2 flex-col">
               <label className="text-black        text-[12px] md:text-[16px]">
                 Age
               </label>
@@ -364,11 +418,11 @@ export default function PatinetProfileForm() {
                 onChange={handleChange}
                 className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
-            </div>
+            </div> */}
 
             {/* Sex */}
             <div className="flex gap-2 flex-col">
-              <label className="text-black       text-[12px] md:text-[16px]">
+              <label className="text-black text-[12px] md:text-[16px]">
                 Sex
               </label>
               <div className="relative">
@@ -450,7 +504,7 @@ export default function PatinetProfileForm() {
           {/* Contact & Address Section */}
           <div className="flex flex-col gap-10">
             <div className="flex flex-col gap-5">
-              <h1 className="font-bold md:text-2xl">Contact & Address</h1>
+              <h1 className="font-bold">Contact & Address</h1>
               <div className="grid grid-cols-2 md:gap-x-10 gap-3">
                 {/* Permanent Address */}
                 <div className="flex gap-2 flex-col col-span-2">
@@ -590,7 +644,7 @@ export default function PatinetProfileForm() {
 
             {/* Additional Info Section */}
             <div className="flex flex-col gap-5">
-              <h1 className="font-bold md:text-2xl">Additional Info</h1>
+              <h1 className="font-bold">Additional Info</h1>
               <div className="grid grid-cols-2 gap-x-10 gap-y-5">
                 {/* Source of Information */}
                 <div className="flex gap-2 flex-col col-span-2">
@@ -623,7 +677,7 @@ export default function PatinetProfileForm() {
 
             {/* Socioeconomic Info Section */}
             <div className="flex flex-col gap-5">
-              <h1 className="font-bold md:text-2xl">Socioeconomic Info</h1>
+              <h1 className="font-bold">Socioeconomic Info</h1>
               <div className="grid grid-cols-2 md:gap-x-10 gap-4">
                 {/* Education */}
                 <div className="flex gap-2 flex-col">
@@ -685,7 +739,7 @@ export default function PatinetProfileForm() {
 
             {/* Emergency Contact 1 Section */}
             <div className="flex flex-col gap-5">
-              <h1 className="font-bold md:text-2xl">Emergency Contact 1</h1>
+              <h1 className="font-bold">Emergency Contact 1</h1>
               <div className="grid grid-cols-2 md:gap-x-10 gap-3">
                 {/* Name */}
                 <div className="flex gap-2 flex-col">
@@ -802,7 +856,7 @@ export default function PatinetProfileForm() {
 
             {/* Emergency Contact 2 Section */}
             <div className="flex flex-col gap-5">
-              <h1 className="font-bold md:text-2xl">Emergency Contact 2</h1>
+              <h1 className="font-bold">Emergency Contact 2</h1>
               <div className="grid grid-cols-2 md:gap-x-10 gap-3">
                 {/* Name */}
                 <div className="flex gap-2 flex-col">
@@ -926,12 +980,18 @@ export default function PatinetProfileForm() {
             >
               Cancel
             </Link>
-            <button
+            <Link
+              to="/PreEnrollmentPreScreeningForm"
+              className="bg-[#749AB6] text-center font-bold text-white py-3 w-full border-[1px] border-[#749AB6] hover:border-[#C5D7E5] hover:bg-[#C5D7E5] rounded-md cursor-pointer"
+            >
+              Next
+            </Link>
+            {/* <button
               type="submit"
               className="bg-[#749AB6] text-center font-bold text-white py-2 w-full border-[1px] border-[#749AB6] hover:border-[#C5D7E5] hover:bg-[#C5D7E5] rounded-md cursor-pointer"
             >
               Submit
-            </button>
+            </button> */}
           </div>
           {/* <div className="flex justify-end w-full mt-10">
             <button

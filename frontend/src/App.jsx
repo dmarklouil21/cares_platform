@@ -17,6 +17,7 @@ import NoteRhu from "./pages/rhu/registration/Note";
 
 //pre enrollment - wala pay private
 import PreEnrollmentBeneficiary from "./pages/beneficiary/registration/preenrollment/Beneficiary";
+import PreScreeningForm from "./pages/beneficiary/registration/preenrollment/PreScreeningForm";
 import NotValidated from "./pages/beneficiary/registration/note/preenrollment/NotValidated";
 
 // ----------- REGISTRATION RHU SIDE ------------------
@@ -171,6 +172,14 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <PreEnrollmentBeneficiary />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="PreEnrollmentPreScreeningForm"
+              element={
+                <ProtectedRoute>
+                  <PreScreeningForm />
                 </ProtectedRoute>
               }
             />

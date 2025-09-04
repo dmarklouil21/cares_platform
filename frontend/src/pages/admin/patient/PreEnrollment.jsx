@@ -206,6 +206,7 @@ const PreEnrollment = () => {
         <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Admin</h1>
         </div>
+        
         <div className="w-full flex-1 py-5 flex flex-col justify-around px-5">
           <h2 className="text-xl font-bold text-left w-full pl-5">
             Pre-Enrollment

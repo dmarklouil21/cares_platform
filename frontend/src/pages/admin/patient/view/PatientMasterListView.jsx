@@ -42,18 +42,67 @@ const PatientMasterListView = () => {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
-      <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
+    <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+      <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">View Patient</h1>
-        <div className="text-white font-semibold">
-          Patient ID: {patient.patient_id || "N/A"}
-        </div>
+        <Link to={"/Admin/patient/AdminPatientMasterList"}>
+          <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
+        </Link>
       </div>
 
-      <form className="h-full w-full p-5 flex flex-col justify-between overflow-auto gap-5">
+      <form className="h-full w-full p-5 flex flex-col justify-between overflow-auto gap-5 bg[#F8F9FA]">
         <div className="border border-black/15 p-3 bg-white rounded-sm">
-          <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between py-3 px-5 items-start md:items-center gap-6 mb-6">
+            <div className="flex flex-col gap-2">
+              <h1 className="text-xl font-bold">
+                PATIENT PROFILE
+              </h1>
+              <p className="text-sm text-gray-600">
+                Patient ID:{" "}
+                <span className="font-semibold">
+                  {patient.patient_id || "N/A"}
+                </span>
+              </p>
+              {/* <p className="text-sm text-gray-600">
+                Pre-Screening Form:{" "}
+                <span className="font-semibold text-blue-600 cursor-pointer">
+                  View
+                </span>
+              </p> */}
+            </div>
+
+            <div className="flex items-center gap-6">
+              {/* Photo */}
+              <div className="w-[120px] h-[120px] border border-gray-300 rounded-lg overflow-hidden">
+                <img
+                  src={photoUrl}
+                  alt="2x2 ID"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {/* Logo */}
+              <img
+                src="/images/logo_black_text.png"
+                alt="rafi logo"
+                className="h-30 md:h-30 object-contain"
+              />
+            </div>
+          </div>
+
+          {/* <div className="border-b border-t border-black/20 rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4">
             <h1 className="text-md font-bold">Personal Information</h1>
+          </div> */}
+          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+              Personal Information
+            </h2>
+          </div>
+
+          {/* <div className="flex flex-col gap-2"> 
+            <h1 className="font-bold text-xl">
+              PATIENT PROFILE
+            </h1>
           </div>
 
           <div className="w-[100%] p-4 flex justify-between">
@@ -67,119 +116,131 @@ const PatientMasterListView = () => {
               </div>
               <img src="/images/logo_black_text.png" alt="rafi icon" />
             </div>
-          </div>
+          </div> */}
 
           <div className="flex flex-row gap-8 p-4">
             <div className="flex flex-col gap-3 w-1/2">
               <div className="w-full">
-                <label className="block text-gray-700 mb-1">Full Name:</label>
+                <label className="text-sm font-medium block mb-1">Full Name</label>
                 <input
                   type="text"
                   value={patient.full_name || ""}
                   disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                 />
               </div>
               <div className="w-full">
-                <label className="block text-gray-700 mb-1">First Name:</label>
+                <label className="text-sm font-medium block mb-1">First Name</label>
                 <input
                   type="text"
                   value={patient.first_name || ""}
                   disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">Middle Name:</label>
+                <label className="text-sm font-medium block mb-1">Middle Name</label>
                 <input
                   type="text"
                   value={patient.middle_name || ""}
                   disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">Last Name:</label>
+                <label className="text-sm font-medium block mb-1">Last Name</label>
                 <input
                   type="text"
                   value={patient.last_name || ""}
                   disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">Suffix:</label>
+                <label className="text-sm font-medium block mb-1">Suffix</label>
                 <input
                   type="text"
                   value={patient.suffix || "N/A"}
                   disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                 />
               </div>
             </div>
 
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="block text-gray-700 mb-1">Birthdate:</label>
+                <label className="text-sm font-medium block mb-1">Birthdate</label>
                 <input
                   type="text"
                   value={patient.date_of_birth || ""}
                   disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">Age:</label>
+                <label className="text-sm font-medium block mb-1">Age</label>
                 <input
                   type="text"
                   value={patient.age || ""}
                   disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">Sex:</label>
+                <label className="text-sm font-medium block mb-1">Sex</label>
                 <input
                   type="text"
                   value={patient.sex || ""}
                   disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Number of Children:
+                <label className="text-sm font-medium block mb-1">
+                  Number of Children
                 </label>
                 <input
                   type="text"
                   value={patient.number_of_children || ""}
                   disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Civil Status:
+                <label className="text-sm font-medium block mb-1">
+                  Civil Status
                 </label>
                 <input
                   type="text"
                   value={patient.civil_status || ""}
                   disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                 />
               </div>
             </div>
           </div>
 
-          <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4 mt-8">
+          {/* <div className="border-b border-t border-black/20 rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4 mt-8">
             <h1 className="text-md font-bold">Contact and Address</h1>
+          </div> */}
+          {/* <div className="relative flex items-center mb-6 mt-8">
+            <div className="flex-1 h-[1px] bg-gray-200"></div>
+            <h2 className="px-4 text-md font-bold tracking-wide uppercase bg-white shadow-sm rounded-sm">
+              Contact & Address
+            </h2>
+            <div className="flex-1 h-[1px] bg-gray-200"></div>
+          </div> */}
+          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+              Contact & Address
+            </h2>
           </div>
           <div className="flex flex-row gap-8 p-4">
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Permanent Address:
+                <label className="text-sm font-medium block mb-1">
+                  Permanent Address
                 </label>
                 <input
                   type="text"
@@ -189,8 +250,8 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  City/Municipality:
+                <label className="text-sm font-medium block mb-1">
+                  City/Municipality
                 </label>
                 <input
                   type="text"
@@ -200,7 +261,7 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">Barangay:</label>
+                <label className="text-sm font-medium block mb-1">Barangay</label>
                 <input
                   type="text"
                   value={patient.barangay || ""}
@@ -212,7 +273,7 @@ const PatientMasterListView = () => {
 
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="block text-gray-700 mb-1">Email:</label>
+                <label className="text-sm font-medium block mb-1">Email</label>
                 <input
                   type="text"
                   value={patient.email || ""}
@@ -221,8 +282,8 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Mobile Number:
+                <label className="text-sm font-medium block mb-1">
+                  Mobile Number
                 </label>
                 <input
                   type="text"
@@ -234,14 +295,26 @@ const PatientMasterListView = () => {
             </div>
           </div>
 
-          <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4 mt-8">
+          {/* <div className="border-b border-t border-black/20 rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4 mt-8">
             <h1 className="text-md font-bold">Additional Info</h1>
+          </div> */}
+          {/* <div className="relative flex items-center mb-6 mt-8">
+            <div className="flex-1 h-[1px] bg-gray-200"></div>
+            <h2 className="px-4 text-md font-bold tracking-wide uppercase bg-white shadow-sm rounded-sm">
+              Additional Info
+            </h2>
+            <div className="flex-1 h-[1px] bg-gray-200"></div>
+          </div> */}
+          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+              Additional Info
+            </h2>
           </div>
           <div className="flex flex-row gap-8 p-4">
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Source of Information (Where did you hear about RAFI-EJACC?):
+                <label className="text-sm font-medium block mb-1">
+                  Source of Information (Where did you hear about RAFI-EJACC?)
                 </label>
                 <input
                   type="text"
@@ -251,8 +324,8 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Other RAFI program you availed:
+                <label className="text-sm font-medium block mb-1">
+                  Other RAFI program you availed
                 </label>
                 <input
                   type="text"
@@ -264,14 +337,26 @@ const PatientMasterListView = () => {
             </div>
           </div>
 
-          <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4 mt-8">
+          {/* <div className="border-b border-t border-black/20 rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4 mt-8">
             <h1 className="text-md font-bold">Socioeconomic Info</h1>
+          </div> */}
+          {/* <div className="relative flex items-center mb-6 mt-8">
+            <div className="flex-1 h-[1px] bg-gray-200"></div>
+            <h2 className="px-4 text-md font-bold tracking-wide uppercase bg-white shadow-sm rounded-sm">
+              Socioeconomic Info
+            </h2>
+            <div className="flex-1 h-[1px] bg-gray-200"></div>
+          </div> */}
+          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+              Socioeconomic Info
+            </h2>
           </div>
           <div className="flex flex-row gap-8 p-4">
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Highest Educational Attainment:
+                <label className="text-sm font-medium block mb-1">
+                  Highest Educational Attainment
                 </label>
                 <input
                   type="text"
@@ -281,8 +366,8 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Source of Income:
+                <label className="text-sm font-medium block mb-1">
+                  Source of Income
                 </label>
                 <input
                   type="text"
@@ -294,7 +379,7 @@ const PatientMasterListView = () => {
             </div>
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="block text-gray-700 mb-1">Occupation:</label>
+                <label className="text-sm font-medium block mb-1">Occupation</label>
                 <input
                   type="text"
                   value={patient.occupation || ""}
@@ -303,7 +388,7 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">Income:</label>
+                <label className="text-sm font-medium block mb-1">Income</label>
                 <input
                   type="text"
                   value={patient.monthly_income || ""}
@@ -314,13 +399,25 @@ const PatientMasterListView = () => {
             </div>
           </div>
 
-          <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4 mt-8">
+          {/* <div className="border-b border-t border-black/20 rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4 mt-8">
             <h1 className="text-md font-bold">Emergency Contacts</h1>
+          </div> */}
+          {/* <div className="relative flex items-center mb-6 mt-8">
+            <div className="flex-1 h-[1px] bg-gray-200"></div>
+            <h2 className="px-4 text-md font-bold tracking-wide uppercase bg-white shadow-sm rounded-sm">
+              Emergency Contacts
+            </h2>
+            <div className="flex-1 h-[1px] bg-gray-200"></div>
+          </div> */}
+          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+              Emergency Contacts
+            </h2>
           </div>
           <div className="flex flex-row gap-8 p-4">
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="block text-gray-700 mb-1">Name:</label>
+                <label className="text-sm font-medium block mb-1">Name</label>
                 <input
                   type="text"
                   value={patient.emergency_contacts?.[0]?.name ?? ""}
@@ -329,8 +426,8 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Relationship to Patient:
+                <label className="text-sm font-medium block mb-1">
+                  Relationship to Patient
                 </label>
                 <input
                   type="text"
@@ -343,8 +440,8 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Landline Number:
+                <label className="text-sm font-medium block mb-1">
+                  Landline Number
                 </label>
                 <input
                   type="text"
@@ -354,7 +451,7 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">Address:</label>
+                <label className="text-sm font-medium block mb-1">Address</label>
                 <input
                   type="text"
                   value={patient.emergency_contacts?.[0]?.address ?? ""}
@@ -363,8 +460,8 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Email Address:
+                <label className="text-sm font-medium block mb-1">
+                  Email Address
                 </label>
                 <input
                   type="text"
@@ -374,8 +471,8 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Mobile Number:
+                <label className="text-sm font-medium block mb-1">
+                  Mobile Number
                 </label>
                 <input
                   type="text"
@@ -389,7 +486,7 @@ const PatientMasterListView = () => {
             {/* Second Contact */}
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="block text-gray-700 mb-1">Name:</label>
+                <label className="text-sm font-medium block mb-1">Name</label>
                 <input
                   type="text"
                   value={patient.emergency_contacts?.[1]?.name ?? ""}
@@ -398,8 +495,8 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Relationship to Patient:
+                <label className="text-sm font-medium block mb-1">
+                  Relationship to Patient
                 </label>
                 <input
                   type="text"
@@ -412,8 +509,8 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Landline Number:
+                <label className="text-sm font-medium block mb-1">
+                  Landline Number
                 </label>
                 <input
                   type="text"
@@ -423,7 +520,7 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">Address:</label>
+                <label className="text-sm font-medium block mb-1">Address</label>
                 <input
                   type="text"
                   value={patient.emergency_contacts?.[1]?.address ?? ""}
@@ -432,8 +529,8 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Email Address:
+                <label className="text-sm font-medium block mb-1">
+                  Email Address
                 </label>
                 <input
                   type="text"
@@ -443,8 +540,8 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Mobile Number:
+                <label className="text-sm font-medium block mb-1">
+                  Mobile Number
                 </label>
                 <input
                   type="text"
@@ -457,14 +554,26 @@ const PatientMasterListView = () => {
           </div>
 
           {/* Medical Information */}
-          <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4 mt-8">
+          {/* <div className="border-b border-t border-black/20 rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4 mt-8">
             <h1 className="text-md font-bold">Medical Information</h1>
+          </div> */}
+          {/* <div className="relative flex items-center mb-6 mt-8">
+            <div className="flex-1 h-[1px] bg-gray-200"></div>
+            <h2 className="px-4 text-md font-bold tracking-wide uppercase bg-white shadow-sm rounded-sm">
+              Medical Information
+            </h2>
+            <div className="flex-1 h-[1px] bg-gray-200"></div>
+          </div> */}
+          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+              Medical Information
+            </h2>
           </div>
           <div className="flex flex-row gap-8 p-4">
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Date Diagnosed:
+                <label className="text-sm font-medium block mb-1">
+                  Date Diagnosed
                 </label>
                 <input
                   type="text"
@@ -474,7 +583,7 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">Diagnosis:</label>
+                <label className="text-sm font-medium block mb-1">Diagnosis</label>
                 <input
                   type="text"
                   value={patient.diagnosis?.[0]?.diagnosis ?? ""}
@@ -483,8 +592,8 @@ const PatientMasterListView = () => {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 mb-1">
-                  Cancer Stage:
+                <label className="text-sm font-medium block mb-1">
+                  Cancer Stage
                 </label>
                 <input
                   type="text"
@@ -496,7 +605,7 @@ const PatientMasterListView = () => {
             </div>
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="block text-gray-700 mb-1">Cancer Site:</label>
+                <label className="text-sm font-medium block mb-1">Cancer Site</label>
                 <input
                   type="text"
                   value={patient.diagnosis?.[0]?.cancer_site ?? ""}
@@ -508,16 +617,28 @@ const PatientMasterListView = () => {
           </div>
 
           {/* Historical Updates */}
-          <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4 mt-8">
+          {/* <div className="border-b border-t border-black/20 rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4 mt-8">
             <h1 className="text-md font-bold">Patient Historical Updates</h1>
+          </div> */}
+          {/* <div className="relative flex items-center mb-6 mt-8">
+            <div className="flex-1 h-[1px] bg-gray-200"></div>
+            <h2 className="px-4 text-md font-bold tracking-wide uppercase bg-white shadow-sm rounded-sm">
+              Patient Historical Updates
+            </h2>
+            <div className="flex-1 h-[1px] bg-gray-200"></div>
+          </div> */}
+          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+              Patient Historical Updates
+            </h2>
           </div>
           <div className="p-4">
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white border border-gray-300">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="py-2 px-4 border-b text-left">Date</th>
-                    <th className="py-2 px-4 border-b text-left">Note</th>
+                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Date</th>
+                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Note</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -526,17 +647,17 @@ const PatientMasterListView = () => {
                       key={index}
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                     >
-                      <td className="py-2 px-4 border-b">
+                      <td className="py-2 px-4 border-b text-sm">
                         {update?.date ?? ""}
                       </td>
-                      <td className="py-2 px-4 border-b">
+                      <td className="py-2 px-4 border-b text-sm">
                         {update?.note ?? ""}
                       </td>
                     </tr>
                   ))}
                   {(patient.historical_updates ?? []).length === 0 && (
                     <tr>
-                      <td className="py-2 px-4 border-b" colSpan={2}>
+                      <td className="py-2 px-4 border-b text-sm" colSpan={2}>
                         No history available.
                       </td>
                     </tr>
@@ -552,7 +673,7 @@ const PatientMasterListView = () => {
             className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
             to="/Admin/patient/AdminPatientMasterList"
           >
-            BACK
+            NEXT
           </Link>
         </div>
       </form>

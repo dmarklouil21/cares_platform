@@ -191,9 +191,9 @@ const PatientMasterList = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting changes..." />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
-        <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
-          <h1 className="text-md font-bold h-full flex items-center ">Admin</h1>
+      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+          <h1 className="text-md font-bold">Admin</h1>
           <Link
             to="/Admin/patient/add/AdminPatientMasterListAdd"
             className="bg-yellow gap-3 flex justify-center items-center px-5 py-1 rounded-sm"
@@ -206,11 +206,11 @@ const PatientMasterList = () => {
             <p className="text-white text-sm">Add Patient</p>
           </Link>
         </div>
-        <div className=" w-full flex-1 py-5 flex flex-col justify-around px-5">
+        <div className="w-full flex-1 py-5 flex flex-col justify-around px-5">
           <h2 className="text-xl font-bold text-left w-full pl-5">
             Patient Master List
           </h2>
-          <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-3">
+          <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-5 gap-3">
             <p className="text-md font-semibold text-yellow">
               Manage all patients
             </p>
@@ -237,7 +237,7 @@ const PatientMasterList = () => {
                 type="date"
                 className="border border-gray-200 py-2 px-5 rounded-md"
               />
-              <button className="px-7 rounded-md text-sm text-white bg-lightblue">
+              <button className="px-7 rounded-md text-sm bg-lightblue">
                 Filter
               </button>
             </div>
