@@ -134,7 +134,10 @@ export default function PatinetProfileForm() {
     if (modalAction?.type === "submit") {
       try {
         setLoading(true);
-        const response = await api.post("/beneficiary/pre-enrollment/", formData);
+        const response = await api.post(
+          "/beneficiary/pre-enrollment/",
+          formData
+        );
         setModalInfo({
           type: "success",
           title: "Success!",
@@ -180,6 +183,22 @@ export default function PatinetProfileForm() {
     setModalAction(null);
     setModalText("");
   };
+  // 2×2 photo preview (UI only; no data changes)
+  const [photoUrl, setPhotoUrl] = useState(null);
+
+  function handle2x2Change(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPhotoUrl(url);
+  }
+
+  // cleanup the blob URL to avoid leaks
+  useEffect(() => {
+    return () => {
+      if (photoUrl) URL.revokeObjectURL(photoUrl);
+    };
+  }, [photoUrl]);
 
   return (
     <>
@@ -220,11 +239,42 @@ export default function PatinetProfileForm() {
           onSubmit={handleSubmit}
           className="bg-white p-5 md:p-9 flex flex-col gap-8 rounded-2xl "
         >
-          {/* Patient Name Section */}
-          <h1 className="font-bold md:text-2xl">Patient Name</h1>
+          <div className="flex justify-between items-center">
+            <h1 className="font-bold md:text-3xl">Patient Name</h1>
+
+            <div className="flex items-center gap-4">
+              <label
+                htmlFor="photo2x2"
+                className="relative w-[130px] h-[130px] border-2 border-dashed rounded-md flex items-center justify-center text-xs text-gray-600 cursor-pointer overflow-hidden"
+                title="Upload 2×2 photo"
+              >
+                {photoUrl ? (
+                  <img
+                    src={photoUrl}
+                    alt="2×2 preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="p-2 text-center leading-tight">
+                    Upload 2×2 photo
+                    <br />
+                    <span className="text-[11px] opacity-70">JPG/PNG</span>
+                  </span>
+                )}
+                <input
+                  id="photo2x2"
+                  type="file"
+                  accept="image/*"
+                  onChange={handle2x2Change}
+                  className="hidden"
+                />
+              </label>
+
+              <img src="/images/logo_black_text.png" alt="rafi icon" />
+            </div>
+          </div>
 
           <div className="grid grid-cols-2 md:gap-x-10 gap-3">
-            {/* First Name */}
             <div className="flex gap-2 flex-col">
               <label className="text-[12px] md:text-[16px]">First Name</label>
               <input
