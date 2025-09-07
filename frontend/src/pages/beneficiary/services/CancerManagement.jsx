@@ -84,15 +84,15 @@ const CancerManagementPage = () => {
       </div>
 
       <div className="py-6 px-10 bg-gray">
-        <h2 className="text-[16px] md:text-xl font-semibold mb-6">
+        <h2 className="text-xl font-semibold mb-6">
           Cancer Management & Treatment Assistance
         </h2>
 
         <div className="flex flex-col gap-7 w-full bg-white rounded-2xl py-10 px-8">
-          <h3 className="text-[18px] md:text-[38px] font-bold text-secondary">
+          <h3 className="text-2xl font-bold text-secondary">
             CANCER TREATMENT OPTIONS
           </h3>
-          <p className="text-gray2 text-[16px] md:text-[24px] mb-4">
+          <p className="text-gray2  mb-4">
             Explore evidence-based therapies and supportive care at EJACC
           </p>
 
@@ -107,10 +107,10 @@ const CancerManagementPage = () => {
                   alt={`${option.title} Icon`}
                   className="h-8 w-8"
                 />
-                <h4 className="text-[16px] md:text-[22px] font-bold text-gray-800 text-center">
+                <h4 className="text-lg font-bold text-gray-800 text-center">
                   {option.title}
                 </h4>
-                <p className="text-gray2 text-center text-[14px] md:text-[16px]">
+                <p className="text-gray2 text-center text-sm">
                   {option.description}
                 </p>
                 <a

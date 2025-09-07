@@ -82,10 +82,10 @@ const CancerScreening = () => {
             <h2 className="text-xl font-semibold mb-6">Cancer Screenings</h2>
 
             <div className="flex flex-col gap-3 w-full bg-white rounded-2xl p-5 md:p-8">
-              <h3 className="text-[18px] md:text-[36px] font-bold text-secondary">
+              <h3 className="text-[18px] md:text-2xl font-bold text-secondary">
                 CANCER SCREENING MANAGEMENT OPTION
               </h3>
-              <p className="text-gray2 mb-4 text-[16px] md:text-[22px]">
+              <p className="text-gray2 mb-4 text-[16px] ">
                 Navigate your treatment journey with expert-guided support
               </p>
 
@@ -98,21 +98,19 @@ const CancerScreening = () => {
                     <img
                       src={option.icon}
                       alt={`${option.title} Icon`}
-                      className="size-12 md:size-15"
+                      className="size-12 "
                     />
                     <div className="flex flex-col gap-2 text-center">
-                      <h4 className="text-[22px] md:text-[38px] font-bold text-black">
+                      <h4 className="text-2xl font-bold text-black">
                         {option.title}
                       </h4>
-                      <p className="text-gray2 text-[14px] md:text-[20px]">
-                        {option.description}
-                      </p>
+                      <p className="text-gray2 text-sm">{option.description}</p>
                     </div>
                     <div className="w-full">
-                      <h1 className="font-bold text-left w-full md:text-[20px]">
+                      <h1 className="font-bold text-left w-full ">
                         Key Features:
                       </h1>
-                      <ul className="list-disc list-inside text-left text-[14px] md:text-[20px]">
+                      <ul className="list-disc list-inside text-left ">
                         {option.features.map((feature, index) => (
                           <li key={index}>{feature}</li>
                         ))}

@@ -75,10 +75,10 @@ const NavigationGuide = () => {
         </h1>
 
         <div className="bg-white rounded-lg p-10 mb-8 shadow-sm">
-          <h2 className="text-[18px] md:text-[38px] font-bold text-yellow mb-4">
+          <h2 className="text-[18px] md:text-2xl font-bold text-yellow mb-4">
             WHO IS THIS GUIDE FOR? 🤔
           </h2>
-          <p className="mb-4 font-bold text-[16px] md:text-[24px] ">
+          <p className="mb-4 font-bold text-[16px] ">
             The "Patient Navigation Guide" is designed for
             <span className="text-orange-500 font-medium">
               {" "}
@@ -89,7 +89,7 @@ const NavigationGuide = () => {
             Its primary purpose is to provide guidance and support throughout
             the cancer journey, from diagnosis to recovery.
           </p>
-          <p className="text-[15px] md:text-[22px]">
+          <p className="text-[15px]">
             The guide offers valuable information on various services and
             programs, helping patients navigate the complexities of treatment,
             managing side effects, and accessing support in areas such as
@@ -102,13 +102,13 @@ const NavigationGuide = () => {
             Government Support Agencies
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10 p-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10 p-10 ">
             {supportAgencies.map((agency, index) => (
               <div
                 key={index}
                 className="agency-card bg-white rounded-lg custom-shadow"
               >
-                <div className="p-5 text-center">
+                <div className="p-5 text-center ">
                   <div className="flex justify-center mb-3">
                     <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center">
                       <img
@@ -118,12 +118,10 @@ const NavigationGuide = () => {
                       />
                     </div>
                   </div>
-                  <h3 className="font-bold text-center mb-1 text-[16px] md:text-[22px]">
+                  <h3 className="font-bold text-center mb-1 text-[16px] ">
                     {agency.name}
                   </h3>
-                  <p className="text-[14px] md:text-[16px] mb-4 ">
-                    {agency.description}
-                  </p>
+                  <p className="text-[16px] mb-4 ">{agency.description}</p>
                   <Link
                     to={agency.path}
                     className="learn-more-btn bg-primary text-white px-4 py-1 rounded text-sm inline-block"
@@ -135,16 +133,14 @@ const NavigationGuide = () => {
             ))}
           </div>
 
-          <h2 className="text-[18px] md:text-2xl font-bold mb-6">
-            Treatment Center
-          </h2>
+          <h2 className="text-2xl font-bold mb-6">Treatment Center</h2>
 
           <div className="bg-white rounded-lg p-6 mb-8 shadow-sm">
-            <h3 className="font-bold text-[22px] md:text-[35px] mb-4 underline">
+            <h3 className="font-bold text-2xl mb-4 underline">
               Vicente Sotto Memorial Medical Center (VSMMC)
             </h3>
 
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-6 b">
               <img
                 src="/src/assets/images/patient/PatientHomePage/location.svg"
                 alt="Location icon"

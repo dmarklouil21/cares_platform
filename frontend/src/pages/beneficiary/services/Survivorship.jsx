@@ -56,10 +56,10 @@ const SurvivorshipPage = () => {
         <div className="py-6 px-10 bg-gray">
           <h2 className="text-xl font-semibold mb-6">Survivorship</h2>
           <div className="flex flex-col gap-3 w-full bg-white rounded-2xl py-7 px-8">
-            <h3 className="text-[18px] md:text-[36px] font-bold text-secondary">
+            <h3 className="text-2xl font-bold text-secondary">
               LIFE AFTER CANCER: YOUR SURVIVORSHIP JOURNEY
             </h3>
-            <p className="text-gray2 text-[16px] md:text-[22px] mb-4">
+            <p className="text-gray2 mb-4">
               Your Next Chapter: Guidance for Survivors
             </p>
 
