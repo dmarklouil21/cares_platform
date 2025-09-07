@@ -1,11 +1,16 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Link } from "react-router-dom";
+import React, {useState, useEffect} from "react";
+import { useLocation, Link, useParams } from "react-router-dom";
 import api from "src/api/axiosInstance"; 
 
-const Details = () => {
+const PatientMasterListView = () => {
   const { patient_id } = useParams();
   const [patient, setPatient] = useState(null);
+  const location = useLocation();
+
+  const raw = location.state?.patient ?? {};
+
+  const SAMPLE_2X2 = "https://placehold.co/600x600/png?text=2x2+Photo";
+  const photoUrl = SAMPLE_2X2;
 
   useEffect(() => {
     let isMounted = true;
@@ -28,344 +33,470 @@ const Details = () => {
     };
 
   }, [patient_id]);
+  console.log('Patient Data: ', patient);
 
-  const handleActionClick = async (patient_id, action) => {
-    try {
-      const url = `/ejacc/pre-enrollment/${action}/${patient_id}/`;
-
-      if (action === "delete") {
-        await api.delete(url);
-      } else {
-        await api.patch(url, {
-          status: action === "validate" ? "validated" : "rejected"
-        });
-      }
-  
-      alert(`${action} Successfully`);
-    } catch (error) {
-      console.error(`An error occurred while trying to ${action} this beneficiary`, error);
-      alert(`Failed to ${action} beneficiary. Please try again.`);
-    }
-  };
-
-  const handleVerifyClick = async (patient_id) => {
-    try{
-      await api.post(`/ejacc/pre-enrollment/verify/${patient_id}/`);
-      alert("Validated Successfully");
-    } catch (error) {
-      console.error("There's an error occured while verifying this beneficiary", error);
-    }
-  };
-
-  const handleDeleteClick = async (patient_id) => {
-      try{
-        await api.delete(`/ejacc/pre-enrollment/delete/${patient_id}/`);
-      alert("Deleted Successfully");
-    } catch (error) {
-      console.error("There's an error occured while deleting this beneficiary", error);
-    }
-  }
-
-  if (!patient) {
-    return <div className="p-6">Loading patient details...</div>;
-  }
   return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-      <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
-        <h1 className="text-md font-bold">Beneficiary Details</h1>
+    <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
+      <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+        <h1 className="text-md font-bold">View Patient</h1>
         <div className="p-3">
-          {/* <h3 className="ttext-2xl font-bold text-secondary">INDIVIDUAL SCREENING</h3> */}
           <Link to={"/Admin/patient/AdminPreEnrollment"}>
-            <img
-              src="/images/back.png"
-              alt="Back button icon"
-              className="h-6"
-            />
+            <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
           </Link>
         </div>
       </div>
-      {/* <div className="h-[90%] overflow-auto  px-5 py-3 flex flex-col gap-3"> */}
-      <div className="h-full w-full overflow-auto p-5 flex flex-col justify-between">
-        {/* <div className="flex justify-between px-5">
-          <h2 className="text-xl font-bold">Beneficiary ID: {patient.beneficiary_id}</h2>
-          <Link to={"/Admin/patient/AdminPreEnrollment"}>
-            <img
-              src="/images/back.png"
-              alt="Back button icon"
-              className="h-6"
-            />
-          </Link>
-        </div> */}
 
+      <form className="h-full w-full p-5 flex flex-col justify-between gap-5 bg[#F8F9FA]">
         <div className="border border-black/15 p-3 bg-white rounded-sm">
-          <div className="flex flex-col">
-            <div className="bg-gray rounded-t-md py-2 px-5 flex justify-between items-center">
-              <h1 className="text-md font-bold">Beneficiary Profile</h1>
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between py-3 px-5 items-start md:items-center gap-6 mb-6">
+            <div className="flex flex-col gap-2">
+              <h1 className="text-xl font-bold">
+                PATIENT PROFILE
+              </h1>
+              <p className="text-sm text-gray-600">
+                Patient ID:{" "}
+                <span className="font-semibold">
+                  {patient?.patient_id || "N/A"}
+                </span>
+              </p>
             </div>
-            <div className="flex justify-center bg-white mt-4">
-              <ul className="w-[100%] bg-gray/50">
-                <li className="border-b border-black/20 pl-4 py-2">
-                  Last Name
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  First Name
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  Middle Name
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">Sex</li>
-              </ul>
-              <ul className="w-[100%]">
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.last_name}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.first_name}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.middle_name}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.sex}
-                </li>
-              </ul>
-              <ul className="w-[100%] bg-gray/50">
-                <li className="border-b border-black/20 pl-4 py-2">
-                  Date of Birth
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">Age</li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  Civil Status
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
+
+            <div className="flex items-center gap-6">
+              {/* Photo */}
+              <div className="w-[120px] h-[120px] border border-gray-300 rounded-lg overflow-hidden">
+                <img
+                  src={
+                    patient?.photo_url
+                  }
+                  alt="2x2 ID" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {/* Logo */}
+              <img
+                src="/images/logo_black_text.png"
+                alt="rafi logo"
+                className="h-30 md:h-30 object-contain"
+              />
+            </div>
+          </div>
+
+          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+              General Data
+            </h2>
+          </div>
+
+          <div className="flex flex-row gap-8 p-4">
+            <div className="flex flex-col gap-3 w-1/2">
+              <div className="w-full">
+                <label className="text-sm font-medium block mb-1">Full Name</label>
+                <input
+                  type="text"
+                  value={patient?.full_name || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                />
+              </div>
+              <div className="w-full">
+                <label className="text-sm font-medium block mb-1">First Name</label>
+                <input
+                  type="text"
+                  value={patient?.first_name || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Middle Name</label>
+                <input
+                  type="text"
+                  value={patient?.middle_name || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Last Name</label>
+                <input
+                  type="text"
+                  value={patient?.last_name || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Suffix</label>
+                <input
+                  type="text"
+                  value={patient?.suffix || "N/A"}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 w-1/2">
+              <div>
+                <label className="text-sm font-medium block mb-1">Birthdate</label>
+                <input
+                  type="text"
+                  value={patient?.date_of_birth || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Age</label>
+                <input
+                  type="text"
+                  value={patient?.age || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Sex</label>
+                <input
+                  type="text"
+                  value={patient?.sex || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium block mb-1">
                   Number of Children
-                </li>
-              </ul>
-              <ul className="w-[100%]">
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.date_of_birth}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.age}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.civil_status}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.number_of_children}
-                </li>
-              </ul>
+                </label>
+                <input
+                  type="text"
+                  value={patient?.number_of_children || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Civil Status
+                </label>
+                <input
+                  type="text"
+                  value={patient?.civil_status || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                />
+              </div>
             </div>
           </div>
-          <div className="flex flex-col mt-4">
-            <div className="bg-gray py-2 px-5 flex justify-between items-center">
-              <h1 className="text-md font-bold">Contact & Address</h1>
-            </div>
-            <div className="flex  bg-white mt-4">
-              <ul className="w-[100%] bg-gray/50">
-                <li className="border-b border-black/20 pl-4 py-2">
+
+          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+              Contact & Address
+            </h2>
+          </div>
+          <div className="flex flex-row gap-8 p-4">
+            <div className="flex flex-col gap-3 w-1/2">
+              <div>
+                <label className="text-sm font-medium block mb-1">
                   Permanent Address
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
+                </label>
+                <input
+                  type="text"
+                  value={patient?.address || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
                   City/Municipality
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">Barangay</li>
-                <li className="border-b border-black/20 pl-4 py-2">Email</li>
-              </ul>
-              <ul className="w-[100%]">
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.address}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.city}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.barangay}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.email}
-                </li>
-              </ul>
-              <ul className="w-[100%] h-fit bg-gray/50">
-                <li className="border-b border-black/20 pl-4 py-2">
+                </label>
+                <input
+                  type="text"
+                  value={patient?.city || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Barangay</label>
+                <input
+                  type="text"
+                  value={patient?.barangay || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 w-1/2">
+              <div>
+                <label className="text-sm font-medium block mb-1">Email</label>
+                <input
+                  type="text"
+                  value={patient?.email || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
                   Mobile Number
-                </li>
-              </ul>
-              <ul className="w-[100%]">
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.mobile_number}
-                </li>
-              </ul>
+                </label>
+                <input
+                  type="text"
+                  value={patient?.mobile_number || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
             </div>
           </div>
-          <div className="flex h-fit flex-col mt-4">
-            <div className="bg-gray rounded-t-md py-2 px-5 flex justify-between items-center">
-              <h1 className="text-md font-bold">Additional Info</h1>
-            </div>
-            <div className="flex flex-col bg-white mt-4">
-              <h1 className="bg-gray py-1.5 px-5 w-[60%] border-b border-black/30">
-                Source of Information (Where did you here about RAFI-EJACC?)
-              </h1>
-              <p className="p-3 h-fit border-b border-black/30 w-[60%]">
-                {patient.source_of_information}
-              </p>
-              <h1 className="bg-gray py-1.5 px-5 w-[60%] border-b border-black/30">
-                Other RAFI program you availed:
-              </h1>
-              <p className="p-3 h-fit border-b border-black/30 w-[60%]">
-                {patient.other_rafi_programs_availed}
-              </p>
+
+          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+              Additional Info
+            </h2>
+          </div>
+          <div className="flex flex-row gap-8 p-4">
+            <div className="flex flex-col gap-3 w-1/2">
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Source of Information (Where did you hear about RAFI-EJACC?)
+                </label>
+                <input
+                  type="text"
+                  value={patient?.source_of_information || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Other RAFI program you availed
+                </label>
+                <input
+                  type="text"
+                  value={patient?.other_rafi_programs_availed || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
             </div>
           </div>
-          <div className="flex flex-col mt-4">
-            <div className="bg-gray py-2 px-5 flex justify-between items-center">
-              <h1 className="text-md font-bold">Socioeconomic Info</h1>
-            </div>
-            <div className="flex  bg-white mt-4">
-              <ul className="w-[100%] bg-gray/50">
-                <li className="border-b border-black/20 pl-4 py-2">
+
+          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+              Socioeconomic Info
+            </h2>
+          </div>
+          <div className="flex flex-row gap-8 p-4">
+            <div className="flex flex-col gap-3 w-1/2">
+              <div>
+                <label className="text-sm font-medium block mb-1">
                   Highest Educational Attainment
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
+                </label>
+                <input
+                  type="text"
+                  value={patient?.highest_educational_attainment || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
                   Source of Income
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  Occupation
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">Income</li>
-              </ul>
-              <ul className="w-[100%]">
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.highest_educational_attainment}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.source_of_income}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.occupation}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.monthly_income}
-                </li>
-              </ul>
+                </label>
+                <input
+                  type="text"
+                  value={patient?.source_of_income || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 w-1/2">
+              <div>
+                <label className="text-sm font-medium block mb-1">Occupation</label>
+                <input
+                  type="text"
+                  value={patient?.occupation || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Income</label>
+                <input
+                  type="text"
+                  value={patient?.monthly_income || ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
             </div>
           </div>
-          <div className="flex flex-col mt-4">
-            <div className="bg-gray rounded-t-md py-2 px-5 flex justify-between items-center">
-              <h1 className="text-md font-bold">Emergency Contact 1</h1>
-            </div>
-            <div className="flex justify-center bg-white mt-4">
-              <ul className="w-[100%] bg-gray/50">
-                <li className="border-b border-black/20 pl-4 py-2">Name</li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  Relationship to Patient
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  Landline Number
-                </li>
-              </ul>
-              <ul className="w-[100%]">
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergency_contacts[0]?.name || 'None'}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergency_contacts[0]?.relationship_to_patient || 'None'}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergency_contacts[0]?.landline_number || 'None'}
-                </li>
-              </ul>
-              <ul className="w-[100%] bg-gray/50">
-                <li className="border-b border-black/20 pl-4 py-2">Address</li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  Email Address
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  Mobile Number
-                </li>
-              </ul>
-              <ul className="w-[100%]">
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergency_contacts[0]?.address || 'None'}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergency_contacts[0]?.email || 'None'}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergency_contacts[0]?.mobile_number || 'None'}
-                </li>
-              </ul>
-            </div>
+
+          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+              Emergency Contacts
+            </h2>
           </div>
-          <div className="flex flex-col mt-4">
-            <div className="bg-gray rounded-t-md py-2 px-5 flex justify-between items-center">
-              <h1 className="text-md font-bold">Emergency Contact 2</h1>
-            </div>
-            <div className="flex justify-center bg-white mt-4">
-              <ul className="w-[100%] bg-gray/50">
-                <li className="border-b border-black/20 pl-4 py-2">Name</li>
-                <li className="border-b border-black/20 pl-4 py-2">
+          <div className="flex flex-row gap-8 p-4">
+            <div className="flex flex-col gap-3 w-1/2">
+              <div>
+                <label className="text-sm font-medium block mb-1">Name</label>
+                <input
+                  type="text"
+                  value={patient?.emergency_contacts?.[0]?.name ?? ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
                   Relationship to Patient
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
+                </label>
+                <input
+                  type="text"
+                  value={
+                    patient?.emergency_contacts?.[0]?.relationship_to_patient ??
+                    ""
+                  }
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
                   Landline Number
-                </li>
-              </ul>
-              <ul className="w-[100%]">
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergency_contacts[1]?.name || 'None'}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergency_contacts[1]?.relationship_to_patient || 'None'}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergency_contacts[1]?.landline_number || 'None'}
-                </li>
-              </ul>
-              <ul className="w-[100%] bg-gray/50">
-                <li className="border-b border-black/20 pl-4 py-2">Address</li>
-                <li className="border-b border-black/20 pl-4 py-2">
+                </label>
+                <input
+                  type="text"
+                  value={patient?.emergency_contacts?.[0]?.landline_number ?? ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Address</label>
+                <input
+                  type="text"
+                  value={patient?.emergency_contacts?.[0]?.address ?? ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
                   Email Address
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
+                </label>
+                <input
+                  type="text"
+                  value={patient?.emergency_contacts?.[0]?.email ?? ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
                   Mobile Number
-                </li>
-              </ul>
-              <ul className="w-[100%]">
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergency_contacts[1]?.address || 'None'}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergency_contacts[1]?.email || 'None'}
-                </li>
-                <li className="border-b border-black/20 pl-4 py-2">
-                  {patient.emergency_contacts[1]?.mobile_number || 'None'}
-                </li>
-              </ul>
+                </label>
+                <input
+                  type="text"
+                  value={patient?.emergency_contacts?.[0]?.mobile_number ?? ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+            </div>
+
+            {/* Second Contact */}
+            <div className="flex flex-col gap-3 w-1/2">
+              <div>
+                <label className="text-sm font-medium block mb-1">Name</label>
+                <input
+                  type="text"
+                  value={patient?.emergency_contacts?.[1]?.name ?? ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Relationship to Patient
+                </label>
+                <input
+                  type="text"
+                  value={
+                    patient?.emergency_contacts?.[1]?.relationship_to_patient ??
+                    ""
+                  }
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Landline Number
+                </label>
+                <input
+                  type="text"
+                  value={patient?.emergency_contacts?.[1]?.landline_number ?? ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Address</label>
+                <input
+                  type="text"
+                  value={patient?.emergency_contacts?.[1]?.address ?? ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Email Address
+                </label>
+                <input
+                  type="text"
+                  value={patient?.emergency_contacts?.[1]?.email ?? ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Mobile Number
+                </label>
+                <input
+                  type="text"
+                  value={patient?.emergency_contacts?.[1]?.mobile_number ?? ""}
+                  disabled
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
             </div>
           </div>
         </div>
-        {
-          patient.status === "pending" ? 
-            <div className="w-full flex justify-end mt-5">
-              <button 
-                onClick={() => handleActionClick(patient.patient_id, "validate")}
-                className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md">
-                Verify
-              </button>
-            </div>
-          : 
-            <div className="w-full flex justify-end mt-5">
-              <button 
-                onClick={() => handleActionClick(patient.patient_id, "delete")}
-                className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md">
-                Delete
-              </button>
-            </div>
-        }
-      </div>
+
+        <div className="w-full flex justify-end ">
+          <Link
+            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+            to="/Admin/patient/view/AdminPreenrollmentPreScreeningForm"
+            state={{patient: patient}}
+          >
+            NEXT
+          </Link>
+        </div>
+        <br />
+      </form>
     </div>
   );
 };
 
-export default Details;
+export default PatientMasterListView;

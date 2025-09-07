@@ -78,7 +78,6 @@ const PreEnrollment = () => {
     setCurrentPage(1);
   }, [tableData, recordsPerPage]);
 
-  console.log("Table Data: ", tableData);
   const filteredResults =
     tableData.filter((record) => {
       const matchesSearch =

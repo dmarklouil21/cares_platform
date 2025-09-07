@@ -185,12 +185,18 @@ export default function PatinetProfileForm() {
   };
   // 2×2 photo preview (UI only; no data changes)
   const [photoUrl, setPhotoUrl] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
 
   function handle2x2Change(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     const url = URL.createObjectURL(file);
     setPhotoUrl(url);
+    setImageFile(file);
+    // setFormData((prev) => ({
+    //   ...prev,
+    //   photoUrl: url,
+    // }));
   }
 
   // cleanup the blob URL to avoid leaks
@@ -983,6 +989,10 @@ export default function PatinetProfileForm() {
             <Link
               to="/PreEnrollmentPreScreeningForm"
               className="bg-[#749AB6] text-center font-bold text-white py-3 w-full border-[1px] border-[#749AB6] hover:border-[#C5D7E5] hover:bg-[#C5D7E5] rounded-md cursor-pointer"
+              state={{
+                formData: formData, 
+                photoUrl: imageFile
+              }}
             >
               Next
             </Link>

@@ -59,6 +59,7 @@ const PatientMasterList = () => {
     try {
       const response = await api.get("/patient/list/?status=validated");
       setPatients(response.data);
+      console.log("Responses: ", response.data);
     } catch (error) {
       console.error("Error fetching patient data:", error);
     }
@@ -92,14 +93,17 @@ const PatientMasterList = () => {
     return matchesSearch /* && matchesStatus; */
   });
 
-  const handleViewClick = (id) => {
-    const patient = patients.find((p) => p.patient_id === id);
-    if (patient) {
-      navigate(`/Admin/patient/view/AdminPatientMasterListView`, {
-        state: { patient },
-      });
-    }
+  const handleViewClick = (patient_id) => {
+    // const patient = patients.find((p) => p.patient_id === id);
+    // console.log("Patient Passed: ", patient);
+    navigate(`/Admin/patient/view/AdminPatientMasterListView/${patient_id}`);
+    // if (patient) {
+    //   navigate(`/Admin/patient/view/AdminPatientMasterListView`, {
+    //     state: { patient },
+    //   });
+    // }
   };
+  console.log("Patients:  ", patients);
 
   const handleEditClick = (id) => {
     const patient = patients.find((p) => p.patient_id === id);

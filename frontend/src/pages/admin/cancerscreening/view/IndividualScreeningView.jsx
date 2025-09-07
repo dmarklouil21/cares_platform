@@ -52,10 +52,11 @@ const IndividualScreeningView = () => {
       setScreeningDate(record.screening_date || "");
     }
   }, [record]);
+  console.log("Record: ", record);
 
   const handleStatusChange = (e) => {
     const selectedStatus = e.target.value;
-    if (selectedStatus === "In Progress") {
+    if (selectedStatus === "Approve") {
       setTempDate(screeningDate || "");
       setDateModalOpen(true);
       setModalAction({ newStatus: selectedStatus });

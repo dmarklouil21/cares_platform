@@ -98,7 +98,7 @@ const IndividualScreening = () => {
       try {
         setModalOpen(false);
         setLoading(true);
-        const response = await api.patch(`/beneficiary/individual-screening/screening-procedure-form/${screeningID}/`, formData, {
+        const response = await api.post(`/beneficiary/individual-screening/screening-request/`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },

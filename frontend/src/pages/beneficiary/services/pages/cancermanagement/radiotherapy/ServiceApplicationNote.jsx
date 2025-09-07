@@ -10,7 +10,7 @@ const NotePanel = ({ onAccept, onDecline }) => {
       <div className="flex flex-col gap-5 bg-white w-full rounded-xl shadow px-8 py-6">
         <h1 className="font-bold text-[17px]">
           NOTE: Before applying for this service, you must first complete the 
-          pre-screening form. Completion of this form does not guarantee assistance from RAFI
+          well-being survey form. Completion of this form does not guarantee assistance from RAFI
           and Eduardo J. Aboitiz Cancer Center (EJACC). All applications are
           subject to review by the EJACC team.
           <br />
@@ -31,7 +31,7 @@ const NotePanel = ({ onAccept, onDecline }) => {
             I Don't Accept
           </Link>
           <Link
-            to={"/Beneficiary/services/cancer-screening/pre-screening-form"}
+            to={"/Beneficiary/services/cancer-management-options/radiotherapy/radio-therapy-well-being-tool"}
             id="i-accept-btn"
             className="bg-primary font-bold text-center text-white py-2 w-[45%] border-[1px] border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
             onClick={onAccept}

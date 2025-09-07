@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "src/context/AuthContext";
 
@@ -11,6 +11,10 @@ import LoadingModal from "src/components/LoadingModal";
 const PreScreeningForm = () => {
   // Notification Modal
   const navigate = useNavigate();
+  const location = useLocation();
+  const generalData = location.state?.formData;
+  const photoUrl = location.state?.photoUrl;
+  const state = location.state;
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState({
     type: "success",
@@ -31,13 +35,17 @@ const PreScreeningForm = () => {
     setModalAction({ type: "submit" }); 
     setModalOpen(true);
   };
+  console.log("State", state);
 
   const handleModalConfirm = async () => {
     if (modalAction?.type === "submit") {
       try {
         const form = document.getElementById("pre-screening-form"); 
         const formElements = form.elements;
-        const data = {};
+        const data = {
+          general_data: generalData,
+          cancer_data: {},
+        };
 
         const checkboxGroups = [
           "diagnosis_basis",
@@ -48,7 +56,7 @@ const PreScreeningForm = () => {
         ];
 
         checkboxGroups.forEach((group) => {
-          data[group] = [];
+          data.cancer_data[group] = [];
         });
 
         for (let i = 0; i < formElements.length; i++) {
@@ -58,26 +66,35 @@ const PreScreeningForm = () => {
           if (name) {
             const isCheckboxGroup = checkboxGroups.find((group) => name.startsWith(group));
             if (type === "checkbox" && isCheckboxGroup && checked) {
-              data[isCheckboxGroup].push({ name: value });
+              data.cancer_data[isCheckboxGroup].push({ name: value });
             } else if (type === "radio" && checked) {
-              data[name] = value;
+              data.cancer_data[name] = value;
             } else if (type !== "checkbox" && type !== "radio") {
-              data[name] = value;
+              data.cancer_data[name] = value;
             }
           } else if (id) {
-            data[id] = value;
+            data.cancer_data[id] = value;
           }
         }
+        // data["generalData"] = generalData
+        const formData = new FormData()
+        formData.append("cancer_data", JSON.stringify(data.cancer_data))
+        formData.append("general_data", JSON.stringify(data.general_data))
+        
+        formData.append("photoUrl", photoUrl)
+
+        console.log("Pre Enrollment Data: ", data);
 
         setModalOpen(false);
         setLoading(true);
-        const response = await api.post("/beneficiary/individual-screening/pre-screening-form/", data);
-
-        navigate("/Beneficiary/individualscreeningstatus", { 
-          state: { 
-            type: "success", message: "Submitted Successfully." 
-          } 
+    
+        const response = await api.post("/beneficiary/pre-enrollment/", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         });
+
+        navigate("/Beneficiary");
 
       } catch (error) {
         let errorMessage = "Something went wrong while submitting the form."; 
@@ -1165,10 +1182,10 @@ const PreScreeningForm = () => {
             </div>
             <div className="flex w-full justify-between gap-8">
               <Link
-                to="/Beneficiary/services/cancer-screening"
+                to="/PreEnrollmentBeneficiary"
                 className=" border  py-3 rounded-md text-center w-full hover:bg-black/10 hover:border-white"
               >
-                Cancel
+                Back
               </Link>
               <button
                 type="submit"

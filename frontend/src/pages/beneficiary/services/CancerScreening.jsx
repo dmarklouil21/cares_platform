@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import api from "src/api/axiosInstance";
 
 const CancerScreening = () => {
-  const [ isValidated, setIsValidated ] = useState(false);
+  const [ isValidated, setIsValidated ] = useState(true);
 
   const [showModal, setShowModal] = useState(true);
 
@@ -20,7 +20,7 @@ const CancerScreening = () => {
       ],
       icon: "/src/assets/images/patient/services/cancerscreening/individualscreeningicon.png",
       // link: "/Beneficiary/services/cancer-screening/individual-screening-req", 
-      link: "/Beneficiary/services/cancer-screening/pre-screening-form-note",
+      link: "/Beneficiary/services/cancer-screening/screening-requirements-note",
       // isLink: isValidated,
     },
   ];
@@ -105,7 +105,7 @@ const CancerScreening = () => {
                     Apply
                   </button> */}
 
-                  {!isValidated ? (
+                 {/* {!isValidated ? (
                     <a
                       href="/Beneficiary/services/cancer-screening/pre-screening-form-note"
                       className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
@@ -119,7 +119,13 @@ const CancerScreening = () => {
                     >
                       Apply
                     </a>
-                  )}
+                  )} */}
+                  <a
+                    href="/Beneficiary/services/cancer-screening/screening-requirements-note"
+                    className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                  >
+                    Apply
+                  </a>
                 </div>
               ))}
             </div>
