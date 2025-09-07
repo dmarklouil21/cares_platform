@@ -5,6 +5,7 @@ import {
   listPreCancerousMeds,
   cancelPreCancerousMeds,
 } from "src/api/precancerous";
+import BeneficiarySidebar from "../../../components/navigation/Beneficiary";
 
 // ---- Inline Sample Data (Pre-cancerous Meds applications) ----
 const SAMPLE_PRE_CANCEROUS_APPS = [
@@ -66,6 +67,7 @@ const PreCancerStatus = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("");
   const [notification, setNotification] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -200,8 +202,22 @@ const PreCancerStatus = () => {
         </div>
       )}
 
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+      <div className="w-full h-screen  bg-gray overflow-auto">
+        <div className="md:hidden">
+          <BeneficiarySidebar
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
+          />
+        </div>
+
+        <div className="bg-white py-4 px-10 flex justify-between items-center ">
+          {/* Menu Button for Mobile */}
+          <img
+            className="md:hidden size-5 cursor-pointer"
+            src="/images/menu-line.svg"
+            onClick={() => setIsSidebarOpen(true)}
+          />
+
           <div className="font-bold">Beneficiary</div>
           <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
             <img
@@ -213,7 +229,7 @@ const PreCancerStatus = () => {
         </div>
 
         <div className="w-full flex-1 py-5 flex flex-col justify-around px-5">
-          <h2 className="text-xl font-bold text-left w-full pl-5">
+          <h2 className="text-xl font-bold text-left w-full pl-5 mb-5">
             Pre-cancerous Meds Applications
           </h2>
 
@@ -226,12 +242,12 @@ const PreCancerStatus = () => {
               <input
                 type="text"
                 placeholder="Search by Patient No. or name..."
-                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md text-[12px] md:text-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <select
-                className="border border-gray-200 rounded-md p-2 bg-white"
+                className="border border-gray-200 rounded-md p-2 text-[12px] md:text-sm bg-white"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -244,12 +260,12 @@ const PreCancerStatus = () => {
               </select>
               <input
                 type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
+                className="border border-gray-200 py-2 px-5 rounded-md text-[12px] md:text-sm"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
               />
               <button
-                className="px-7 rounded-md text-sm bg-[#C5D7E5]"
+                className="px-7 rounded-md text-[12px] md:text-sm bg-[#C5D7E5]"
                 onClick={(e) => e.preventDefault()}
               >
                 Filter
@@ -269,14 +285,24 @@ const PreCancerStatus = () => {
                 </colgroup>
                 <thead>
                   <tr className="bg-lightblue">
-                    <th className="text-center text-sm py-3 !bg-lightblue">
+                    <th className="text-center text-[10px] md:text-sm py-3 !bg-lightblue">
                       Patient No.
                     </th>
-                    <th className="text-center text-sm py-3">Last Name</th>
-                    <th className="text-center text-sm py-3">First Name</th>
-                    <th className="text-center text-sm py-3">Interpretation</th>
-                    <th className="text-center text-sm py-3">Status</th>
-                    <th className="text-center text-sm py-3">Actions</th>
+                    <th className="text-center text-[10px] md:text-sm py-3">
+                      Last Name
+                    </th>
+                    <th className="text-center text-[10px] md:text-sm py-3">
+                      First Name
+                    </th>
+                    <th className="text-center text-[10px] md:text-sm py-3">
+                      Interpretation
+                    </th>
+                    <th className="text-center text-[10px] md:text-sm py-3">
+                      Status
+                    </th>
+                    <th className="text-center text-[10px] md:text-sm py-3">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
               </table>
