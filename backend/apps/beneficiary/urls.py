@@ -2,11 +2,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-  path('pre-enrollment/', views.PatientCreateView.as_view(), name='patient_create'),
+  # path('pre-enrollment/', views.PatientCreateView.as_view(), name='patient_create'),
+  path('pre-enrollment/', views.PreEnrollmentView.as_view(), name='pre_enrollment'),
   path('patient/details/', views.PatientDetailView.as_view(), name='patient_detail'),
   path('cancer-awareness-activity/list/', views.CancerAwarenessActivityListView.as_view(), name='list_cancer_awareness_activity'),
   # path('individual-screening/submit-request/', views.IndividualScreeningCreateView.as_view(), name='individual_screening_request'),
-  path('individual-screening/pre-screening-form/', views.PreScreeningCreateView.as_view(), name='individual_screening_create'),
+  path('individual-screening/screening-request/', views.IndividualScreeningRequestView.as_view(), name='individual_screening_request'),
   path('individual-screening/screening-procedure-form/<str:id>/', views.IndividualScreeningUpdateView.as_view(), name='screening_procedure_create'),
   path('individual-screening/attachments-upload/<str:procedure_id>/', views.LOAAttachmentUploadView.as_view(), name='individual_screening_attachments_upload'),
   path('individual-screening/results-upload/<str:screening_id>/', views.ResultAttachmentUploadView.as_view(), name='individual_screening_results_upload'),

@@ -96,7 +96,9 @@ def send_individual_screening_status_email(patient, status, screening_date=None,
     status_messages = {
       "Approve": (
         "Great news! Your screening request has been <b>approved</b>. "
-        "Please fill out the <b>Screening Procedure Form</b> and upload the required documents to proceed with your application."
+        f"Your cancer screening has been scheduled for <b>{screening_date.strftime('%B %d, %Y')}</b>. "
+        "Please make sure to arrive at least 15 minutes early and bring any required identification."
+        # "Please fill out the <b>Screening Procedure Form</b> and upload the required documents to proceed with your application."
       ),
       "LOA Generation": (
         "Your screening procedure and submitted documents have been <b>approved</b>. "
@@ -104,10 +106,10 @@ def send_individual_screening_status_email(patient, status, screening_date=None,
         "Please sign it and upload the scanned copy."
       ),
       "In Progress": (
-        f"Your cancer screening has been scheduled for <b>{screening_date.strftime('%B %d, %Y')}</b>. "
-        "Please make sure to arrive at least 15 minutes early and bring any required identification."
-        if screening_date else
-        "Your screening is now in progress. Please prepare any required documents."
+        # f"Your cancer screening has been scheduled for <b>{screening_date.strftime('%B %d, %Y')}</b>. "
+        # "Please make sure to arrive at least 15 minutes early and bring any required identification."
+        # if screening_date else
+        "Your screening is now in progress."
       ),
       "Completed": (
         "Your screening process has been <b>successfully completed</b>. "

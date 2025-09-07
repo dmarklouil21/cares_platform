@@ -107,60 +107,73 @@ const RadioTherapyWellBeingTool = () => {
       <div className="py-6 px-10 flex flex-col flex-1 overflow-auto">
         <div className="bg-white rounded-2xl flex p-7 flex-col gap-7">
           {/* Header */}
-          <div className="flex w-full justify-between gap-4">
-            <div className="flex flex-col w-[85%] gap-2">
-              <div className="flex w-full items-end gap-2">
-                <label className="whitespace-nowrap ">Name:</label>
+          <div className="flex w-full justify-between gap-6 p-4  rounded-xl shadow-sm bg-gray-50">
+            <div className="flex flex-col w-[85%] gap-3">
+              <div className="flex w-full items-center gap-2">
+                <label className="font-medium text-gray-700 whitespace-nowrap">
+                  Name:
+                </label>
                 <input
                   type="text"
                   value={"Mark Louil Diacamos"}
                   onChange={updateForm("name")}
-                  className="outline-0 w-full underline"
+                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
-                <label className="whitespace-nowrap ">Date:</label>
+                <label className="font-medium text-gray-700 whitespace-nowrap">
+                  Date:
+                </label>
                 <input
                   type="text"
                   value={"September 6, 2025"}
                   onChange={updateForm("date")}
-                  className="outline-0 w-40 "
+                  className="outline-none w-40 border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
               </div>
-              <div className="flex w-full items-end gap-2">
-                <label className="whitespace-nowrap ">Address:</label>
+
+              <div className="flex w-full items-center gap-2">
+                <label className="font-medium text-gray-700 whitespace-nowrap">
+                  Address:
+                </label>
                 <input
                   type="text"
                   value={"Bogo, Argao, Cebu"}
                   onChange={updateForm("address")}
-                  className="outline-0 w-full "
+                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
               </div>
-              <div className="flex w-full items-end gap-2">
-                <label className="whitespace-nowrap ">Diagnosis:</label>
+
+              <div className="flex w-full items-center gap-2">
+                <label className="font-medium text-gray-700 whitespace-nowrap">
+                  Diagnosis:
+                </label>
                 <input
                   type="text"
                   value={"Stage II Cancer"}
                   onChange={updateForm("diagnosis")}
-                  className="outline-0 w-full "
+                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
               </div>
-              <div className="flex w-full items-end gap-2">
-                <label className="whitespace-nowrap ">
+
+              <div className="flex w-full items-center gap-2">
+                <label className="font-medium text-gray-700 whitespace-nowrap">
                   General Status/Name:
                 </label>
                 <input
                   type="text"
                   value={"Mark Louil Diacamos"}
                   onChange={updateForm("generalStatus")}
-                  className="outline-0 w-full "
+                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
               </div>
             </div>
-            <div className="rounded-lg p-2 shrink-0">
+
+            {/* Logo */}
+            <div className="rounded-lg p-3 bg-white shrink-0 flex items-center justify-center">
               <img
                 src="/images/logo_black_text.png"
                 alt="Rafi icon"
@@ -249,7 +262,7 @@ const RadioTherapyWellBeingTool = () => {
               </table>
             </div>
 
-            <div className="p-6">
+            <div className="py-6">
               <p>
                 1. How do you think you can further improve your physical health
                 and well being? Give specific activities/Scenarios.
@@ -264,9 +277,12 @@ const RadioTherapyWellBeingTool = () => {
               <div className="mt-3">
                 <div className="relative">
                   <div className="absolute inset-0 pointer-events-none">
+                    <div className="h-10 border-b border-dashed border-gray-400"></div>
+                    <div className="h-10 border-b border-dashed border-gray-400"></div>
+                    <div className="h-10 border-b border-dashed border-gray-400"></div>
+                    {/* <div className="h-10 border-b-2 border-black"></div>
                     <div className="h-10 border-b-2 border-black"></div>
-                    <div className="h-10 border-b-2 border-black"></div>
-                    <div className="h-10 border-b-2 border-black"></div>
+                    <div className="h-10 border-b-2 border-black"></div> */}
                   </div>
                   <textarea
                     id="improve"

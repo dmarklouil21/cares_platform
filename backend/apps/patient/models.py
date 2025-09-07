@@ -61,6 +61,7 @@ class Patient(models.Model):
   source_of_income = models.CharField(max_length=100, blank=True, null=True)
   monthly_income = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
   
+  photo_url = models.ImageField(upload_to='patient/photo_url/', null=True, blank=True)
   registered_by = models.CharField(max_length=20, choices=REGISTERED_BY)
   created_at = models.DateTimeField(auto_now_add=True)
 
@@ -127,3 +128,109 @@ class HistoricalUpdate(models.Model):
 
   def __str__(self):
     return f"Update for {self.patient.full_name} on {self.date}: {self.note or 'No note'}"
+
+class DiagnosisBasis(models.Model):
+  name = models.CharField(max_length=100)
+
+  def __str__(self):
+    return self.name
+
+class PrimarySite(models.Model):
+  name = models.CharField(max_length=100)
+
+  def __str__(self):
+    return self.name
+
+class DistantMetastasisSite(models.Model):
+  name = models.CharField(max_length=100)
+
+  def __str__(self):
+    return self.name
+
+class TreatmentOption(models.Model):
+  name = models.CharField(max_length=100)
+
+  def __str__(self):
+    return self.name 
+
+class PreScreeningForm(models.Model):
+  patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name='pre_screening_form', null=True)
+  referred_from = models.CharField(max_length=255, blank=True)
+  referring_doctor_or_facility = models.CharField(max_length=255, blank=True)
+  reason_for_referral = models.TextField(blank=True)
+  chief_complaint = models.TextField(blank=True)
+  date_of_consultation = models.DateField(null=True, blank=True)
+  date_of_diagnosis = models.DateField(null=True, blank=True)
+
+  # Diagnosis
+  diagnosis_basis = models.ManyToManyField(DiagnosisBasis, blank=True)
+  multiple_primaries = models.PositiveSmallIntegerField(null=True, blank=True)
+  primary_sites = models.ManyToManyField(PrimarySite, blank=True)
+  primary_sites_other = models.CharField(max_length=255, blank=True)
+
+  laterality = models.CharField(
+    max_length=50,
+    choices=[
+      ('Left', 'Left'), ('Right', 'Right'), ('Not Stated', 'Not Stated'),
+      ('Bilateral', 'Bilateral'), ('Mild', 'Mild')
+    ],
+    blank=True
+  )
+
+  histology = models.CharField(max_length=255, blank=True)
+
+  # Staging
+  staging = models.CharField(
+    max_length=50,
+    choices=[
+      ('In-Situ', 'In-Situ'), ('Localized', 'Localized'), ('Direct Extension', 'Direct Extension'),
+      ('Regional Lymph Node', 'Regional Lymph Node'), ('3+4', '3+4'), ('Distant Metastasis', 'Distant Metastasis'),
+      ('Unknown', 'Unknown')
+    ],
+    blank=True
+  )
+
+  # TNM System
+  t_system = models.CharField(max_length=2, blank=True)
+  n_system = models.CharField(max_length=2, blank=True)
+  m_system = models.CharField(max_length=2, blank=True)
+
+  distant_metastasis_sites = models.ManyToManyField(DistantMetastasisSite, blank=True)
+  distant_metastasis_sites_other = models.CharField(max_length=255, blank=True)
+
+  final_diagnosis = models.TextField(blank=True)
+  final_diagnosis_icd10 = models.CharField(max_length=50, blank=True)
+
+  # Treatment
+  treatment_purpose = models.CharField(
+    max_length=50,
+    choices=[
+      ('Curative-Complete', 'Curative-Complete'),
+      ('Curative-Incomplete', 'Curative-Incomplete'),
+      ('Palliative Only', 'Palliative Only')
+    ],
+    blank=True
+  )
+  treatment_purpose_other = models.CharField(max_length=255, blank=True)
+
+  primary_assistance_by_ejacc = models.CharField(max_length=255, blank=True)
+  date_of_assistance = models.DateField(null=True, blank=True)
+
+  adjuvant_treatments_received = models.ManyToManyField(
+    TreatmentOption,
+    related_name='adjuvant_treatments',
+    blank=True
+  )
+  adjuvant_treatments_other = models.CharField(max_length=255, blank=True)
+
+  other_source_treatments = models.ManyToManyField(
+    TreatmentOption,
+    related_name='other_source_treatments',
+    blank=True
+  )
+  other_source_treatments_other = models.CharField(max_length=255, blank=True)
+
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  def __str__(self):
+    return f"Cancer Screening - {self.referred_from or 'Unknown'}"

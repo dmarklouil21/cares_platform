@@ -9,6 +9,7 @@ from apps.precancerous.models import PreCancerousMedsRequest
 from apps.patient.models import Patient, CancerDiagnosis
 from apps.patient.serializers import PatientSerializer
 
+# To be deleted
 # --- Atomic Serializers ---
 class DiagnosisBasisSerializer(serializers.ModelSerializer):
   class Meta:
@@ -35,15 +36,7 @@ class ScreeningAttachmentSerializer(serializers.ModelSerializer):
     model = ScreeningAttachment
     fields = ['id', 'file', 'uploaded_at']
 
-# class ScreeningProcedureSerializer(serializers.ModelSerializer):
-#   attachments = ScreeningAttachmentSerializer(many=True, read_only=True)
-#   class Meta:
-#     model = ScreeningProcedure
-#     fields = [
-#       'id', 'screening_procedure_name', 'procedure_details',
-#       'cancer_site', 'attachments'
-#     ]
-
+# To be deleted
 class PreScreeningFormSerializer(serializers.ModelSerializer):
   diagnosis_basis = DiagnosisBasisSerializer(many=True)
   primary_sites = PrimarySiteSerializer(many=True)
@@ -107,7 +100,7 @@ class PreScreeningFormSerializer(serializers.ModelSerializer):
 
     return pre_screening_form
 
-  def update(self, instance, validated_data):
+  def update(self, instance, validated_data): # Not ready for deletion
     # Extract nested data
     diagnosis_basis_data = validated_data.pop('diagnosis_basis', [])
     primary_sites_data = validated_data.pop('primary_sites', [])
@@ -176,12 +169,11 @@ class PreCancerousMedsAdminStatusSerializer(serializers.Serializer):
 class IndividualScreeningSerializer(serializers.ModelSerializer):
   patient = PatientSerializer(read_only=True)
   screening_attachments = ScreeningAttachmentSerializer(many=True, read_only=True)
-  pre_screening_form = PreScreeningFormSerializer(read_only=True)
 
   class Meta:
     model = IndividualScreening
     fields = [
-      'id', 'patient', 'pre_screening_form', 'procedure_name', 'procedure_details', 'cancer_site',
+      'id', 'patient', 'procedure_name', 'procedure_details', 'cancer_site',
       'status', 'loa_generated', 'created_at', 'has_patient_response', 'screening_attachments',
       'response_description', 'date_approved', 'screening_date', 'uploaded_result',
     ]

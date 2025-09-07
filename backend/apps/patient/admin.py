@@ -3,8 +3,8 @@ from . import models
 
 # Register your models here.
 class PatientAdmin(admin.ModelAdmin):
-  list_display = ('patient_id', 'first_name', 'last_name', 'suffix', 
-                  'date_of_birth', 'age', 'sex', 'address',)
+  # list_display = ('patient_id', 'first_name', 'last_name', 'suffix', 
+  #                 'date_of_birth', 'age', 'sex', 'address',)
   fieldsets = (
     ("Basic Information", {
       "fields": (
@@ -18,6 +18,7 @@ class PatientAdmin(admin.ModelAdmin):
         "civil_status",
         "number_of_children",
         "status",
+        "photo_url",
       )
     }),
     ("Contact & Address Information", {
@@ -54,7 +55,7 @@ class PatientAdmin(admin.ModelAdmin):
     }),
   )
   readonly_fields = ("created_at", "age", "full_name")
-  list_display = ("patient_id", "full_name", "sex", "civil_status", "status", "created_at")
+  list_display = ("patient_id", "full_name", "sex", "civil_status", "status", "photo_url", "created_at")
   search_fields = ("first_name", "last_name", "patient_id", "email", "mobile_number")
   list_filter = ("sex", "civil_status", "status", "created_at")
 
@@ -68,6 +69,7 @@ class HistoricalUpdateAdmin(admin.ModelAdmin):
   list_display = ('patient', 'date', 'note')
 
 admin.site.register(models.Patient, PatientAdmin)
+admin.site.register(models.PreScreeningForm)
 admin.site.register(models.EmergencyContact, EmergencyContactAdmin)
 admin.site.register(models.CancerDiagnosis, CancerDiagnosisAdmin)
 admin.site.register(models.HistoricalUpdate, HistoricalUpdateAdmin)
