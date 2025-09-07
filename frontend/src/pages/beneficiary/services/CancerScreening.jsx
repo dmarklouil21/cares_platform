@@ -127,29 +127,30 @@ const CancerScreening = () => {
                       Apply
                     </button> */}
 
-                 {/* {!isValidated ? (
-                    <a
-                      href="/Beneficiary/services/cancer-screening/pre-screening-form-note"
-                      className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
-                    >
-                      Apply
-                    </a>
-                  ) : (
-                    <a
-                      href="/Beneficiary/services/cancer-screening/screening-requirements-note"
-                      className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
-                    >
-                      Apply
-                    </a>
-                  )} */}
-                  <a
-                    href="/Beneficiary/services/cancer-screening/screening-requirements-note"
-                    className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
-                  >
-                    Apply
-                  </a>
-                </div>
-              ))}
+                    {/* {!isValidated ? (
+                        <a
+                          href="/Beneficiary/services/cancer-screening/pre-screening-form-note"
+                          className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                        >
+                          Apply
+                        </a>
+                      ) : (
+                        <a
+                          href="/Beneficiary/services/cancer-screening/screening-requirements-note"
+                          className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                        >
+                          Apply
+                        </a>
+                      )} */}
+                      <a
+                        href="/Beneficiary/services/cancer-screening/screening-requirements-note"
+                        className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                      >
+                        Apply
+                      </a>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
