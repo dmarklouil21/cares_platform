@@ -17,6 +17,7 @@ import NoteRhu from "./pages/rhu/registration/Note";
 
 //pre enrollment - wala pay private
 import PreEnrollmentBeneficiary from "./pages/beneficiary/registration/preenrollment/Beneficiary";
+import PreScreeningForm from "./pages/beneficiary/registration/preenrollment/PreScreeningForm";
 import NotValidated from "./pages/beneficiary/registration/note/preenrollment/NotValidated";
 
 // ----------- REGISTRATION RHU SIDE ------------------
@@ -32,16 +33,15 @@ import AdminDashboard from "./pages/admin/dashboard/Dashboard";
 import AdminPreEnrollment from "./pages/admin/patient/PreEnrollment";
 import AdminIndividualScreening from "./pages/admin/cancerscreening/IndividualScreening";
 import AdminUserManagement from "./pages/admin/usermanagement/UserManagement";
-import AdminScreeningRequest from "./pages/admin/cancerscreening/ScreeningRequest";
 import AdminPatientMasterList from "./pages/admin/patient/PatientMasterList";
 import Adminprecancerous from "./pages/admin/treatment/Precancerous";
 import AdminCancerManagement from "./pages/admin/cancermanagement/CancerManagement";
 
 // ----------- ADMIN VIEW SIDE ------------------
 import AdminPreenrollmentDetails from "./pages/admin/patient/view/PreenrollmentView";
+import AdminPreenrollmentPreScreeningForm from "./pages/admin/patient/view/ViewPreScreeningForm";
 import AdminIndividualScreeningView from "./pages/admin/cancerscreening/view/IndividualScreeningView";
 import ViewPreScreeningForm from "./pages/admin/cancerscreening/view/ViewPreScreeningForm";
-import ViewScreeningProcedure from "./pages/admin/cancerscreening/view/ViewScreeningProcedure";
 import ViewAttachments from "./pages/admin/cancerscreening/view/ViewAttachments";
 import ViewResults from "./pages/admin/cancerscreening/view/ViewResults";
 import AdminPatientMasterListView from "./pages/admin/patient/view/PatientMasterListView";
@@ -76,20 +76,27 @@ import UploadAttachments from "./pages/beneficiary/individualscreeningstatus/Upl
 
 // ----------- Beneficiary cancer management options ------------------
 
+// Note 
+import BrachytherapyServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/ServiceApplicationNote";
+import ChemotherapyServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/ServiceApplicationNote";
+import RadioactiveServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/radioactive/ServiceApplicationNote";
+import RadiotherapyServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/ServiceApplicationNote";
+import SurgeryServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/surgery/ServiceApplicationNote";
+
 import BeneficiaryPreCancerousMeds from "./pages/beneficiary/services/pages/cancermanagement/PreCancerousMeds";
-import BeneficiaryRadioTherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/RadioTherapyPreScreening";
+// import BeneficiaryRadioTherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/RadioTherapyPreScreening";
 import BeneficiaryRadioTherapyWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/RadioTherapyWellBeingTool";
 import BeneficiaryRadioTherapyDocuments from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/RadioTherapyDocuments";
-import BeneficiaryRadioactivePreScreening from "./pages/beneficiary/services/pages/cancermanagement/radioactive/RadioactivePreScreening";
+// import BeneficiaryRadioactivePreScreening from "./pages/beneficiary/services/pages/cancermanagement/radioactive/RadioactivePreScreening";
 import BeneficiaryRadioactiveWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/radioactive/RadioactiveWellBeingTool";
 import BeneficiaryRadioactiveDocuments from "./pages/beneficiary/services/pages/cancermanagement/radioactive/RadioactiveDocuments";
-import BeneficiaryBrachytherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/brachyTherapyPreScreening";
+// import BeneficiaryBrachytherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/brachyTherapyPreScreening";
 import BeneficiaryBrachytherapyWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/brachyTherapyWellBeingTool";
 import BeneficiaryBrachytherapyDocuments from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/brachyTherapyDocuments";
-import BeneficiarychemotherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/chemotherapyPreScreening";
+// import BeneficiarychemotherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/chemotherapyPreScreening";
 import BeneficiarychemotherapyWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/chemotherapyWellBeingTool";
 import BeneficiarychemotherapyDocuments from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/chemotherapyDocuments";
-import BeneficiarysurgeryPreScreening from "./pages/beneficiary/services/pages/cancermanagement/surgery/surgeryPreScreening";
+// import BeneficiarysurgeryPreScreening from "./pages/beneficiary/services/pages/cancermanagement/surgery/surgeryPreScreening";
 import BeneficiarysurgeryWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/surgery/surgeryWellBeingTool";
 import BeneficiarysurgeryDocuments from "./pages/beneficiary/services/pages/cancermanagement/surgery/surgeryDocuments";
 
@@ -167,6 +174,14 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="PreEnrollmentPreScreeningForm"
+              element={
+                <ProtectedRoute>
+                  <PreScreeningForm />
+                </ProtectedRoute>
+              }
+            />
             <Route path="NotValidated" element={<NotValidated />} />
             <Route
               path="AccountNotSupported"
@@ -197,7 +212,11 @@ const App = () => {
                   element={<AdminPreenrollmentDetails />}
                 />
                 <Route
-                  path="AdminPatientMasterListView"
+                  path="AdminPreenrollmentPreScreeningForm"
+                  element={<AdminPreenrollmentPreScreeningForm />}
+                />
+                <Route
+                  path="AdminPatientMasterListView/:patient_id"
                   element={<AdminPatientMasterListView />}
                 />
               </Route>
@@ -251,10 +270,6 @@ const App = () => {
                 path="AdminIndividualScreening"
                 element={<AdminIndividualScreening />}
               />
-              <Route
-                path="AdminScreeningRequest"
-                element={<AdminScreeningRequest />}
-              />
               <Route path="view">
                 <Route
                   path="AdminIndividualScreeningView"
@@ -264,10 +279,6 @@ const App = () => {
                 <Route
                   path="ViewPreScreeningForm"
                   element={<ViewPreScreeningForm />}
-                />
-                <Route
-                  path="ViewScreeningProcedure"
-                  element={<ViewScreeningProcedure />}
                 />
                 <Route path="ViewResults" element={<ViewResults />} />
               </Route>
@@ -318,9 +329,13 @@ const App = () => {
               <Route path="cancer-management" element={<CancerManagement />} />
               <Route path="cancer-management-options">
                 <Route path="radiotherapy">
-                  <Route
+                  {/* <Route
                     index
                     element={<BeneficiaryRadioTherapyPreScreening />}
+                  /> */}
+                  <Route
+                    path="form-note"
+                    element={<RadiotherapyServiceApplicationNote />}
                   />
                   <Route
                     path="radio-therapy-well-being-tool"
@@ -332,9 +347,13 @@ const App = () => {
                   />
                 </Route>
                 <Route path="radioactive">
-                  <Route
+                  {/* <Route
                     index
                     element={<BeneficiaryRadioactivePreScreening />}
+                  /> */}
+                  <Route
+                    path="form-note"
+                    element={<RadioactiveServiceApplicationNote />}
                   />
                   <Route
                     path="radio-active-well-being-tool"
@@ -346,9 +365,13 @@ const App = () => {
                   />
                 </Route>
                 <Route path="brachytherapy">
-                  <Route
+                  {/* <Route
                     index
                     element={<BeneficiaryBrachytherapyPreScreening />}
+                  /> */}
+                  <Route
+                    path="form-note"
+                    element={<BrachytherapyServiceApplicationNote />}
                   />
                   <Route
                     path="brachy-well-being-tool"
@@ -360,9 +383,13 @@ const App = () => {
                   />
                 </Route>
                 <Route path="chemotherapy">
-                  <Route
+                  {/* <Route
                     index
                     element={<BeneficiarychemotherapyPreScreening />}
+                  /> */}
+                  <Route
+                    path="form-note"
+                    element={<ChemotherapyServiceApplicationNote />}
                   />
                   <Route
                     path="chemotherapy-well-being-tool"
@@ -374,7 +401,11 @@ const App = () => {
                   />
                 </Route>
                 <Route path="surgery">
-                  <Route index element={<BeneficiarysurgeryPreScreening />} />
+                  {/* <Route index element={<BeneficiarysurgeryPreScreening />} /> */}
+                  <Route
+                    path="form-note"
+                    element={<SurgeryServiceApplicationNote />}
+                  />
                   <Route
                     path="surgery-well-being-tool"
                     element={<BeneficiarysurgeryWellBeingTool />}

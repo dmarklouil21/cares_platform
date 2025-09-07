@@ -52,10 +52,11 @@ const IndividualScreeningView = () => {
       setScreeningDate(record.screening_date || "");
     }
   }, [record]);
+  console.log("Record: ", record);
 
   const handleStatusChange = (e) => {
     const selectedStatus = e.target.value;
-    if (selectedStatus === "In Progress") {
+    if (selectedStatus === "Approve") {
       setTempDate(screeningDate || "");
       setDateModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
@@ -370,7 +371,7 @@ const IndividualScreeningView = () => {
         </div>
       )}
 
-      {/* Screen layout bg-lightblue */}
+      {/* Screen layout */}
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
         {/* Header bar */}
         <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
