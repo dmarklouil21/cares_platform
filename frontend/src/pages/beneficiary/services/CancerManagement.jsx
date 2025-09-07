@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { href } from "react-router-dom";
+import BeneficiarySidebar from "../../../components/navigation/Beneficiary";
 
 const cancerTreatmentOptions = [
   {
@@ -54,9 +55,24 @@ const cancerTreatmentOptions = [
 ];
 
 const CancerManagementPage = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   return (
     <div className="w-full h-screen bg-gray overflow-auto">
-      <div className="bg-white py-4 px-10 flex justify-between items-center">
+      <div className="md:hidden">
+        <BeneficiarySidebar
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+        />
+      </div>
+
+      <div className="bg-white py-4 px-10 flex justify-between items-center ">
+        {/* Menu Button for Mobile */}
+        <img
+          className="md:hidden size-5 cursor-pointer"
+          src="/images/menu-line.svg"
+          onClick={() => setIsSidebarOpen(true)}
+        />
+
         <div className="font-bold">Beneficiary</div>
         <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
           <img
@@ -76,7 +92,7 @@ const CancerManagementPage = () => {
           <h3 className="text-2xl font-bold text-secondary">
             CANCER TREATMENT OPTIONS
           </h3>
-          <p className="text-gray2 mb-4">
+          <p className="text-gray2  mb-4">
             Explore evidence-based therapies and supportive care at EJACC
           </p>
 
