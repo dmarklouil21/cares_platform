@@ -33,29 +33,30 @@ export default function ViewIndividualStatus() {
           Once approved, you’ll receive instructions on the next steps.
         </>
       ) : (
-        <>Your pre-screening form has been approved. You may now proceed to the next step.</>
+        <>Your request has been approved. You will be notified with your screening date through email.</>
       ),
     },
     {
       title: "Approve",
       description: activeStep === 1 ? (
         <>
-          To proceed with your application, fill out the Screening Procedure form and submit the required documents.{" "}
-          <Link
+          {/* To proceed with your application, fill out the Screening Procedure form and submit the required documents.{" "} */}
+          Your cancer screening has been scheduled for{" "}
+          <b>
+            {new Date(individualScreening?.screening_date).toLocaleDateString("en-US", { 
+              year: "numeric", month: "long", day: "numeric" 
+            })}
+          </b>. 
+          Please make sure to arrive at least 15 minutes early and bring any required identification.
+          {/* <Link
             to="/Beneficiary/services/cancer-screening/screening-requirements-note"
             className="text-blue-500 underline"
           >
             Click here to proceed!
-          </Link>
+          </Link> */}
         </>
       ) : (
-        <>Fill out the Screening Procedure form and submit the required documents.</>
-      ),
-    },
-    {
-      title: "In Progress", 
-      description: activeStep === 2 ? (
-        <>
+        <>{/* Fill out the Screening Procedure form and submit the required documents. */}
           Your cancer screening has been scheduled for{" "}
           <b>
             {new Date(individualScreening?.screening_date).toLocaleDateString("en-US", { 
@@ -64,8 +65,18 @@ export default function ViewIndividualStatus() {
           </b>. 
           Please make sure to arrive at least 15 minutes early and bring any required identification.
         </>
+      ),
+    },
+    {
+      title: "In Progress", 
+      description: activeStep === 2 ? (
+        <>
+          Your cancer screening is in progress.
+        </>
+      ) : activeStep > 2 ? (
+        <> Your cancer screening is complete. </>
       ) : (
-        <>Your screening date will be scheduled once everything is ready.</>
+        <> Your screening date will be scheduled once everything is ready. </>
       )
     },
     {
@@ -85,7 +96,7 @@ export default function ViewIndividualStatus() {
           </Link>
         </>
       ) : (
-        <>Upload the results of your cancer screening.</>
+        <> After completion you are required to upload the results of your cancer screening.</>
       ),
     },
   ], [activeStep, individualScreening]);

@@ -21,8 +21,8 @@ const CancerScreening = () => {
         "Private results with counseling",
       ],
       icon: "/src/assets/images/patient/services/cancerscreening/individualscreeningicon.png",
-      // link: "/Beneficiary/services/cancer-screening/individual-screening-req",
-      link: "/Beneficiary/services/cancer-screening/pre-screening-form-note",
+      // link: "/Beneficiary/services/cancer-screening/individual-screening-req", 
+      link: "/Beneficiary/services/cancer-screening/screening-requirements-note",
       // isLink: isValidated,
     },
   ];
@@ -127,24 +127,29 @@ const CancerScreening = () => {
                       Apply
                     </button> */}
 
-                    {!isValidated ? (
-                      <a
-                        href="/Beneficiary/services/cancer-screening/pre-screening-form-note"
-                        className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
-                      >
-                        Apply
-                      </a>
-                    ) : (
-                      <a
-                        href="/Beneficiary/services/cancer-screening/screening-requirements-note"
-                        className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
-                      >
-                        Apply
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
+                 {/* {!isValidated ? (
+                    <a
+                      href="/Beneficiary/services/cancer-screening/pre-screening-form-note"
+                      className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                    >
+                      Apply
+                    </a>
+                  ) : (
+                    <a
+                      href="/Beneficiary/services/cancer-screening/screening-requirements-note"
+                      className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                    >
+                      Apply
+                    </a>
+                  )} */}
+                  <a
+                    href="/Beneficiary/services/cancer-screening/screening-requirements-note"
+                    className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                  >
+                    Apply
+                  </a>
+                </div>
+              ))}
             </div>
           </div>
         </div>

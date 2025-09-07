@@ -26,6 +26,7 @@ urlpatterns = [
     path('beneficiary/', include('apps.beneficiary.urls')),
     path('partners/', include('apps.partners.urls')),
     path('cancer-screening/', include('apps.cancer_screening.urls')),
+    path('cancer-management/', include('apps.cancer_management.urls')),
     path('api/registration/', include('apps.registration.urls')),
     path('api/user-management/', include('apps.user_management.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

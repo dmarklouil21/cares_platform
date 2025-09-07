@@ -106,51 +106,57 @@ const RadioTherapyWellBeingTool = () => {
 
       <div className="py-6 px-10 flex flex-col flex-1 overflow-auto">
         <div className="bg-white rounded-2xl flex p-7 flex-col gap-7">
+          {/* Header */}
           <div className="flex w-full justify-between gap-4">
             <div className="flex flex-col w-[85%] gap-2">
               <div className="flex w-full items-end gap-2">
-                <label className="whitespace-nowrap">Name:</label>
+                <label className="whitespace-nowrap ">Name:</label>
                 <input
                   type="text"
-                  value={form.name}
+                  value={"Mark Louil Diacamos"}
                   onChange={updateForm("name")}
-                  className="border-b-2 outline-0 w-full"
+                  className="outline-0 w-full underline"
+                  readOnly
                 />
-                <label className="whitespace-nowrap">Date:</label>
+                <label className="whitespace-nowrap ">Date:</label>
                 <input
                   type="text"
-                  value={form.date}
+                  value={"September 6, 2025"}
                   onChange={updateForm("date")}
-                  className="border-b-2 outline-0 w-40"
+                  className="outline-0 w-40 "
+                  readOnly
                 />
               </div>
               <div className="flex w-full items-end gap-2">
-                <label className="whitespace-nowrap">Address:</label>
+                <label className="whitespace-nowrap ">Address:</label>
                 <input
                   type="text"
-                  value={form.address}
+                  value={"Bogo, Argao, Cebu"}
                   onChange={updateForm("address")}
-                  className="border-b-2 outline-0 w-full"
+                  className="outline-0 w-full "
+                  readOnly
                 />
               </div>
               <div className="flex w-full items-end gap-2">
-                <label className="whitespace-nowrap">Diagnosis:</label>
+                <label className="whitespace-nowrap ">Diagnosis:</label>
                 <input
                   type="text"
-                  value={form.diagnosis}
+                  value={"Stage II Cancer"}
                   onChange={updateForm("diagnosis")}
-                  className="border-b-2 outline-0 w-full"
+                  className="outline-0 w-full "
+                  readOnly
                 />
               </div>
               <div className="flex w-full items-end gap-2">
-                <label className="whitespace-nowrap">
+                <label className="whitespace-nowrap ">
                   General Status/Name:
                 </label>
                 <input
                   type="text"
-                  value={form.generalStatus}
+                  value={"Mark Louil Diacamos"}
                   onChange={updateForm("generalStatus")}
-                  className="border-b-2 outline-0 w-full"
+                  className="outline-0 w-full "
+                  readOnly
                 />
               </div>
             </div>
@@ -158,7 +164,7 @@ const RadioTherapyWellBeingTool = () => {
               <img
                 src="/images/logo_black_text.png"
                 alt="Rafi icon"
-                className="h-32 w-auto"
+                className="h-30 md:h-30 object-contain"
               />
             </div>
           </div>
