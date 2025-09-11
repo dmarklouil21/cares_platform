@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { submitPreCancerousMeds } from "../../../../../api/precancerous";
+import BeneficiarySidebar from "../../../../../components/navigation/Beneficiary";
 
 // Reusable confirmation modal
 function ConfirmationModal({ open, text, onConfirm, onCancel }) {
@@ -69,6 +70,7 @@ const PreCancerousMeds = () => {
   const [notification, setNotification] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -95,7 +97,10 @@ const PreCancerousMeds = () => {
         setNotification("Submitted successfully.");
         setTimeout(() => setNotification(""), 3000);
       } catch (err) {
-        const msg = err?.response?.data?.detail || err?.response?.data?.non_field_errors?.[0] || "Submission failed. Please try again.";
+        const msg =
+          err?.response?.data?.detail ||
+          err?.response?.data?.non_field_errors?.[0] ||
+          "Submission failed. Please try again.";
         setErrorMsg(msg);
         setNotification(msg);
         setTimeout(() => setNotification(""), 4000);
@@ -139,8 +144,21 @@ const PreCancerousMeds = () => {
       />
       <Notification message={notification} />
 
+      <div className="md:hidden">
+        <BeneficiarySidebar
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+        />
+      </div>
       {/* Header */}
-      <div className="bg-white py-4 px-10 flex justify-between items-center">
+      <div className="bg-white py-4 px-10 flex justify-between items-center ">
+        {/* Menu Button for Mobile */}
+        <img
+          className="md:hidden size-5 cursor-pointer"
+          src="/images/menu-line.svg"
+          onClick={() => setIsSidebarOpen(true)}
+        />
+
         <div className="font-bold">Beneficiary</div>
         <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
           <img
@@ -317,7 +335,13 @@ const PreCancerousMeds = () => {
                   ? "bg-primary/40 text-white cursor-not-allowed"
                   : "bg-primary text-white hover:bg-primary/80"
               }`}
-              title={isSubmitDisabled ? "Please fill all required fields" : submitting ? "Submitting..." : ""}
+              title={
+                isSubmitDisabled
+                  ? "Please fill all required fields"
+                  : submitting
+                  ? "Submitting..."
+                  : ""
+              }
             >
               {submitting ? "Submitting..." : "Submit"}
             </button>

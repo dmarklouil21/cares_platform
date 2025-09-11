@@ -1,6 +1,10 @@
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import BeneficiarySidebar from "../../../../../../components/navigation/Beneficiary";
 
 const RadioTherapyPreScreening = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const navigate = useNavigate();
 
   const handleTNMInput = (e) => {
@@ -55,7 +59,21 @@ const RadioTherapyPreScreening = () => {
   return (
     <>
       <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        <div className="bg-white py-4 px-10 flex justify-between items-center">
+        <div className="md:hidden">
+          <BeneficiarySidebar
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
+          />
+        </div>
+
+        <div className="bg-white py-4 px-10 flex justify-between items-center ">
+          {/* Menu Button for Mobile */}
+          <img
+            className="md:hidden size-5 cursor-pointer"
+            src="/images/menu-line.svg"
+            onClick={() => setIsSidebarOpen(true)}
+          />
+
           <div className="font-bold">Beneficiary</div>
           <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
             <img
@@ -77,14 +95,14 @@ const RadioTherapyPreScreening = () => {
           <form
             id="pre-screening-form"
             onSubmit={handleSubmit}
-            className="bg-white p-9 flex flex-col gap-10 rounded-2xl"
+            className="bg-white p-3 md:p-9 flex flex-col gap-5 md:gap-10 rounded-2xl"
           >
             <div>
               <h1 id="details_title" className="font-bold text-xl mb-5">
                 Pre-Screening Form
               </h1>
               <div className="grid grid-cols-2 gap-x-10 gap-y-5">
-                <div className="flex gap-2 flex-col">
+                <div className="flex gap-2 flex-col justify-between">
                   <label>Referred From</label>
                   <input
                     type="text"
@@ -141,7 +159,7 @@ const RadioTherapyPreScreening = () => {
                     />
                   </div>
                 </div>
-                <div className="flex gap-2 flex-col">
+                <div className="flex gap-2 flex-col justify-between">
                   <label>Date of Diagnosis</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -177,7 +195,7 @@ const RadioTherapyPreScreening = () => {
                 Diagnosis
               </h1>
               <p className="text-[#6B7280]">Most Valid Basis of Diagnosis:</p>
-              <div className="grid grid-cols-3 gap-x-10 gap-y-5">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-10 gap-y-5">
                 <div className="flex gap-5 justify-center items-center w-fit">
                   <input
                     type="checkbox"
@@ -430,7 +448,7 @@ const RadioTherapyPreScreening = () => {
             {/* Distant Metastasis */}
             <div className="flex flex-col gap-5">
               <p className="text-[#6B7280]">Sites of Distant Metastasis</p>
-              <div className="grid grid-cols-3 gap-x-10 gap-y-5">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-10 gap-y-5">
                 {[
                   ["none", "None"],
                   ["distantLymphNodes", "Distant Lymph Nodes"],
@@ -475,7 +493,7 @@ const RadioTherapyPreScreening = () => {
                   </label>
                   <textarea
                     name="final_diagnosis"
-                    className="border-[#6B7280] border-[1px] rounded-md p-2 h-36 w-[60%] resize-none"
+                    className="border-[#6B7280] border-[1px] rounded-md p-2 h-36 md:w-[60%] resize-none text-[14px] md:text-[16px]"
                   ></textarea>
                 </div>
                 <div className="flex flex-col gap-5 w-[50%]">
@@ -530,7 +548,7 @@ const RadioTherapyPreScreening = () => {
             </div>
 
             {/* Assistance */}
-            <div className="flex gap-5 w-full">
+            <div className="flex gap-5 w-full flex-col md:flex-row ">
               <div className="flex gap-2 flex-col w-full">
                 <label className="text-[#6B7280] text-sm">
                   Primary Assistance by RAFI-ELACC
