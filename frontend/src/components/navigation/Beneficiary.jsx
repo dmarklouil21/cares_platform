@@ -15,13 +15,13 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     {
       name: "Home",
       icon: "/src/assets/images/navigation/admin/dashboard.svg",
-      path: "/Beneficiary",
+      path: "/beneficiary",
       arrow: "",
     },
     {
       name: "Cancer Awareness",
       icon: "/src/assets/images/navigation/patient/cancerwarenessicon.svg",
-      path: "/Beneficiary/cancerawareness",
+      path: "/beneficiary/cancer-awareness",
       arrow: "",
     },
     {
@@ -41,23 +41,27 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const servicesSubNav = [
     {
       name: "Cancer Screening",
-      path: "/Beneficiary/services/cancer-screening",
+      path: "/beneficiary/services/cancer-screening",
     },
     {
       name: "Cancer Management",
-      path: "/Beneficiary/services/cancer-management",
+      path: "/beneficiary/services/cancer-management",
     },
-    { name: "Survivorship", path: "/Beneficiary/services/survivorship" },
+    { name: "Survivorship", path: "/beneficiary/services/survivorship" },
   ];
 
   const applicationSubNav = [
     {
       name: "Individual Screening",
-      path: "/Beneficiary/individualscreeningstatus",
+      path: "/beneficiary/applications/individual-screening",
+    },
+    {
+      name: "Cancer Management",
+      path: "/beneficiary/applications/cancer-treatment",
     },
     {
       name: "Pre Cancerous",
-      path: "/Beneficiary/applicationstatus/precancerous",
+      path: "/beneficiary/applications/precancerous",
     },
   ];
 

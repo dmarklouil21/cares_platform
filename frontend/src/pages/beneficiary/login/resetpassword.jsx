@@ -66,7 +66,7 @@ const ResetPasswordPanel = () => {
       setShowPopup(false);
       const currentUser = JSON.parse(localStorage.getItem("user"));
       if (currentUser?.is_superuser) {
-        navigate("/Admin");
+        navigate("/admin");
       } else if (currentUser?.is_rhu) {
         navigate("/Rhu");
       } else {

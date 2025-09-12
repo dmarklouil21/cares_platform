@@ -37,7 +37,7 @@ const NotePanel = ({ onAccept, onDecline }) => {
             I Don't Accept
           </button> */}
           <Link
-            to={"/PreEnrollmentBeneficiary"}
+            to={"/beneficiary/pre-enrollment"}
             id="i-accept-btn"
             className="bg-primary font-bold text-center text-white py-2 w-[45%] border-[1px] border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
             onClick={onAccept}

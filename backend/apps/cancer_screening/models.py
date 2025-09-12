@@ -2,6 +2,7 @@ from django.db import models
 from apps.patient.models import Patient
 
 # Create your models here.
+
 class DiagnosisBasis(models.Model):
   name = models.CharField(max_length=100)
 
@@ -37,7 +38,7 @@ class IndividualScreening(models.Model):
     choices=[
       ('Pending', 'Pending'),
       ('Approve', 'Approve'),
-      ('LOA Generation', 'LOA Generation'),
+      ('LOA Generation', 'LOA Generation'), # To be removed
       ('In Progress', 'In Progress'),
       ('Complete', 'Complete'),
       ('Reject', 'Reject'),
@@ -55,6 +56,7 @@ class IndividualScreening(models.Model):
   
   created_at = models.DateTimeField(auto_now_add=True)
 
+# To be deleted
 class PreScreeningForm(models.Model):
   individual_screening = models.OneToOneField(IndividualScreening, on_delete=models.CASCADE, related_name='pre_screening_form', null=True)
   referred_from = models.CharField(max_length=255, blank=True)

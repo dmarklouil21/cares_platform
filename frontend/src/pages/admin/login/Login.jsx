@@ -36,7 +36,7 @@ const Login = () => {
         alert('This account doesn\'t have priviliges to access the admin site.');
         return;
       } else {
-        navigate("/Admin");
+        navigate("/admin");
       }
     } catch (err) {
       alert("Login failed. Please check your credentials.");

@@ -98,7 +98,7 @@ const ViewUser = () => {
         <div className="w-full flex justify-end">
           <Link
             className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15  rounded-md"
-            to="/Admin/UserManagement"
+            to="/admin/user-management"
           >
             BACK
           </Link>

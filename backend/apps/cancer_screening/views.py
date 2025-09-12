@@ -106,13 +106,6 @@ class ScreeningAttachmentUpdateView(APIView):
       )
 
     return Response({"message": "Attachments updated successfully."})
-  
-# To be updated
-# class ScreeningProcedureDeleteView(generics.DestroyAPIView):
-#   queryset = ScreeningProcedure.objects.all()
-#   serializer_class = ScreeningProcedureSerializer
-#   lookup_field = 'id'
-#   permission_classes = [IsAuthenticated, IsAdminUser]
 
 class AttachmentDeleteView(generics.DestroyAPIView):
   queryset = ScreeningAttachment.objects.all()
@@ -137,13 +130,12 @@ class IndividualScreeningStatusUpdateView(generics.UpdateAPIView):
 
     if screening_status == 'Approve':
       instance.date_approved = timezone.now().date()
-    elif screening_status == 'LOA Generation':
       CancerDiagnosis.objects.create(
         patient=instance.patient,
-        diagnosis=instance.pre_screening_form.final_diagnosis,
-        date_diagnosed=instance.pre_screening_form.date_of_diagnosis,
+        diagnosis=instance.patient.pre_screening_form.final_diagnosis,
+        date_diagnosed=instance.patient.pre_screening_form.date_of_diagnosis,
         cancer_site=instance.cancer_site,
-        cancer_stage=instance.pre_screening_form.staging,
+        cancer_stage=instance.patient.pre_screening_form.staging,
       )
     elif screening_status == 'Complete':
       HistoricalUpdate.objects.create(

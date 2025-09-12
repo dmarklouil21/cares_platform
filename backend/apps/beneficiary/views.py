@@ -19,17 +19,50 @@ from apps.cancer_screening.models import IndividualScreening, PreScreeningForm
 from apps.patient.models import Patient, CancerDiagnosis
 from apps.beneficiary.serializers import PatientSerializer
 from apps.partners.serializers import CancerAwarenessActivitySerializer
+from apps.patient.serializers import PreScreeningFormSerializer
 from apps.cancer_screening.serializers import (
-  PreScreeningFormSerializer, 
   IndividualScreeningSerializer, 
   ScreeningAttachmentSerializer,
   PreCancerousMedsRequestSerializer
 )
 
-import logging
+from .serializers import PreEnrollmentSerializer
+
+import logging, json
 
 logger = logging.getLogger(__name__)
 
+class PreEnrollmentView(generics.CreateAPIView):
+  queryset = Patient.objects.all() 
+  serializer_class = PreEnrollmentSerializer
+
+  def create(self, request, *args, **kwargs):
+    cancer_data = json.loads(request.data.get("cancer_data", "{}"))
+    general_data = json.loads(request.data.get("general_data", "{}"))
+
+    serializer = self.get_serializer(
+      data={"general_data": general_data, "cancer_data": cancer_data},
+      context={"request": request}
+    )
+
+    serializer.is_valid(raise_exception=True)
+    result = serializer.save()
+
+    patient = result["general_data"]  # extract patient
+    cancer_data = result["cancer_data"]
+
+    photo_url = self.request.FILES.get('photoUrl')
+    if photo_url:
+      patient.photo_url = photo_url
+      patient.save()
+    
+    # serialize again to return structured data
+    return Response(
+      self.get_serializer(result).data,
+      status=status.HTTP_201_CREATED
+    )
+
+# To be deleted
 class PatientCreateView(generics.CreateAPIView):
   queryset = Patient.objects.all()
   serializer_class = PatientSerializer
@@ -44,10 +77,44 @@ class PatientDetailView(generics.RetrieveAPIView):
     except Patient.DoesNotExist:
       raise NotFound("No patient record found for this user.")
 
-class PreScreeningCreateView(generics.CreateAPIView):
-  queryset = PreScreeningForm.objects.all()
-  serializer_class = PreScreeningFormSerializer
+# Newly Updated Screening request
+class IndividualScreeningRequestView(generics.CreateAPIView):
+  queryset = IndividualScreening.objects.all()
+  serializer_class = IndividualScreeningSerializer
+  parser_classes = [MultiPartParser, FormParser]
   permission_classes = [IsAuthenticated]
+
+  def perform_create(self, serializer):
+    try:
+      with transaction.atomic():
+        existing_request = IndividualScreening.objects.filter(
+          patient=self.request.user.patient, 
+          has_patient_response=True
+        ).first()
+
+        if existing_request:
+          raise ValidationError({
+            'non_field_errors': [
+              "You already have an ongoing request. Please wait for its feedback before submitting another."
+            ]
+          })
+    
+        instance = serializer.save(
+          patient=self.request.user.patient,  # ensure patient is set
+          has_patient_response=True,
+          response_description='Submitted screening procedure'
+        )
+        
+        for file in self.request.FILES.getlist('screening_attachments'):
+          validate_attachment(file)
+          ScreeningAttachment.objects.create(
+            individual_screening=instance,
+            file=file
+          )
+
+    except Exception as e:
+      logger.error(f"Error creating screening procedure: {str(e)}")
+      raise e
 
 # To be updated
 class IndividualScreeningUpdateView(generics.UpdateAPIView):
