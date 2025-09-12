@@ -170,7 +170,7 @@ const PreCancerousMeds = () => {
       </div>
 
       {/* Content */}
-      <div className="py-6 px-10 bg-gray">
+      <div className="py-6 px-5 md:px-10 bg-gray">
         <h2 className="text-xl font-semibold mb-6">
           Cancer Management & Treatment Assistance
         </h2>

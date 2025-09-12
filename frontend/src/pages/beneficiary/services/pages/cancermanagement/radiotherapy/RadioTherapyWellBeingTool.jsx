@@ -1,5 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import BeneficiarySidebar from "../../../../../../components/navigation/Beneficiary";
 
 const RadioTherapyWellBeingTool = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const RadioTherapyWellBeingTool = () => {
     diagnosis: "",
     generalStatus: "",
   });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const updateForm = (key) => (e) =>
     setForm((p) => ({ ...p, [key]: e.target.value }));
@@ -93,7 +95,22 @@ const RadioTherapyWellBeingTool = () => {
 
   return (
     <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-      <div className="bg-white py-4 px-10 flex justify-between items-center">
+      
+      <div className="md:hidden">
+        <BeneficiarySidebar
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+        />
+      </div>
+
+      <div className="bg-white py-4 px-10 flex justify-between items-center ">
+        {/* Menu Button for Mobile */}
+        <img
+          className="md:hidden size-5 cursor-pointer"
+          src="/images/menu-line.svg"
+          onClick={() => setIsSidebarOpen(true)}
+        />
+
         <div className="font-bold">Beneficiary</div>
         <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
           <img
@@ -104,11 +121,11 @@ const RadioTherapyWellBeingTool = () => {
         </div>
       </div>
 
-      <div className="py-6 px-10 flex flex-col flex-1 overflow-auto">
+      <div className="py-6 px-5 md:px-10 flex flex-col flex-1 overflow-auto">
         <div className="bg-white rounded-2xl flex p-7 flex-col gap-7">
-          <div className="flex w-full justify-between gap-4">
-            <div className="flex flex-col w-[85%] gap-2">
-              <div className="flex w-full items-end gap-2">
+          <div className="flex w-full justify-between gap-4 overflow-x-auto">
+            <div className="flex flex-col  w-[85%] gap-2">
+              <div className="flex w-full md:flex-row flex-col gap-2 ">
                 <label className="whitespace-nowrap">Name:</label>
                 <input
                   type="text"
@@ -124,7 +141,7 @@ const RadioTherapyWellBeingTool = () => {
                   className="border-b-2 outline-0 w-40"
                 />
               </div>
-              <div className="flex w-full items-end gap-2">
+              <div className="flex w-full md:flex-row flex-col  gap-2">
                 <label className="whitespace-nowrap">Address:</label>
                 <input
                   type="text"
@@ -133,7 +150,7 @@ const RadioTherapyWellBeingTool = () => {
                   className="border-b-2 outline-0 w-full"
                 />
               </div>
-              <div className="flex w-full items-end gap-2">
+              <div className="flex w-full md:flex-row flex-col  gap-2">
                 <label className="whitespace-nowrap">Diagnosis:</label>
                 <input
                   type="text"
@@ -142,7 +159,7 @@ const RadioTherapyWellBeingTool = () => {
                   className="border-b-2 outline-0 w-full"
                 />
               </div>
-              <div className="flex w-full items-end gap-2">
+              <div className="flex w-full md:flex-row flex-col  gap-2">
                 <label className="whitespace-nowrap">
                   General Status/Name:
                 </label>
@@ -154,7 +171,8 @@ const RadioTherapyWellBeingTool = () => {
                 />
               </div>
             </div>
-            <div className="rounded-lg p-2 shrink-0">
+
+            <div className="rounded-lg p-2 shrink-0 md:flex hidden">
               <img
                 src="/images/logo_black_text.png"
                 alt="Rafi icon"
@@ -164,14 +182,14 @@ const RadioTherapyWellBeingTool = () => {
           </div>
 
           <div className="flex flex-col gap-3">
-            <h1 className="font-semibold text-lg">
+            <h1 className="font-semibold text-[16px] md:text-lg">
               THE CURRENT WELL-BEING OF THE CANCER PATIENT
             </h1>
             <p>
               Encircle the number from 1 to 4 that you agree with what you have
               been currently experiencing for the past 2 weeks.
             </p>
-            <p className="text-primary">
+            <p className="text-primary text-[14px] md:text-[16px]">
               Lingini ang numero 1 hangtud 4 nga mo-angay sa imong gibati sulod
               sa 2 ka semana.
             </p>
@@ -244,11 +262,11 @@ const RadioTherapyWellBeingTool = () => {
             </div>
 
             <div className="p-6">
-              <p>
+              <p className="text-[14px] md:text-[16px]">
                 1. How do you think you can further improve your physical health
                 and well being? Give specific activities/Scenarios.
               </p>
-              <p className="text-primary">
+              <p className="text-primary text-[14px] md:text-[16px]">
                 Sa imong hunahuna sa unsang paagi nimo mapauswag ang imong
                 kahimsog sa panglawas? Paghatag ug espesipikong mga
                 kalihokan/aktibidades.

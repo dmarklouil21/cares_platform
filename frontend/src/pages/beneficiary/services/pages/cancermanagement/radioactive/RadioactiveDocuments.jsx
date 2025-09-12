@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import BeneficiarySidebar from "../../../../../../components/navigation/Beneficiary";
 
 function Notification({ message, onClose }) {
   if (!message) return null;
@@ -78,6 +79,7 @@ const RadioTherapyDocument = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [notif, setNotif] = useState("");
   const inputRef = useRef(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const allUploaded = REQUIRED_DOCS.every((d) => !!files[d.key]);
   const activeDoc = REQUIRED_DOCS[activeIdx];
@@ -126,7 +128,22 @@ const RadioTherapyDocument = () => {
 
   return (
     <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-      <div className="bg-white py-4 px-10 flex justify-between items-center">
+      
+      <div className="md:hidden">
+        <BeneficiarySidebar
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+        />
+      </div>
+
+      <div className="bg-white py-4 px-10 flex justify-between items-center ">
+        {/* Menu Button for Mobile */}
+        <img
+          className="md:hidden size-5 cursor-pointer"
+          src="/images/menu-line.svg"
+          onClick={() => setIsSidebarOpen(true)}
+        />
+
         <div className="font-bold">Beneficiary</div>
         <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
           <img
@@ -137,7 +154,7 @@ const RadioTherapyDocument = () => {
         </div>
       </div>
 
-      <div className="py-6 px-10 flex flex-col flex-1 overflow-auto">
+      <div className="py-6 px-5 md:px-10 flex flex-col flex-1 overflow-auto">
         <h2 className="text-xl font-semibold mb-6">Cancer Screening</h2>
 
         <div className="rounded-2xl bg-white p-7 flex flex-col gap-3">
@@ -216,10 +233,10 @@ const RadioTherapyDocument = () => {
             className="hidden"
           />
 
-          <div className="mt-6 flex items-center justify-between">
+          <div className="mt-6 flex items-center justify-between flex-col-reverse md:flex-row gap-5">
             <Link
               to="/Beneficiary/services/cancer-management-options/radioactive/radio-active-well-being-tool"
-              className="border py-3 rounded-md text-center w-[40%] px-6 hover:bg-black/10 hover:border-white"
+              className="border py-3 rounded-md text-center  px-6 hover:bg-black/10 hover:border-white w-full md:w-[40%]"
             >
               Back
             </Link>
@@ -228,12 +245,12 @@ const RadioTherapyDocument = () => {
               <button
                 type="button"
                 onClick={submit}
-                className="bg-[#749AB6] text-white font-bold py-3 px-8 w-[40%] rounded-md border border-[#749AB6] hover:bg-[#C5D7E5] hover:border-[#C5D7E5]"
+                className="bg-[#749AB6] text-white font-bold py-3 px-8 rounded-md border border-[#749AB6] hover:bg-[#C5D7E5] hover:border-[#C5D7E5] w-full md:w-[40%]"
               >
                 Submit
               </button>
             ) : (
-              <div className="text-sm text-gray-600">
+              <div className="text-[12px] md:text-sm text-gray-600 max-w-auto">
                 Please upload <span className="font-semibold">all</span>{" "}
                 required files to enable submit.
               </div>
