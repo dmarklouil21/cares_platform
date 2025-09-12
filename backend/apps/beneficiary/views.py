@@ -10,23 +10,24 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError
 
 from apps.patient.models import Patient, CancerDiagnosis
+from apps.patient.serializers import PreScreeningFormSerializer
+
 from apps.partners.models import CancerAwarenessActivity
+from apps.partners.serializers import CancerAwarenessActivitySerializer
 
 from apps.cancer_screening.models import ScreeningAttachment, IndividualScreening 
-from apps.precancerous.models import PreCancerousMedsRequest
-
-from apps.cancer_screening.models import IndividualScreening, PreScreeningForm
-from apps.patient.models import Patient, CancerDiagnosis
-from apps.beneficiary.serializers import PatientSerializer
-from apps.partners.serializers import CancerAwarenessActivitySerializer
-from apps.patient.serializers import PreScreeningFormSerializer
 from apps.cancer_screening.serializers import (
   IndividualScreeningSerializer, 
   ScreeningAttachmentSerializer,
   PreCancerousMedsRequestSerializer
 )
 
-from .serializers import PreEnrollmentSerializer
+from apps.precancerous.models import PreCancerousMedsRequest
+
+from apps.cancer_management.models import CancerTreatment
+from apps.cancer_management.serializers import CancerTreatmentSubmissionSerializer, CancerTreatmentSerializer
+
+from .serializers import PatientSerializer, PreEnrollmentSerializer
 
 import logging, json
 
@@ -51,6 +52,14 @@ class PreEnrollmentView(generics.CreateAPIView):
     patient = result["general_data"]  # extract patient
     cancer_data = result["cancer_data"]
 
+    CancerDiagnosis.objects.create(
+      patient=patient,
+      diagnosis=cancer_data.final_diagnosis,
+      date_diagnosed=cancer_data.date_of_diagnosis,
+      cancer_site=", ".join(cancer_data.primary_sites.values_list("name", flat=True)),
+      cancer_stage=cancer_data.staging,
+    )
+
     photo_url = self.request.FILES.get('photoUrl')
     if photo_url:
       patient.photo_url = photo_url
@@ -61,11 +70,6 @@ class PreEnrollmentView(generics.CreateAPIView):
       self.get_serializer(result).data,
       status=status.HTTP_201_CREATED
     )
-
-# To be deleted
-class PatientCreateView(generics.CreateAPIView):
-  queryset = Patient.objects.all()
-  serializer_class = PatientSerializer
 
 class PatientDetailView(generics.RetrieveAPIView):
   serializer_class = PatientSerializer
@@ -201,6 +205,49 @@ class LOAAttachmentUploadView(APIView):
       )
 
     return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
+  
+# ---------------------------
+# Cancer Management Submission
+# ---------------------------
+class CancerTreatmentSubmissionView(generics.CreateAPIView):
+  queryset = CancerTreatment.objects.all()
+  serializer_class = CancerTreatmentSubmissionSerializer
+
+  def create(self, request, *args, **kwargs):
+    try:
+      # Convert stringified JSON into dict
+      well_being_data = json.loads(request.data.get("well_being_data", "{}"))
+    
+      files_dict = {}
+      for key, value in request.FILES.items():
+        if key.startswith("files."):
+          field_name = key.split("files.")[1]  # e.g. "quotation"
+          files_dict[field_name] = value
+
+      serializer = self.get_serializer(
+        data={
+            "well_being_data": well_being_data,
+            "files": files_dict
+        },
+        context={"request": request}
+      )
+      serializer.is_valid(raise_exception=True)
+      result = serializer.save()
+      response_data = CancerTreatmentSerializer(result, context={"request": request}).data
+
+      return Response({"message": "Success", "data": response_data}, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+      return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+  
+class CancerManagementListView(generics.ListAPIView):
+  serializer_class = CancerTreatmentSerializer
+  permission_classes = [IsAuthenticated]
+
+  def get_queryset(self):
+    user = self.request.user
+    patient = get_object_or_404(Patient, user=user)
+    return CancerTreatment.objects.filter(patient=patient)
 
 class PreCancerousMedsCreateView(generics.CreateAPIView):
   queryset = PreCancerousMedsRequest.objects.all()

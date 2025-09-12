@@ -1,7 +1,6 @@
 from django.db import models
 from apps.patient.models import Patient
 
-
 class PreCancerousMedsRequest(models.Model):
   patient = models.ForeignKey(
     Patient,
