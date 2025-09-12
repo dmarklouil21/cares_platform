@@ -49,7 +49,7 @@ const Login = () => {
         try {
           const response = await api.get("/beneficiary/patient/details/");
           if (response.data.status) {
-            navigate("/Beneficiary");
+            navigate("/beneficiary");
           }
         } catch (error) {
           // If no beneficiary record, go to pre-enrollment

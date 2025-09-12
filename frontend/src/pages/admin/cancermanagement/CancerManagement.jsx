@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
+import api from "src/api/axiosInstance";
+
 import ConfirmationModal from "src/components/ConfirmationModal";
 import NotificationModal from "src/components/NotificationModal";
 import Notification from "src/components/Notification";
@@ -12,108 +14,108 @@ const AdminCancerManagement = () => {
   const navigate = useNavigate();
 
   // ---------- SAMPLE DATA (statuses normalized) ----------
-  const sampleData = [
-    {
-      id: 1,
-      patient: {
-        patient_id: "PT-0001",
-        full_name: "Ana L. Reyes",
-        city: "Cebu City",
-        email: "ana.reyes@example.com",
-      },
-      created_at: "2025-08-15",
-      status: "Pending",
-      has_patient_response: false,
-      response_description: "",
-      service_type: "Chemotherapy",
-      procedure_name: "FEC",
-      procedure_details: "Cycle 1 of 6",
-      cancer_site: "Breast",
-      screening_date: "",
-    },
-    {
-      id: 2,
-      patient: {
-        patient_id: "PT-0002",
-        full_name: "Bea S. Dizon",
-        city: "Mandaue City",
-        email: "bea.dizon@example.com",
-      },
-      created_at: "2025-08-18",
-      status: "In Progress",
-      has_patient_response: true,
-      response_description: "Rescheduled due to fever.",
-      service_type: "Radiotherapy",
-      procedure_name: "IMRT",
-      procedure_details: "Planning CT done",
-      cancer_site: "Cervical",
-      screening_date: "2025-08-25",
-    },
-    {
-      id: 3,
-      patient: {
-        patient_id: "PT-0003",
-        full_name: "Carlo M. Uy",
-        city: "Talisay City",
-        email: "carlo.uy@example.com",
-      },
-      created_at: "2025-08-20",
-      status: "Complete",
-      has_patient_response: false,
-      response_description: "",
-      service_type: "Surgery",
-      procedure_name: "Lumpectomy",
-      procedure_details: "Post-op follow-up",
-      cancer_site: "Breast",
-      screening_date: "2025-08-22",
-    },
-    {
-      id: 4,
-      patient: {
-        patient_id: "PT-0004",
-        full_name: "Dino K. Ong",
-        city: "Lapu-Lapu City",
-        email: "dino.ong@example.com",
-      },
-      created_at: "2025-08-28",
-      status: "Approved", // was "LOA Generation"
-      has_patient_response: false,
-      response_description: "",
-      service_type: "Chemotherapy",
-      procedure_name: "Paclitaxel",
-      procedure_details: "Awaiting LOA",
-      cancer_site: "Lung",
-      screening_date: "",
-    },
-    {
-      id: 5,
-      patient: {
-        patient_id: "PT-0005",
-        full_name: "Ella P. Gomez",
-        city: "Minglanilla",
-        email: "ella.gomez@example.com",
-      },
-      created_at: "2025-08-30",
-      status: "Rejected", // was "Reject"
-      has_patient_response: true,
-      response_description: "Incomplete documents.",
-      service_type: "Diagnostics",
-      procedure_name: "MRI",
-      procedure_details: "Chest MRI request",
-      cancer_site: "Thoracic",
-      screening_date: "",
-    },
-  ];
+  // const sampleData = [
+  //   {
+  //     id: 1,
+  //     patient: {
+  //       patient_id: "PT-0001",
+  //       full_name: "Ana L. Reyes",
+  //       city: "Cebu City",
+  //       email: "ana.reyes@example.com",
+  //     },
+  //     created_at: "2025-08-15",
+  //     status: "Pending",
+  //     has_patient_response: false,
+  //     response_description: "",
+  //     service_type: "Chemotherapy",
+  //     procedure_name: "FEC",
+  //     procedure_details: "Cycle 1 of 6",
+  //     cancer_site: "Breast",
+  //     screening_date: "",
+  //   },
+  //   {
+  //     id: 2,
+  //     patient: {
+  //       patient_id: "PT-0002",
+  //       full_name: "Bea S. Dizon",
+  //       city: "Mandaue City",
+  //       email: "bea.dizon@example.com",
+  //     },
+  //     created_at: "2025-08-18",
+  //     status: "In Progress",
+  //     has_patient_response: true,
+  //     response_description: "Rescheduled due to fever.",
+  //     service_type: "Radiotherapy",
+  //     procedure_name: "IMRT",
+  //     procedure_details: "Planning CT done",
+  //     cancer_site: "Cervical",
+  //     screening_date: "2025-08-25",
+  //   },
+  //   {
+  //     id: 3,
+  //     patient: {
+  //       patient_id: "PT-0003",
+  //       full_name: "Carlo M. Uy",
+  //       city: "Talisay City",
+  //       email: "carlo.uy@example.com",
+  //     },
+  //     created_at: "2025-08-20",
+  //     status: "Complete",
+  //     has_patient_response: false,
+  //     response_description: "",
+  //     service_type: "Surgery",
+  //     procedure_name: "Lumpectomy",
+  //     procedure_details: "Post-op follow-up",
+  //     cancer_site: "Breast",
+  //     screening_date: "2025-08-22",
+  //   },
+  //   {
+  //     id: 4,
+  //     patient: {
+  //       patient_id: "PT-0004",
+  //       full_name: "Dino K. Ong",
+  //       city: "Lapu-Lapu City",
+  //       email: "dino.ong@example.com",
+  //     },
+  //     created_at: "2025-08-28",
+  //     status: "Approved", // was "LOA Generation"
+  //     has_patient_response: false,
+  //     response_description: "",
+  //     service_type: "Chemotherapy",
+  //     procedure_name: "Paclitaxel",
+  //     procedure_details: "Awaiting LOA",
+  //     cancer_site: "Lung",
+  //     screening_date: "",
+  //   },
+  //   {
+  //     id: 5,
+  //     patient: {
+  //       patient_id: "PT-0005",
+  //       full_name: "Ella P. Gomez",
+  //       city: "Minglanilla",
+  //       email: "ella.gomez@example.com",
+  //     },
+  //     created_at: "2025-08-30",
+  //     status: "Rejected", // was "Reject"
+  //     has_patient_response: true,
+  //     response_description: "Incomplete documents.",
+  //     service_type: "Diagnostics",
+  //     procedure_name: "MRI",
+  //     procedure_details: "Chest MRI request",
+  //     cancer_site: "Thoracic",
+  //     screening_date: "",
+  //   },
+  // ];
 
-  useEffect(() => {
-    sessionStorage.setItem("cm_sample_data", JSON.stringify(sampleData));
-  }, []);
+  // useEffect(() => {
+  //   sessionStorage.setItem("cm_sample_data", JSON.stringify(sampleData));
+  // }, []);
 
   // ---------- State & Notifications ----------
   const [statusFilter, setStatusFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("");
-  const [tableData, setTableData] = useState(sampleData);
+  const [tableData, setTableData] = useState([]);
 
   const [notification, setNotification] = useState("");
   const [notificationType, setNotificationType] = useState(
@@ -144,6 +146,19 @@ const AdminCancerManagement = () => {
     }
   }, [notificationType, notificationMessage, navigate, location.pathname]);
 
+  const fetchData = async () => {
+    try {
+      const response = await api.get("/cancer-management/list/");
+      setTableData(response.data);
+    } catch (error) {
+      console.error("Error fetching cancer treatment requests:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   // ---------- Filters ----------
   const filteredData = tableData.filter((record) => {
     const statusMatch =
@@ -156,7 +171,7 @@ const AdminCancerManagement = () => {
       record.patient.full_name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
-    const dateMatch = !dateFilter || record.created_at === dateFilter;
+    const dateMatch = !dateFilter || record.date_submitted === dateFilter;
     return statusMatch && searchMatch && dateMatch;
   });
 
@@ -293,10 +308,10 @@ const AdminCancerManagement = () => {
                     </th>
                     <th className="w-[20%] text-sm py-3">Name</th>
                     <th className="w-[15%] text-center text-sm py-3">
-                      Submission Date
+                      Service Requested
                     </th>
                     <th className="w-[15%] text-center text-sm py-3">
-                      Service Type
+                      Submission Date
                     </th>
                     <th className="w-[13.4%] text-center text-sm py-3">
                       Status
@@ -328,7 +343,10 @@ const AdminCancerManagement = () => {
                           {item.patient.full_name}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
-                          {new Date(item.created_at).toLocaleDateString(
+                          {item.service_type}
+                        </td>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          {new Date(item.date_submitted).toLocaleDateString(
                             "en-US",
                             {
                               year: "numeric",
@@ -336,9 +354,6 @@ const AdminCancerManagement = () => {
                               day: "numeric",
                             }
                           )}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {item.service_type}
                         </td>
                         <td className="text-center text-sm py-4 text-gray-800">
                           <span

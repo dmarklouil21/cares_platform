@@ -1,9 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 // ----------- LAYOUTS ------------------
 import RegisterLoginLayout from "./layouts/RegisterLogin";
-import AdminLayout from "./layouts/Admin";
-import BeneficiaryLayout from "./layouts/Beneficiary";
-import RhuLayout from "./layouts/Rhu";
 
 // ----------- REGISTRATION SIDE ------------------
 import SelectUserType from "./pages/SelectUserType";
@@ -16,8 +13,6 @@ import NoteBeneficiary from "./pages/beneficiary/registration/note/registration/
 import NoteRhu from "./pages/rhu/registration/Note";
 
 //pre enrollment - wala pay private
-import PreEnrollmentBeneficiary from "./pages/beneficiary/registration/preenrollment/Beneficiary";
-import PreScreeningForm from "./pages/beneficiary/registration/preenrollment/PreScreeningForm";
 import NotValidated from "./pages/beneficiary/registration/note/preenrollment/NotValidated";
 
 // ----------- REGISTRATION RHU SIDE ------------------
@@ -28,117 +23,24 @@ import RHULogin from "./pages/rhu/login/Login";
 import AdminLogin from "./pages/admin/login/Login";
 import ResetPassword from "./pages/beneficiary/login/resetpassword";
 
-// ----------- ADMIN SIDE ------------------
-import AdminDashboard from "./pages/admin/dashboard/Dashboard";
-import AdminPreEnrollment from "./pages/admin/patient/PreEnrollment";
-import AdminIndividualScreening from "./pages/admin/cancerscreening/IndividualScreening";
-import AdminUserManagement from "./pages/admin/usermanagement/UserManagement";
-import AdminPatientMasterList from "./pages/admin/patient/PatientMasterList";
-import Adminprecancerous from "./pages/admin/treatment/Precancerous";
-import AdminCancerManagement from "./pages/admin/cancermanagement/CancerManagement";
-
-// ----------- ADMIN VIEW SIDE ------------------
-import AdminPreenrollmentDetails from "./pages/admin/patient/view/PreenrollmentView";
-import AdminPreenrollmentPreScreeningForm from "./pages/admin/patient/view/ViewPreScreeningForm";
-import AdminIndividualScreeningView from "./pages/admin/cancerscreening/view/IndividualScreeningView";
-import ViewPreScreeningForm from "./pages/admin/cancerscreening/view/ViewPreScreeningForm";
-import ViewAttachments from "./pages/admin/cancerscreening/view/ViewAttachments";
-import ViewResults from "./pages/admin/cancerscreening/view/ViewResults";
-import AdminPatientMasterListView from "./pages/admin/patient/view/PatientMasterListView";
-import AdminprecancerousView from "./pages/admin/treatment/view/PreCancerousView";
-import AdminCancerManagementView from "./pages/admin/cancermanagement/view/CancerManagementView";
-import AdminCancerManagementViewAttachments from "./pages/admin/cancermanagement/view/ViewAttachments";
-import AdminCancerManagementViewPreScreeningForm from "./pages/admin/cancermanagement/view/ViewPreScreeningForm";
-import AdminCancerManagementViewResults from "./pages/admin/cancermanagement/view/ViewResults";
-import AdminCancerManagementViewScreeningProcedure from "./pages/admin/cancermanagement/view/ViewScreeningProcedure";
-
-// ----------- ADMIN EDIT SIDE ------------------
-import AdminPatientMasterListEdit from "./pages/admin/patient/edit/PatientMasterListEdit";
-
-// ----------- ADMIN ADD SIDE ------------------
-import AdminPatientMasterListAdd from "./pages/admin/patient/add/PatientMasterListAdd";
-
-// ----------- User Management actions ------------------
-import AdminManagementAddUser from "./pages/admin/usermanagement/add/AddUser";
-import AdminManagementViewUser from "./pages/admin/usermanagement/view/ViewUser";
-import AdminManagementEditUser from "./pages/admin/usermanagement/edit/EditUser";
-
-// ----------- BENEFICIARY SIDE ------------------
-import BeneficiaryHomePage from "./pages/beneficiary/home/Home";
-import BeneficiaryCancerScreening from "./pages/beneficiary/services/CancerScreening";
-import CancerManagement from "./pages/beneficiary/services/CancerManagement";
-import Survivorship from "./pages/beneficiary/services/Survivorship";
-import BeneficiaryApplicationStatus from "./pages/beneficiary/applicationstatus/ApplicationStatus";
-import BeneficiaryPreCancerousApplicationStatus from "./pages/beneficiary/applicationstatus/Precancerous";
-import BeneficiaryIndividualScreeningStatus from "./pages/beneficiary/individualscreeningstatus/IndividualScreeningStatus";
-import BeneficiaryCancerAwareness from "./pages/beneficiary/cancerawareness/CancerAwareness";
-import UploadAttachments from "./pages/beneficiary/individualscreeningstatus/UploadAttachments";
-
-// ----------- Beneficiary cancer management options ------------------
-
-// Note 
-import BrachytherapyServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/ServiceApplicationNote";
-import ChemotherapyServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/ServiceApplicationNote";
-import RadioactiveServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/radioactive/ServiceApplicationNote";
-import RadiotherapyServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/ServiceApplicationNote";
-import SurgeryServiceApplicationNote from "./pages/beneficiary/services/pages/cancermanagement/surgery/ServiceApplicationNote";
-
-import BeneficiaryPreCancerousMeds from "./pages/beneficiary/services/pages/cancermanagement/PreCancerousMeds";
-// import BeneficiaryRadioTherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/RadioTherapyPreScreening";
-import BeneficiaryRadioTherapyWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/RadioTherapyWellBeingTool";
-import BeneficiaryRadioTherapyDocuments from "./pages/beneficiary/services/pages/cancermanagement/radiotherapy/RadioTherapyDocuments";
-// import BeneficiaryRadioactivePreScreening from "./pages/beneficiary/services/pages/cancermanagement/radioactive/RadioactivePreScreening";
-import BeneficiaryRadioactiveWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/radioactive/RadioactiveWellBeingTool";
-import BeneficiaryRadioactiveDocuments from "./pages/beneficiary/services/pages/cancermanagement/radioactive/RadioactiveDocuments";
-// import BeneficiaryBrachytherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/brachyTherapyPreScreening";
-import BeneficiaryBrachytherapyWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/brachyTherapyWellBeingTool";
-import BeneficiaryBrachytherapyDocuments from "./pages/beneficiary/services/pages/cancermanagement/brachytherapy/brachyTherapyDocuments";
-// import BeneficiarychemotherapyPreScreening from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/chemotherapyPreScreening";
-import BeneficiarychemotherapyWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/chemotherapyWellBeingTool";
-import BeneficiarychemotherapyDocuments from "./pages/beneficiary/services/pages/cancermanagement/chemotherapy/chemotherapyDocuments";
-// import BeneficiarysurgeryPreScreening from "./pages/beneficiary/services/pages/cancermanagement/surgery/surgeryPreScreening";
-import BeneficiarysurgeryWellBeingTool from "./pages/beneficiary/services/pages/cancermanagement/surgery/surgeryWellBeingTool";
-import BeneficiarysurgeryDocuments from "./pages/beneficiary/services/pages/cancermanagement/surgery/surgeryDocuments";
-
-// ----------- Application actions ------------------
-import BeneficiaryApplicationView from "./pages/beneficiary/applicationstatus/view/ViewApplication";
-import BeneficiaryPreCancerousView from "./pages/beneficiary/applicationstatus/view/PreCancerousView";
-
-// ----------- IndividualScreeningStatus actions ------------------
-import BeneficiaryIndividualScreeningStatusView from "./pages/beneficiary/individualscreeningstatus/view/ViewIndividualStatus";
-
-// ----------- Services: Cancer Screening ------------------
-import ScreeningRequirementsNote from "./pages/beneficiary/services/pages/cancerscreening/Requirements";
-import ScreeningProcedure from "./pages/beneficiary/services/pages/cancerscreening/ScreeningProcedure";
-import BeneficiaryPreScreeningForm from "./pages/beneficiary/services/pages/cancerscreening/PreScreeningForm";
-import PreScreeningFormNote from "./pages/beneficiary/services/pages/cancerscreening/PreScreeningFormNote";
-
-// ----------- RHU SIDE ------------------
-import RhuDashboard from "./pages/rhu/dashboard/Dashboard";
-import RhuCancerAwarenss from "./pages/rhu/cancerawareness/CancerAwareness";
-import RhuPreEnrollment from "./pages/rhu/rhu/PreEnrollment";
-// ----------- RHU SERVICES ------------------
-import RhuCancerManagement from "./pages/rhu/services/CancerManagement";
-import RhuCancerScreening from "./pages/rhu/services/CancerScreening";
-import RhuSurvivorship from "./pages/rhu/services/Survivorship";
-
-// ----------- RHU rhu actions ------------------
-import RhuPreEnrollmentView from "./pages/rhu/rhu/view/PreEnrollmentView";
-import RhuPreEnrollmentEdit from "./pages/rhu/rhu/edit/PreEnrollmentEdit";
-import RhuPreEnrollmentAdd from "./pages/rhu/rhu/add/PreEnrollmentAdd";
 
 import { AuthProvider } from "./context/AuthContext";
-import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
-import ProtectedRHURoute from "./components/ProtectedRHURoute";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProtectedAuthenticatedRoute from "./components/ProtectedAuthenticatedRoute";
 import AccountNotSupported from "./pages/AccountNotSupported";
+
+// Route Groups
+import AdminRoutes from "./routes/AdminRoutes";
+import BeneficiaryRoutes from "./routes/BeneficiaryRoutes";
+import RhuRoutes from "./routes/RhuRoutes";
 
 const App = () => {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public Pages */}
           <Route path="/" element={<RegisterLoginLayout />}>
             <Route index element={<SelectUserType />} />
             <Route path="beneficiary-login" element={<BeneficiaryLogin />} />
@@ -166,336 +68,23 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="PreEnrollmentBeneficiary"
-              element={
-                <ProtectedRoute>
-                  <PreEnrollmentBeneficiary />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="PreEnrollmentPreScreeningForm"
-              element={
-                <ProtectedRoute>
-                  <PreScreeningForm />
-                </ProtectedRoute>
-              }
-            />
+  
             <Route path="NotValidated" element={<NotValidated />} />
             <Route
               path="AccountNotSupported"
               element={<AccountNotSupported />}
             />
           </Route>
-          <Route
-            path="/Admin"
-            element={
-              <ProtectedAdminRoute>
-                <AdminLayout />
-              </ProtectedAdminRoute>
-            }
-          >
-            <Route index element={<AdminDashboard />} />
-            <Route path="patient">
-              <Route
-                path="AdminPreEnrollment"
-                element={<AdminPreEnrollment />}
-              />
-              <Route
-                path="AdminPatientMasterList"
-                element={<AdminPatientMasterList />}
-              />
-              <Route path="view">
-                <Route
-                  path="AdminPreenrollmentDetails/:patient_id"
-                  element={<AdminPreenrollmentDetails />}
-                />
-                <Route
-                  path="AdminPreenrollmentPreScreeningForm"
-                  element={<AdminPreenrollmentPreScreeningForm />}
-                />
-                <Route
-                  path="AdminPatientMasterListView/:patient_id"
-                  element={<AdminPatientMasterListView />}
-                />
-              </Route>
-              <Route path="edit">
-                <Route
-                  path="AdminPatientMasterListEdit"
-                  element={<AdminPatientMasterListEdit />}
-                />
-              </Route>
-              <Route path="add">
-                <Route
-                  path="AdminPatientMasterListAdd"
-                  element={<AdminPatientMasterListAdd />}
-                />
-              </Route>
-            </Route>
 
-            <Route path="UserManagement">
-              <Route index element={<AdminUserManagement />} />
-              <Route path="add-user" element={<AdminManagementAddUser />} />
-              <Route path="view-user" element={<AdminManagementViewUser />} />
-              <Route path="edit-user" element={<AdminManagementEditUser />} />
-            </Route>
-            <Route path="CancerManagement">
-              <Route index element={<AdminCancerManagement />} />
-              <Route path="view">
-                <Route
-                  path="cancermanagementview/:id"
-                  element={<AdminCancerManagementView />}
-                />
-                <Route
-                  path="AdminCancerManagementViewAttachments"
-                  element={<AdminCancerManagementViewAttachments />}
-                />
-                <Route
-                  path="AdminCancerManagementViewPreScreeningForm"
-                  element={<AdminCancerManagementViewPreScreeningForm />}
-                />
-                <Route
-                  path="AdminCancerManagementViewResults"
-                  element={<AdminCancerManagementViewResults />}
-                />
-                <Route
-                  path="AdminCancerManagementViewScreeningProcedure"
-                  element={<AdminCancerManagementViewScreeningProcedure />}
-                />
-              </Route>
-            </Route>
-            <Route path="cancerscreening">
-              <Route
-                path="AdminIndividualScreening"
-                element={<AdminIndividualScreening />}
-              />
-              <Route path="view">
-                <Route
-                  path="AdminIndividualScreeningView"
-                  element={<AdminIndividualScreeningView />}
-                />
-                <Route path="ViewAttachments" element={<ViewAttachments />} />
-                <Route
-                  path="ViewPreScreeningForm"
-                  element={<ViewPreScreeningForm />}
-                />
-                <Route path="ViewResults" element={<ViewResults />} />
-              </Route>
-            </Route>
-            <Route path="treatment">
-              <Route path="precancerous" element={<Adminprecancerous />} />
-              <Route path="view">
-                <Route
-                  path="AdminprecancerousView/:id"
-                  element={<AdminprecancerousView />}
-                />
-              </Route>
-            </Route>
-          </Route>
-          <Route
-            path="/Beneficiary"
-            element={
-              <ProtectedRoute>
-                <BeneficiaryLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<BeneficiaryHomePage />} />
-            <Route
-              path="cancerawareness"
-              element={<BeneficiaryCancerAwareness />}
-            />
-            <Route path="services">
-              <Route path="cancer-screening">
-                <Route index element={<BeneficiaryCancerScreening />} />
-                <Route
-                  path="pre-screening-form-note"
-                  element={<PreScreeningFormNote />}
-                />
-                <Route
-                  path="pre-screening-form"
-                  element={<BeneficiaryPreScreeningForm />}
-                />
-                <Route
-                  path="screening-requirements-note"
-                  element={<ScreeningRequirementsNote />}
-                />
-                <Route
-                  path="screening-procedure"
-                  element={<ScreeningProcedure />}
-                />
-              </Route>
-              <Route path="cancer-management" element={<CancerManagement />} />
-              <Route path="cancer-management-options">
-                <Route path="radiotherapy">
-                  {/* <Route
-                    index
-                    element={<BeneficiaryRadioTherapyPreScreening />}
-                  /> */}
-                  <Route
-                    path="form-note"
-                    element={<RadiotherapyServiceApplicationNote />}
-                  />
-                  <Route
-                    path="radio-therapy-well-being-tool"
-                    element={<BeneficiaryRadioTherapyWellBeingTool />}
-                  />
-                  <Route
-                    path="radio-therapy-documents"
-                    element={<BeneficiaryRadioTherapyDocuments />}
-                  />
-                </Route>
-                <Route path="radioactive">
-                  {/* <Route
-                    index
-                    element={<BeneficiaryRadioactivePreScreening />}
-                  /> */}
-                  <Route
-                    path="form-note"
-                    element={<RadioactiveServiceApplicationNote />}
-                  />
-                  <Route
-                    path="radio-active-well-being-tool"
-                    element={<BeneficiaryRadioactiveWellBeingTool />}
-                  />
-                  <Route
-                    path="radio-active-documents"
-                    element={<BeneficiaryRadioactiveDocuments />}
-                  />
-                </Route>
-                <Route path="brachytherapy">
-                  {/* <Route
-                    index
-                    element={<BeneficiaryBrachytherapyPreScreening />}
-                  /> */}
-                  <Route
-                    path="form-note"
-                    element={<BrachytherapyServiceApplicationNote />}
-                  />
-                  <Route
-                    path="brachy-well-being-tool"
-                    element={<BeneficiaryBrachytherapyWellBeingTool />}
-                  />
-                  <Route
-                    path="brachy-documents"
-                    element={<BeneficiaryBrachytherapyDocuments />}
-                  />
-                </Route>
-                <Route path="chemotherapy">
-                  {/* <Route
-                    index
-                    element={<BeneficiarychemotherapyPreScreening />}
-                  /> */}
-                  <Route
-                    path="form-note"
-                    element={<ChemotherapyServiceApplicationNote />}
-                  />
-                  <Route
-                    path="chemotherapy-well-being-tool"
-                    element={<BeneficiarychemotherapyWellBeingTool />}
-                  />
-                  <Route
-                    path="chemotherapy-documents"
-                    element={<BeneficiarychemotherapyDocuments />}
-                  />
-                </Route>
-                <Route path="surgery">
-                  {/* <Route index element={<BeneficiarysurgeryPreScreening />} /> */}
-                  <Route
-                    path="form-note"
-                    element={<SurgeryServiceApplicationNote />}
-                  />
-                  <Route
-                    path="surgery-well-being-tool"
-                    element={<BeneficiarysurgeryWellBeingTool />}
-                  />
-                  <Route
-                    path="surgery-documents"
-                    element={<BeneficiarysurgeryDocuments />}
-                  />
-                </Route>
+          {/* Admin Route Group */}
+          {AdminRoutes()}
 
-                <Route
-                  path="precancerousmeds"
-                  element={<BeneficiaryPreCancerousMeds />}
-                />
-              </Route>
-              <Route path="survivorship" element={<Survivorship />} />
-            </Route>
-            <Route path="awareness">
-              <Route path="sample1" element={<div>Awareness Sample 1</div>} />
-              <Route path="sample2" element={<div>Awareness Sample 2</div>} />
-            </Route>
-            <Route path="applicationstatus">
-              <Route index element={<BeneficiaryApplicationStatus />} />
-              <Route
-                path="precancerous"
-                element={<BeneficiaryPreCancerousApplicationStatus />}
-              />
-              <Route path="view">
-                <Route
-                  path="precancerous/:id"
-                  element={<BeneficiaryPreCancerousView />}
-                />
-              </Route>
-              <Route
-                path="application-view"
-                element={<BeneficiaryApplicationView />}
-              />
-            </Route>
-            <Route path="individualscreeningstatus">
-              <Route index element={<BeneficiaryIndividualScreeningStatus />} />
-              <Route
-                path="individualstatus-view"
-                element={<BeneficiaryIndividualScreeningStatusView />}
-              />
-              <Route
-                path="upload-attachments"
-                element={<UploadAttachments />}
-              />
-            </Route>
-          </Route>
-          <Route
-            path="/Rhu"
-            element={
-              <ProtectedRHURoute>
-                <RhuLayout />
-              </ProtectedRHURoute>
-            }
-          >
-            <Route index element={<RhuDashboard />} />
-            <Route path="cancerawareness" element={<RhuCancerAwarenss />} />
-            <Route path="services">
-              <Route path="cancer-screening" element={<RhuCancerScreening />} />
-              <Route
-                path="cancer-management"
-                element={<RhuCancerManagement />}
-              />
-              <Route path="survivorship" element={<RhuSurvivorship />} />
-            </Route>
-            <Route path="rhu">
-              <Route path="pre-enrollment" element={<RhuPreEnrollment />} />
-              <Route path="view">
-                <Route
-                  path="RhuPreEnrollmentView"
-                  element={<RhuPreEnrollmentView />}
-                />
-              </Route>
-              <Route path="edit">
-                <Route
-                  path="RhuPreEnrollmentEdit"
-                  element={<RhuPreEnrollmentEdit />}
-                />
-              </Route>
-              <Route path="add">
-                <Route
-                  path="RhuPreEnrollmentAdd"
-                  element={<RhuPreEnrollmentAdd />}
-                />
-              </Route>
-            </Route>
-          </Route>
+          {/* Beneficiary Route Group */}
+          {BeneficiaryRoutes()}
+
+          {/* RHU Route Group */}
+          {RhuRoutes()}
+          
         </Routes>
       </BrowserRouter>
     </AuthProvider>

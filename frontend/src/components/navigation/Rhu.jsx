@@ -17,13 +17,13 @@ const RhuSidebar = () => {
     {
       name: "Dashboard",
       icon: "/src/assets/images/navigation/admin/dashboard.svg",
-      path: "/Rhu",
+      path: "/rhu",
       arrow: "",
     },
     {
       name: "Cancer Awareness",
       icon: "/src/assets/images/navigation/patient/cancerwarenessicon.svg",
-      path: "/Rhu/cancerawareness",
+      path: "/rhu/cancer-awareness",
       arrow: "",
     },
     {
@@ -61,27 +61,22 @@ const RhuSidebar = () => {
   const servicesSubNav = [
     {
       name: "Cancer Screening",
-      path: "/Rhu/services/cancer-screening",
+      path: "/rhu/services/cancer-screening",
     },
-    /* {
-      name: "Cancer Management",
-      path: "/Rhu/services/cancer-management",
-    },
-    { name: "Survivorship", path: "/Rhu/services/survivorship" }, */
   ];
 
   // NEW: Rhu subnav
-  const rhuSubNav = [
-    {
-      name: "Pre Enrollment",
-      path: "/Rhu/rhu/pre-enrollment",
-    },
-  ];
+  // const rhuSubNav = [
+  //   {
+  //     name: "Patient List",
+  //     path: "/Rhu/rhu/pre-enrollment",
+  //   },
+  // ];
 
   const patientSubNav = [
     {
-      name: "Pre Enrollment",
-      path: "/Rhu/rhu/pre-enrollment",
+      name: "Patient List",
+      path: "/rhu/patients",
     },
   ];
 

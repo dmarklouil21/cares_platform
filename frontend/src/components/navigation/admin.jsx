@@ -16,7 +16,7 @@ const AdminSidebar = () => {
     {
       name: "Dashboard",
       icon: "/src/assets/images/navigation/admin/dashboard.svg",
-      path: "/Admin",
+      path: "/admin",
       arrow: "",
     },
     {
@@ -40,42 +40,44 @@ const AdminSidebar = () => {
     {
       name: "Cancer Management",
       icon: "/src/assets/images/navigation/admin/cancermanagement.svg",
-      path: "/Admin/CancerManagement",
+      path: "/admin/cancer-management",
       arrow: "",
     },
     {
       name: "User Management",
       icon: "/src/assets/images/navigation/admin/usermanagementicon.svg",
-      path: "/Admin/UserManagement",
+      path: "/admin/user-management",
       arrow: "",
     },
   ];
 
   const patientSubNav = [
-    { name: "Pre-Enrollment", path: "/Admin/patient/AdminPreEnrollment" },
+    { name: "Pre-Enrollment", 
+      path: "/admin/patient/pre-enrollment" 
+    },
     {
       name: "Patient Master List",
-      path: "/Admin/patient/AdminPatientMasterList",
+      path: "/admin/patient/master-list",
     },
   ];
 
   const cancerscreeningSubNav = [
-    // { name: "Screening Request", path: "/Admin/cancerscreening/AdminScreeningRequest" },
+    // { name: "Screening Request", path: "/admin/cancerscreening/adminScreeningRequest" },
     {
       name: "Individual Screening",
-      path: "/Admin/cancerscreening/AdminIndividualScreening",
+      path: "/admin/cancer-screening",
     },
-    { name: "Mass Screening", path: "/Admin/MassScreening" },
+    { name: "Mass Screening", path: "/admin/cancer-screening/mass-screening" },
   ];
 
   const treatmentSubNav = [
-    { name: "Pre Cancerous", path: "/Admin/treatment/precancerous" },
-    { name: "Post Treatment", path: "/Admin/treatment/posttreatment" },
+    { name: "Pre Cancerous", path: "/admin/treatment-assistance/pre-cancerous" },
+    { name: "Post Treatment", path: "/admin/treatment-assistance/post-treatment" },
   ];
 
   const sampleSubNav = [
-    { name: "Sample 1", path: "/Admin/Sample1" },
-    { name: "Sample 2", path: "/Admin/Sample2" },
+    { name: "Sample 1", path: "/admin/Sample1" },
+    { name: "Sample 2", path: "/admin/Sample2" },
   ];
 
   const debounce = (func, delay) => {

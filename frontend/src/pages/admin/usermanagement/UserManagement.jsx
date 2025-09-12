@@ -196,7 +196,7 @@ const UserManagement = () => {
         role: user.role ? user.role.toLowerCase() : "admin",
         status: user.is_active ? "active" : "inactive",
       };
-      navigate("view-user", { state: { user: userDetails } });
+      navigate("/admin/user-management/view", { state: { user: userDetails } });
     }
   };
 
@@ -205,7 +205,7 @@ const UserManagement = () => {
     const user = users.find((u) => u.id === id);
     if (user) {
       // Pass the full user object, including id
-      navigate("edit-user", { state: { user } });
+      navigate("edit", { state: { user } });
     }
   };
 
@@ -225,7 +225,7 @@ const UserManagement = () => {
         <div className="bg-[#F0F2F5] w-full py-1 px-5 flex h-[10%] justify-between items-end">
           <h1 className="text-md font-bold h-full flex items-center ">Admin</h1>
           <Link
-            to="/Admin/UserManagement/add-user"
+            to="/admin/user-management/add"
             className="bg-yellow gap-3 flex justify-center items-center px-5 py-1 rounded-sm"
           >
             <img
