@@ -64,13 +64,13 @@ const CancerAwareness = () => {
               {activities.length > 0 ? (
                 activities.map((activity) => {
                   return (
-                    <div className="flex justify-start gap-8 p-5 border-b-[1.5px] border-primary">
+                    <div className="flex justify-start gap-8 p-5 border-b-[1.5px] border-primary flex-col md:flex-row">
                       <img
                         src={activity.photo || ""}
                         alt="sample pic"
                         className="h-40 w-72 rounded-md"
                       />
-                      <div className="flex flex-col justify-between py-2 w-[50%]">
+                      <div className="flex flex-col justify-between py-2 w-full md:w-[50%]">
                         <h1 className="font-bold text-primary text-xl">
                           {activity.title}
                         </h1>
