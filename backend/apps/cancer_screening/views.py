@@ -14,14 +14,14 @@ from backend.utils.email import (
   send_precancerous_meds_status_email,
 )
 
-from apps.patient.models import Patient, CancerDiagnosis, HistoricalUpdate
+from apps.patient.models import Patient, CancerDiagnosis, HistoricalUpdate, PreScreeningForm
+from apps.patient.serializers import PreScreeningFormSerializer
 from apps.cancer_screening.models import ScreeningAttachment
 from apps.precancerous.models import PreCancerousMedsRequest
 
-from .models import IndividualScreening, PreScreeningForm
+from .models import IndividualScreening
 
 from .serializers import (
-  PreScreeningFormSerializer,
   IndividualScreeningSerializer,
   ScreeningAttachmentSerializer,
   PreCancerousMedsRequestSerializer,
@@ -130,13 +130,13 @@ class IndividualScreeningStatusUpdateView(generics.UpdateAPIView):
 
     if screening_status == 'Approve':
       instance.date_approved = timezone.now().date()
-      CancerDiagnosis.objects.create(
-        patient=instance.patient,
-        diagnosis=instance.patient.pre_screening_form.final_diagnosis,
-        date_diagnosed=instance.patient.pre_screening_form.date_of_diagnosis,
-        cancer_site=instance.cancer_site,
-        cancer_stage=instance.patient.pre_screening_form.staging,
-      )
+      # CancerDiagnosis.objects.create(
+      #   patient=instance.patient,
+      #   diagnosis=instance.patient.pre_screening_form.final_diagnosis,
+      #   date_diagnosed=instance.patient.pre_screening_form.date_of_diagnosis,
+      #   cancer_site=instance.cancer_site,
+      #   cancer_stage=instance.patient.pre_screening_form.staging,
+      # )
     elif screening_status == 'Complete':
       HistoricalUpdate.objects.create(
         patient=instance.patient,

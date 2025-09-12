@@ -76,11 +76,10 @@ class PreScreeningFormSerializer(serializers.ModelSerializer):
     read_only_fields = ['created_at']
 
 class PatientSerializer(serializers.ModelSerializer):
-  # user = serializers.HiddenField(default=None)
   pre_screening_form = PreScreeningFormSerializer(read_only=True)
   emergency_contacts = EmergencyContactSerializer(many=True)
-  diagnosis = CancerDiagnosisSerializer(many=True, required=False, allow_empty=True, allow_null=True, default=[]) 
-  historical_updates = HistoricalUpdateSerializer(many=True, required=False, allow_empty=True, allow_null=True, default=[]) 
+  diagnosis = CancerDiagnosisSerializer(many=True, read_only=True) # required=False , allow_empty=True, allow_null=True, default=[]
+  historical_updates = HistoricalUpdateSerializer(many=True, required=False) # , allow_empty=True, allow_null=True, default=[]
 
   # computed fields
   age = serializers.ReadOnlyField()
@@ -97,53 +96,184 @@ class PatientSerializer(serializers.ModelSerializer):
     ]
     read_only_fields = ('created_at', 'patient_id', 'photo_url')
   
+  # def create(self, validated_data):
+  #   request = self.context.get("request")  
+  #   user = request.user if request else None
+
+  #   emergency_contacts_data = validated_data.pop('emergency_contacts', [])
+  #   cancer_diagnosis_data = validated_data.pop('diagnosis', [])
+  #   historical_updates_data = validated_data.pop('historical_updates', [])
+
+  #   if user and not user.is_superuser and not getattr(user, "is_rhu", False):
+  #     patient = Patient.objects.create(user=user, **validated_data)
+  #   else: 
+  #     patient = Patient.objects.create(**validated_data)
+
+  #   for contact_data in emergency_contacts_data:
+  #     EmergencyContact.objects.create(patient=patient, **contact_data)
+
+  #   for diagnosis_data in cancer_diagnosis_data:
+  #     CancerDiagnosis.objects.create(patient=patient, **diagnosis_data)
+    
+  #   for historical_update_data in historical_updates_data:
+  #     HistoricalUpdate.objects.create(patient=patient, **historical_update_data)
+
+  #   return patient
+  
+  # def update(self, instance, validated_data):
+  #   emergency_contacts_data = validated_data.pop('emergency_contacts', [])
+  #   # cancer_diagnosis_data = validated_data.pop('diagnosis', [])
+  #   historical_updates_data = validated_data.pop('historical_updates', [])
+
+  #   # update scalar fields
+  #   for attr, value in validated_data.items():
+  #       setattr(instance, attr, value)
+  #   instance.save()
+
+  #   # ---- Emergency Contacts ----
+  #   instance.emergency_contacts.all().delete()  # simple approach: delete + recreate
+  #   for contact_data in emergency_contacts_data:
+  #       EmergencyContact.objects.create(patient=instance, **contact_data)
+
+  #   # ---- Cancer Diagnosis ----
+  #   # instance.diagnosis.all().delete()
+  #   # for diagnosis_data in cancer_diagnosis_data:
+  #   #     CancerDiagnosis.objects.create(patient=instance, **diagnosis_data)
+
+  #   # ---- Historical Updates ----
+  #   instance.historical_updates.all().delete()
+  #   for historical_update_data in historical_updates_data:
+  #       HistoricalUpdate.objects.create(patient=instance, **historical_update_data)
+
+  #   return instance
+
+class AdminPreEnrollmentSerializer(serializers.Serializer):
+  general_data = PatientSerializer()
+  cancer_data = PreScreeningFormSerializer()
+
   def create(self, validated_data):
-    request = self.context.get("request")  
-    user = request.user if request else None
 
-    emergency_contacts_data = validated_data.pop('emergency_contacts', [])
-    cancer_diagnosis_data = validated_data.pop('diagnosis', [])
-    historical_updates_data = validated_data.pop('historical_updates', [])
+    general_data = validated_data.pop('general_data')
+    cancer_data = validated_data.pop('cancer_data')
 
-    if user and not user.is_superuser and not getattr(user, "is_rhu", False):
-      patient = Patient.objects.create(user=user, **validated_data)
-    else: 
-      patient = Patient.objects.create(**validated_data)
+    emergency_contacts_data = general_data.pop('emergency_contacts', [])
+    historical_updates_data = general_data.pop('historical_updates', [])
+
+    diagnosis_basis_data = cancer_data.pop('diagnosis_basis')
+    primary_sites_data = cancer_data.pop('primary_sites')
+    distant_metastasis_sites_data = cancer_data.pop('distant_metastasis_sites')
+    adjuvant_treatments_received_data = cancer_data.pop('adjuvant_treatments_received')
+    other_source_treatments_data = cancer_data.pop('other_source_treatments')
+
+    patient = Patient.objects.create(**general_data)
 
     for contact_data in emergency_contacts_data:
       EmergencyContact.objects.create(patient=patient, **contact_data)
-
-    for diagnosis_data in cancer_diagnosis_data:
-      CancerDiagnosis.objects.create(patient=patient, **diagnosis_data)
     
     for historical_update_data in historical_updates_data:
       HistoricalUpdate.objects.create(patient=patient, **historical_update_data)
 
-    return patient
+    pre_screening_form = PreScreeningForm.objects.create(patient=patient, **cancer_data)
+
+    for item in diagnosis_basis_data:
+      diagnosis_basis, _ = DiagnosisBasis.objects.get_or_create(**item)
+      pre_screening_form.diagnosis_basis.add(diagnosis_basis)
+
+    for item in primary_sites_data:
+      primary_site, _ = PrimarySite.objects.get_or_create(**item)
+      pre_screening_form.primary_sites.add(primary_site)
+
+    for item in distant_metastasis_sites_data:
+      distant_metastasis_site, _ = DistantMetastasisSite.objects.get_or_create(**item)
+      pre_screening_form.distant_metastasis_sites.add(distant_metastasis_site)
+
+    for item in adjuvant_treatments_received_data:
+      treatment_option, _ = TreatmentOption.objects.get_or_create(**item)
+      pre_screening_form.adjuvant_treatments_received.add(treatment_option)
+
+    for item in other_source_treatments_data:
+      treatment_option, _ = TreatmentOption.objects.get_or_create(**item)
+      pre_screening_form.other_source_treatments.add(treatment_option)
+
+    return {
+      "general_data": patient,
+      "cancer_data": pre_screening_form,
+    }
   
   def update(self, instance, validated_data):
-    emergency_contacts_data = validated_data.pop('emergency_contacts', [])
-    cancer_diagnosis_data = validated_data.pop('diagnosis', [])
-    historical_updates_data = validated_data.pop('historical_updates', [])
+    """
+    instance: Patient object
+    validated_data: incoming validated data with general_data & cancer_data
+    """
+    general_data = validated_data.pop('general_data', {})
+    cancer_data = validated_data.pop('cancer_data', {})
 
-    # update scalar fields
-    for attr, value in validated_data.items():
+    # --- Update Patient fields ---
+    for attr, value in general_data.items():
+      if attr not in ['emergency_contacts', 'historical_updates', 'id', 'created_at']:
         setattr(instance, attr, value)
     instance.save()
 
-    # ---- Emergency Contacts ----
-    instance.emergency_contacts.all().delete()  # simple approach: delete + recreate
+    # --- Update Emergency Contacts ---
+    emergency_contacts_data = general_data.get('emergency_contacts', [])
+    instance.emergency_contacts.all().delete()  # clear old
     for contact_data in emergency_contacts_data:
-        EmergencyContact.objects.create(patient=instance, **contact_data)
+      EmergencyContact.objects.create(patient=instance, **contact_data)
 
-    # ---- Cancer Diagnosis ----
-    instance.diagnosis.all().delete()
-    for diagnosis_data in cancer_diagnosis_data:
-        CancerDiagnosis.objects.create(patient=instance, **diagnosis_data)
-
-    # ---- Historical Updates ----
+    # --- Update Historical Updates ---
+    historical_updates_data = general_data.get('historical_updates', [])
     instance.historical_updates.all().delete()
     for historical_update_data in historical_updates_data:
-        HistoricalUpdate.objects.create(patient=instance, **historical_update_data)
+      HistoricalUpdate.objects.create(patient=instance, **historical_update_data)
+
+    # --- Update PreScreeningForm ---
+    pre_screening_form = getattr(instance, "pre_screening_form", None)
+    if not pre_screening_form:
+      pre_screening_form = PreScreeningForm.objects.create(patient=instance, **cancer_data)
+    else:
+      for attr, value in cancer_data.items():
+        if attr not in [
+          'diagnosis_basis', 'primary_sites',
+          'distant_metastasis_sites', 'adjuvant_treatments_received',
+          'other_source_treatments'
+        ]:
+          setattr(pre_screening_form, attr, value)
+      pre_screening_form.save()
+
+    # --- Update Many-to-Many fields ---
+    if 'diagnosis_basis' in cancer_data:
+      pre_screening_form.diagnosis_basis.clear()
+      for item in cancer_data['diagnosis_basis']:
+        diagnosis_basis, _ = DiagnosisBasis.objects.get_or_create(**item)
+        pre_screening_form.diagnosis_basis.add(diagnosis_basis)
+
+    if 'primary_sites' in cancer_data:
+      pre_screening_form.primary_sites.clear()
+      for item in cancer_data['primary_sites']:
+        primary_site, _ = PrimarySite.objects.get_or_create(**item)
+        pre_screening_form.primary_sites.add(primary_site)
+
+    if 'distant_metastasis_sites' in cancer_data:
+      pre_screening_form.distant_metastasis_sites.clear()
+      for item in cancer_data['distant_metastasis_sites']:
+        distant_metastasis_site, _ = DistantMetastasisSite.objects.get_or_create(**item)
+        pre_screening_form.distant_metastasis_sites.add(distant_metastasis_site)
+
+    if 'adjuvant_treatments_received' in cancer_data:
+      pre_screening_form.adjuvant_treatments_received.clear()
+      for item in cancer_data['adjuvant_treatments_received']:
+        treatment_option, _ = TreatmentOption.objects.get_or_create(**item)
+        pre_screening_form.adjuvant_treatments_received.add(treatment_option)
+
+    if 'other_source_treatments' in cancer_data:
+      pre_screening_form.other_source_treatments.clear()
+      for item in cancer_data['other_source_treatments']:
+        treatment_option, _ = TreatmentOption.objects.get_or_create(**item)
+        pre_screening_form.other_source_treatments.add(treatment_option)
 
     return instance
+  
+    # return patient #{
+    #   "general_data": patient,
+    #   "cancer_data": pre_screening_form,
+    # }

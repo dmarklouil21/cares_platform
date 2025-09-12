@@ -38,7 +38,6 @@ class Patient(models.Model):
   last_name = models.CharField(max_length=100)
   suffix = models.CharField(max_length=10, blank=True, null=True)
   date_of_birth = models.DateField()
-  # age = models.PositiveIntegerField()
   sex = models.CharField(max_length=10, choices=SEX_CHOICES)
   civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES)
   number_of_children = models.PositiveIntegerField(default=0)

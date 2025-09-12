@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from apps.patient.models import Patient, EmergencyContact
-from apps.patient.serializers import PreScreeningFormSerializer
+from apps.patient.serializers import PreScreeningFormSerializer, CancerDiagnosisSerializer
 
 from apps.patient.models import (
   DiagnosisBasis, PrimarySite, DistantMetastasisSite, TreatmentOption, PreScreeningForm
@@ -15,6 +15,7 @@ class EmergencyContactSerializer(serializers.ModelSerializer):
   
 class PatientSerializer(serializers.ModelSerializer):
   emergency_contacts = EmergencyContactSerializer(many=True)
+  diagnosis = CancerDiagnosisSerializer(many=True, read_only=True) 
 
   # computed fields
   age = serializers.ReadOnlyField()
@@ -26,7 +27,7 @@ class PatientSerializer(serializers.ModelSerializer):
       'patient_id', 'first_name', 'middle_name', 'last_name', 'suffix', 'date_of_birth', 'age', 
       'sex', 'civil_status', 'number_of_children', 'status', 'address', 'city', 'barangay', 'mobile_number', 
       'email', 'source_of_information', 'other_rafi_programs_availed', 'highest_educational_attainment', 'registered_by',
-      'occupation', 'source_of_income', 'monthly_income', 'created_at', 'full_name', 'emergency_contacts', 
+      'occupation', 'source_of_income', 'monthly_income', 'created_at', 'full_name', 'emergency_contacts', 'diagnosis'
     ]
     read_only_fields = ('created_at', 'patient_id',)
 
