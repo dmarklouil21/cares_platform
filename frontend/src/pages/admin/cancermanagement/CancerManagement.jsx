@@ -178,7 +178,7 @@ const AdminCancerManagement = () => {
   // ---------- Handlers ----------
   const handleViewClick = (id) => {
     const selected = tableData.find((item) => item.id === id);
-    navigate(`/Admin/CancerManagement/view/cancermanagementview/${id}`, {
+    navigate(`/admin/cancer-management/view/${id}`, {
       state: { record: selected },
     });
   };

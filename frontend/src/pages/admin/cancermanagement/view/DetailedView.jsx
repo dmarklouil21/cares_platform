@@ -133,7 +133,7 @@ const AdminCancerManagementView = () => {
       {/* Header */}
       <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">Cancer Management</h1>
-        <Link to={"/Admin/CancerManagement"}>
+        <Link to={"/admin/cancer-management"}>
           <img
             src="/images/back.png"
             alt="Back"
