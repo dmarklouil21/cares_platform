@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
 
-import LoadingModal from "src/components/LoadingModal";
+import SystemLoader from "src/components/SystemLoader";
 import NotificationModal from "src/components/NotificationModal";
 
 import api from "src/api/axiosInstance";
@@ -79,7 +79,8 @@ const Login = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      <LoadingModal open={loading} text="Loading..." />
+      {/* <LoadingModal open={loading} text="Loading..." /> */}
+      {loading && <SystemLoader />}
       <div
         id="right-panel"
         className="bg-gray w-[100%]  lg:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10"

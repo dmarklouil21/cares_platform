@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import BeneficiarySidebar from "src/components/navigation/Beneficiary";
+import { Link } from "react-router-dom";
 
 import api from "src/api/axiosInstance";
 
@@ -27,27 +28,27 @@ const CancerScreening = () => {
     },
   ];
 
-  useEffect(() => {
-    const fetchScreeningData = async () => {
-      try {
-        // setLoading(true);
-        const response = await api.get(
-          "/beneficiary/individual-screening/list/"
-        );
-        const screenings = response.data;
-        if (screenings.length > 0) {
-          const latestScreening = screenings[screenings.length - 1];
-          setIsValidated(latestScreening.status === "Approve" ? true : false);
-        }
-      } catch (error) {
-        console.error("Error fetching screening data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchScreeningData = async () => {
+  //     try {
+  //       // setLoading(true);
+  //       const response = await api.get(
+  //         "/beneficiary/individual-screening/list/"
+  //       );
+  //       const screenings = response.data;
+  //       if (screenings.length > 0) {
+  //         const latestScreening = screenings[screenings.length - 1];
+  //         setIsValidated(latestScreening.status === "Approve" ? true : false);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching screening data:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    fetchScreeningData();
-  }, []);
+  //   fetchScreeningData();
+  // }, []);
 
   return (
     <div className="h-full w-full">
@@ -140,12 +141,12 @@ const CancerScreening = () => {
                           Apply
                         </a>
                       )} */}
-                      <a
-                        href="/beneficiary/services/cancer-screening/requirements"
+                      <Link
+                        to="/beneficiary/services/cancer-screening/requirements"
                         className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
                       >
                         Apply
-                      </a>
+                      </Link>
                   </div>
                 ))}
               </div>

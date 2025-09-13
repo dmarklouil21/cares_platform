@@ -4,6 +4,7 @@ import { useAuth } from "src/context/AuthContext";
 
 import NotificationModal from "src/components/NotificationModal";
 import LoadingModal from "src/components/LoadingModal";
+import SystemLoader from "src/components/SystemLoader";
 
 import api from "src/api/axiosInstance";
 
@@ -48,7 +49,8 @@ const Login = () => {
 
   return (
     <>
-      <LoadingModal open={loading} text="Loading..." />
+      {/* <LoadingModal open={loading} text="Loading..." /> */}
+      {loading && <SystemLoader />}
       <div
         id="right-panel"
         className="bg-gray w-full  lg:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10 justify-center"
