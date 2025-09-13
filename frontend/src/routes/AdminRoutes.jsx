@@ -35,7 +35,7 @@ import IndividualScreeningResults from "../pages/admin/CancerScreening/Individua
 // import IndividualScreeningLOAPrintTemplate from "../pages/admin/CancerScreening/IndividualScreening/View/DetailedView";
 
 // Cancer Management 
-// To be updated
+import CancerManagementDetailedView from "../pages/admin/CancerManagement/view/DetailedView";
 
 // User Management Features 
 import ViewUser from "../pages/admin/UserManagement/View/ViewUser";
@@ -99,8 +99,9 @@ const AdminRoutes = () => (
     </Route>
 
     {/* Cancer Management */}
-    <Route path="cancer-management">
+    <Route path="cancer-management"> 
       <Route index element={<CancerManagement />} />
+      <Route path="view/:id" element={<CancerManagementDetailedView />} />
     </Route>
 
     {/* User Management */}

@@ -1,6 +1,8 @@
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 
+import api from "src/api/axiosInstance";
+
 // --- Sample data used if no location.state?.record is passed ---
 const buildSampleRecord = (idFromUrl) => ({
   id: Number(idFromUrl) || 1,
@@ -92,20 +94,33 @@ const AdminCancerManagementView = () => {
   );
 
   // Try to recover from sessionStorage (list page stored cm_sample_data), else use our sample
+  // useEffect(() => {
+  //   if (!record) {
+  //     const raw = sessionStorage.getItem("cm_sample_data");
+  //     if (raw) {
+  //       const list = JSON.parse(raw);
+  //       const found = list.find((x) => String(x.id) === String(id));
+  //       setRecord(found || fallbackSample);
+  //       setStatus((found || fallbackSample).status);
+  //     } else {
+  //       setRecord(fallbackSample);
+  //       setStatus(fallbackSample.status);
+  //     }
+  //   }
+  // }, [id, record, fallbackSample]);
+
   useEffect(() => {
-    if (!record) {
-      const raw = sessionStorage.getItem("cm_sample_data");
-      if (raw) {
-        const list = JSON.parse(raw);
-        const found = list.find((x) => String(x.id) === String(id));
-        setRecord(found || fallbackSample);
-        setStatus((found || fallbackSample).status);
-      } else {
-        setRecord(fallbackSample);
-        setStatus(fallbackSample.status);
+    const fetchData = async () => {
+      try {
+        const { data } = await api.get(`/cancer-management/details/${id}/`);
+        setRecord(data);
+      } catch (error) {
+        console.error("Error fetching screening data:", error);
       }
-    }
-  }, [id, record, fallbackSample]);
+    };
+
+    fetchData();
+  }, [id]);
 
   if (!record) {
     return (

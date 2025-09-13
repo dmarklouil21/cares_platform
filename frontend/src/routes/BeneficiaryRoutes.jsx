@@ -53,6 +53,9 @@ import UploadAttachments from "../pages/beneficiary/Applications/IndividualScree
 
 import PreCancerousView from "../pages/beneficiary/Applications/PreCancerous/View/PreCancerousView"; 
 
+// Success Page
+import SuccessPage from "../pages/beneficiary/SuccessPage"; 
+
 const BeneficiaryRoutes = () => (
   <Route
     path="/beneficiary"
@@ -62,6 +65,8 @@ const BeneficiaryRoutes = () => (
       </ProtectedRoute>
     }
   >
+    {/* Success Page */}
+    <Route path="success-application" element={<SuccessPage />} />
 
     <Route path="pre-enrollment">
       <Route index element={<PreEnrollment />} />
