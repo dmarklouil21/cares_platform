@@ -144,7 +144,7 @@ const DetailedView = () => {
           `/cancer-screening/individual-screening/status-update/${record.id}/`,
           payload
         );
-        navigate("/Admin/cancerscreening/AdminIndividualScreening", { 
+        navigate("/admin/cancer-screening", { 
           state: { 
             type: "success", message: "Updated Successfully." 
           } 
@@ -169,7 +169,7 @@ const DetailedView = () => {
           { screening_date: screeningDate }
         );
 
-        navigate("/Admin/cancerscreening/AdminIndividualScreening", { 
+        navigate("/admin/cancer-screening", { 
           state: { 
             type: "success", message: "Screening date updated Successfully." 
           } 
@@ -202,7 +202,7 @@ const DetailedView = () => {
           { remarks }
         );
 
-        navigate("/Admin/cancerscreening/AdminIndividualScreening", { 
+        navigate("/admin/cancer-screening", { 
           state: { 
             type: "success", message: "Return remarks sent." 
           } 
@@ -227,7 +227,7 @@ const DetailedView = () => {
           `/cancer-screening/individual-screening/status-reject/${record.id}/`,
           { status: modalAction.newStatus, remarks }
         );
-        navigate("/Admin/cancerscreening/AdminIndividualScreening", { 
+        navigate("/admin/cancer-screening", { 
           state: { 
             type: "success", message: "Request Rejected." 
           } 

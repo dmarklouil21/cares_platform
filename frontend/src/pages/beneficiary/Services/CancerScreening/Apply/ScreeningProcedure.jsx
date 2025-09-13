@@ -7,6 +7,8 @@ import api from "src/api/axiosInstance";
 import ConfirmationModal from "src/components/ConfirmationModal";
 import NotificationModal from "src/components/NotificationModal";
 import LoadingModal from "src/components/LoadingModal";
+import SystemLoader from "src/components/SystemLoader";
+import SystemSuccess from "src/components/SystemSuccess";
 
 const IndividualScreening = () => {
   const navigate = useNavigate();
@@ -26,6 +28,7 @@ const IndividualScreening = () => {
   });
   // Loading Modal 
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
@@ -104,11 +107,15 @@ const IndividualScreening = () => {
           },
         });
 
-        navigate("/Beneficiary/individualscreeningstatus", { 
-          state: { 
-            type: "success", message: "Submitted Successfully." 
-          } 
+        navigate("/beneficiary/success-application", {
+          state: { okLink: "beneficiary/applications/individual-screening" }
         });
+        // setSuccess(true);
+        // navigate("/beneficiary/applications/individual-screening", { 
+        //   state: { 
+        //     type: "success", message: "Submitted Successfully." 
+        //   } 
+        // }); beneficiary/services/cancer-screening/procedure
         // setModalInfo({
         //   type: "success",
         //   title: "Success!",
@@ -162,7 +169,9 @@ const IndividualScreening = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      <LoadingModal open={loading} text="Submitting your data..." />
+      {loading && <SystemLoader />}
+      {/* {success && <SystemSuccess message="Transaction Completed!" />} */}
+      {/* <LoadingModal open={loading} text="Submitting your data..." /> */}
       <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
         <div className="bg-white py-4 px-10 flex justify-between items-center">
           <div className="font-bold">Beneficary</div>
@@ -335,7 +344,6 @@ const IndividualScreening = () => {
             </div>
           </form>
         </div>
-
         <div className="h-16 bg-secondary"></div>
       </div>
     </>

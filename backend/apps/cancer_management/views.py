@@ -35,3 +35,22 @@ class CancerManagementListView(generics.ListAPIView):
       qs = qs.filter(patient__patient_id=patient_id)
 
     return qs
+
+class CancerManagementDetailedView(generics.RetrieveAPIView):
+  queryset = CancerTreatment.objects.all()
+  serializer_class = CancerTreatmentSerializer
+  permission_classes = [IsAuthenticated, IsAdminUser]
+  lookup_field = 'id'
+
+  def get_queryset(self):
+    qs = CancerTreatment.objects.all()
+
+    status_filter = self.request.query_params.get('status')
+    if status_filter:
+      qs = qs.filter(status=status_filter)
+
+    patient_id = self.request.query_params.get('patient_id')
+    if patient_id:
+      qs = qs.filter(patient__patient_id=patient_id)
+
+    return qs
