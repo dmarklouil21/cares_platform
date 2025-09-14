@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 
 /* Notification (no close button) */
 function Notification({ message }) {
@@ -21,8 +21,8 @@ function Notification({ message }) {
 const ApplicationAttendance = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
-
   const record = state?.record || state || null;
+
   const initialPatients = useMemo(() => {
     const fallback = [
       { name: "Juan Dela Cruz", result: "" },
@@ -49,6 +49,30 @@ const ApplicationAttendance = () => {
     );
   };
 
+  const removePatient = (idx) => {
+    setPatients((list) => list.filter((_, i) => i !== idx));
+  };
+
+  /* Add new patient */
+  const [newName, setNewName] = useState("");
+  const [newResult, setNewResult] = useState("");
+  const nameInputRef = useRef(null);
+
+  const addPatient = () => {
+    const name = newName.trim();
+    if (!name) return;
+    setPatients((list) => [...list, { name, result: newResult.trim() }]);
+    setNewName("");
+    setNewResult("");
+    setNotif("Patient added.");
+    // focus back to name input for fast entry
+    requestAnimationFrame(() => nameInputRef.current?.focus());
+  };
+
+  const handleAddKey = (e) => {
+    if (e.key === "Enter") addPatient();
+  };
+
   /* Save + confirmation + notification */
   const [showConfirm, setShowConfirm] = useState(false);
   const [notif, setNotif] = useState("");
@@ -61,6 +85,7 @@ const ApplicationAttendance = () => {
   const handleSave = () => setShowConfirm(true);
   const confirmSave = () => {
     setShowConfirm(false);
+    // TODO: replace with API call
     console.log("Attendance saved for", record?.id, patients);
     setNotif("Attendance saved successfully.");
   };
@@ -94,17 +119,67 @@ const ApplicationAttendance = () => {
             <ContextField label="Date" value={record.date} />
           </div>
 
+          {/* Add patient */}
+          <div className="mt-2">
+            <div className="text-gray2 text-sm mb-2">Add Patient</div>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+              <div className="md:col-span-5">
+                <input
+                  ref={nameInputRef}
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={handleAddKey}
+                  placeholder="Full name"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
+                />
+              </div>
+              <div className="md:col-span-5">
+                <input
+                  type="text"
+                  value={newResult}
+                  onChange={(e) => setNewResult(e.target.value)}
+                  onKeyDown={handleAddKey}
+                  placeholder="Initial result (optional)"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <button
+                  type="button"
+                  onClick={addPatient}
+                  disabled={!newName.trim()}
+                  className={`w-full px-4 py-2 rounded-md font-semibold ${
+                    newName.trim()
+                      ? "bg-secondary text-white"
+                      : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  }`}
+                  title="Add patient"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Patient list with result inputs */}
-          <div>
+          <div className="mt-4">
             <div className="text-gray2 text-sm mb-1">Patients</div>
             <div className="border border-gray-200 rounded-md overflow-hidden">
+              {/* Header row */}
+              <div className="hidden md:grid md:grid-cols-12 font-semibold text-sm px-3 py-2 bg-gray-50">
+                <div className="md:col-span-4">Name</div>
+                <div className="md:col-span-7">Result / Notes</div>
+                <div className="md:col-span-1 text-right pr-2">Actions</div>
+              </div>
+
               {patients.map((p, idx) => (
                 <div
                   key={p.name + idx}
                   className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center p-3 border-t first:border-t-0"
                 >
                   <div className="md:col-span-4 font-medium">{p.name}</div>
-                  <div className="md:col-span-8">
+                  <div className="md:col-span-7">
                     <input
                       type="text"
                       value={p.result}
@@ -112,6 +187,16 @@ const ApplicationAttendance = () => {
                       placeholder="Encode result…"
                       className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
                     />
+                  </div>
+                  <div className="md:col-span-1 flex md:justify-end">
+                    <button
+                      type="button"
+                      onClick={() => removePatient(idx)}
+                      className="text-red-600 text-sm hover:underline"
+                      title="Remove"
+                    >
+                      Remove
+                    </button>
                   </div>
                 </div>
               ))}
