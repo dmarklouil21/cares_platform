@@ -38,6 +38,12 @@ const RhuSidebar = () => {
       path: "",
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
+    {
+      name: "Application Status",
+      icon: "/src/assets/images/navigation/admin/cancerscreeningicon.svg",
+      path: "/rhu/application",
+      arrow: "",
+    },
     // {
     //   name: "Rhu",
     //   icon: "/src/assets/images/navigation/rhu/rhu.svg",
@@ -61,7 +67,7 @@ const RhuSidebar = () => {
   const servicesSubNav = [
     {
       name: "Cancer Screening",
-      path: "/rhu/services/cancer-screening",
+      path: "/rhu/services/mass-screening",
     },
   ];
 
@@ -77,6 +83,10 @@ const RhuSidebar = () => {
     {
       name: "Patient List",
       path: "/rhu/patients",
+    },
+    {
+      name: "Mass Screening",
+      path: "/rhu/patients/mass-screening",
     },
   ];
 
@@ -107,7 +117,9 @@ const RhuSidebar = () => {
     }
 
     // rhu active check
-    const activePatient = patientSubNav.find((item) => path.startsWith(item.path));
+    const activePatient = patientSubNav.find((item) =>
+      path.startsWith(item.path)
+    );
     if (activePatient) {
       setActiveNav("Patient");
       setIsPatientOpen(true);

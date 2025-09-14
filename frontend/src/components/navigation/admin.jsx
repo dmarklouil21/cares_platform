@@ -8,7 +8,7 @@ const AdminSidebar = () => {
   const [isPatientOpen, setIsPatientOpen] = useState(false);
   const [isSampleOpen, setIsSampleOpen] = useState(false);
   const [isCancerScreeningOpen, setIsCancerScreeningOpen] = useState(false);
-  const [isTreatmentOpen, setIsTreatmentOpen] = useState(false); 
+  const [isTreatmentOpen, setIsTreatmentOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Dashboard");
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -32,7 +32,7 @@ const AdminSidebar = () => {
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
     {
-      name: "Treatment Assistance", 
+      name: "Treatment Assistance",
       icon: "/src/assets/images/navigation/admin/treatment.svg",
       path: "",
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
@@ -52,9 +52,7 @@ const AdminSidebar = () => {
   ];
 
   const patientSubNav = [
-    { name: "Pre-Enrollment", 
-      path: "/admin/patient/pre-enrollment" 
-    },
+    { name: "Pre-Enrollment", path: "/admin/patient/pre-enrollment" },
     {
       name: "Patient Master List",
       path: "/admin/patient/master-list",
@@ -71,8 +69,14 @@ const AdminSidebar = () => {
   ];
 
   const treatmentSubNav = [
-    { name: "Pre Cancerous", path: "/admin/treatment-assistance/pre-cancerous" },
-    { name: "Post Treatment", path: "/admin/treatment-assistance/post-treatment" },
+    {
+      name: "Pre Cancerous",
+      path: "/admin/treatment-assistance/pre-cancerous",
+    },
+    {
+      name: "Post Treatment",
+      path: "/admin/treatment-assistance/post-treatment",
+    },
   ];
 
   const sampleSubNav = [
@@ -239,7 +243,7 @@ const AdminSidebar = () => {
               item.name === "Patient" ||
               item.name === "Sample" ||
               item.name === "Cancer Screening" ||
-              item.name === "Treatment Assistance"; 
+              item.name === "Treatment Assistance";
 
             const isOpen =
               item.name === "Patient"

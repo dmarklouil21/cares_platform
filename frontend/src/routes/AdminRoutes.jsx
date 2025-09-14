@@ -10,6 +10,7 @@ import IndividualScreening from "../pages/admin/CancerScreening/IndividualScreen
 import Precancerous from "../pages/admin/TreatmentAssistance/PrecancerousMeds/Precancerous";
 import CancerManagement from "../pages/admin/CancerManagement/CancerManagement";
 import UserManagement from "../pages/admin/UserManagement/UserManagement";
+import MassScreening from "../pages/admin/CancerScreening/MassScreening/MassScreening";
 
 // Patient Features
 import PatientView from "../pages/admin/Patient/PatientMasterList/View/PatientView";
@@ -24,20 +25,21 @@ import EditPreScreeningForm from "../pages/admin/Patient/PatientMasterList/Edit/
 import PreEnrollPatientView from "../pages/admin/Patient/PreEnrollment/View/PatientView";
 import PreEnrollPreScreeningForm from "../pages/admin/Patient/PreEnrollment/View/PreScreeningForm";
 
-// Treatment Assistance Features 
+// Treatment Assistance Features
 import PreCancerousDetailedView from "../pages/admin/TreatmentAssistance/PrecancerousMeds/View/DetailedView";
 
-// Cancer Screening Features 
+// Cancer Screening Features
 import IndividualScreeningDetailedView from "../pages/admin/CancerScreening/IndividualScreening/View/DetailedView";
 import IndividualScreeningAttachments from "../pages/admin/CancerScreening/IndividualScreening/View/Attachments";
 import IndividualScreeningPreScreeningForm from "../pages/admin/CancerScreening/IndividualScreening/View/PreScreeningForm";
 import IndividualScreeningResults from "../pages/admin/CancerScreening/IndividualScreening/View/Results";
 // import IndividualScreeningLOAPrintTemplate from "../pages/admin/CancerScreening/IndividualScreening/View/DetailedView";
-
-// Cancer Management 
+import MassScreeningView from "../pages/admin/CancerScreening/MassScreening/view/MassScreeningView";
+import MassAttendanceView from "../pages/admin/CancerScreening/MassScreening/view/MassAttendanceView";
+// Cancer Management
 import CancerManagementDetailedView from "../pages/admin/CancerManagement/view/DetailedView";
 
-// User Management Features 
+// User Management Features
 import ViewUser from "../pages/admin/UserManagement/View/ViewUser";
 import AddUser from "../pages/admin/UserManagement/Add/AddUser";
 import EditUser from "../pages/admin/UserManagement/Edit/EditUser";
@@ -61,16 +63,28 @@ const AdminRoutes = () => (
 
       {/* Views */}
       <Route path="view">
-        <Route path="pre-enrollment/:patient_id" element={<PreEnrollPatientView />} />
-        <Route path="pre-enrollment/cancer-data" element={<PreEnrollPreScreeningForm />} />
+        <Route
+          path="pre-enrollment/:patient_id"
+          element={<PreEnrollPatientView />}
+        />
+        <Route
+          path="pre-enrollment/cancer-data"
+          element={<PreEnrollPreScreeningForm />}
+        />
         <Route path=":patient_id" element={<PatientView />} />
-        <Route path=":patient_id/cancer-data" element={<PatientPreScreeningForm />} />
+        <Route
+          path=":patient_id/cancer-data"
+          element={<PatientPreScreeningForm />}
+        />
       </Route>
 
       {/* Edit */}
       <Route path="edit">
         <Route path=":patient_id" element={<EditPatient />} />
-        <Route path=":patient_id/cancer-data" element={<EditPreScreeningForm />} />
+        <Route
+          path=":patient_id/cancer-data"
+          element={<EditPreScreeningForm />}
+        />
       </Route>
 
       {/* Add */}
@@ -83,10 +97,19 @@ const AdminRoutes = () => (
     {/* Cancer Screening */}
     <Route path="cancer-screening">
       <Route index element={<IndividualScreening />} />
+      <Route path="mass-screening" element={<MassScreening />} />
       <Route path="view">
+        <Route path="mass-view" element={<MassScreeningView />} />
+        <Route path="mass-attendance-view" element={<MassAttendanceView />} />
         <Route path="details" element={<IndividualScreeningDetailedView />} />
-        <Route path="attachments" element={<IndividualScreeningAttachments />} />
-        <Route path="pre-screening-form" element={<IndividualScreeningPreScreeningForm />} />
+        <Route
+          path="attachments"
+          element={<IndividualScreeningAttachments />}
+        />
+        <Route
+          path="pre-screening-form"
+          element={<IndividualScreeningPreScreeningForm />}
+        />
         {/* <Route path="loa-print" element={<IndividualScreeningLOAPrintTemplate />} /> */}
         <Route path="results" element={<IndividualScreeningResults />} />
       </Route>
@@ -99,7 +122,7 @@ const AdminRoutes = () => (
     </Route>
 
     {/* Cancer Management */}
-    <Route path="cancer-management"> 
+    <Route path="cancer-management">
       <Route index element={<CancerManagement />} />
       <Route path="view/:id" element={<CancerManagementDetailedView />} />
     </Route>
@@ -111,7 +134,6 @@ const AdminRoutes = () => (
       <Route path="view" element={<ViewUser />} />
       <Route path="edit" element={<EditUser />} />
     </Route>
-
   </Route>
 );
 
