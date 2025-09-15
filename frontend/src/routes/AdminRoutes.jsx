@@ -35,7 +35,12 @@ import IndividualScreeningResults from "../pages/admin/CancerScreening/Individua
 // import IndividualScreeningLOAPrintTemplate from "../pages/admin/CancerScreening/IndividualScreening/View/DetailedView";
 
 // Cancer Management 
-import CancerManagementDetailedView from "../pages/admin/CancerManagement/view/DetailedView";
+import CancerManagementDetailedView from "../pages/admin/CancerManagement/View/DetailedView/";
+import CancerManagementAttachments from "../pages/admin/CancerManagement/View/Attachments";
+import CancerManagementPreScreeningForm from "../pages/admin/CancerManagement/View/PreScreeningForm";
+import CancerManagementResults from "../pages/admin/CancerManagement/View/Results";
+import CancerManagementWellBeingForm from "../pages/admin/CancerManagement/View/WellBeingTool";
+import CaseSummary from "../pages/admin/CancerManagement/View/CaseSummary";
 
 // User Management Features 
 import ViewUser from "../pages/admin/UserManagement/View/ViewUser";
@@ -101,7 +106,14 @@ const AdminRoutes = () => (
     {/* Cancer Management */}
     <Route path="cancer-management"> 
       <Route index element={<CancerManagement />} />
-      <Route path="view/:id" element={<CancerManagementDetailedView />} />
+      <Route path="view"> 
+        <Route path=":id" element={<CancerManagementDetailedView />} />
+        <Route path=":id/attachments" element={<CancerManagementAttachments />} />
+        <Route path=":id/pre-screening-form" element={<CancerManagementPreScreeningForm />} />
+        <Route path=":id/results" element={<CancerManagementResults />} />
+        <Route path=":id/well-being-form" element={<CancerManagementWellBeingForm />} />
+        <Route path=":id/case-summary" element={<CaseSummary />} />
+      </Route>
     </Route>
 
     {/* User Management */}

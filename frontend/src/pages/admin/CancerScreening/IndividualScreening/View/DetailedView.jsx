@@ -52,7 +52,6 @@ const DetailedView = () => {
       setScreeningDate(record.screening_date || "");
     }
   }, [record]);
-  console.log("Record: ", record);
 
   const handleStatusChange = (e) => {
     const selectedStatus = e.target.value;

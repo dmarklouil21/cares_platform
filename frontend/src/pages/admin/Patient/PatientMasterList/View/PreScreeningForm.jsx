@@ -138,11 +138,9 @@ const PatientPreScreeningForm = () => {
             </Link>
           </div>
         </div>
+        
         <div className="h-full w-full p-5 flex flex-col justify-between">
-          <form 
-            className="border border-black/15 p-3 bg-white rounded-sm"
-            // onSubmit={handleSave}
-          >
+          <form className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
               <h2 className="text-md font-bold tracking-wide uppercase pb-1">
                 Cancer Data
@@ -253,6 +251,7 @@ const PatientPreScreeningForm = () => {
                   </div>
                 </div>
               </div>
+
               <div className="flex flex-col gap-5">
                 <h1 id="details_title" className="text-md font-bold">
                   Diagnosis

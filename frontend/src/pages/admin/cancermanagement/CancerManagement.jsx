@@ -13,104 +13,6 @@ const AdminCancerManagement = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ---------- SAMPLE DATA (statuses normalized) ----------
-  // const sampleData = [
-  //   {
-  //     id: 1,
-  //     patient: {
-  //       patient_id: "PT-0001",
-  //       full_name: "Ana L. Reyes",
-  //       city: "Cebu City",
-  //       email: "ana.reyes@example.com",
-  //     },
-  //     created_at: "2025-08-15",
-  //     status: "Pending",
-  //     has_patient_response: false,
-  //     response_description: "",
-  //     service_type: "Chemotherapy",
-  //     procedure_name: "FEC",
-  //     procedure_details: "Cycle 1 of 6",
-  //     cancer_site: "Breast",
-  //     screening_date: "",
-  //   },
-  //   {
-  //     id: 2,
-  //     patient: {
-  //       patient_id: "PT-0002",
-  //       full_name: "Bea S. Dizon",
-  //       city: "Mandaue City",
-  //       email: "bea.dizon@example.com",
-  //     },
-  //     created_at: "2025-08-18",
-  //     status: "In Progress",
-  //     has_patient_response: true,
-  //     response_description: "Rescheduled due to fever.",
-  //     service_type: "Radiotherapy",
-  //     procedure_name: "IMRT",
-  //     procedure_details: "Planning CT done",
-  //     cancer_site: "Cervical",
-  //     screening_date: "2025-08-25",
-  //   },
-  //   {
-  //     id: 3,
-  //     patient: {
-  //       patient_id: "PT-0003",
-  //       full_name: "Carlo M. Uy",
-  //       city: "Talisay City",
-  //       email: "carlo.uy@example.com",
-  //     },
-  //     created_at: "2025-08-20",
-  //     status: "Complete",
-  //     has_patient_response: false,
-  //     response_description: "",
-  //     service_type: "Surgery",
-  //     procedure_name: "Lumpectomy",
-  //     procedure_details: "Post-op follow-up",
-  //     cancer_site: "Breast",
-  //     screening_date: "2025-08-22",
-  //   },
-  //   {
-  //     id: 4,
-  //     patient: {
-  //       patient_id: "PT-0004",
-  //       full_name: "Dino K. Ong",
-  //       city: "Lapu-Lapu City",
-  //       email: "dino.ong@example.com",
-  //     },
-  //     created_at: "2025-08-28",
-  //     status: "Approved", // was "LOA Generation"
-  //     has_patient_response: false,
-  //     response_description: "",
-  //     service_type: "Chemotherapy",
-  //     procedure_name: "Paclitaxel",
-  //     procedure_details: "Awaiting LOA",
-  //     cancer_site: "Lung",
-  //     screening_date: "",
-  //   },
-  //   {
-  //     id: 5,
-  //     patient: {
-  //       patient_id: "PT-0005",
-  //       full_name: "Ella P. Gomez",
-  //       city: "Minglanilla",
-  //       email: "ella.gomez@example.com",
-  //     },
-  //     created_at: "2025-08-30",
-  //     status: "Rejected", // was "Reject"
-  //     has_patient_response: true,
-  //     response_description: "Incomplete documents.",
-  //     service_type: "Diagnostics",
-  //     procedure_name: "MRI",
-  //     procedure_details: "Chest MRI request",
-  //     cancer_site: "Thoracic",
-  //     screening_date: "",
-  //   },
-  // ];
-
-  // useEffect(() => {
-  //   sessionStorage.setItem("cm_sample_data", JSON.stringify(sampleData));
-  // }, []);
-
   // ---------- State & Notifications ----------
   const [statusFilter, setStatusFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -135,6 +37,7 @@ const AdminCancerManagement = () => {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
+  const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
   useEffect(() => {
@@ -205,6 +108,7 @@ const AdminCancerManagement = () => {
   const handleActionClick = (id, action) => {
     if (action === "delete") {
       setModalText("Confirm delete?");
+      setModalDesc("This record will be deleted permanently.")
       setModalAction({ id, action });
       setModalOpen(true);
     }
@@ -224,7 +128,8 @@ const AdminCancerManagement = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={() => {
           setModalOpen(false);
@@ -283,7 +188,7 @@ const AdminCancerManagement = () => {
                 <option value="Pending">Pending</option>
                 <option value="Approved">Approved</option>
                 <option value="In Progress">In Progress</option>
-                <option value="Complete">Complete</option>
+                <option value="Completed">Completed</option>
                 <option value="Rejected">Rejected</option>
               </select>
 

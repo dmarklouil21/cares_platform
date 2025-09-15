@@ -1,45 +1,35 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
 
 import NotificationModal from "src/components/NotificationModal";
 import LoadingModal from "src/components/LoadingModal";
 import ConfirmationModal from "src/components/ConfirmationModal";
 
-// ---------- Sample fallbacks (no real data) ----------
-const SAMPLE_RECORD = {
-  id: 0,
-  patient: { patient_id: "PT-0000" },
-  screening_attachments: [], // intentionally empty; we'll show sample files below
-};
+import api from "src/api/axiosInstance";
 
-const SAMPLE_FILES = [
-  {
-    id: null,
-    name: "Doctor Referral.pdf",
-    type: "pdf", // triggers your PDF icon
-    url: "/samples/Doctor-Referral.pdf",
-  },
-  {
-    id: null,
-    name: "Valid ID (Front).jpg",
-    type: "image/jpeg", // triggers <img> preview
-    url: "/samples/sample-id-front.jpg",
-  },
-  {
-    id: null,
-    name: "CBC-Result.pdf",
-    type: "pdf",
-    url: "/samples/CBC-Result.pdf",
-  },
+const CheckIcon = ({ active }) => (
+  <img
+    src="/images/check.svg"
+    alt=""
+    className={`h-6 w-6 transition ${active ? "" : "grayscale opacity-50"}`}
+  />
+);
+
+const REQUIRED_DOCS = [
+  { key: "quotation", label: "Quotation" },
+  { key: "letter", label: "Letter of Request" },
+  { key: "abstract", label: "Medical Abstract" },
+  { key: "caseStudy", label: "Case Study Report" },
+  { key: "sketch", label: "Sketch of Address" },
+  { key: "incomeTax", label: "Income Tax Report" },
+  { key: "barangay", label: "Barangay Indigency" },
+  { key: "caseSummary", label: "Signed Case Summary" },
 ];
 
 const ViewAttachments = () => {
   const location = useLocation();
-
-  // Sometimes you pass `state={record}`, sometimes `{ record }`.
-  // Support both, and fall back to SAMPLE_RECORD.
-  const incoming = location.state?.record ?? location.state ?? null;
-  const record = incoming || SAMPLE_RECORD;
+  const record = location.state;
+  const { id } = useParams();
 
   const [files, setFiles] = useState([]);
 
@@ -58,35 +48,40 @@ const ViewAttachments = () => {
   const [modalAction, setModalAction] = useState(null);
 
   useEffect(() => {
-    // Safely read attachments; if none, use SAMPLE_FILES
-    // (Optional chaining avoids crashes when state is missing)
-    const fromServer =
-      record?.screening_attachments?.map((fileObj) => {
-        const fileUrl = fileObj.file || fileObj.url || "";
-        const fileName = (
-          fileObj.name ||
-          fileUrl.split("/").pop() ||
-          "file"
-        ).trim();
-        const ext = (fileName.split(".").pop() || "").toLowerCase();
+    // const fromServer =
+    //   record?.attachments?.map((fileObj) => {
+    //     const fileUrl = fileObj.file || fileObj.url || "";
+    //     const fileName = (
+    //       fileObj.name ||
+    //       fileUrl.split("/").pop() ||
+    //       "file"
+    //     ).trim();
+    //     const ext = (fileName.split(".").pop() || "").toLowerCase();
 
-        const typeGuess =
-          fileObj.type ||
-          (ext === "pdf"
-            ? "pdf"
-            : /jpe?g|png|gif|webp/.test(ext)
-            ? "image/jpeg"
-            : ext || "file");
+    //     const typeGuess =
+    //       fileObj.type ||
+    //       (ext === "pdf"
+    //         ? "pdf"
+    //         : /jpe?g|png|gif|webp/.test(ext)
+    //         ? "image/jpeg"
+    //         : ext || "file");
 
-        return {
-          id: fileObj.id ?? null,
-          name: fileName,
-          type: typeGuess,
-          url: fileUrl || "#",
-        };
-      }) || [];
+    //     return {
+    //       id: fileObj.id ?? null,
+    //       name: fileName,
+    //       type: typeGuess,
+    //       url: fileUrl || "#",
+    //     };
+    //   }) || [];
 
-    setFiles(fromServer.length ? fromServer : SAMPLE_FILES);
+    // setFiles(fromServer.length ? fromServer : SAMPLE_FILES);
+    // setFiles(record.attachments);
+    const mappedFiles = record.attachments.reduce((acc, doc) => {
+      acc[doc.doc_type] = doc;
+      return acc;
+    }, {});
+
+    setFiles(mappedFiles);
   }, [record]);
 
   const handleAddFile = () => {
@@ -172,6 +167,8 @@ const ViewAttachments = () => {
     setModalAction(null);
     setModalText("");
   };
+  // const [patientData, setPatientData] = useState(SAMPLE_RECORD);
+  console.log("Attachments: ", files);
 
   return (
     <>
@@ -196,9 +193,9 @@ const ViewAttachments = () => {
 
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
         <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Individual Screening</h1>
+          <h1 className="text-md font-bold">Cancer Management</h1>
           <div className="p-3">
-            <Link to={"/Admin/CancerManagement"} state={{ record }}>
+            <Link to={`/admin/cancer-management/view/${id}`}>
               <img
                 src="/images/back.png"
                 alt="Back button icon"
@@ -210,95 +207,59 @@ const ViewAttachments = () => {
 
         <div className="h-full w-full p-5 flex flex-col justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
-            {files.length === 0 ? (
-              <div className="flex-1 flex flex-col justify-center items-center bg-white rounded-[4px] py-10 px-8 text-center">
-                <h2 className="text-2xl font-semibold text-gray-600">
-                  No Attachment Files Found
-                </h2>
-                <p className="text-gray-500 mt-2">
-                  This patient doesn't have an attachment submitted yet.
-                </p>
-                <button
-                  onClick={handleAddFile}
-                  className="text-center font-bold bg-primary text-white mt-5 py-2 w-[15%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-                >
-                  Add File
-                </button>
-              </div>
-            ) : (
-              <div className="w-full bg-white rounded-[4px] p-4 ">
-                <h1 id="details_title" className="text-md font-bold mb-3">
-                  Documents Uploaded
-                </h1>
+            <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
+              <h2 className="text-3xl text-yellow font-bold">Submitted Documents</h2>
+              <p className="font-bold italic">
+                Review all uploaded documents before approving or rejecting.
+              </p>
 
-                <div className="bg-gray-100 border border-dashed border-gray-300 rounded-sm p-6 flex flex-row gap-4 flex-wrap items-center justify-start min-h-[120px]">
-                  {files.map((file, idx) => (
+              {/* Document List */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-6">
+                {REQUIRED_DOCS.map((d) => {
+                  const uploaded = files[d.key];
+                  // const fileName = uploaded
+                  //   ? decodeURIComponent(uploaded.file.split("/").pop()) // extract last part of URL
+                  //   : null;
+                  
+                  return (
                     <div
-                      key={`${file.name}-${idx}`}
-                      className="relative group"
-                      onClick={(e) => handleViewFile(file, e)}
+                      key={d.key}
+                      className="flex items-center gap-3 justify-between bg-gray-50 px-4 py-3 rounded-lg shadow-sm"
                     >
-                      <div className="w-32 h-32 bg-white rounded-sm shadow flex flex-col items-center justify-center cursor-pointer border border-gray-200 hover:shadow-lg transition">
-                        {file?.type?.match(/image/) ? (
-                          <img
-                            src={file.url}
-                            alt={file.name}
-                            className="w-16 h-16 object-contain mb-2"
-                          />
-                        ) : String(file.type).toLowerCase().includes("pdf") ? (
-                          <img
-                            src="/src/assets/images/admin/cancerscreening/individualscreening/pdf.svg"
-                            alt="PDF"
-                            className="w-12 h-12 mb-2"
-                          />
-                        ) : /docx?/.test(String(file.type)) ? (
-                          <img
-                            src="/src/assets/images/admin/cancerscreening/individualscreening/docs.svg"
-                            alt="DOC"
-                            className="w-12 h-12 mb-2"
-                          />
-                        ) : (
-                          <span className="w-12 h-12 mb-2 bg-gray-300 rounded" />
-                        )}
-                        <span className="text-xs text-center break-all px-1">
-                          {file.name}
-                        </span>
+                      <div className="flex items-center gap-3">
+                        <CheckIcon active={!!uploaded} />
+                        <span className="text-gray-900 font-medium">{d.label}</span>
                       </div>
-
-                      <button
-                        onClick={(e) => handleDelete(idx, e)}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
-                        title="Delete"
-                      >
-                        ×
-                      </button>
+                      {uploaded ? (
+                        <a
+                          href={uploaded.file}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 text-sm hover:text-blue-800"
+                        >
+                          View
+                        </a>
+                      ) : (
+                        <span className="text-red-500 text-sm">Missing</span>
+                      )}
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            )}
-          </div>
-
-          {files.length !== 0 && (
-            <div className="w-full flex justify-around">
-              <button
-                onClick={handleAddFile}
-                className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
-              >
-                Add File
-              </button>
-              <button
-                onClick={handleSave}
-                className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-              >
-                Save
-              </button>
             </div>
-          )}
+          </div>
+          <div className="w-full flex justify-end">
+            <Link 
+              to={`/admin/cancer-management/view/${id}`}
+              className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+            >
+              Back
+            </Link>
+          </div>
         </div>
       </div>
     </>
-  );
+  ); 
 };
 
 export default ViewAttachments;
