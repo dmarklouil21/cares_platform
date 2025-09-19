@@ -2,13 +2,17 @@ import { Route } from "react-router-dom";
 import RhuLayout from "../layouts/Rhu";
 import ProtectedRHURoute from "../components/RoleGuard/ProtectedRHURoute";
 
-// Main Modules 
+// Main Modules
 import Dashboard from "../pages/rhu/Dashboard/Dashboard";
 import CancerAwareness from "../pages/rhu/CancerAwareness/CancerAwareness";
 import PatientList from "../pages/rhu/Patient/PatientList";
 import CancerScreening from "../pages/rhu/Services/CancerScreening/CancerScreening";
+import ApplicationStatus from "../pages/rhu/applicationStatus/applicationStatus";
 
-// Patient Features 
+// sub list
+import MassScreening from "../pages/rhu/Patient/MassScreening";
+
+// Patient Features
 import PatientView from "../pages/rhu/Patient/View/PatientView";
 import PreScreeningFormView from "../pages/rhu/Patient/View/PreScreeningForm";
 
@@ -17,6 +21,10 @@ import PreScreeningForm from "../pages/rhu/Patient/Add/PreScreeningForm";
 
 import PatientEdit from "../pages/rhu/Patient/Edit/PatientEdit";
 import EditPreScreeningForm from "../pages/rhu/Patient/Edit/EditPreScreeningForm";
+
+// application actions
+import ApplicationStatusView from "../pages/rhu/applicationStatus/view/applicationView";
+import ApplicationAttendanceView from "../pages/rhu/applicationStatus/view/applicationAttendance";
 
 const RhuRoutes = () => (
   <Route
@@ -43,6 +51,7 @@ const RhuRoutes = () => (
     {/* Patient Management */}
     <Route path="patients">
       <Route index element={<PatientList />} />
+      <Route path="mass-screening" element={<MassScreening />} />
       <Route path="view">
         <Route path=":patient_id" element={<PatientView />}></Route>
         <Route path="cancer-data" element={<PreScreeningFormView />}></Route>
@@ -53,9 +62,22 @@ const RhuRoutes = () => (
         <Route path="cancer-data-form" element={<PreScreeningForm />} />
       </Route>
 
-      <Route path="edit" >
+      <Route path="edit">
         <Route path=":patient_id" element={<PatientEdit />} />
-        <Route path=":patient_id/cancer-data" element={<EditPreScreeningForm />} />
+        <Route
+          path=":patient_id/cancer-data"
+          element={<EditPreScreeningForm />}
+        />
+      </Route>
+    </Route>
+    <Route path="application">
+      <Route index element={<ApplicationStatus />} />
+      <Route path="view">
+        <Route path="applicationview" element={<ApplicationStatusView />} />
+        <Route
+          path="applicationAttendance"
+          element={<ApplicationAttendanceView />}
+        />
       </Route>
     </Route>
   </Route>
