@@ -1,6 +1,6 @@
 import { Route } from "react-router-dom";
 import AdminLayout from "../layouts/Admin";
-import ProtectedAdminRoute from "../components/ProtectedAdminRoute";
+import ProtectedAdminRoute from "../components/RoleGuard/ProtectedAdminRoute";
 
 // Main Modules
 import Dashboard from "../pages/admin/Dashboard/Dashboard/";
@@ -34,10 +34,17 @@ import IndividualScreeningAttachments from "../pages/admin/CancerScreening/Indiv
 import IndividualScreeningPreScreeningForm from "../pages/admin/CancerScreening/IndividualScreening/View/PreScreeningForm";
 import IndividualScreeningResults from "../pages/admin/CancerScreening/IndividualScreening/View/Results";
 // import IndividualScreeningLOAPrintTemplate from "../pages/admin/CancerScreening/IndividualScreening/View/DetailedView";
+
 import MassScreeningView from "../pages/admin/CancerScreening/MassScreening/view/MassScreeningView";
 import MassAttendanceView from "../pages/admin/CancerScreening/MassScreening/view/MassAttendanceView";
+
 // Cancer Management
 import CancerManagementDetailedView from "../pages/admin/CancerManagement/view/DetailedView";
+import CancerManagementAttachments from "../pages/admin/CancerManagement/View/Attachments";
+import CancerManagementPreScreeningForm from "../pages/admin/CancerManagement/View/PreScreeningForm";
+import CancerManagementResults from "../pages/admin/CancerManagement/View/Results";
+import CancerManagementWellBeingForm from "../pages/admin/CancerManagement/View/WellBeingTool";
+import CaseSummary from "../pages/admin/CancerManagement/View/CaseSummary";
 
 // User Management Features
 import ViewUser from "../pages/admin/UserManagement/View/ViewUser";
@@ -124,7 +131,14 @@ const AdminRoutes = () => (
     {/* Cancer Management */}
     <Route path="cancer-management">
       <Route index element={<CancerManagement />} />
-      <Route path="view/:id" element={<CancerManagementDetailedView />} />
+      <Route path="view"> 
+        <Route path=":id" element={<CancerManagementDetailedView />} />
+        <Route path=":id/attachments" element={<CancerManagementAttachments />} />
+        <Route path=":id/pre-screening-form" element={<CancerManagementPreScreeningForm />} />
+        <Route path=":id/results" element={<CancerManagementResults />} />
+        <Route path=":id/well-being-form" element={<CancerManagementWellBeingForm />} />
+        <Route path=":id/case-summary" element={<CaseSummary />} />
+      </Route>
     </Route>
 
     {/* User Management */}

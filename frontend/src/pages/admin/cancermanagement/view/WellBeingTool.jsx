@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
 
 import api from "src/api/axiosInstance";
@@ -7,7 +7,9 @@ import api from "src/api/axiosInstance";
 const RadioTherapyWellBeingTool = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const serviceType = location.state;
+  const record = location.state;
+  const { id } = useParams();
+  const [ wellBeingAssessment, setWellBeingAssessment ] = useState();
   const { user } = useAuth();
   const [ patient, setPatient ] = useState(null);
   const [ questions, setQuestions ] = useState([]);
@@ -16,13 +18,7 @@ const RadioTherapyWellBeingTool = () => {
   const [improve, setImprove] = useState("");
 
   // simple form state for the header fields
-  const [form, setForm] = useState({
-    name: "",
-    address: "",
-    diagnosis: "",
-    serviceType: serviceType,
-    generalStatus: "",
-  });
+  const [form, setForm] = useState(null);
 
   const updateForm = (key) => (e) =>
     setForm((p) => ({ ...p, [key]: e.target.value }));
@@ -34,78 +30,14 @@ const RadioTherapyWellBeingTool = () => {
     { value: 4, en: "Strongly Agree", ceb: "Uyon Kaayo" },
   ];
 
-  // const questions = [
-  //   {
-  //     id: 1,
-  //     en: "I feel my body is doing well",
-  //     ceb: "Pamati nako lagsik akong lawas",
-  //   },
-  //   {
-  //     id: 2,
-  //     en: "There are times that I suddenly feel dizzy",
-  //     ceb: "Naay mga panahon nga kalit ko malipong",
-  //   },
-  //   {
-  //     id: 3,
-  //     en: "I can still help my family",
-  //     ceb: "Makatabang gihapon ko sa akong pamilya",
-  //   },
-  //   {
-  //     id: 4,
-  //     en: "The side effects of the medicine are a hassle",
-  //     ceb: "Nahasolan ko sa side effects sa tambal",
-  //   },
-  //   {
-  //     id: 5,
-  //     en: "I am still able to do my daily activities",
-  //     ceb: "Kaya nako maglihok-lihok taga adlaw",
-  //   },
-  //   {
-  //     id: 6,
-  //     en: "The things and activities that I do are meaningful",
-  //     ceb: "Akong mga buhat ug lihok kay naay hinungdan",
-  //   },
-  //   {
-  //     id: 7,
-  //     en: "I have lost weight even without dieting",
-  //     ceb: "Nawad-an kog timbang bisan walay diyeta",
-  //   },
-  //   { id: 8, en: "I have gained weight", ceb: "Nisaka akong timbang" },
-  //   {
-  //     id: 9,
-  //     en: "I have lost appetite in eating",
-  //     ceb: "Nawad-an kog gana sa pagkaon",
-  //   },
-  //   {
-  //     id: 10,
-  //     en: "I feel tired most of the time nearly every day",
-  //     ceb: "Bati-on ko ug kapoy kanunay halos kada adlaw",
-  //   },
-  // ];
-
-  // { [questionId]: 1|2|3|4 }
   const [answers, setAnswers] = useState({});
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data } = await api.get(`/beneficiary/patient/details/`);
-        // setPatient(data);
-        setForm((prev) => {
-          return {
-            ...prev,
-            name: data.full_name,
-            address: data.address,
-            diagnosis: data.diagnosis[0]?.diagnosis,
-          }
-        })
-      } catch (error) {
-        console.error("Error fetching patient data:", error);
-      }
-    };
+    setPatient(record.patient);
+    setWellBeingAssessment(record.wellbeing_assessment);
+  }, []);
 
-    fetchData();
-  }, [user]);
+  console.log("Wellbeing Assesment: ", wellBeingAssessment);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -121,6 +53,22 @@ const RadioTherapyWellBeingTool = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (wellBeingAssessment?.answers) {
+      const mapped = {};
+      wellBeingAssessment.answers.forEach((a) => {
+        mapped[a.question.id] = a.value; // or use a.question.id if needed
+      });
+      setAnswers(mapped);
+    }
+  }, [wellBeingAssessment]);
+
+  useEffect(() => {
+    if (wellBeingAssessment?.improve) {
+      setImprove(wellBeingAssessment.improve);
+    }
+  }, [wellBeingAssessment]);
 
   const formatDate = (date) =>
     date.toLocaleDateString("en-US", {
@@ -143,22 +91,24 @@ const RadioTherapyWellBeingTool = () => {
   };
 
   return (
-    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-      <div className="bg-white py-4 px-10 flex justify-between items-center">
-        <div className="font-bold">Beneficiary</div>
-        <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-          <img
-            src="/images/Avatar.png"
-            alt="User Profile"
-            className="rounded-full"
-          />
+    <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
+      <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+        <h1 className="text-md font-bold">Cancer Management</h1>
+        <div className="p-3">
+          <Link to={`/admin/cancer-management/view/${id}`}>
+            <img
+              src="/images/back.png"
+              alt="Back button icon"
+              className="h-6"
+            />
+          </Link>
         </div>
       </div>
 
-      <div className="py-6 px-10 flex flex-col flex-1 overflow-auto">
-        <div className="bg-white rounded-2xl flex p-7 flex-col gap-7">
+      <div className="h-full w-full p-5 flex flex-col justify-between">
+        <div className="border border-black/15 p-3 bg-white rounded-sm">
           {/* Header */}
-          <div className="flex w-full justify-between gap-6 p-4  rounded-xl shadow-sm bg-gray-50">
+          <div className="flex w-full justify-between gap-6 p-4">
             <div className="flex flex-col w-[85%] gap-3">
               <div className="flex w-full items-center gap-2">
                 <label className="font-medium text-gray-700 whitespace-nowrap">
@@ -166,7 +116,7 @@ const RadioTherapyWellBeingTool = () => {
                 </label>
                 <input
                   type="text"
-                  value={form.name}
+                  value={patient?.full_name}
                   className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
@@ -175,7 +125,7 @@ const RadioTherapyWellBeingTool = () => {
                 </label>
                 <input
                   type="text"
-                  value={formatDate(new Date())}
+                  value={formatDate(new Date(wellBeingAssessment?.created_at))}
                   className="outline-none w-40 border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
@@ -187,7 +137,7 @@ const RadioTherapyWellBeingTool = () => {
                 </label>
                 <input
                   type="text"
-                  value={form.address}
+                  value={patient?.address}
                   className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
@@ -199,7 +149,7 @@ const RadioTherapyWellBeingTool = () => {
                 </label>
                 <input
                   type="text"
-                  value={form.diagnosis}
+                  value={patient?.diagnosis[0]?.diagnosis}
                   className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
@@ -211,7 +161,7 @@ const RadioTherapyWellBeingTool = () => {
                 </label>
                 <input
                   type="text"
-                  value={form.generalStatus}
+                  value={wellBeingAssessment?.general_status}
                   onChange={updateForm("generalStatus")}
                   className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                 />
@@ -228,7 +178,7 @@ const RadioTherapyWellBeingTool = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 p-4">
             <h1 className="font-semibold text-lg">
               THE CURRENT WELL-BEING OF THE CANCER PATIENT
             </h1>
@@ -292,12 +242,12 @@ const RadioTherapyWellBeingTool = () => {
                               name={`q${q.id}`}
                               value={s.value}
                               checked={answers[q.id] === s.value}
-                              onChange={() =>
-                                setAnswers((prev) => ({
-                                  ...prev,
-                                  [q.id]: s.value,
-                                }))
-                              }
+                              // onChange={() =>
+                              //   setAnswers((prev) => ({
+                              //     ...prev,
+                              //     [q.id]: s.value,
+                              //   }))
+                              // }
                             />
                           </div>
                         </td>
@@ -326,38 +276,28 @@ const RadioTherapyWellBeingTool = () => {
                     <div className="h-10 border-b border-dashed border-gray-400"></div>
                     <div className="h-10 border-b border-dashed border-gray-400"></div>
                     <div className="h-10 border-b border-dashed border-gray-400"></div>
-                    {/* <div className="h-10 border-b-2 border-black"></div>
-                    <div className="h-10 border-b-2 border-black"></div>
-                    <div className="h-10 border-b-2 border-black"></div> */}
                   </div>
                   <textarea
                     id="improve"
                     rows={3}
                     value={improve}
-                    onChange={(e) => setImprove(e.target.value)}
+                    // onChange={(e) => setImprove(e.target.value)}
                     className="relative w-full bg-transparent outline-none resize-none leading-[40px] pl-1 pr-1"
                   />
                 </div>
               </div>
             </div>
           </div>
-
-          <div className="flex w-full justify-between gap-8">
-            <Link
-              to="/beneficiary/services/cancer-management-options/radiotherapy/form-note"
-              className="border py-3 rounded-md text-center w-full hover:bg-black/10 hover:border-white"
-            >
-              Back
-            </Link>
-            <button
-              type="button"
-              onClick={handleNext}
-              className="bg-[#749AB6] text-center font-bold text-white py-2 w-full border-[1px] border-[#749AB6] hover:border-[#C5D7E5] hover:bg-[#C5D7E5] rounded-md cursor-pointer"
-            >
-              Next
-            </button>
-          </div>
         </div>
+        <div className="w-full flex justify-end mt-5">
+          <Link
+            to={`/admin/cancer-management/view/${id}`}
+            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+          >
+            Back
+          </Link>
+        </div>
+        <br />
       </div>
     </div>
   );

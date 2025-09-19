@@ -1,8 +1,16 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "src/context/AuthContext";
 
-const chemotherapyWellBeingTool = () => {
+import api from "src/api/axiosInstance";
+
+const RadioTherapyWellBeingTool = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const serviceType = location.state;
+  const { user } = useAuth();
+  // const [ patient, setPatient ] = useState(null);
+  const [ questions, setQuestions ] = useState([]);
 
   // paragraph answer
   const [improve, setImprove] = useState("");
@@ -10,9 +18,9 @@ const chemotherapyWellBeingTool = () => {
   // simple form state for the header fields
   const [form, setForm] = useState({
     name: "",
-    date: "",
     address: "",
     diagnosis: "",
+    serviceType: serviceType,
     generalStatus: "",
   });
 
@@ -26,70 +34,65 @@ const chemotherapyWellBeingTool = () => {
     { value: 4, en: "Strongly Agree", ceb: "Uyon Kaayo" },
   ];
 
-  const questions = [
-    {
-      id: 1,
-      en: "I feel my body is doing well",
-      ceb: "Pamati nako lagsik akong lawas",
-    },
-    {
-      id: 2,
-      en: "There are times that I suddenly feel dizzy",
-      ceb: "Naay mga panahon nga kalit ko malipong",
-    },
-    {
-      id: 3,
-      en: "I can still help my family",
-      ceb: "Makatabang gihapon ko sa akong pamilya",
-    },
-    {
-      id: 4,
-      en: "The side effects of the medicine are a hassle",
-      ceb: "Nahasolan ko sa side effects sa tambal",
-    },
-    {
-      id: 5,
-      en: "I am still able to do my daily activities",
-      ceb: "Kaya nako maglihok-lihok taga adlaw",
-    },
-    {
-      id: 6,
-      en: "The things and activities that I do are meaningful",
-      ceb: "Akong mga buhat ug lihok kay naay hinungdan",
-    },
-    {
-      id: 7,
-      en: "I have lost weight even without dieting",
-      ceb: "Nawad-an kog timbang bisan walay diyeta",
-    },
-    { id: 8, en: "I have gained weight", ceb: "Nisaka akong timbang" },
-    {
-      id: 9,
-      en: "I have lost appetite in eating",
-      ceb: "Nawad-an kog gana sa pagkaon",
-    },
-    {
-      id: 10,
-      en: "I feel tired most of the time nearly every day",
-      ceb: "Bati-on ko ug kapoy kanunay halos kada adlaw",
-    },
-  ];
-
-  // { [questionId]: 1|2|3|4 }
   const [answers, setAnswers] = useState({});
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data } = await api.get(`/beneficiary/patient/details/`);
+        // setPatient(data);
+        setForm((prev) => {
+          return {
+            ...prev,
+            name: data.full_name,
+            address: data.address,
+            diagnosis: data.diagnosis[0]?.diagnosis,
+          }
+        })
+      } catch (error) {
+        console.error("Error fetching patient data:", error);
+      }
+    };
+
+    fetchData();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data } = await api.get(`/cancer-management/well-being-questions/`);
+        // setPatient(data);
+        console.log("Questions: ", data);
+        setQuestions(data);
+      } catch (error) {
+        console.error("Error fetching patient data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const formatDate = (date) =>
+    date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
   const handleNext = () => {
-    const payload = {
+    const wellBeningData = {
       ...form,
       improve: improve.trim(),
-      answers, // e.g., {1:3, 2:2, ...}
+      answers, 
     };
-    console.log("[WellBeingTool] Submission:", payload);
 
     navigate(
-      "/Beneficiary/services/cancer-management-options/chemotherapy/chemotherapy-documents"
+      "/beneficiary/services/cancer-management/apply/upload-documents", 
+      { state: { wellBeningData } }
     );
   };
+  console.log("Service Type: ", serviceType);
+  // console.log("Next Link: ", nextLink);
 
   return (
     <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
@@ -106,59 +109,73 @@ const chemotherapyWellBeingTool = () => {
 
       <div className="py-6 px-10 flex flex-col flex-1 overflow-auto">
         <div className="bg-white rounded-2xl flex p-7 flex-col gap-7">
-          <div className="flex w-full justify-between gap-4">
-            <div className="flex flex-col w-[85%] gap-2">
-              <div className="flex w-full items-end gap-2">
-                <label className="whitespace-nowrap">Name:</label>
+          {/* Header */}
+          <div className="flex w-full justify-between gap-6 p-4  rounded-xl shadow-sm bg-gray-50">
+            <div className="flex flex-col w-[85%] gap-3">
+              <div className="flex w-full items-center gap-2">
+                <label className="font-medium text-gray-700 whitespace-nowrap">
+                  Name:
+                </label>
                 <input
                   type="text"
                   value={form.name}
-                  onChange={updateForm("name")}
-                  className="border-b-2 outline-0 w-full"
+                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                  readOnly
                 />
-                <label className="whitespace-nowrap">Date:</label>
+                <label className="font-medium text-gray-700 whitespace-nowrap">
+                  Date:
+                </label>
                 <input
                   type="text"
-                  value={form.date}
-                  onChange={updateForm("date")}
-                  className="border-b-2 outline-0 w-40"
+                  value={formatDate(new Date())}
+                  className="outline-none w-40 border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                  readOnly
                 />
               </div>
-              <div className="flex w-full items-end gap-2">
-                <label className="whitespace-nowrap">Address:</label>
+
+              <div className="flex w-full items-center gap-2">
+                <label className="font-medium text-gray-700 whitespace-nowrap">
+                  Address:
+                </label>
                 <input
                   type="text"
                   value={form.address}
-                  onChange={updateForm("address")}
-                  className="border-b-2 outline-0 w-full"
+                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                  readOnly
                 />
               </div>
-              <div className="flex w-full items-end gap-2">
-                <label className="whitespace-nowrap">Diagnosis:</label>
+
+              <div className="flex w-full items-center gap-2">
+                <label className="font-medium text-gray-700 whitespace-nowrap">
+                  Diagnosis:
+                </label>
                 <input
                   type="text"
                   value={form.diagnosis}
-                  onChange={updateForm("diagnosis")}
-                  className="border-b-2 outline-0 w-full"
+                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                  readOnly
                 />
               </div>
-              <div className="flex w-full items-end gap-2">
-                <label className="whitespace-nowrap">
+
+              <div className="flex w-full items-center gap-2">
+                <label className="font-medium text-gray-700 whitespace-nowrap">
                   General Status/Name:
                 </label>
                 <input
                   type="text"
                   value={form.generalStatus}
                   onChange={updateForm("generalStatus")}
-                  className="border-b-2 outline-0 w-full"
+                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                 />
               </div>
             </div>
-            <div className="rounded-lg p-2 shrink-0">
+
+            {/* Logo */}
+            <div className="rounded-lg p-3 bg-white shrink-0 flex items-center justify-center">
               <img
                 src="/images/logo_black_text.png"
                 alt="Rafi icon"
-                className="h-32 w-auto"
+                className="h-30 md:h-30 object-contain"
               />
             </div>
           </div>
@@ -210,9 +227,9 @@ const chemotherapyWellBeingTool = () => {
                         {idx + 1}.
                       </td>
                       <td className="border border-gray-300 p-2 align-top">
-                        <div className="font-medium leading-tight">{q.en}</div>
+                        <div className="font-medium leading-tight">{q.text_en}</div>
                         <div className="text-primary text-xs leading-tight">
-                          {q.ceb}
+                          {q.text_ceb}
                         </div>
                       </td>
                       {scale.map((s) => (
@@ -243,7 +260,7 @@ const chemotherapyWellBeingTool = () => {
               </table>
             </div>
 
-            <div className="p-6">
+            <div className="py-6">
               <p>
                 1. How do you think you can further improve your physical health
                 and well being? Give specific activities/Scenarios.
@@ -258,16 +275,19 @@ const chemotherapyWellBeingTool = () => {
               <div className="mt-3">
                 <div className="relative">
                   <div className="absolute inset-0 pointer-events-none">
+                    <div className="h-10 border-b border-dashed border-gray-400"></div>
+                    <div className="h-10 border-b border-dashed border-gray-400"></div>
+                    <div className="h-10 border-b border-dashed border-gray-400"></div>
+                    {/* <div className="h-10 border-b-2 border-black"></div>
                     <div className="h-10 border-b-2 border-black"></div>
-                    <div className="h-10 border-b-2 border-black"></div>
-                    <div className="h-10 border-b-2 border-black"></div>
+                    <div className="h-10 border-b-2 border-black"></div> */}
                   </div>
                   <textarea
                     id="improve"
                     rows={3}
                     value={improve}
                     onChange={(e) => setImprove(e.target.value)}
-                    className="relative w-full bg-transparent outline-none resize-none leading-[40px] pl-4 pr-2"
+                    className="relative w-full bg-transparent outline-none resize-none leading-[40px] pl-1 pr-1"
                   />
                 </div>
               </div>
@@ -276,7 +296,7 @@ const chemotherapyWellBeingTool = () => {
 
           <div className="flex w-full justify-between gap-8">
             <Link
-              to="/Beneficiary/services/cancer-management-options/chemotherapy"
+              to="/beneficiary/services/cancer-management"
               className="border py-3 rounded-md text-center w-full hover:bg-black/10 hover:border-white"
             >
               Back
@@ -295,4 +315,4 @@ const chemotherapyWellBeingTool = () => {
   );
 };
 
-export default chemotherapyWellBeingTool;
+export default RadioTherapyWellBeingTool;

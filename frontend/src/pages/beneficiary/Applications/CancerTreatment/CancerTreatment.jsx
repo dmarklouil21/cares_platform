@@ -5,9 +5,9 @@ import api from "src/api/axiosInstance";
 
 import Notification from "src/components/Notification";
 
-import NotificationModal from "src/components/NotificationModal";
-import LoadingModal from "src/components/LoadingModal";
-import ConfirmationModal from "src/components/ConfirmationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
+import LoadingModal from "src/components/Modal/LoadingModal";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import BeneficiarySidebar from "src/components/navigation/Beneficiary";
 
 const CancerTreatmentApplication = () => {
@@ -132,9 +132,7 @@ const CancerTreatmentApplication = () => {
 
   const handleView = (id) => {
     // console.log("Value Passed: ", app);
-    navigate("/Beneficiary/individualscreeningstatus/individualstatus-view", {
-      state: { id: id },
-    });
+    navigate(`/beneficiary/applications/cancer-treatment/view/${id}`);
   };
 
   const filteredData = tableData.filter((record) => {

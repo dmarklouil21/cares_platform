@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { resetPasswordAPI } from "src/services/authService";
 
-import LoadingModal from "src/components/LoadingModal";
+import LoadingModal from "src/components/Modal/LoadingModal";
 
 const ResetPasswordPanel = () => {
   const navigate = useNavigate();

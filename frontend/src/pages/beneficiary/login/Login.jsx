@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
 
 import SystemLoader from "src/components/SystemLoader";
-import NotificationModal from "src/components/NotificationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
 
 import api from "src/api/axiosInstance";
 

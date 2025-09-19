@@ -1,15 +1,28 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import api from "src/api/axiosInstance";
 
-import NotificationModal from "src/components/NotificationModal";
-import LoadingModal from "src/components/LoadingModal";
-import ConfirmationModal from "src/components/ConfirmationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
+import LoadingModal from "src/components/Modal/LoadingModal";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+
+const CheckIcon = ({ active }) => (
+  <img
+    src="/images/check.svg"
+    alt=""
+    className={`h-6 w-6 transition ${active ? "" : "grayscale opacity-50"}`}
+  />
+);
 
 const ViewResults = () => {
   const location = useLocation();
   const record = location.state;
-  const [files, setFiles] = useState([]);
+  const { id } = useParams();
+  const [files, setFiles] = useState(null);
+  const [description, setDescription] = useState(record?.result_description || "");
+  const [showDescriptionField, setShowDescriptionField] = useState(
+    !!record?.result_description // show by default if description already exists
+  );
 
   // Notification Modal
   const [showModal, setShowModal] = useState(false);
@@ -43,6 +56,8 @@ const ViewResults = () => {
       }
     }
   }, [record]);
+
+  console.log("Files: ", files);
 
   const handleAddFile = () => {
     const input = document.createElement("input");
@@ -131,6 +146,8 @@ const ViewResults = () => {
           formData.append("attachments", item.fileObject);
         }
       });
+
+      formData.append("description", description);
 
       if (formData.has("attachments")) {
         try {
@@ -223,9 +240,9 @@ const ViewResults = () => {
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
         <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Individual Screening</h1>
+          <h1 className="text-md font-bold">Cancer Management</h1>
           <div className="p-3">
-            <Link to={"/Admin/CancerManagement"} state={{ record: record }}>
+            <Link to={`/admin/cancer-management/view/${id}`}>
               <img
                 src="/images/back.png"
                 alt="Back button icon"
@@ -234,94 +251,80 @@ const ViewResults = () => {
             </Link>
           </div>
         </div>
+
         <div className="h-full w-full p-5 flex flex-col justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
-            {/* <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
-              <h1 className="text-md font-bold">Patient ID - {record?.patient.patient_id}</h1>
-            </div> */}
-            {files.length === 0 ? (
-              <div className="flex-1 flex flex-col justify-center items-center bg-white rounded-[4px] py-10 px-8 text-center">
-                <h2 className="text-2xl font-semibold text-gray-600">
-                  No Attachment Files Found
-                </h2>
-                <p className="text-gray-500 mt-2">
-                  This patient doesn't have a result submitted yet.
-                </p>
-                <button
-                  // to="/Admin/cancerscreening/view/AdminIndividualScreeningView"
-                  // state={{ record }}
-                  onClick={handleAddFile}
-                  className="text-center font-bold bg-primary text-white mt-5 py-2 w-[15%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+            <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
+              <h2 className="text-3xl text-yellow font-bold">Treatment Result</h2>
+              <p className="font-bold italic">
+                View the uploaded result of the patient.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-6">
+                <div
+                  className="flex items-center gap-3 justify-between bg-gray-50 px-4 py-3 rounded-lg shadow-sm"
                 >
-                  Add File
-                </button>
-              </div>
-            ) : (
-              <div className="w-full bg-white rounded-[4px] p-4">
-                <h1 id="details_title" className="text-md font-bold mb-3">
-                  Results Uploaded
-                </h1>
-                <div className="bg-gray-100 border border-dashed border-gray-300 rounded-sm p-6 flex flex-row gap-4 flex-wrap items-center justify-start min-h-[120px]">
-                  {files.map((file, idx) => (
-                    <div
-                      key={idx}
-                      className="relative group"
-                      onClick={(e) => handleViewFile(file, e)}
+                  <div className="flex items-center gap-3">
+                    <CheckIcon active={files} />
+                    <span className="text-gray-900 font-medium">Patient Result</span>
+                  </div>
+                  {files ? (
+                    <a
+                      href={files[0].url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 text-sm hover:text-blue-800 cursor-pointer"
                     >
-                      <div className="w-32 h-32 bg-white rounded-lg shadow flex flex-col items-center justify-center cursor-pointer border border-gray-200 hover:shadow-lg transition">
-                        {file?.type?.match(/image/) ? (
-                          <img
-                            src={file.url}
-                            alt={file.name}
-                            className="w-16 h-16 object-contain mb-2"
-                          />
-                        ) : file.type.includes("pdf") ? (
-                          <img
-                            src="/src/assets/images/admin/cancerscreening/individualscreening/pdf.svg"
-                            alt="PDF"
-                            className="w-12 h-12 mb-2"
-                          />
-                        ) : file.type.match(/docx?/) ? (
-                          <img
-                            src="/src/assets/images/admin/cancerscreening/individualscreening/docs.svg"
-                            alt="DOC"
-                            className="w-12 h-12 mb-2"
-                          />
-                        ) : (
-                          <span className="w-12 h-12 mb-2 bg-gray-300 rounded" />
-                        )}
-                        <span className="text-xs text-center break-all px-1">
-                          {file.name}
-                        </span>
-                      </div>
-                      <button
-                        onClick={(e) => handleDelete(idx, e)}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
+                      View
+                    </a>
+                  ) : (
+                    <span className="text-red-500 text-sm">Missing</span>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
-          {files.length !== 0 && (
-            <div className="fw-full flex justify-around">
-              <button
-                onClick={handleAddFile}
-                className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
-              >
-                Choose File
-              </button>
-              <button
-                onClick={handleSave}
-                className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-              >
-                Save
-              </button>
+
+              {/* ADD NOTE BUTTON */}
+              {!showDescriptionField && (
+                <button
+                  onClick={() => setShowDescriptionField(true)}
+                  className="self-start bg-yellow-500 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm hover:bg-yellow-600"
+                >
+                  + Add Note
+                </button>
+              )}
+
+              {/* NEW DESCRIPTION FIELD */}
+              {showDescriptionField && (
+                <div className="flex flex-col gap-2">
+                  <label className="text-gray-900 font-medium">Result Description</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Enter a description for the result..."
+                    className="w-full px-4 py-3 border border-black/15 rounded-lg shadow-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    rows={4}
+                  />
+                </div>
+              )}
+
             </div>
-          )}
+          </div>
+          <div className="w-full flex justify-around">
+            <Link 
+              to={`/admin/cancer-management/view/${id}`}
+              className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+            >
+              Back
+            </Link>
+            <button
+              // type="submit"
+              type="button"
+              onClick={handleSave}
+              className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+            >
+              Save
+            </button>
+          </div>
         </div>
       </div>
     </>

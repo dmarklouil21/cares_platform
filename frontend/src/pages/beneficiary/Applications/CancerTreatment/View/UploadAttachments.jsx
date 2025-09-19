@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import api from "src/api/axiosInstance";
 
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 
-const ViewResults = () => {
+const UploadAttachments = () => {
+  const { id } = useParams();
   const location = useLocation();
-  const record = location.state;
+  const navigate = useNavigate();
+  const cancer_treatment = location.state.cancer_treatment;
+  const purpose = location.state.purpose;
   const [files, setFiles] = useState([]);
 
   // Notification Modal
@@ -25,27 +28,10 @@ const ViewResults = () => {
   const [modalText, setModalText] = useState("Confirm Status Change?");
   const [modalAction, setModalAction] = useState(null); 
 
-  useEffect(() => {
-    if (record.uploaded_result) {
-      if (record.uploaded_result) {
-        const fileUrl = record.uploaded_result;
-        const fileName = fileUrl.split("/").pop();
-        const fileExtension = fileName.split(".").pop().toLowerCase();
-
-        setFiles([{
-          id: record.id, 
-          name: fileName,
-          type: fileExtension,
-          url: fileUrl,
-        }]);
-      }
-    }
-  }, [record]);
-
   const handleAddFile = () => {
     const input = document.createElement("input");
     input.type = "file";
-    input.multiple = false;
+    input.multiple = false; // Only allow one file
 
     input.onchange = (e) => {
       const file = e.target.files[0];
@@ -73,33 +59,40 @@ const ViewResults = () => {
   };
 
   const handleModalConfirm = async () => {
-    if (modalAction?.type === "delete") {
-      const fileToDelete = modalAction.file;
+    if (modalAction?.type === "submit") {
+      const formData = new FormData();
 
-      if (!fileToDelete) {
-        console.error("No file found for deletion.");
-        alert("Something went wrong. File not found.");
+      if (files.length > 0 && files[0].fileObject) {
+        formData.append("attachments", files[0].fileObject);
+      } else {
+        alert("Please select a file before submitting.");
         return;
       }
 
       try {
-        if (fileToDelete.url.startsWith("blob:")) {
-          URL.revokeObjectURL(fileToDelete.url);
-          setFiles((prev) => prev.filter((f) => f !== fileToDelete));
-        } else if (fileToDelete.id) {
-          setLoading(true);
-          setModalOpen(false);
-          await api.delete(`/cancer-screening/individual-screening/results-attachment-delete/${record?.id}/`);
-          setModalInfo({
-            type: "success",
-            title: "Success!",
-            message: "Deleted successfully.",
-          });
-          setShowModal(true);
-          setFiles((prev) => prev.filter((f) => f.id !== fileToDelete.id));
-        }
+        setModalOpen(false);
+        setLoading(true);
+        const url = purpose === 'case_summary_upload' ? `/beneficiary/cancer-treatment/case-summary/upload/${id}/` : 
+                    purpose === 'result_upload' ? `/beneficiary/cancer-treatment/result/upload/${id}/` : '';
+         const response = await api.patch(url, formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+
+        navigate("/beneficiary/applications/cancer-treatment", { 
+          state: { 
+            type: "success", message: "Submitted Successfully." 
+          } 
+        });
+        // setModalInfo({
+        //   type: "success",
+        //   title: "Success!",
+        //   message: "Submitted successfully.",
+        // });
+        // setShowModal(true);
       } catch (error) {
-        let errorMessage = "Something went wrong while deleting the attachment."; 
+        let errorMessage = "Something went wrong while submitting the attachment."; 
 
         if (error.response && error.response.data) {
           // DRF ValidationError returns an object with arrays of messages
@@ -109,61 +102,26 @@ const ViewResults = () => {
         }
         setModalInfo({
           type: "error",
-          title: "Failed to delete the file.",
+          title: "Submission Failed",
           message: errorMessage,
         });
         setShowModal(true);
-        console.error("Error deleting file:", error.message);
+        console.error("Error uploading attachment:", error.message);
       } finally {
         setLoading(false);
       }
-    } else if (modalAction?.type === "submit") {
-      const formData = new FormData();
+    }
+    else if (modalAction?.type === "delete") {
+      const fileToDelete = modalAction.file;
 
-      files.forEach((item) => {
-        if (item.fileObject) {
-          // Only include new files (not existing ones already saved on the backend)
-          formData.append("attachments", item.fileObject);
-        }
-      });
-
-      if (formData.has("attachments")) {
-        try {
-          setLoading(true);
-          setModalOpen(false);
-          await api.patch(`/cancer-screening/individual-screening/results-upload/${record?.id}/`, formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-          setModalInfo({
-            type: "success",
-            title: "Success!",
-            message: "Added successfully.",
-          });
-          setShowModal(true);
-        } catch (error) {
-          let errorMessage = "Something went wrong while submitting the attachment."; 
-
-          if (error.response && error.response.data) {
-            // DRF ValidationError returns an object with arrays of messages
-            if (error.response.data.non_field_errors) {
-              errorMessage = error.response.data.non_field_errors[0];
-            }
-          }
-          setModalInfo({
-            type: "error",
-            title: "Failed to add new file.",
-            message: errorMessage,
-          });
-          setShowModal(true);
-          console.error("Error uploading attachments:", error.message);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        alert("No new attachments to upload.");
+      if (!fileToDelete) {
+        console.error("No file found for deletion.");
+        alert("Something went wrong. File not found.");
+        return;
       }
+
+      URL.revokeObjectURL(fileToDelete.url);
+      setFiles((prev) => prev.filter((f) => f !== fileToDelete));
     }
 
     setModalOpen(false);
@@ -186,7 +144,7 @@ const ViewResults = () => {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    setModalText('Are you sure you want to add this file?');
+    setModalText('Make sure to submit the correct file, you can only submit once!');
     setModalAction({ type: "submit" }); 
     setModalOpen(true);
   };
@@ -196,6 +154,8 @@ const ViewResults = () => {
       <ConfirmationModal
         open={modalOpen}
         text={modalText}
+        title={"Confirm Submission"}
+        desc={"Make sure the choosen attachment is correct"}
         onConfirm={handleModalConfirm}
         onCancel={() => {
           setModalOpen(false);
@@ -213,44 +173,24 @@ const ViewResults = () => {
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
         <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Individual Screening</h1>
+          <h1 className="text-md font-bold">Cancer Treatment</h1>
           <div className="p-3">
             <Link 
-              to={"/admin/cancer-screening/view/details"}
-              state={{record: record}}
+              to={`/beneficiary/applications/cancer-treatment/view/${id}`}
             >
               <img
                 src="/images/back.png"
                 alt="Back button icon"
-                className="h-6"
+                className="h-6 cursor-pointer"
               />
             </Link>
           </div>
         </div>
         <div className="h-full w-full p-5 flex flex-col justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
-            {/* <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
-              <h1 className="text-md font-bold">Patient ID - {record?.patient.patient_id}</h1>
-            </div> */}
-          {files.length === 0 ? (
-            <div className="flex-1 flex flex-col justify-center items-center bg-white rounded-[4px] py-10 px-8 text-center">
-              <h2 className="text-2xl font-semibold text-gray-600">No Attachment Files Found</h2>
-              <p className="text-gray-500 mt-2">
-                This patient doesn't have a result submitted yet.
-              </p>
-              <button
-                // to="/Admin/cancerscreening/view/AdminIndividualScreeningView"
-                // state={{ record }}
-                onClick={handleAddFile}
-                className="text-center font-bold bg-primary text-white mt-5 py-2 w-[15%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-              >
-                Add File
-              </button>
-            </div>
-          ) : (
-            <div className="w-full bg-white rounded-[4px] p-4">
+            <div className="w-full bg-white rounded-[4px] p-4 ">
               <h1 id="details_title" className="text-md font-bold mb-3">
-                Results Uploaded
+                Upload your attachements here
               </h1>
               <div className="bg-gray-100 border border-dashed border-gray-300 rounded-sm p-6 flex flex-row gap-4 flex-wrap items-center justify-start min-h-[120px]">
                 {files.map((file, idx) => (
@@ -295,28 +235,28 @@ const ViewResults = () => {
                 ))}
               </div>
             </div>
-          )}
           </div>
-          {files.length !== 0 && (
-            <div className="fw-full flex justify-around">
+
+          <div className="w-full flex justify-around">
             <button
               onClick={handleAddFile}
               className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+              // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             >
               Choose File
             </button>
             <button
               onClick={handleSave}
               className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+              // className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             >
-              Save
+              Submit
             </button>
           </div>
-          )}
         </div>
       </div>
     </>
   );
 };
 
-export default ViewResults;
+export default UploadAttachments;

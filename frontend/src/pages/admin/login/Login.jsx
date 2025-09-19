@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
 
-import NotificationModal from "src/components/NotificationModal";
-import LoadingModal from "src/components/LoadingModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
+import LoadingModal from "src/components/Modal/LoadingModal";
 import SystemLoader from "src/components/SystemLoader";
 
 import api from "src/api/axiosInstance";

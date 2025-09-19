@@ -1,6 +1,6 @@
 import { Route } from "react-router-dom";
 import BeneficiaryLayout from "../layouts/Beneficiary";
-import ProtectedRoute from "../components/ProtectedRoute";
+import ProtectedRoute from "../components/RoleGuard/ProtectedRoute";
 
 // Pre Enrollment 
 import PreEnrollment  from "../pages/beneficiary/PreEnrollment/PreEnrollment";
@@ -24,28 +24,15 @@ import PreCancerous from "../pages/beneficiary/Applications/PreCancerous/PreCanc
 import Requirements from "../pages/beneficiary/Services/CancerScreening/Apply/Requirements"; 
 import ScreeningProcedure from "../pages/beneficiary/Services/CancerScreening/Apply/ScreeningProcedure"; 
 
-// Cancer Management Apply (per option)
-import BrachyServiceApplicationNote from "../pages/beneficiary/Services/CancerManagement/Apply/Brachytherapy/ServiceApplicationNote"; 
-import BrachytherapyWellBeingTool from "../pages/beneficiary/Services/CancerManagement/Apply/Brachytherapy/BrachytherapyWellBeingTool";
-import BrachytherapyDocuments from "../pages/beneficiary/Services/CancerManagement/Apply/Brachytherapy/BrachytherapyDocuments";
-
-import ChemoServiceApplicationNote from "../pages/beneficiary/Services/CancerManagement/Apply/ChemoTherapy/ServiceApplicationNote"; 
-import ChemotherapyWellBeingTool from "../pages/beneficiary/Services/CancerManagement/Apply/ChemoTherapy/ChemotherapyWellBeingTool";
-import ChemotherapyDocuments from "../pages/beneficiary/Services/CancerManagement/Apply/ChemoTherapy/ChemotherapyDocuments";
-
-import RadioActServiceApplicationNote from "../pages/beneficiary/Services/CancerManagement/Apply/Radioactive/ServiceApplicationNote"; 
-import RadioactiveWellBeingTool from "../pages/beneficiary/Services/CancerManagement/Apply/Radioactive/RadioactiveWellBeingTool";
-import RadioactiveDocuments from "../pages/beneficiary/Services/CancerManagement/Apply/Radioactive/RadioactiveDocuments";
-
-import RadioServiceApplicationNote from "../pages/beneficiary/Services/CancerManagement/Apply/Radiotherapy/ServiceApplicationNote"; 
-import RadioTherapyWellBeingTool from "../pages/beneficiary/Services/CancerManagement/Apply/Radiotherapy/RadioTherapyWellBeingTool";
-import RadioTherapyDocuments from "../pages/beneficiary/Services/CancerManagement/Apply/Radiotherapy/RadioTherapyDocuments";
-
-import SurgeryServiceApplicationNote from "../pages/beneficiary/Services/CancerManagement/Apply/Surgery/ServiceApplicationNote"; 
-import SurgeryWellBeingTool from "../pages/beneficiary/Services/CancerManagement/Apply/Surgery/SurgeryWellBeingTool";
-import SurgeryDocuments from "../pages/beneficiary/Services/CancerManagement/Apply/Surgery/SurgeryDocuments";
+// Cancer Management Apply 
+import RequiredDocumentsUpload from "../pages/beneficiary/Services/CancerManagement/Apply/RequiredDocumentsUpload";
+import WellBeingForm from "../pages/beneficiary/Services/CancerManagement/Apply/WellBeingForm";
+import ServiceApplicationNote from "../pages/beneficiary/Services/CancerManagement/Apply/ServiceApplicationNote";
 
 import PreCancerousMeds from "../pages/beneficiary/Services/CancerManagement/Apply/PreCancerous/PreCancerousMeds"; 
+
+import ViewTreatmentRequestStatus from "../pages/beneficiary/Applications/CancerTreatment/View/ViewRequestStatus";
+import CaseSummaryUpload from "../pages/beneficiary/Applications/CancerTreatment/View/UploadAttachments";
 
 // Applications Features 
 import ViewScreeningStatus from "../pages/beneficiary/Applications/IndividualScreening/View/ViewScreeningStatus"; 
@@ -87,45 +74,18 @@ const BeneficiaryRoutes = () => (
       </Route>
 
       {/* Cancer Management */}
-      <Route path="cancer-management" element={<CancerManagement />} />
-      <Route path="cancer-management-options">
-        {/* Radiotherapy */}
-        <Route path="radiotherapy">
-          <Route path="form-note" element={<RadioServiceApplicationNote />} />
-          <Route path="well-being-tool" element={<RadioTherapyWellBeingTool />} />
-          <Route path="documents" element={<RadioTherapyDocuments />} />
-        </Route>
+      <Route path="cancer-management">
+        <Route index element={<CancerManagement />} />
 
-        {/* Radioactive */}
-        <Route path="radioactive">
-          <Route path="form-note" element={<RadioActServiceApplicationNote />} />
-          <Route path="well-being-tool" element={<RadioactiveWellBeingTool />} />
-          <Route path="documents" element={<RadioactiveDocuments />} />
-        </Route>
+        {/* Apply */}
+        <Route path="apply">
+          <Route path="note" element={<ServiceApplicationNote />} />
+          <Route path="well-being-tool" element={<WellBeingForm />} />
+          <Route path="upload-documents" element={<RequiredDocumentsUpload />} />
 
-        {/* Brachytherapy */}
-        <Route path="brachytherapy">
-          <Route path="form-note" element={<BrachyServiceApplicationNote />} />
-          <Route path="well-being-tool" element={<BrachytherapyWellBeingTool />} />
-          <Route path="documents" element={<BrachytherapyDocuments />} />
+          {/* Pre-cancerous meds */}
+          <Route path="precancerous-meds" element={<PreCancerousMeds />} />
         </Route>
-
-        {/* Chemotherapy */}
-        <Route path="chemotherapy">
-          <Route path="form-note" element={<ChemoServiceApplicationNote />} />
-          <Route path="well-being-tool" element={<ChemotherapyWellBeingTool />} />
-          <Route path="documents" element={<ChemotherapyDocuments />} />
-        </Route>
-
-        {/* Surgery */}
-        <Route path="surgery">
-          <Route path="form-note" element={<SurgeryServiceApplicationNote />} />
-          <Route path="well-being-tool" element={<SurgeryWellBeingTool />} />
-          <Route path="documents" element={<SurgeryDocuments />} />
-        </Route>
-
-        {/* Pre-cancerous meds */}
-        <Route path="precancerous-meds" element={<PreCancerousMeds />} />
       </Route>
 
       {/* Survivorship */}
@@ -140,7 +100,11 @@ const BeneficiaryRoutes = () => (
         <Route path="upload-attachments" element={<UploadAttachments />} />
       </Route>
 
-      <Route path="cancer-treatment" element={<CancerTreatment />} />
+      <Route path="cancer-treatment">
+        <Route index element={<CancerTreatment />} />
+        <Route path="view/:id" element={<ViewTreatmentRequestStatus />} />
+        <Route path="view/:id/upload" element={<CaseSummaryUpload />} />
+      </Route>
 
       <Route path="precancerous">
         <Route index element={<PreCancerous />} />

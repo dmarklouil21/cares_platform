@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from django.utils.timezone import now
 
 from rest_framework import generics, status
 from rest_framework import filters
@@ -24,7 +25,7 @@ from apps.cancer_screening.serializers import (
 
 from apps.precancerous.models import PreCancerousMedsRequest
 
-from apps.cancer_management.models import CancerTreatment
+from apps.cancer_management.models import CancerTreatment, ServiceAttachment
 from apps.cancer_management.serializers import CancerTreatmentSubmissionSerializer, CancerTreatmentSerializer
 
 from .serializers import PatientSerializer, PreEnrollmentSerializer
@@ -81,7 +82,11 @@ class PatientDetailView(generics.RetrieveAPIView):
     except Patient.DoesNotExist:
       raise NotFound("No patient record found for this user.")
 
-# Newly Updated Screening request
+class CancerAwarenessActivityListView(generics.ListAPIView):
+  queryset = CancerAwarenessActivity.objects.all()
+  serializer_class = CancerAwarenessActivitySerializer
+  permission_classes = [IsAuthenticated]
+
 class IndividualScreeningRequestView(generics.CreateAPIView):
   queryset = IndividualScreening.objects.all()
   serializer_class = IndividualScreeningSerializer
@@ -152,11 +157,6 @@ class IndividualScreeningUpdateView(generics.UpdateAPIView):
     except Exception as e:
       logger.error(f"Error creating screening procedure: {str(e)}")
       raise e
-
-class CancerAwarenessActivityListView(generics.ListAPIView):
-  queryset = CancerAwarenessActivity.objects.all()
-  serializer_class = CancerAwarenessActivitySerializer
-  permission_classes = [IsAuthenticated]
  
 class IndividualScreeningListView(generics.ListAPIView):
   serializer_class = IndividualScreeningSerializer
@@ -248,6 +248,51 @@ class CancerManagementListView(generics.ListAPIView):
     user = self.request.user
     patient = get_object_or_404(Patient, user=user)
     return CancerTreatment.objects.filter(patient=patient)
+
+class TreatmentResultUploadView(APIView):
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+
+  def patch(self, request, id):
+    cancer_treatment = get_object_or_404(CancerTreatment, id=id)
+    # individual_screening = get_object_or_404(IndividualScreening, screening_procedure=screening_procedure)
+
+    # if individual_screening.uploaded_result and not request.user.is_superuser:
+    #   raise ValidationError ({'non_field_errors': ['You can only submit once. Please wait for it\'s feedback before submitting again.']})
+    
+    attachments = request.FILES.getlist('attachments')
+    print('Attachments: ', attachments)
+
+    validate_attachment(attachments[0])
+
+    cancer_treatment.uploaded_result = attachments[0]
+    # cancer_treatment.has_patient_response = True
+    # cancer_treatment.response_description = 'Uploaded screening results.'
+    cancer_treatment.save()
+
+    return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
+  
+
+class CaseSummaryUploadView(APIView):
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+
+  def patch(self, request, id):
+    cancer_treatment = get_object_or_404(CancerTreatment, id=id)
+
+    # if cancer_treatment.has_patient_response:
+    #   raise ValidationError ({'non_field_errors': ['You can only submit once. Please wait for it\'s feedback before submitting again.']})
+    
+    attachments = request.FILES.getlist('attachments')
+    for file in attachments:
+      validate_attachment(file)
+      ServiceAttachment.objects.create(
+        cancer_treatment=cancer_treatment,
+        file=file,
+        doc_type="signedCaseSummary"
+      )
+
+    return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
 
 class PreCancerousMedsCreateView(generics.CreateAPIView):
   queryset = PreCancerousMedsRequest.objects.all()
