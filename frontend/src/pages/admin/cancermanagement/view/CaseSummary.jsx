@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 
+import CaseSummaryPrintTemplate from "./CaseSummaryPrintTemplate";
+
 const CaseSummaryPlan = ({ caseData }) => {
   const location = useLocation();
   const record = location.state;
@@ -122,7 +124,7 @@ const CaseSummaryPlan = ({ caseData }) => {
           </Section>
 
           {/* LOA & Approval */}
-          <Section title="LOA & Approval">
+          {/* <Section title="LOA & Approval">
             <TwoColumn>
               <Field label="LOA Generated" value={caseData?.loa_reference} />
               <Field label="Reviewed / Approved By" value={caseData?.approver} />
@@ -131,7 +133,7 @@ const CaseSummaryPlan = ({ caseData }) => {
               label="Notified Parties"
               value={caseData?.notified_to?.join(", ")}
             />
-          </Section>
+          </Section> */}
 
           {/* Signatures */}
           <Section title="Signatures">
@@ -152,7 +154,7 @@ const CaseSummaryPlan = ({ caseData }) => {
           <button
             // type="submit"
             type="button"
-            // onClick={handleSave}
+            onClick={() => window.print()}
             className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
           >
             Save As PDF
@@ -160,6 +162,7 @@ const CaseSummaryPlan = ({ caseData }) => {
         </div>
         <br />
       </div>
+      <CaseSummaryPrintTemplate caseData={record}/>
     </div>
   );
 };

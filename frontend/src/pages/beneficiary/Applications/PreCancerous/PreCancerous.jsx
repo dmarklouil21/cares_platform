@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import ConfirmationModal from "src/components/ConfirmationModal";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import { useNavigate } from "react-router-dom";
 import {
   listPreCancerousMeds,

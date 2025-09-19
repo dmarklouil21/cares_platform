@@ -1,6 +1,6 @@
 import { Route } from "react-router-dom";
 import AdminLayout from "../layouts/Admin";
-import ProtectedAdminRoute from "../components/ProtectedAdminRoute";
+import ProtectedAdminRoute from "../components/RoleGuard/ProtectedAdminRoute";
 
 // Main Modules
 import Dashboard from "../pages/admin/Dashboard/Dashboard/";

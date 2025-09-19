@@ -52,6 +52,8 @@ class CancerTreatmentSerializer(serializers.ModelSerializer):
       "patient",
       "service_type",
       "wellbeing_assessment",
+      "interview_date",
+      "treatment_date",
       "date_submitted",
       "date_approved",
       "date_completed",

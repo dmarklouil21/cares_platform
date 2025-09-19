@@ -3,9 +3,9 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import api from "src/api/axiosInstance";
 
-import ConfirmationModal from "src/components/ConfirmationModal";
-import NotificationModal from "src/components/NotificationModal";
-import LoadingModal from "src/components/LoadingModal";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
+import LoadingModal from "src/components/Modal/LoadingModal";
 
 const PatientMasterListEdit = () => {
   const { patient_id } = useParams();

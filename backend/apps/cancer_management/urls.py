@@ -6,4 +6,7 @@ urlpatterns = [
   path('well-being-questions/', views.WellBeingQuestionListView.as_view(), name='well_being_questions'),
   path('list/', views.CancerManagementListView.as_view(), name='cancer_management_list'),
   path('details/<str:id>/', views.CancerManagementDetailedView.as_view(), name='cancer_management_detail_view'),
+  path('cancer-treatment/status-update/<str:id>/', views.CancerTreatmentRequestStatusUpdateView.as_view(), name='cancer_treatment_status_update'),
+  path('send-loa/', views.SendLOAView.as_view(), name='cancer_treatment_send_loa'),
+  path('send-case-summary/', views.SendCaseSummaryiew.as_view(), name='cancer_treatment_send_case_summary'),
 ]

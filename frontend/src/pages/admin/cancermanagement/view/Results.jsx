@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import api from "src/api/axiosInstance";
 
-import NotificationModal from "src/components/NotificationModal";
-import LoadingModal from "src/components/LoadingModal";
-import ConfirmationModal from "src/components/ConfirmationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
+import LoadingModal from "src/components/Modal/LoadingModal";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 
 const CheckIcon = ({ active }) => (
   <img
@@ -19,6 +19,10 @@ const ViewResults = () => {
   const record = location.state;
   const { id } = useParams();
   const [files, setFiles] = useState(null);
+  const [description, setDescription] = useState(record?.result_description || "");
+  const [showDescriptionField, setShowDescriptionField] = useState(
+    !!record?.result_description // show by default if description already exists
+  );
 
   // Notification Modal
   const [showModal, setShowModal] = useState(false);
@@ -143,6 +147,8 @@ const ViewResults = () => {
         }
       });
 
+      formData.append("description", description);
+
       if (formData.has("attachments")) {
         try {
           setLoading(true);
@@ -249,7 +255,7 @@ const ViewResults = () => {
         <div className="h-full w-full p-5 flex flex-col justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
-              <h2 className="text-3xl text-yellow font-bold">Submitted Result</h2>
+              <h2 className="text-3xl text-yellow font-bold">Treatment Result</h2>
               <p className="font-bold italic">
                 View the uploaded result of the patient.
               </p>
@@ -276,15 +282,48 @@ const ViewResults = () => {
                   )}
                 </div>
               </div>
+
+              {/* ADD NOTE BUTTON */}
+              {!showDescriptionField && (
+                <button
+                  onClick={() => setShowDescriptionField(true)}
+                  className="self-start bg-yellow-500 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm hover:bg-yellow-600"
+                >
+                  + Add Note
+                </button>
+              )}
+
+              {/* NEW DESCRIPTION FIELD */}
+              {showDescriptionField && (
+                <div className="flex flex-col gap-2">
+                  <label className="text-gray-900 font-medium">Result Description</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Enter a description for the result..."
+                    className="w-full px-4 py-3 border border-black/15 rounded-lg shadow-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    rows={4}
+                  />
+                </div>
+              )}
+
             </div>
           </div>
-          <div className="w-full flex justify-end">
+          <div className="w-full flex justify-around">
             <Link 
               to={`/admin/cancer-management/view/${id}`}
               className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
             >
               Back
             </Link>
+            <button
+              // type="submit"
+              type="button"
+              onClick={handleSave}
+              className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+            >
+              Save
+            </button>
           </div>
         </div>
       </div>

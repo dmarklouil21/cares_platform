@@ -2,19 +2,13 @@ from django.db import models
 from apps.patient.models import Patient
 
 # Create your models here.
-# class ServiceType(models.TextChoices):
-#   RADIOTHERAPY = "radiotherapy", "Radiation Therapy"
-#   RADIOACTIVE = "radioactive_therapy", "Radioactive Therapy"
-#   BRACHYTHERAPY = "brachytherapy", "Brachytherapy"
-#   CHEMOTHERAPY = "chemotherapy", "Chemotherapy"
-#   SURGERY = "surgery", "Surgery"
 
 SERVICE_TYPE = [
-  ('radiotherapy', 'Radiation Therapy'),
-  ('radioactive_therapy', 'Radioactive Therapy'),
-  ('brachytherapy', 'Brachytherapy'),
-  ('chemotherapy', 'Chemotherapy'),
-  ('surgery', 'Surgery')
+  ('Radiotherapy', 'Radiation Therapy'),
+  ('Radioactive Therapy', 'Radioactive Therapy'),
+  ('Brachytherapy', 'Brachytherapy'),
+  ('Chemotherapy', 'Chemotherapy'),
+  ('Surgery', 'Surgery')
 ]
 
 class WellBeingAssessment(models.Model):
@@ -55,6 +49,8 @@ class CancerTreatment(models.Model):
     choices=SERVICE_TYPE
   )
   wellbeing_assessment = models.OneToOneField(WellBeingAssessment, on_delete=models.CASCADE)
+  treatment_date = models.DateField(blank=True, null=True)
+  interview_date = models.DateField(blank=True, null=True)
   date_submitted = models.DateField(auto_now_add=True)
   date_approved = models.DateField(blank=True, null=True)
   date_completed = models.DateField(blank=True, null=True)
@@ -62,8 +58,9 @@ class CancerTreatment(models.Model):
     max_length=50,
     choices=[
       ('Pending', 'Pending'),
+      ('Interview Process', 'Interview Process'),
       ('Approved', 'Approved'),
-      ('In Progress', 'In Progress'),
+      ('Case Summary Generation', 'Case Summary Generation'),
       ('Completed', 'Completed'),
       ('Rejected', 'Rejected'),
     ],

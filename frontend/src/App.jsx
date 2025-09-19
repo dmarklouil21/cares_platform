@@ -26,8 +26,8 @@ import ResetPassword from "./pages/beneficiary/login/resetpassword";
 
 import { AuthProvider } from "./context/AuthContext";
 
-import ProtectedRoute from "./components/ProtectedRoute";
-import ProtectedAuthenticatedRoute from "./components/ProtectedAuthenticatedRoute";
+import ProtectedRoute from "./components/RoleGuard/ProtectedRoute";
+import ProtectedAuthenticatedRoute from "./components/RoleGuard/ProtectedAuthenticatedRoute";
 import AccountNotSupported from "./pages/AccountNotSupported";
 
 // Route Groups

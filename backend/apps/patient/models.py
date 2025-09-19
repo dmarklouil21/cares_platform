@@ -19,6 +19,7 @@ CIVIL_STATUS_CHOICES = [
 PATIENT_STATUS_CHOICES = [
   ('validated', 'Validated'),
   ('pending', 'Pending'),
+  # ('active', 'Active'),
   ('rejected', 'Rejected'),
   ('archived', 'Archived'),
 ]

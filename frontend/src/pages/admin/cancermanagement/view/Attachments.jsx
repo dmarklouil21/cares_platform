@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
+import { REQUIRED_DOCS } from "src/constants/requiredDocs";
 
-import NotificationModal from "src/components/NotificationModal";
-import LoadingModal from "src/components/LoadingModal";
-import ConfirmationModal from "src/components/ConfirmationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
+import LoadingModal from "src/components/Modal/LoadingModal";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 
 import api from "src/api/axiosInstance";
 
@@ -15,20 +16,24 @@ const CheckIcon = ({ active }) => (
   />
 );
 
-const REQUIRED_DOCS = [
-  { key: "quotation", label: "Quotation" },
-  { key: "letter", label: "Letter of Request" },
-  { key: "abstract", label: "Medical Abstract" },
-  { key: "caseStudy", label: "Case Study Report" },
-  { key: "sketch", label: "Sketch of Address" },
-  { key: "incomeTax", label: "Income Tax Report" },
-  { key: "barangay", label: "Barangay Indigency" },
-  { key: "caseSummary", label: "Signed Case Summary" },
-];
+// const REQUIRED_DOCS = [
+//   { key: "quotation", label: "Quotation" },
+//   { key: "letter", label: "Letter of Request" },
+//   { key: "abstract", label: "Medical Abstract" },
+//   { key: "caseStudy", label: "Case Study Report" },
+//   { key: "sketch", label: "Sketch of Address" },
+//   { key: "incomeTax", label: "Income Tax Report" },
+//   { key: "barangay", label: "Barangay Indigency" },
+//   { key: "signedCaseSummary", label: "Signed Case Summary" },
+// ];
 
 const ViewAttachments = () => {
   const location = useLocation();
   const record = location.state;
+
+  const serviceType = record?.service_type;
+  const requiredDocs = [...(REQUIRED_DOCS[serviceType] || []), { key: "signedCaseSummary", label: "Signed Case Summary" }];
+
   const { id } = useParams();
 
   const [files, setFiles] = useState([]);
@@ -215,7 +220,7 @@ const ViewAttachments = () => {
 
               {/* Document List */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-6">
-                {REQUIRED_DOCS.map((d) => {
+                {requiredDocs.map((d) => {
                   const uploaded = files[d.key];
                   // const fileName = uploaded
                   //   ? decodeURIComponent(uploaded.file.split("/").pop()) // extract last part of URL

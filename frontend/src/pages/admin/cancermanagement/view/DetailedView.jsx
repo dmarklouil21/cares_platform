@@ -1,22 +1,32 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import api from "src/api/axiosInstance";
 
-import ConfirmationModal from "src/components/ConfirmationModal";
-import NotificationModal from "src/components/NotificationModal";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
 import SystemLoader from "src/components/SystemLoader";
+
+import DateModal from "src/components/Modal/DateModal";
+import FileUploadModal from "src/components/Modal/FileUploadModal";
 
 import LOAPrintTemplate from "./LOAPrintTemplate/";
 
 const AdminCancerManagementView = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
 
   const [record, setRecord] = useState(null);
 
   const [status, setStatus] = useState("Pending");
-  const [screeningDate, setScreeningDate] = useState(null);
+  const [treatmentDate, setTreatmentDate] = useState(null);
   const [isNewDate, setIsNewDate] = useState(false);
+
+  const [dateModalTitle, setDateModalTitle] = useState("");
+
+  // Interview Date Modal
+  const [interviewModalOpen, setInterviewModalOpen] = useState(false);
+  const [interviewDate, setInterviewDate] = useState("");
 
   // Notification Modal
   const [showModal, setShowModal] = useState(false);
@@ -26,26 +36,30 @@ const AdminCancerManagementView = () => {
     message: "The form has been submitted successfully.",
   });
 
-  // Loading Modal
+  // Loading State
   const [loading, setLoading] = useState(false);
 
-  // Confirmation Modal
+  // Confirmation Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
-  // Screening Date Modal
+  // Treatment Date Modal State
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const [tempDate, setTempDate] = useState("");
 
-  // Remark Message Modal
+  // Remark Message Modal State
   const [remarksModalOpen, setRemarksModalOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
 
-  // Send LOA Modal
+  // Send LOA Modal State
   const [sendLOAModalOpen, setSendLOAModalOpen] = useState(false);
   const [loaFile, setLoaFile] = useState(null);
+
+  // Send Case Summary Modal State
+  const [sendCaseSummaryModalOpen, setSendCaseSummaryModalOpen] = useState(false);
+  const [caseSummaryFile, setCaseSummaryFile] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,6 +67,7 @@ const AdminCancerManagementView = () => {
         const { data } = await api.get(`/cancer-management/details/${id}/`);
         console.log("Response Data: ", data);
         setRecord(data);
+        setStatus(data.status);
       } catch (error) {
         console.error("Error fetching screening data:", error);
       }
@@ -64,8 +79,12 @@ const AdminCancerManagementView = () => {
   const handleStatusChange = (e) => {
     const selectedStatus = e.target.value;
     if (selectedStatus === "Approved") {
-      setTempDate(screeningDate || "");
+      setTempDate(treatmentDate || "");
       setDateModalOpen(true);
+      setModalAction({ newStatus: selectedStatus });
+    } else if (selectedStatus === "Interview Process") {
+      setInterviewDate(record?.interview_date || "");
+      setInterviewModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
     } else if (selectedStatus === "Return" || selectedStatus === "Rejected") {
       setRemarksModalOpen(true);
@@ -79,13 +98,24 @@ const AdminCancerManagementView = () => {
     }
   };
 
+  const handleInterviewConfirm = () => {
+    if (!interviewDate) {
+      alert("Please select an interview date before proceeding.");
+      return;
+    }
+    setModalText(`Confirm Interview Date to ${interviewDate}?`);
+    setIsNewDate(true);
+    setModalOpen(true);
+    setInterviewModalOpen(false);
+  };
+
   const handleDateModalConfirm = () => {
     if (!tempDate) {
       alert("Please select a date before proceeding.");
       return;
     }
-    setScreeningDate(tempDate);
-    setModalText(`Confirm screening date to ${tempDate}?`);
+    setTreatmentDate(tempDate);
+    setModalText(`Confirm Treatment Date to ${tempDate}?`);
     setIsNewDate(true);
     setModalOpen(true);
     setDateModalOpen(false);
@@ -113,7 +143,7 @@ const AdminCancerManagementView = () => {
       formData.append("email", record.patient.email); 
 
       await api.post(
-        `/cancer-screening/individual-screening/send-loa/`,
+        `/cancer-management/send-loa/`,
         formData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -139,6 +169,54 @@ const AdminCancerManagementView = () => {
     }
   };
 
+  const handleSendCaseSummary = async () => {
+    if (!caseSummaryFile) {
+      setSendCaseSummaryModalOpen(false);
+      setModalInfo({
+        type: "info",
+        title: "Note",
+        message: "Please select a file before sending.",
+      });
+      setShowModal(true);
+      return;
+    }
+    setSendCaseSummaryModalOpen(false);
+    setCaseSummaryFile(null);
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", caseSummaryFile);
+      formData.append("patient_name", record.patient.full_name); 
+      formData.append("email", record.patient.email); 
+
+      await api.post(
+        `/cancer-management/send-case-summary/`,
+        formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setModalInfo({
+        type: "success",
+        title: "Case Summary Sent",
+        message: "The case summary has been sent successfully.",
+      });
+      setShowModal(true);
+    } catch (error) {
+      setModalInfo({
+        type: "error",
+        title: "Failed",
+        message: "Something went wrong while sending the case summary.",
+      });
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleModalConfirm = async () => {
     if (modalAction?.newStatus) {
       setStatus(modalAction.newStatus);
@@ -146,13 +224,15 @@ const AdminCancerManagementView = () => {
       setLoading(true);
       try {
         const payload = { status: modalAction.newStatus };
-        if (screeningDate) payload.screening_date = screeningDate;
+        if (treatmentDate) payload.treatment_date = treatmentDate;
+        if (interviewDate) payload.interview_date = interviewDate;
 
         await api.patch(
-          `/cancer-screening/individual-screening/status-update/${record.id}/`,
+          `/cancer-management/cancer-treatment/status-update/${record.id}/`,
           payload
         );
-        navigate("/Admin/cancerscreening/AdminIndividualScreening", { 
+        console.log(payload);
+        navigate("/admin/cancer-management", { 
           state: { 
             type: "success", message: "Updated Successfully." 
           } 
@@ -173,13 +253,13 @@ const AdminCancerManagementView = () => {
       setLoading(true);
       try {
         await api.patch(
-          `/cancer-screening/individual-screening/status-update/${record.id}/`,
-          { screening_date: screeningDate }
+          `/cancer-management/cancer-treatment/status-update/${record.id}/`,
+          { treatment_date: treatmentDate }
         );
 
-        navigate("/Admin/cancerscreening/AdminIndividualScreening", { 
+        navigate("/admin/cancer-management", { 
           state: { 
-            type: "success", message: "Screening date updated Successfully." 
+            type: "success", message: "Treatment date updated Successfully." 
           } 
         });
       } catch (error) {
@@ -270,6 +350,8 @@ const AdminCancerManagementView = () => {
 
   return (
     <>
+      {loading && <SystemLoader />}
+
       <ConfirmationModal
         open={modalOpen}
         title={modalText}
@@ -288,36 +370,24 @@ const AdminCancerManagementView = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      {loading && <SystemLoader />}
 
       {/* Schedule Modal */}
-      {dateModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Set Screening Date</h2>
-            <input
-              type="date"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none mb-4"
-              value={tempDate}
-              onChange={(e) => setTempDate(e.target.value)}
-            />
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-5 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
-                onClick={() => setDateModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors"
-                onClick={handleDateModalConfirm}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DateModal
+        open={dateModalOpen}
+        title="Set Treatment Date"
+        value={tempDate}
+        onChange={setTempDate}
+        onConfirm={handleDateModalConfirm}
+        onCancel={() => setDateModalOpen(false)}
+      />
+      <DateModal
+        open={interviewModalOpen}
+        title="Set Interview Date"
+        value={interviewDate}
+        onChange={setInterviewDate}
+        onConfirm={handleInterviewConfirm}
+        onCancel={() => setInterviewModalOpen(false)}
+      />
 
       {/* Return remarks Modal */}
       {remarksModalOpen && (
@@ -350,39 +420,24 @@ const AdminCancerManagementView = () => {
       )}
 
       {/* Send LOA Modal */}
-      {sendLOAModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Send LOA</h2>
-            
-            <p className="text-sm text-gray-600 mb-3">
-              Recipient: <span className="font-medium">{record.patient.email}</span>
-            </p>
+      <FileUploadModal
+        open={sendLOAModalOpen}
+        title="Send LOA"
+        recipient={record?.patient?.email}
+        onFileChange={setLoaFile}
+        onConfirm={handleSendLOA}
+        onCancel={() => setSendLOAModalOpen(false)}
+      />
 
-            <input
-              type="file"
-              accept="application/pdf"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none mb-4"
-              onChange={(e) => setLoaFile(e.target.files[0])}
-            />
-
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-5 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
-                onClick={() => setSendLOAModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors"
-                onClick={handleSendLOA}
-              >
-                Send
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Send Case Summary Modal */}
+      <FileUploadModal
+        open={sendCaseSummaryModalOpen}
+        title="Send Case Summary"
+        recipient={record?.patient?.email}
+        onFileChange={setCaseSummaryFile}
+        onConfirm={handleSendCaseSummary}
+        onCancel={() => setSendCaseSummaryModalOpen(false)}
+      />
 
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
         {/* Header */}
@@ -452,18 +507,35 @@ const AdminCancerManagementView = () => {
                   onChange={handleStatusChange}
                 >
                   <option value="Pending">Pending</option>
+                  <option value="Interview Process">Interview Process</option>
+                  <option value="Case Summary Generation">Case Summary Generation</option>
                   <option value="Approved">Approved</option>
-                  {/* <option value="In Progress">In Progress</option> */}
-                  <option value="Complete">Complete</option>
+                  <option value="Completed">Completed</option>
                   <option value="Rejected">Rejected</option>
                 </select>
-              </div>
+              </div> 
 
               <div className="flex gap-2">
                 <span className="font-medium w-40">Treatment Date</span>
                 <span className="text-gray-700">
-                  {record?.screening_date
-                    ? new Date(record?.screening_date).toLocaleDateString(
+                  {record?.treatment_date
+                    ? new Date(record?.treatment_date).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        }
+                      )
+                    : "---"}
+                </span>
+              </div>
+
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Interview Schedule</span>
+                <span className="text-gray-700">
+                  {record?.interview_date
+                    ? new Date(record?.interview_date).toLocaleDateString(
                         "en-US",
                         {
                           year: "numeric",
@@ -580,7 +652,7 @@ const AdminCancerManagementView = () => {
                 <span className="font-medium w-40">Send Case Summary</span>
                 <span
                   className="text-blue-700 cursor-pointer"
-                  onClick={() => setSendLOAModalOpen(true)}
+                  onClick={() => setSendCaseSummaryModalOpen(true)}
                 >
                   Send
                 </span>

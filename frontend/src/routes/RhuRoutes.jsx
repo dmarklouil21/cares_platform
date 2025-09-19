@@ -1,6 +1,6 @@
 import { Route } from "react-router-dom";
 import RhuLayout from "../layouts/Rhu";
-import ProtectedRHURoute from "../components/ProtectedRHURoute";
+import ProtectedRHURoute from "../components/RoleGuard/ProtectedRHURoute";
 
 // Main Modules 
 import Dashboard from "../pages/rhu/Dashboard/Dashboard";

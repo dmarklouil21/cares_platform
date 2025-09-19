@@ -83,13 +83,6 @@ class PreScreeningFormUpdateView(generics.UpdateAPIView):
   lookup_field = 'id'
   permission_classes = [IsAuthenticated, IsAdminUser]
 
-# To be updated
-# class ScreeningProcedureUpdateView(generics.UpdateAPIView):
-#   queryset = ScreeningProcedure.objects.all()
-#   serializer_class = ScreeningProcedureSerializer
-#   lookup_field = 'id'
-#   permission_classes = [IsAuthenticated, IsAdminUser]
-
 class ScreeningAttachmentUpdateView(APIView):
   parser_classes = [MultiPartParser, FormParser]
   permission_classes = [IsAuthenticated, IsAdminUser]
@@ -113,10 +106,6 @@ class AttachmentDeleteView(generics.DestroyAPIView):
   lookup_field = 'id'
   permission_classes = [IsAuthenticated, IsAdminUser]
 
-  # def perform_destroy(self, instance):
-  #   instance.file.delete(save=False)
-  #   super().perform_destroy(instance)
-
 class IndividualScreeningStatusUpdateView(generics.UpdateAPIView):
   queryset = IndividualScreening.objects.all()
   serializer_class = IndividualScreeningSerializer
@@ -130,13 +119,6 @@ class IndividualScreeningStatusUpdateView(generics.UpdateAPIView):
 
     if screening_status == 'Approve':
       instance.date_approved = timezone.now().date()
-      # CancerDiagnosis.objects.create(
-      #   patient=instance.patient,
-      #   diagnosis=instance.patient.pre_screening_form.final_diagnosis,
-      #   date_diagnosed=instance.patient.pre_screening_form.date_of_diagnosis,
-      #   cancer_site=instance.cancer_site,
-      #   cancer_stage=instance.patient.pre_screening_form.staging,
-      # )
     elif screening_status == 'Complete':
       HistoricalUpdate.objects.create(
         patient=instance.patient,

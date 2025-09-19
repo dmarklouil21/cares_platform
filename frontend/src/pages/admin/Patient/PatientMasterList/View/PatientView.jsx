@@ -535,6 +535,73 @@ const PatientView = () => {
 
           <div className="mb-6 mt-8 border-b border-gray-200 px-5">
             <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+              Services Provided
+            </h2>
+          </div>
+          <div className="p-4">
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border border-gray-300">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Type</th>
+                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Status</th>
+                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* {(patient?.historical_updates ?? []).map((update, index) => (
+                    <tr
+                      key={index}
+                      className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    >
+                      <td className="py-2 px-4 border-b text-sm">
+                        {update?.date ?? ""}
+                      </td>
+                      <td className="py-2 px-4 border-b text-sm">
+                        {update?.note ?? ""}
+                      </td>
+                    </tr>
+                  ))} */}
+                  <tr
+                    className={"bg-white"}
+                  >
+                    <td className="py-2 px-4 border-b text-sm">
+                      Cancer Screening
+                    </td>
+                    <td className="py-2 px-4 border-b text-sm">
+                      Completed
+                    </td>
+                    <td className="py-2 px-4 border-b text-sm">
+                      View
+                    </td>
+                  </tr>
+                  <tr
+                    className={"bg-white"}
+                  >
+                    <td className="py-2 px-4 border-b text-sm">
+                      Radiotherapy
+                    </td>
+                    <td className="py-2 px-4 border-b text-sm">
+                      Dropped
+                    </td>
+                    <td className="py-2 px-4 border-b text-sm color-blue">
+                      NA
+                    </td>
+                  </tr>
+                  {/* {(patient?.historical_updates ?? []).length === 0 && (
+                    <tr>
+                      <td className="py-2 px-4 border-b text-sm" colSpan={2}>
+                        No history available.
+                      </td>
+                    </tr>
+                  )} */}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
               Patient Historical Updates
             </h2>
           </div>
@@ -543,7 +610,7 @@ const PatientView = () => {
               <table className="min-w-full bg-white border border-gray-300">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Date</th>
+                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Last Checkup</th>
                     <th className="py-2 px-4 border-b text-left text-sm font-bold">Note</th>
                   </tr>
                 </thead>

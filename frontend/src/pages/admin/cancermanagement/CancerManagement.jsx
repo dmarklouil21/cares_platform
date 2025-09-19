@@ -3,10 +3,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import api from "src/api/axiosInstance";
 
-import ConfirmationModal from "src/components/ConfirmationModal";
-import NotificationModal from "src/components/NotificationModal";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
 import Notification from "src/components/Notification";
-import LoadingModal from "src/components/LoadingModal";
+import LoadingModal from "src/components/Modal/LoadingModal";
 import { Info } from "lucide-react";
 
 const AdminCancerManagement = () => {
@@ -166,7 +166,7 @@ const AdminCancerManagement = () => {
 
           <div className="flex flex-col bg-white rounded-[4px] w-full shadow-md px-5 py-5 gap-3">
             <p className="text-md font-semibold text-yellow">
-              Cancer management list
+              Service Treatment Application List
             </p>
 
             <div className="flex justify-between flex-wrap gap-3">
@@ -216,7 +216,7 @@ const AdminCancerManagement = () => {
                       Service Requested
                     </th>
                     <th className="w-[15%] text-center text-sm py-3">
-                      Submission Date
+                      Date Submitted
                     </th>
                     <th className="w-[13.4%] text-center text-sm py-3">
                       Status

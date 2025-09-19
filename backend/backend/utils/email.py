@@ -179,6 +179,95 @@ def send_individual_screening_status_email(patient, status, screening_date=None,
     return True
   except Exception as e:
     return str(e)
+  
+def send_cancer_treatment_status_email(patient, status, treatment_date=None, interview_date=None, remarks=None):
+  try:
+    first_name, last_name, recipient_email = _extract_contact_info(patient)
+    if not recipient_email:
+      raise ValueError("Recipient email not found for patient.")
+    # Friendly but professional messages
+    approved_date = treatment_date.strftime('%B %d, %Y') if treatment_date else "to be announced"
+    interview_date_str = interview_date.strftime('%B %d, %Y') if interview_date else "to be announced"
+    status_messages = {
+      "Approved": (
+        "Great news! Your screening request has been <b>approved</b>. "
+        f"Your cancer screening has been scheduled for <b>{approved_date}</b>. "
+        "Please make sure to arrive at least 15 minutes early and bring any required identification."
+        # "Please fill out the <b>Screening Procedure Form</b> and upload the required documents to proceed with your application."
+      ),
+      "Interview Process": (
+        f"Your innterview is scheduled on <b>{interview_date_str}</b>. "
+      ),
+      "Case Summary Generation": (
+        "Your case summary and intervention plan has been to this email</b>. "
+      ),
+      "Completed": (
+        "Your screening process has been <b>successfully completed</b>. "
+        "Thank you for your cooperation and commitment to your health."
+      ),
+      "Rejected": (
+        "Unfortunately, your screening request has been <b>rejected</b>. "
+        "If you believe this decision was made in error or wish to reapply, please contact our support team."
+        f"<br><br><b>Remarks:</b> {remarks}" if remarks else ""
+      )
+    }
+
+    message_body = status_messages.get(status, "Your screening status has been updated.")
+
+    # Status badge colors
+    status_colors = {
+      "Approved": "#28a745",
+      "Interview Process": "#17a2b8",
+      "Completed": "#007bff",
+      "Rejected": "#dc3545"
+    }
+    badge_color = status_colors.get(status, "#6c757d")
+
+    send_mail(
+      subject="RAFI-EJACC: Cancer Treatment Request Status Update",
+      message="",  # Plain text fallback if needed
+      from_email=settings.DEFAULT_FROM_EMAIL,
+      recipient_list=[patient.user.email],
+      fail_silently=False,
+      html_message=f"""
+        <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
+            <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <div style="background: #005baa; padding: 20px; text-align: center;">
+                    <img src="https://rafi.org.ph/wp-content/uploads/2021/03/RAFI-LOGO-1.png" alt="RAFI Logo" style="height: 50px; display: block; margin: 0 auto 10px;">
+                    <h2 style="color: #fff; margin: 0; font-weight: normal;">Screening Status Update</h2>
+                </div>
+                
+                <!-- Content -->
+                <div style="padding: 30px;">
+
+                    <p style="margin: 0 0 15px 0;">Dear <b>{patient.first_name} {patient.last_name}</b>,</p>
+                    
+                    <!-- Status Badge -->
+                    <div style="display: inline-block; background: {badge_color}; color: white; padding: 5px 12px; border-radius: 12px; font-size: 14px; margin-bottom: 15px;">
+                        {status}
+                    </div>
+
+                    <p style="font-size: 15px; line-height: 1.6; color: #333;">{message_body}</p>
+
+                    <!-- CTA Button --> <!-- settings.FRONTEND_URL -->
+                    <a href="/login" style="display: inline-block; margin-top: 20px; padding: 12px 20px; background: #005baa; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                        View Your Screening Details
+                    </a>
+                </div>
+
+                <!-- Footer -->
+                <div style="background: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #777;"> <!-- settings.SUPPORT_EMAIL --> <!-- settings.SUPPORT_EMAIL --> 
+                    <p>If you have any questions, please contact our support team at <a href="mailto:no-reply@gmail.com" style="color: #005baa;">no-reply@gmail.com</a>.</p>
+                    <p>This is an automated message from RAFI-EJACC. Please do not reply directly to this email.</p>
+                </div>
+            </div>
+        </div>
+      """
+    )
+    return True
+  except Exception as e:
+    return str(e)
 
 def send_return_remarks_email(patient, remarks):
   try:
@@ -246,6 +335,42 @@ def send_loa_email(recipient_email, file_obj, patient_name=None):
           We are pleased to inform you that your request for individual cancer screening has been approved.<br><br>
           Please find attached your <b>Letter of Authorization (LOA)</b>. Kindly print and sign the document to proceed with your screening.<br><br>
           Our team will contact you through email shortly once your screening date has been finalized.<br><br>
+          Thank you for your trust and cooperation.<br><br>
+          Best regards,<br>
+          <b>RAFI-EJACC Team</b>
+      """,
+      from_email=settings.DEFAULT_FROM_EMAIL,
+      to=[recipient_email],
+    )
+    message.content_subtype = "html"
+
+    # Attach uploaded file (works without saving to DB)
+    message.attach(file_obj.name, file_obj.read(), file_obj.content_type)
+
+    message.send(fail_silently=False)
+    return True
+  except Exception as e:
+    return str(e)
+  
+def send_case_summary_email(recipient_email, file_obj, patient_name=None):
+  """
+  Sends a Letter of Authorization (LOA) email with an attached file.
+
+  :param recipient_email: str - The email address of the patient.
+  :param file_obj: UploadedFile - The LOA file (from request.FILES).
+  :param patient_name: str - Optional, patient full name for personalization.
+  :return: True if success, or error string if failed.
+  """
+  try:
+    name_text = f"Dear <b>{patient_name}</b>," if patient_name else "Dear Patient,"
+
+    message = EmailMessage(
+      subject="RAFI-EJACC: Case Summary and Intervention Plan for Your Cancer Treatment",
+      body=f"""
+          {name_text}<br><br>
+          We are pleased to inform you that your request for cancer treatment - Radiation Therapy has been approved.<br><br>
+          Please find attached your <b>Case Summary and Interverntion Plan</b>. Kindly print, sign and upload the document back. For further processing.<br><br>
+          Our team will contact you through email shortly once your treatment date has been finalized.<br><br>
           Thank you for your trust and cooperation.<br><br>
           Best regards,<br>
           <b>RAFI-EJACC Team</b>

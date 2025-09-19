@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 import { useLocation, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-import ConfirmationModal from "src/components/ConfirmationModal";
-import NotificationModal from "src/components/NotificationModal";
-import LoadingModal from "src/components/LoadingModal";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
+import LoadingModal from "src/components/Modal/LoadingModal";
 
 const ViewPreScreeningForm = () => {
   const location = useLocation();
