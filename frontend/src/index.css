@@ -83,7 +83,7 @@ tr:not(.bg-gray-100) td:nth-child(2) {
 .bounce-out {
   animation: bounceOut 0.2s ease-in forwards;
 }
-@media print {
+/* @media print {
   body,
   .print\\:block,
   .print\\:bg-white,
@@ -91,7 +91,67 @@ tr:not(.bg-gray-100) td:nth-child(2) {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+} */
+
+@media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    /* font-size: 12pt; */
+    /* line-height: 1.4; */
+    margin: 0 !important;
+  }
+
+  @page {
+    /*size: A4 portrait;  or landscape */
+    /* margin: 25mm; */
+    margin: 0 !important;
+  }
+
+  /* Hide buttons, navigation, etc. */
+  .no-print,
+  button,
+  .print-hide {
+    display: none !important;
+  }
+
+  /* Show input values as plain text */
+  input,
+  textarea,
+  select {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: auto !important;
+
+    /* Make value text visible */
+    color: black !important;
+    font-size: 12pt !important;
+  }
+
+  /* Prevent resizing issues */
+  input::-webkit-input-placeholder,
+  textarea::-webkit-input-placeholder {
+    color: transparent !important;
+  }
+
+  /* Make labels bold for print */
+  label {
+    font-weight: bold !important;
+    display: inline-block !important;
+    margin-right: 5px;
+  }
+
+  /* Avoid breaking sections */
+  section,
+  .print-section {
+    margin-bottom: 15px !important;
+    page-break-inside: avoid;
+  }
 }
+
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #fff transparent;
