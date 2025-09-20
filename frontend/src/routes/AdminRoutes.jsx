@@ -8,9 +8,17 @@ import PatientMasterList from "../pages/admin/Patient/PatientMasterList/PatientM
 import PreEnrollmentList from "../pages/admin/Patient/PreEnrollment/PreEnrollmentList";
 import IndividualScreening from "../pages/admin/CancerScreening/IndividualScreening/IndividualScreening";
 import Precancerous from "../pages/admin/TreatmentAssistance/PrecancerousMeds/Precancerous";
+import PostTreatment from "../pages/admin/TreatmentAssistance/PostTreatment/PostTreatment";
 import CancerManagement from "../pages/admin/CancerManagement/CancerManagement";
 import UserManagement from "../pages/admin/UserManagement/UserManagement";
 import MassScreening from "../pages/admin/CancerScreening/MassScreening/MassScreening";
+import HomeVisit from "../pages/admin/survivorship/HomeVisit/HomeVisit";
+//views
+import PostTreatmentView from "../pages/admin/TreatmentAssistance/PostTreatment/View/TreatmentView";
+import HomeVisitView from "../pages/admin/survivorship/HomeVisit/View/HomeView";
+
+//add
+import HomeVisitAdd from "../pages/admin/survivorship/HomeVisit/Add/Add";
 
 // Patient Features
 import PatientView from "../pages/admin/Patient/PatientMasterList/View/PatientView";
@@ -125,18 +133,29 @@ const AdminRoutes = () => (
     {/* Treatment Assistance */}
     <Route path="treatment-assistance">
       <Route path="pre-cancerous" element={<Precancerous />} />
+      <Route path="post-treatment" element={<PostTreatment />} />
       <Route path="view/:id" element={<PreCancerousDetailedView />} />
+      <Route path="postview/:id" element={<PostTreatmentView />} />
     </Route>
 
     {/* Cancer Management */}
     <Route path="cancer-management">
       <Route index element={<CancerManagement />} />
-      <Route path="view"> 
+      <Route path="view">
         <Route path=":id" element={<CancerManagementDetailedView />} />
-        <Route path=":id/attachments" element={<CancerManagementAttachments />} />
-        <Route path=":id/pre-screening-form" element={<CancerManagementPreScreeningForm />} />
+        <Route
+          path=":id/attachments"
+          element={<CancerManagementAttachments />}
+        />
+        <Route
+          path=":id/pre-screening-form"
+          element={<CancerManagementPreScreeningForm />}
+        />
         <Route path=":id/results" element={<CancerManagementResults />} />
-        <Route path=":id/well-being-form" element={<CancerManagementWellBeingForm />} />
+        <Route
+          path=":id/well-being-form"
+          element={<CancerManagementWellBeingForm />}
+        />
         <Route path=":id/case-summary" element={<CaseSummary />} />
       </Route>
     </Route>
@@ -147,6 +166,15 @@ const AdminRoutes = () => (
       <Route path="add" element={<AddUser />} />
       <Route path="view" element={<ViewUser />} />
       <Route path="edit" element={<EditUser />} />
+    </Route>
+    <Route path="survivorship">
+      <Route index element={<HomeVisit />} />
+      <Route path="view">
+        <Route path=":id" element={<HomeVisitView />} />
+      </Route>
+      <Route path="add">
+        <Route index element={<HomeVisitAdd />} />
+      </Route>
     </Route>
   </Route>
 );
