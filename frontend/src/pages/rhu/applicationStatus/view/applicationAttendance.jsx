@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState, useRef } from "react";
+import { getMassScreeningAttendance, saveMassScreeningAttendance } from "../../../../api/massScreening";
 
 /* Notification (no close button) */
 function Notification({ message }) {
@@ -24,24 +25,41 @@ const ApplicationAttendance = () => {
   const record = state?.record || state || null;
 
   const initialPatients = useMemo(() => {
-    const fallback = [
-      { name: "Juan Dela Cruz", result: "" },
-      { name: "Maria Santos", result: "" },
-      { name: "Pedro Reyes", result: "" },
-      { name: "Ana Bautista", result: "" },
-      { name: "Jose Ramirez", result: "" },
-    ];
     return Array.isArray(state?.patients) && state.patients.length
       ? state.patients.map((p) =>
           typeof p === "string"
             ? { name: p, result: "" }
             : { name: p.name, result: p.result ?? "" }
         )
-      : fallback;
+      : [];
   }, [state]);
 
   const [patients, setPatients] = useState(initialPatients);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
   useEffect(() => setPatients(initialPatients), [initialPatients]);
+
+  // Load existing attendance from backend
+  useEffect(() => {
+    const load = async () => {
+      if (!record?.id) return;
+      try {
+        setLoading(true);
+        setError("");
+        const data = await getMassScreeningAttendance(record.id);
+        if (Array.isArray(data) && data.length) {
+          setPatients(data.map((e) => ({ name: e.name, result: e.result || "" })));
+        }
+      } catch (e) {
+        setError(e?.response?.data?.detail || "Failed to load attendance.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [record?.id]);
 
   const updateResult = (idx, value) => {
     setPatients((list) =>
@@ -83,11 +101,26 @@ const ApplicationAttendance = () => {
   }, [notif]);
 
   const handleSave = () => setShowConfirm(true);
-  const confirmSave = () => {
-    setShowConfirm(false);
-    // TODO: replace with API call
-    console.log("Attendance saved for", record?.id, patients);
-    setNotif("Attendance saved successfully.");
+  const confirmSave = async () => {
+    if (!record?.id) {
+      setNotif("Missing mass screening ID.");
+      setShowConfirm(false);
+      return;
+    }
+    try {
+      setSaving(true);
+      const entries = patients
+        .map((p) => ({ name: String(p.name || "").trim(), result: String(p.result || "").trim() }))
+        .filter((p) => p.name);
+      await saveMassScreeningAttendance(record.id, entries);
+      setNotif("Attendance saved successfully.");
+      setShowConfirm(false);
+    } catch (e) {
+      const msg = e?.response?.data?.detail || e?.response?.data?.error || "Failed to save attendance.";
+      setNotif(String(msg));
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!record) {
@@ -148,15 +181,15 @@ const ApplicationAttendance = () => {
                 <button
                   type="button"
                   onClick={addPatient}
-                  disabled={!newName.trim()}
+                  disabled={!newName.trim() || saving}
                   className={`w-full px-4 py-2 rounded-md font-semibold ${
-                    newName.trim()
+                    newName.trim() && !saving
                       ? "bg-secondary text-white"
                       : "bg-gray-200 text-gray-500 cursor-not-allowed"
                   }`}
                   title="Add patient"
                 >
-                  Add
+                  {saving ? "Saving..." : "Add"}
                 </button>
               </div>
             </div>
@@ -205,9 +238,10 @@ const ApplicationAttendance = () => {
             <div className="flex justify-end mt-3">
               <button
                 onClick={handleSave}
-                className="px-4 py-2 rounded-md bg-primary text-white font-semibold"
+                disabled={saving}
+                className={`px-4 py-2 rounded-md bg-primary text-white font-semibold ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
               >
-                Save Attendance
+                {saving ? "Saving…" : "Save Attendance"}
               </button>
             </div>
           </div>
@@ -249,9 +283,10 @@ const ApplicationAttendance = () => {
               <button
                 type="button"
                 onClick={confirmSave}
-                className="px-4 py-2 rounded-md bg-primary text-white font-semibold"
+                disabled={saving}
+                className={`px-4 py-2 rounded-md bg-primary text-white font-semibold ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
               >
-                Confirm
+                {saving ? "Saving…" : "Confirm"}
               </button>
             </div>
           </div>

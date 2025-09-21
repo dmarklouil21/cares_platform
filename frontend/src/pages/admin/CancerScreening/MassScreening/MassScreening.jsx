@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
+import { listAdminMassScreenings, setAdminMassScreeningStatus } from "../../../../api/massScreening";
 
 /* Notification (no close button) */
 function Notification({ message }) {
@@ -19,26 +20,38 @@ function Notification({ message }) {
 }
 
 const AdminMassScreening = () => {
-  /* ----------------------------- Demo data ----------------------------- */
-  const [items, setItems] = useState([
-    {
-      id: "MS-001",
-      rhuName: "DASIG RHU-7",
-      date: "2025-04-12", // keep ISO; we format for display
-      documentsUrl: "#",
-      status: "approved", // "pending" | "approved"
-    },
-    {
-      id: "MS-002",
-      rhuName: "Private Clinic",
-      date: "2025-04-10",
-      documentsUrl: "#",
-      status: "pending",
-    },
-  ]);
+  /* ----------------------------- Data ----------------------------- */
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const loadItems = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await listAdminMassScreenings();
+      const normalized = (Array.isArray(data) ? data : []).map((d) => ({
+        id: d.id,
+        rhuName: d.rhu_lgu, // from serializer
+        date: d.date,
+        status: d.status, // Pending | Verified | Rejected | Done
+        attachments: d.attachments || [],
+      }));
+      setItems(normalized);
+    } catch (e) {
+      const msg = e?.response?.data?.detail || e?.message || "Failed to load mass screening requests.";
+      setError(String(msg));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadItems();
+  }, []);
 
   /* ----------------------------- Filters ------------------------------ */
-  const [statusFilter, setStatusFilter] = useState("all"); // all | pending | approved
+  const [statusFilter, setStatusFilter] = useState("all"); // all | Pending | Verified | Rejected | Done
   const [dateFilter, setDateFilter] = useState(""); // YYYY-MM-DD
 
   /* ----------------------------- Pagination --------------------------- */
@@ -47,10 +60,7 @@ const AdminMassScreening = () => {
 
   const filteredData = useMemo(() => {
     return items.filter((it) => {
-      const matchesStatus =
-        statusFilter === "all"
-          ? true
-          : (it.status ?? "").toLowerCase() === statusFilter;
+      const matchesStatus = statusFilter === "all" ? true : (it.status ?? "") === statusFilter;
       const matchesDate = !dateFilter ? true : (it.date ?? "") === dateFilter;
       return matchesStatus && matchesDate;
     });
@@ -93,19 +103,18 @@ const AdminMassScreening = () => {
     return () => clearTimeout(t);
   }, [notif]);
 
-  const doConfirm = () => {
+  const doConfirm = async () => {
     const { action, id } = confirm;
     closeConfirm();
-
-    if (action === "delete") {
-      setNotif("Record deleted successfully.");
-    } else if (action === "verify") {
-      setItems((arr) =>
-        arr.map((x) => (x.id === id ? { ...x, status: "approved" } : x))
-      );
-      setNotif("Request verified successfully.");
-    } else if (action === "reject") {
-      setNotif("Request rejected.");
+    try {
+      if (!id || !action) return;
+      await setAdminMassScreeningStatus(id, action); // action: verify | reject | done
+      await loadItems();
+      if (action === 'verify') setNotif('Request verified successfully.');
+      else if (action === 'reject') setNotif('Request rejected.');
+      else if (action === 'done') setNotif('Marked as done.');
+    } catch (e) {
+      setNotif(e?.response?.data?.detail || 'Failed to update status.');
     }
   };
 
@@ -158,8 +167,10 @@ const AdminMassScreening = () => {
               }}
             >
               <option value="all">Filter by Status</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
+              <option value="Pending">Pending</option>
+              <option value="Verified">Verified</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Done">Done</option>
             </select>
 
             <input
@@ -210,11 +221,15 @@ const AdminMassScreening = () => {
                 </colgroup>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedData.map((item) => {
-                    const status = (item.status || "").toLowerCase();
-                    const badge =
-                      status === "approved"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700";
+                    const status = item.status || ""; // Pending | Verified | Rejected | Done
+                    const badge = (() => {
+                      switch (status) {
+                        case 'Verified': return 'bg-green-100 text-green-700';
+                        case 'Rejected': return 'bg-red-100 text-red-700';
+                        case 'Done': return 'bg-blue-100 text-blue-700';
+                        default: return 'bg-yellow-100 text-yellow-700';
+                      }
+                    })();
 
                     return (
                       <tr key={item.id}>
@@ -228,23 +243,15 @@ const AdminMassScreening = () => {
                           {formatDate(item.date)}
                         </td>
                         <td className="text-sm py-4">
-                          {item.documentsUrl ? (
-                            <a
-                              href={item.documentsUrl}
-                              className="text-blue-600 underline"
-                              download
-                            >
-                              Download
-                            </a>
+                          {Array.isArray(item.attachments) && item.attachments.length > 0 ? (
+                            <span className="text-gray-700">{item.attachments.length} file(s)</span>
                           ) : (
                             <span className="text-gray-400">—</span>
                           )}
                         </td>
                         <td className="text-sm py-4">
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${badge}`}
-                          >
-                            {status === "approved" ? "Approved" : "Pending"}
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${badge}`}>
+                            {status || "—"}
                           </span>
                         </td>
                         <td className="text-sm py-4">
@@ -256,28 +263,29 @@ const AdminMassScreening = () => {
                               View
                             </button>
 
-                            {status === "approved" ? (
-                              <button
-                                onClick={() => setNotif("Marked as done.")}
-                                className="text-white py-1 px-3 rounded-md shadow bg-green-600"
-                              >
-                                Done
-                              </button>
-                            ) : (
+                            {status === "Pending" && (
                               <>
                                 <button
-                                  onClick={() => askConfirm("verify", item.id)}
+                                  onClick={() => askConfirm('verify', item.id)}
                                   className="text-white py-1 px-3 rounded-md shadow bg-green-600"
                                 >
                                   Verify
                                 </button>
                                 <button
-                                  onClick={() => askConfirm("reject", item.id)}
+                                  onClick={() => askConfirm('reject', item.id)}
                                   className="text-white py-1 px-3 rounded-md shadow bg-red-600"
                                 >
                                   Reject
                                 </button>
                               </>
+                            )}
+                            {(status === "Verified" || status === "Rejected") && (
+                              <button
+                                onClick={() => askConfirm('done', item.id)}
+                                className="text-white py-1 px-3 rounded-md shadow bg-green-600"
+                              >
+                                Done
+                              </button>
                             )}
                           </div>
                         </td>

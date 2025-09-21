@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createMassScreening } from "../../../api/massScreening";
 // import { Link } from "react-router-dom"; // not used
 
 /* Notification (no close button) */
@@ -31,11 +32,22 @@ const MassScreening = () => {
   const [form, setForm] = useState(emptyForm());
   const [showConfirm, setShowConfirm] = useState(false);
   const [notif, setNotif] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   /* ------------------------- Attachments ------------------------- */
   const [attachments, setAttachments] = useState([]);
   const fileInputRef = useRef(null);
   const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+
+  // Today in YYYY-MM-DD (local) for date validation and input max
+  const getTodayStr = () => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+  const todayStr = getTodayStr();
 
   const formatBytes = (b) => {
     if (!b && b !== 0) return "—";
@@ -80,23 +92,55 @@ const MassScreening = () => {
   /* ---------------------------- Form ---------------------------- */
   const onChange = (key) => (e) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
-  const handleSubmitClick = () => setShowConfirm(true);
+  const handleSubmitClick = () => {
+    // basic required field check
+    if (!form.title || !form.venue || !form.date) {
+      setNotif("Please fill out Title, Venue, and Date.");
+      return;
+    }
+    // date must not be earlier than today
+    if (form.date < todayStr) {
+      setNotif("Date cannot be earlier than today.");
+      return;
+    }
+    setShowConfirm(true);
+  };
 
-  const handleConfirm = () => {
-    console.log("Submitted Files (raw):", attachments);
-    console.log("Mass Screening Submission:", form, {
-      attachments: attachments.map((f) => ({
-        name: f.name,
-        size: f.size,
-        type: f.type,
-      })),
-    });
+  const handleConfirm = async () => {
+    try {
+      setSubmitting(true);
+      // Final guard: date must not be earlier than today
+      if (form.date < todayStr) {
+        setNotif("Date cannot be earlier than today.");
+        setSubmitting(false);
+        return;
+      }
+      // Build FormData
+      const fd = new FormData();
+      fd.append("title", form.title);
+      fd.append("venue", form.venue);
+      fd.append("date", form.date);
+      if (form.beneficiaries) fd.append("beneficiaries", form.beneficiaries);
+      if (form.description) fd.append("description", form.description);
+      if (form.supportNeed) fd.append("support_need", form.supportNeed);
 
-    setShowConfirm(false);
-    setNotif("Mass screening request submitted successfully.");
-    setForm(emptyForm());
-    setAttachments([]);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+      attachments.forEach((file) => {
+        fd.append("attachments", file);
+      });
+
+      await createMassScreening(fd);
+
+      setShowConfirm(false);
+      setNotif("Mass screening request submitted successfully.");
+      setForm(emptyForm());
+      setAttachments([]);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.response?.data?.error || "Failed to submit. Please try again.";
+      setNotif(String(msg));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -158,6 +202,7 @@ const MassScreening = () => {
                 type="date"
                 value={form.date}
                 onChange={onChange("date")}
+                min={todayStr}
                 className="border border-gray2 py-2 w-full px-5 rounded-md outline-none"
               />
             </div>
@@ -290,9 +335,10 @@ const MassScreening = () => {
             <button
               type="button"
               onClick={handleSubmitClick}
-              className="bg-primary font-bold text-white w-[40%] py-2 rounded-md mt-4"
+              disabled={submitting}
+              className={`bg-primary font-bold text-white w-[40%] py-2 rounded-md mt-4 ${submitting ? "opacity-60 cursor-not-allowed" : ""}`}
             >
-              Submit
+              {submitting ? "Submitting..." : "Submit"}
             </button>
           </div>
         </div>
