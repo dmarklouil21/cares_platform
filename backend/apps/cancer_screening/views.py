@@ -12,14 +12,16 @@ from backend.utils.email import (
   send_individual_screening_status_email,
   send_return_remarks_email, send_loa_email,
   send_precancerous_meds_status_email,
+  send_mass_screening_status_email,
 )
 
 from apps.patient.models import Patient, CancerDiagnosis, HistoricalUpdate, PreScreeningForm
 from apps.patient.serializers import PreScreeningFormSerializer
 from apps.cancer_screening.models import ScreeningAttachment
 from apps.precancerous.models import PreCancerousMedsRequest
+from apps.rhu.models import RHU
 
-from .models import IndividualScreening
+from .models import IndividualScreening, MassScreeningRequest, MassScreeningAttachment, MassScreeningAttendanceEntry
 
 from .serializers import (
   IndividualScreeningSerializer,
@@ -27,6 +29,10 @@ from .serializers import (
   PreCancerousMedsRequestSerializer,
   PreCancerousMedsReleaseDateSerializer,
   PreCancerousMedsAdminStatusSerializer,
+  MassScreeningRequestSerializer,
+  MassScreeningAttachmentSerializer,
+  MassScreeningAttendanceEntrySerializer,
+  MassScreeningAttendanceBulkSerializer,
 )
 
 import logging
@@ -36,13 +42,15 @@ logger = logging.getLogger(__name__)
 # Helper: File validation
 # ---------------------------
 def validate_attachment(file):
-  max_size_mb = 5
+  max_size_mb = 10
   allowed_types = {
     'application/pdf',
     'image/jpeg',
     'image/png',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   }
   if file.size > max_size_mb * 1024 * 1024:
     raise ValidationError(f"File {file.name} exceeds {max_size_mb}MB limit.")
@@ -216,6 +224,180 @@ def send_return_remarks(request, id):
     logger.error(f"Email failed to send: {email_status}")
 
   return Response({"message": "Return remarks sent and saved successfully.", "remarks": remarks})
+
+# ---------------------------------------------
+# RHU: Mass Screening Requests
+# ---------------------------------------------
+class MassScreeningRequestCreateView(APIView):
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+
+  def post(self, request):
+    user = request.user
+    if not getattr(user, 'is_rhu', False):
+      return Response({"detail": "Only RHU users can create mass screening requests."}, status=status.HTTP_403_FORBIDDEN)
+
+    rhu = get_object_or_404(RHU, user=user)
+
+    serializer = MassScreeningRequestSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    obj = serializer.save(rhu=rhu)
+
+    # Handle attachments
+    files = request.FILES.getlist('attachments')
+    for f in files:
+      validate_attachment(f)
+      MassScreeningAttachment.objects.create(request=obj, file=f)
+
+    return Response(MassScreeningRequestSerializer(obj, context={'request': request}).data, status=status.HTTP_201_CREATED)
+
+class MyMassScreeningRequestListView(generics.ListAPIView):
+  serializer_class = MassScreeningRequestSerializer
+  permission_classes = [IsAuthenticated]
+
+  def get_queryset(self):
+    rhu = get_object_or_404(RHU, user=self.request.user)
+    qs = MassScreeningRequest.objects.filter(rhu=rhu).order_by('-created_at')
+    status_filter = self.request.query_params.get('status')
+    if status_filter:
+      qs = qs.filter(status=status_filter)
+    return qs
+
+class MyMassScreeningRequestDetailView(generics.RetrieveAPIView):
+  serializer_class = MassScreeningRequestSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def get_queryset(self):
+    rhu = get_object_or_404(RHU, user=self.request.user)
+    return MassScreeningRequest.objects.filter(rhu=rhu)
+
+class MyMassScreeningRequestUpdateView(generics.UpdateAPIView):
+  serializer_class = MassScreeningRequestSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def get_queryset(self):
+    rhu = get_object_or_404(RHU, user=self.request.user)
+    return MassScreeningRequest.objects.filter(rhu=rhu)
+
+class MyMassScreeningRequestDeleteView(generics.DestroyAPIView):
+  serializer_class = MassScreeningRequestSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def get_queryset(self):
+    rhu = get_object_or_404(RHU, user=self.request.user)
+    return MassScreeningRequest.objects.filter(rhu=rhu)
+
+class MassScreeningAttendanceView(APIView):
+  permission_classes = [IsAuthenticated]
+
+  def get(self, request, request_id):
+    rhu = get_object_or_404(RHU, user=request.user)
+    ms = get_object_or_404(MassScreeningRequest, id=request_id, rhu=rhu)
+    entries = ms.attendance_entries.all().order_by('id')
+    data = MassScreeningAttendanceEntrySerializer(entries, many=True).data
+    return Response(data, status=status.HTTP_200_OK)
+
+  def put(self, request, request_id):
+    rhu = get_object_or_404(RHU, user=request.user)
+    ms = get_object_or_404(MassScreeningRequest, id=request_id, rhu=rhu)
+
+    bulk_serializer = MassScreeningAttendanceBulkSerializer(data=request.data)
+    bulk_serializer.is_valid(raise_exception=True)
+    entries_data = bulk_serializer.validated_data.get('entries', [])
+
+    # Replace strategy: clear then insert
+    ms.attendance_entries.all().delete()
+    objs = [
+      MassScreeningAttendanceEntry(request=ms, name=e.get('name', ''), result=e.get('result', ''))
+      for e in entries_data
+      if e.get('name')
+    ]
+    if objs:
+      MassScreeningAttendanceEntry.objects.bulk_create(objs)
+
+    saved = ms.attendance_entries.all().order_by('id')
+    return Response(MassScreeningAttendanceEntrySerializer(saved, many=True).data, status=status.HTTP_200_OK)
+
+class MyMassScreeningAttachmentAddView(APIView):
+  permission_classes = [IsAuthenticated]
+
+  def post(self, request, id):
+    rhu = get_object_or_404(RHU, user=request.user)
+    ms = get_object_or_404(MassScreeningRequest, id=id, rhu=rhu)
+    files = request.FILES.getlist('attachments')
+    created = []
+    for f in files:
+      validate_attachment(f)
+      att = MassScreeningAttachment.objects.create(request=ms, file=f)
+      created.append(att)
+    data = MassScreeningAttachmentSerializer(created, many=True, context={'request': request}).data
+    return Response({ 'attachments': data }, status=status.HTTP_201_CREATED)
+
+class MyMassScreeningAttachmentDeleteView(generics.DestroyAPIView):
+  serializer_class = MassScreeningAttachmentSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def get_queryset(self):
+    rhu = get_object_or_404(RHU, user=self.request.user)
+    # Only allow deleting attachments for requests owned by this RHU
+    return MassScreeningAttachment.objects.filter(request__rhu=rhu)
+
+# ---------------------------------------------
+# Admin: Mass Screening Management
+# ---------------------------------------------
+class AdminMassScreeningListView(generics.ListAPIView):
+  serializer_class = MassScreeningRequestSerializer
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def get_queryset(self):
+    qs = MassScreeningRequest.objects.select_related('rhu').all().order_by('-created_at')
+    status_filter = self.request.query_params.get('status')
+    date_filter = self.request.query_params.get('date')
+    if status_filter:
+      qs = qs.filter(status=status_filter)
+    if date_filter:
+      qs = qs.filter(date=date_filter)
+    return qs
+
+class AdminMassScreeningDetailView(generics.RetrieveAPIView):
+  serializer_class = MassScreeningRequestSerializer
+  permission_classes = [IsAuthenticated, IsAdminUser]
+  lookup_field = 'id'
+  queryset = MassScreeningRequest.objects.all()
+
+class AdminMassScreeningStatusView(APIView):
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def post(self, request, id, action):
+    ms = get_object_or_404(MassScreeningRequest, id=id)
+    if action == 'verify':
+      ms.status = 'Verified'
+    elif action == 'reject':
+      ms.status = 'Rejected'
+    elif action == 'done':
+      ms.status = 'Done'
+    else:
+      return Response({ 'detail': 'Invalid action' }, status=status.HTTP_400_BAD_REQUEST)
+    ms.save(update_fields=['status'])
+    # Notify RHU via email following individual screening style
+    try:
+      send_mass_screening_status_email(ms.rhu, ms.status, request_obj=ms)
+    except Exception:
+      pass
+    return Response(MassScreeningRequestSerializer(ms).data, status=status.HTTP_200_OK)
+
+class AdminMassScreeningAttendanceView(APIView):
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def get(self, request, request_id):
+    ms = get_object_or_404(MassScreeningRequest, id=request_id)
+    entries = ms.attendance_entries.all().order_by('id')
+    data = MassScreeningAttendanceEntrySerializer(entries, many=True).data
+    return Response(data, status=status.HTTP_200_OK)
 
 # ---------------------------------------------
 # Admin: Pre-Cancerous Meds Requests Management
