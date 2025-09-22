@@ -40,6 +40,7 @@ const CancerTreatmentApplication = () => {
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
+  const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
   const [modalAppId, setModalAppId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -72,7 +73,8 @@ const CancerTreatmentApplication = () => {
   }, []);
 
   const handleCancel = (id) => {
-    setModalText("Are you sure you want to cancel this application?");
+    setModalText("Confirm Cancel?");
+    setModalDesc("Are you sure you want to cancel this application?");
     setModalAction({ type: "cancel", id: id });
     setModalOpen(true);
     // setModalAppId(id);
@@ -156,7 +158,8 @@ const CancerTreatmentApplication = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={handleModalCancel}
       />

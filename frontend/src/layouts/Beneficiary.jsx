@@ -18,7 +18,7 @@ const BeneficiaryLayout = () => {
       try {
         const response = await api.get("/beneficiary/patient/details/");
         const status = response.data.status;
-        if (status === "validated") {
+        if (status === "validated" || status === "active") {
           setIsValidated(true);
         } else if (status === "pending") {
           setIsValidated(false);

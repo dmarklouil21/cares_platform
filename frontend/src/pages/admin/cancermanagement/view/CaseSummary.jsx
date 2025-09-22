@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import CaseSummaryPrintTemplate from "./CaseSummaryPrintTemplate";
 
@@ -5,6 +6,33 @@ const CaseSummaryPlan = () => {
   const location = useLocation();
   const record = location.state;
   const { id } = useParams();
+  const [ additionalNotes, setAdditionalNotes ] = useState({
+    medicalAbstractNotes: "",
+    socialCaseNotes: ""
+  })
+  const [ interventionPlan, setInterventionPlan ] = useState({
+    recommendedSupport: "",
+    scopeCoverage: "",
+    timelineMilestone: "",
+    followUpMonitoring: "",
+    poRemarks: "",
+  })
+
+  const handleAdditionalNotesChange = (e) => {
+    const { name, value } = e.target;
+    setAdditionalNotes((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleInterventionPlanChange = (e) => {
+    const { name, value } = e.target;
+    setInterventionPlan((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   return (
     <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
@@ -114,9 +142,11 @@ const CaseSummaryPlan = () => {
             </div>
             <div className="w-full">
               <label className="text-sm font-medium block mb-1">Medical Abstract Notes</label>
-              <textarea
-                defaultValue="Some Notes"
+              <textarea 
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white resize-none"
+                name="medicalAbstractNotes"
+                value={additionalNotes.medicalAbstractNotes} 
+                onChange={handleAdditionalNotesChange}
               />
             </div>
           </Section>
@@ -146,8 +176,10 @@ const CaseSummaryPlan = () => {
             <div className="w-full">
               <label className="text-sm font-medium block mb-1">Social Case Notes</label>
               <textarea
-                defaultValue="Some Case Notes"
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white resize-none"
+                name="socialCaseNotes"
+                value={additionalNotes.socialCaseNotes}
+                onChange={handleAdditionalNotesChange}
               />
             </div>
           </Section>
@@ -159,7 +191,9 @@ const CaseSummaryPlan = () => {
                 <label className="text-sm font-medium block mb-1">Recommended Support</label>
                 <input
                   type="text"
-                  defaultValue=""
+                  name="recommendedSupport"
+                  value={interventionPlan.recommendedSupport}
+                  onChange={handleInterventionPlanChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
                 />
               </div>
@@ -167,7 +201,9 @@ const CaseSummaryPlan = () => {
                 <label className="text-sm font-medium block mb-1">Timeline & Milestones</label>
                 <input
                   type="text"
-                  defaultValue=""
+                  name="timelineMilestone"
+                  value={interventionPlan.timelineMilestone}
+                  onChange={handleInterventionPlanChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
                 />
               </div>
@@ -175,15 +211,19 @@ const CaseSummaryPlan = () => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full">
                 <label className="text-sm font-medium block mb-1">Scope & Coverage</label>
-                <textarea
-                  defaultValue=""
+                <textarea 
+                  name="scopeCoverage"
+                  value={interventionPlan.scopeCoverage}
+                  onChange={handleInterventionPlanChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-white resize-none"
                 />
               </div>
               <div className="w-full">
                 <label className="text-sm font-medium block mb-1">Follow-up / Monitoring</label>
-                <textarea
-                  defaultValue=""
+                <textarea 
+                  name="followUpMonitoring"
+                  value={interventionPlan.followUpMonitoring}
+                  onChange={handleInterventionPlanChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-white resize-none"
                 />
               </div>
@@ -191,20 +231,22 @@ const CaseSummaryPlan = () => {
             <div className="w-full">
               <label className="text-sm font-medium block mb-1">PO Remarks</label>
               <textarea
-                defaultValue=""
+                name="poRemarks"
+                value={interventionPlan.poRemarks}
+                onChange={handleInterventionPlanChange}
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white resize-none"
               />
             </div>
           </Section>
 
           {/* Signatures */}
-          <Section title="Signatures">
+          {/* <Section title="Signatures">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <SignatureBox label="Patient" />
               <SignatureBox label="Program Officer" />
               <SignatureBox label="Approver" />
             </div>
-          </Section>
+          </Section> */}
         </div>
 
         {/* Footer buttons */}
@@ -226,7 +268,7 @@ const CaseSummaryPlan = () => {
         </div>
         <br />
       </div>
-      <CaseSummaryPrintTemplate caseData={record} />
+      <CaseSummaryPrintTemplate caseData={record} additionalNotes={additionalNotes} interventionPlan={interventionPlan} />
     </div>
   );
 };

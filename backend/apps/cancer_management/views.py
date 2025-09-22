@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 
-from apps.patient.models import HistoricalUpdate
+from apps.patient.models import ServiceReceived
 
 from .models import WellBeingQuestion, CancerTreatment
 from .serializers import WellBeingQuestionSerializer, CancerTreatmentSubmissionSerializer, CancerTreatmentSerializer
@@ -77,19 +77,25 @@ class CancerTreatmentRequestStatusUpdateView(generics.UpdateAPIView):
   def perform_update(self, serializer):
     instance = serializer.save()
 
-    screening_status = instance.status
+    patient = instance.patient
+    request_status = instance.status
 
-    if screening_status == 'Approved':
+    if request_status != 'Pending' and request_status != 'Completed':
+      patient.status = 'active'
+    if request_status == 'Approved':
       instance.date_approved = timezone.now().date()
-    elif screening_status == 'Completed':
-      HistoricalUpdate.objects.create(
-        patient=instance.patient,
-        note='Completed Radiotherapy treatment',
-        date=timezone.now().date(),
+    elif request_status == 'Completed':
+      patient.status = 'validated'
+      
+      ServiceReceived.objects.create(
+        patient=patient,
+        service_type = instance.service_type,
+        date_completed = timezone.now().date()
       )
     
     instance.save()
-    print('Interview Date: ', instance.interview_date)
+    patient.save()
+
     email_status = send_cancer_treatment_status_email(
       patient=instance.patient, 
       status=instance.status, 
@@ -98,6 +104,12 @@ class CancerTreatmentRequestStatusUpdateView(generics.UpdateAPIView):
     )
     if email_status is not True:
       logger.error(f"Email failed to send: {email_status}")
+
+class CancerTreatmentDeleteView(generics.DestroyAPIView):
+  queryset = CancerTreatment.objects.all()
+  serializer_class = CancerTreatmentSerializer
+  lookup_field = 'id'
+  permission_classes = [IsAuthenticated, IsAdminUser]
 
 class SendLOAView(APIView):
   permission_classes = [IsAuthenticated, IsAdminUser]
@@ -125,7 +137,7 @@ class SendCaseSummaryiew(APIView):
   def post(self, request):
     file_obj = request.FILES.get("file")
     email = request.data.get("email")
-    patient_name = request.data.get("patient_name")  # optional, from frontend
+    patient_name = request.data.get("patient_name") 
 
     if not file_obj:
       return Response({"error": "No Case Summary file uploaded."}, status=400)

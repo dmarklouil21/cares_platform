@@ -1,7 +1,7 @@
 // CaseSummaryPrintTemplate.jsx
 import React from "react";
 
-const CaseSummaryPrintTemplate = ({ caseData }) => {
+const CaseSummaryPrintTemplate = ({ caseData, additionalNotes, interventionPlan }) => {
   const patient = caseData?.patient || {};
 
   return (
@@ -63,7 +63,7 @@ const CaseSummaryPrintTemplate = ({ caseData }) => {
           </p>
           <p>
             <span className="font-semibold">Medical Abstract Notes:</span>{" "}
-            {caseData?.medical_notes || "Patient has completed initial diagnostics and is scheduled for treatment next month."}
+            {additionalNotes?.medicalAbstractNotes || "Patient has completed initial diagnostics and is scheduled for treatment next month."}
           </p>
         </Section>
 
@@ -75,17 +75,17 @@ const CaseSummaryPrintTemplate = ({ caseData }) => {
           </p>
           <p>
             <span className="font-semibold">Social Case Notes:</span>{" "}
-            {caseData?.social_case_notes || "Patient is the primary caregiver for two children, lives in a rented house."}
+            {additionalNotes?.socialCaseNotes || "Patient is the primary caregiver for two children, lives in a rented house."}
           </p>
         </Section>
 
         {/* Intervention Plan */}
         <Section title="Intervention Plan">
-          <p><span className="font-semibold">Recommended Support:</span> Financial assistance for treatment</p>
-          <p><span className="font-semibold">Timeline & Milestones:</span> Start treatment within 2 weeks</p>
-          <p><span className="font-semibold">Scope & Coverage:</span> Chemotherapy sessions and lab monitoring</p>
-          <p><span className="font-semibold">Follow-up / Monitoring:</span> Monthly case monitoring until treatment completion</p>
-          <p><span className="font-semibold">PO Remarks:</span> Eligible for full coverage under cancer assistance program</p>
+          <p><span className="font-semibold">Recommended Support:</span> {interventionPlan?.recommendedSupport}</p>
+          <p><span className="font-semibold">Timeline & Milestones:</span> {interventionPlan?.timelineMilestone}</p>
+          <p><span className="font-semibold">Scope & Coverage:</span> {interventionPlan?.scopeCoverage}</p>
+          <p><span className="font-semibold">Follow-up / Monitoring:</span> {interventionPlan?.followUpMonitoring}</p>
+          <p><span className="font-semibold">PO Remarks:</span> {interventionPlan?.poRemarks}</p>
         </Section>
 
         {/* Signatures */}

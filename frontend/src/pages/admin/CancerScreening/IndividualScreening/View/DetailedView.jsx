@@ -32,6 +32,7 @@ const DetailedView = () => {
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
+  const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
   // Screening Date Modal
@@ -64,6 +65,7 @@ const DetailedView = () => {
       setModalAction({ newStatus: selectedStatus });
     } else {
       setModalText(`Confirm status change to "${selectedStatus}"?`);
+      setModalDesc("Make sure the necessary procedure are finished before proceeding.");
       setModalAction({ newStatus: selectedStatus });
       setModalOpen(true);
       // setStatus(selectedStatus);
@@ -76,7 +78,8 @@ const DetailedView = () => {
       return;
     }
     setScreeningDate(tempDate);
-    setModalText(`Confirm screening date to ${tempDate}?`);
+    setModalText(`Screening date set to ${tempDate}?`);
+    setModalDesc("Make sure the date is correct before proceeding.");
     setIsNewDate(true);
     setModalOpen(true);
     setDateModalOpen(false);
@@ -259,7 +262,8 @@ const DetailedView = () => {
       {/* Global Modals */}
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={() => {
           setModalOpen(false);
@@ -443,7 +447,7 @@ const DetailedView = () => {
                   {/* <option value="LOA Generation">LOA Generation</option> */}
                   <option value="In Progress">In Progress</option>
                   <option value="Complete">Complete</option>
-                  <option value="Return">Return</option>
+                  {/* <option value="Return">Return</option> */}
                   <option value="Reject">Reject</option>
                 </select>
               </div>

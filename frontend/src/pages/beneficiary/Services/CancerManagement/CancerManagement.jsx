@@ -1,6 +1,11 @@
-import React, { useState } from "react";
-import { href, Link } from "react-router-dom";
+import React, { use, useState, useEffect } from "react";
+import { href, Link, useNavigate } from "react-router-dom";
+import { useAuth } from "src/context/AuthContext";
 import BeneficiarySidebar from "src/components/navigation/Beneficiary";
+
+import api from "src/api/axiosInstance";
+
+import NotificationModal from "src/components/Modal/NotificationModal";
 
 const cancerTreatmentOptions = [
   {
@@ -60,101 +65,154 @@ const cancerTreatmentOptions = [
 ];
 
 const CancerManagementPage = () => {
+  // const { user } = useAuth();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isApplicationOngoing, setIsApplicationOngoing] = useState(false);
+
+  // Notification Modal
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({
+    type: "success",
+    title: "Success!",
+    message: "The form has been submitted successfully.",
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data } = await api.get(`/beneficiary/cancer-treatment/details/`);
+        setIsApplicationOngoing(data.status !== "Completed")
+        console.log("Treatment Status: ", data.status);
+      } catch (error) {
+        console.error("Error fetching screening data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // console.log("User: ");
+
+  const handleApply = (serviceType, link) => {
+    const relatedServices = ["Radiotherapy", "Radioactive Therapy", "Brachytherapy", "Chemotherapy", "Surgery"]
+    if (relatedServices.includes(serviceType) && isApplicationOngoing) {
+      setModalInfo({
+        type: "info",
+        title: "Invalid Application",
+        message: "You can only request for a treatment service one at a time. Complete your ongoing application or wait for it's feedback before submitting another.",
+      });
+      setShowModal(true);
+      return;
+    }
+
+    navigate(link, {state: serviceType});
+  }
+
   return (
-    <div className="w-full h-screen bg-gray overflow-auto">
-      <div className="md:hidden">
-        <BeneficiarySidebar
-          isSidebarOpen={isSidebarOpen}
-          setIsSidebarOpen={setIsSidebarOpen}
-        />
-      </div>
-
-      <div className="bg-white py-4 px-10 flex justify-between items-center ">
-        {/* Menu Button for Mobile */}
-        <img
-          className="md:hidden size-5 cursor-pointer"
-          src="/images/menu-line.svg"
-          onClick={() => setIsSidebarOpen(true)}
-        />
-
-        <div className="font-bold">Beneficiary</div>
-        <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-          <img
-            src="/images/Avatar.png"
-            alt="User Profile"
-            className="rounded-full"
+    <>
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
+      />
+      <div className="w-full h-screen bg-gray overflow-auto">
+        <div className="md:hidden">
+          <BeneficiarySidebar
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
           />
         </div>
-      </div>
 
-      <div className="py-6 px-10 bg-gray">
-        <h2 className="text-xl font-semibold mb-6">
-          Cancer Management & Treatment Assistance
-        </h2>
+        <div className="bg-white py-4 px-10 flex justify-between items-center ">
+          {/* Menu Button for Mobile */}
+          <img
+            className="md:hidden size-5 cursor-pointer"
+            src="/images/menu-line.svg"
+            onClick={() => setIsSidebarOpen(true)}
+          />
 
-        <div className="flex flex-col gap-7 w-full bg-white rounded-2xl py-10 px-8">
-          <h3 className="text-2xl font-bold text-secondary">
-            CANCER TREATMENT OPTIONS
-          </h3>
-          <p className="text-gray2  mb-4">
-            Explore evidence-based therapies and supportive care at EJACC
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {cancerTreatmentOptions.map((option, index) => (
-              <div
-                key={index}
-                className="rounded-md custom-shadow h-72 flex flex-col justify-between p-4 items-center"
-              >
-                <img
-                  src={option.icon}
-                  alt={`${option.title} Icon`}
-                  className="h-8 w-8"
-                />
-                <h4 className="text-lg font-bold text-gray-800 text-center">
-                  {option.title}
-                </h4>
-                <p className="text-gray2 text-center text-sm">
-                  {option.description}
-                </p>
-
-                {/* {!isValidated ? (
-                  <a
-                    href={option.href}
-                    className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
-                  >
-                    Apply
-                  </a>
-                ) : (
-                  <a
-                    href="/Beneficiary/services/cancer-management-options/radiotherapy/radio-therapy-well-being-tool"
-                    className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
-                  >
-                    Apply
-                  </a>
-                )} */}
-                {/* <a
-                  href="/Beneficiary/services/cancer-management-options/radiotherapy/form-note"
-                  className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
-                >
-                  Apply
-                </a> */}
-                <Link
-                  to={option.href}
-                  state={option.serviceType}
-                  className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
-                >
-                  Apply
-                </Link>
-              </div>
-            ))}
+          <div className="font-bold">Beneficiary</div>
+          <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
+            <img
+              src="/images/Avatar.png"
+              alt="User Profile"
+              className="rounded-full"
+            />
           </div>
         </div>
-      </div>
 
-      <div className="h-16 bg-secondary"></div>
-    </div>
+        <div className="py-6 px-10 bg-gray">
+          <h2 className="text-xl font-semibold mb-6">
+            Cancer Management & Treatment Assistance
+          </h2>
+
+          <div className="flex flex-col gap-7 w-full bg-white rounded-2xl py-10 px-8">
+            <h3 className="text-2xl font-bold text-secondary">
+              CANCER TREATMENT OPTIONS
+            </h3>
+            <p className="text-gray2  mb-4">
+              Explore evidence-based therapies and supportive care at EJACC
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {cancerTreatmentOptions.map((option, index) => (
+                <div
+                  key={index}
+                  className="rounded-md custom-shadow h-72 flex flex-col justify-between p-4 items-center"
+                >
+                  <img
+                    src={option.icon}
+                    alt={`${option.title} Icon`}
+                    className="h-8 w-8"
+                  />
+                  <h4 className="text-lg font-bold text-gray-800 text-center">
+                    {option.title}
+                  </h4>
+                  <p className="text-gray2 text-center text-sm">
+                    {option.description}
+                  </p>
+
+                  {/* {!isValidated ? (
+                    <a
+                      href={option.href}
+                      className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                    >
+                      Apply
+                    </a>
+                  ) : (
+                    <a
+                      href="/Beneficiary/services/cancer-management-options/radiotherapy/radio-therapy-well-being-tool"
+                      className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                    >
+                      Apply
+                    </a>
+                  )} */}
+                  {/* <a
+                    href="/Beneficiary/services/cancer-management-options/radiotherapy/form-note"
+                    className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                  >
+                    Apply
+                  </a> */}
+                  <button
+                    onClick={() => handleApply(option.serviceType, option.href)}
+                    // to={option.href}
+                    // state={option.serviceType}
+                    className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+                  >
+                    Apply
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="h-16 bg-secondary"></div>
+      </div>
+    </>
   );
 };
 

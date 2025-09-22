@@ -54,6 +54,8 @@ class CancerTreatment(models.Model):
   date_submitted = models.DateField(auto_now_add=True)
   date_approved = models.DateField(blank=True, null=True)
   date_completed = models.DateField(blank=True, null=True)
+  has_patient_response = models.BooleanField(default=False)
+  response_description = models.CharField(max_length=255, blank=True, null=True)
   status = models.CharField(
     max_length=50,
     choices=[

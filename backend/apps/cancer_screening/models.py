@@ -14,7 +14,7 @@ class IndividualScreening(models.Model):
     choices=[
       ('Pending', 'Pending'),
       ('Approve', 'Approve'),
-      ('LOA Generation', 'LOA Generation'), # To be removed
+      # ('LOA Generation', 'LOA Generation'), # To be removed
       ('In Progress', 'In Progress'),
       ('Complete', 'Complete'),
       ('Reject', 'Reject'),

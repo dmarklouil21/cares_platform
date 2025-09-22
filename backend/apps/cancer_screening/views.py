@@ -14,7 +14,7 @@ from backend.utils.email import (
   send_precancerous_meds_status_email,
 )
 
-from apps.patient.models import Patient, CancerDiagnosis, HistoricalUpdate, PreScreeningForm
+from apps.patient.models import Patient, CancerDiagnosis, HistoricalUpdate, PreScreeningForm, ServiceReceived
 from apps.patient.serializers import PreScreeningFormSerializer
 from apps.cancer_screening.models import ScreeningAttachment
 from apps.precancerous.models import PreCancerousMedsRequest
@@ -115,18 +115,23 @@ class IndividualScreeningStatusUpdateView(generics.UpdateAPIView):
   def perform_update(self, serializer):
     instance = serializer.save(has_patient_response=False, response_description='')
 
+    patient = instance.patient
     screening_status = instance.status
 
     if screening_status == 'Approve':
       instance.date_approved = timezone.now().date()
+      patient.status = 'active'
     elif screening_status == 'Complete':
-      HistoricalUpdate.objects.create(
-        patient=instance.patient,
-        note='Completed Individual Screening',
-        date=timezone.now().date(),
+      patient.status = 'validated'
+      
+      ServiceReceived.objects.create(
+        patient=patient,
+        service_type = 'Cancer Screening',
+        date_completed = timezone.now().date()
       )
     
     instance.save()
+    patient.save()
 
     email_status = send_individual_screening_status_email(
       instance.patient, instance.status, instance.screening_date

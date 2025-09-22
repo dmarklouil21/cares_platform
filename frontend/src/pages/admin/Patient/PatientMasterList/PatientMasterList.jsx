@@ -38,7 +38,7 @@ const PatientMasterList = () => {
   const [notification, setNotification] = useState("");
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active");
   const navigate = useNavigate();
 
   // Notification Modal
@@ -53,11 +53,13 @@ const PatientMasterList = () => {
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
+  const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null); 
 
   const fetchData = async () => {
     try {
-      const response = await api.get("/patient/list/?status=validated");
+      // const response = await api.get("/patient/list/?status=validated");
+      const response = await api.get("/patient/list/");
       setPatients(response.data);
       console.log("Responses: ", response.data);
     } catch (error) {
@@ -85,12 +87,12 @@ const PatientMasterList = () => {
       !query ||
       patient.patient_id?.toString().toLowerCase().includes(query) ||
       fullName.includes(query) ||
-      (patient.lgu || "").toLowerCase().includes(query);
-    /* const matchesStatus =
+      (patient.city || "").toLowerCase().includes(query);
+    const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "active" && patient.is_active) ||
-      (statusFilter === "inactive" && !patient.is_active); */
-    return matchesSearch /* && matchesStatus; */
+      (statusFilter === "active" && patient.status === "active");
+      // (statusFilter === "inactive" && !patient.is_active);
+    return matchesSearch && matchesStatus;
   });
 
   const handleViewClick = (patient_id) => {
@@ -160,6 +162,7 @@ const PatientMasterList = () => {
   const handleActionClick = (id, action) => {
     if (action === "delete") {
       setModalText("Are you sure you want to delete this patient?");
+      setModalDesc("This action cannot be undone.");
       setModalAction({ id, action });
       setModalOpen(true);
     }
@@ -169,7 +172,8 @@ const PatientMasterList = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={() => {
           setModalOpen(false);
@@ -224,7 +228,7 @@ const PatientMasterList = () => {
               >
                 <option value="all">All</option>
                 <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                {/* <option value="inactive">Inactive</option> */}
               </select>
 
               <input
