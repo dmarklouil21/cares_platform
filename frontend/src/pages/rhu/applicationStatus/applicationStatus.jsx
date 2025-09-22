@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
+import { listMyMassScreenings, deleteMyMassScreening } from "../../../api/massScreening";
 
 /* Notification (no close button) */
 function Notification({ message }) {
@@ -19,40 +20,42 @@ function Notification({ message }) {
 }
 
 const applicationStatus = () => {
-  /* ----------------------------- Demo data ----------------------------- */
-  const [items, setItems] = useState([
-    {
-      id: "MS-001",
-      title: "Barangay Wellness Check",
-      date: "2025-09-20",
-      beneficiaries: "Senior citizens (50)",
-      status: "pending",
-      description: "Free BP & glucose screening for seniors.",
-      supportNeed: "3 nurses, 2 BP sets, 1 glucometer",
-    },
-    {
-      id: "MS-002",
-      title: "School Health Drive",
-      date: "2025-09-25",
-      beneficiaries: "Students (120)",
-      status: "approved",
-      description: "Free BP & glucose screening for seniors.",
-      supportNeed: "3 nurses, 2 BP sets, 1 glucometer",
-    },
-    {
-      id: "MS-003",
-      title: "Community Screening",
-      date: "2025-10-01",
-      beneficiaries: "General public (80)",
-      status: "pending",
-      description: "Free BP & glucose screening for seniors.",
-      supportNeed: "3 nurses, 2 BP sets, 1 glucometer",
-    },
-  ]);
+  /* ----------------------------- Data ----------------------------- */
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const loadItems = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await listMyMassScreenings();
+      // data: [{ id, title, venue, date, beneficiaries, description, support_need, status, created_at, attachments }]
+      const normalized = (Array.isArray(data) ? data : []).map((d) => ({
+        id: d.id,
+        title: d.title,
+        date: d.date,
+        beneficiaries: d.beneficiaries,
+        status: d.status, // Pending | Verified | Rejected | Done
+        description: d.description,
+        supportNeed: d.support_need,
+        attachments: d.attachments || [],
+      }));
+      setItems(normalized);
+    } catch (e) {
+      setError(e?.response?.data?.detail || "Failed to load applications.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadItems();
+  }, []);
 
   /* ----------------------------- Filters ------------------------------ */
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // all | pending | approved
+  const [statusFilter, setStatusFilter] = useState("all"); // all | Pending | Verified | Rejected | Done
   const [dateFilter, setDateFilter] = useState("");
 
   /* ----------------------------- Pagination --------------------------- */
@@ -64,13 +67,13 @@ const applicationStatus = () => {
     return items.filter((it) => {
       const matchesSearch =
         !q ||
-        (it.id ?? "").toLowerCase().includes(q) ||
+        String(it.id ?? "").toLowerCase().includes(q) ||
         (it.title ?? "").toLowerCase().includes(q) ||
         (it.beneficiaries ?? "").toLowerCase().includes(q);
       const matchesStatus =
         statusFilter === "all"
           ? true
-          : (it.status ?? "").toLowerCase() === statusFilter;
+          : (it.status ?? "") === statusFilter;
       const matchesDate = !dateFilter ? true : (it.date ?? "") === dateFilter;
       return matchesSearch && matchesStatus && matchesDate;
     });
@@ -118,12 +121,18 @@ const applicationStatus = () => {
     setShowDeleteConfirm(true);
   };
 
-  const confirmDelete = () => {
-    setShowDeleteConfirm(false);
-    // If you actually want to remove the item, uncomment the next line:
-    // setItems((arr) => arr.filter((x) => x.id !== deleteTargetId));
-    setNotif("Record deleted successfully.");
-    setDeleteTargetId(null);
+  const confirmDelete = async () => {
+    try {
+      if (deleteTargetId == null) return;
+      await deleteMyMassScreening(deleteTargetId);
+      setNotif("Record deleted successfully.");
+      await loadItems();
+    } catch (e) {
+      setNotif(e?.response?.data?.detail || "Failed to delete record.");
+    } finally {
+      setShowDeleteConfirm(false);
+      setDeleteTargetId(null);
+    }
   };
 
   const cancelDelete = () => {
@@ -174,8 +183,10 @@ const applicationStatus = () => {
               }}
             >
               <option value="all">All</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
+              <option value="Pending">Pending</option>
+              <option value="Verified">Verified</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Done">Done</option>
             </select>
             <input
               type="date"
@@ -230,11 +241,19 @@ const applicationStatus = () => {
                 </colgroup>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedData.map((item) => {
-                    const status = (item.status || "").toLowerCase(); // pending | approved
-                    const statusClasses =
-                      status === "approved"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700";
+                    const status = item.status || ""; // Pending | Verified | Rejected | Done
+                    const statusClasses = (() => {
+                      switch (status) {
+                        case "Verified":
+                          return "bg-green-100 text-green-700";
+                        case "Rejected":
+                          return "bg-red-100 text-red-700";
+                        case "Done":
+                          return "bg-blue-100 text-blue-700";
+                        default:
+                          return "bg-yellow-100 text-yellow-700"; // Pending or others
+                      }
+                    })();
 
                     return (
                       <tr key={item.id}>
@@ -254,7 +273,7 @@ const applicationStatus = () => {
                           <span
                             className={`px-2 py-1 rounded text-xs font-medium ${statusClasses}`}
                           >
-                            {status === "approved" ? "Approved" : "Pending"}
+                            {status || "—"}
                           </span>
                         </td>
                         <td className="text-center text-sm py-4">

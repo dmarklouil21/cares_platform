@@ -180,6 +180,90 @@ def send_individual_screening_status_email(patient, status, screening_date=None,
   except Exception as e:
     return str(e)
   
+def send_mass_screening_status_email(rhu, status, request_obj=None, remarks=None):
+  """Notify RHU about mass screening request status updates.
+
+  rhu: RHU instance (apps.rhu.models.RHU), expected to have a related User with email.
+  status: 'Verified' | 'Rejected' | 'Done' | 'Pending'
+  request_obj: optional MassScreeningRequest for contextual info (title, date)
+  remarks: optional free text for rejection details
+  """
+  try:
+    # Resolve recipient
+    recipient_email = getattr(getattr(rhu, 'user', None), 'email', None) or getattr(rhu, 'email', None)
+    if not recipient_email:
+      raise ValueError("Recipient email not found for RHU.")
+
+    title = getattr(request_obj, 'title', '') if request_obj is not None else ''
+    date = getattr(request_obj, 'date', '') if request_obj is not None else ''
+
+    status_messages = {
+      'Verified': (
+        "Your mass screening application has been <b>verified</b>. "
+        + (f"Your proposed activity is scheduled for <b>{date}</b>. " if date else "")
+        + "Please monitor your dashboard for next steps."
+      ),
+      'Rejected': (
+        "Unfortunately, your mass screening application has been <b>rejected</b>. "
+        + (f"<br><br><b>Remarks:</b> {remarks}" if remarks else "")
+      ),
+      'Done': (
+        "Your mass screening application has been marked as <b>Done</b>. "
+        "Thank you for your cooperation."
+      ),
+      'Pending': (
+        "Your mass screening application is currently <b>Pending</b>. "
+        "We will notify you once it is reviewed."
+      ),
+    }
+
+    message_body = status_messages.get(status, "Your application status has been updated.")
+
+    status_colors = {
+      'Verified': '#28a745',
+      'Rejected': '#dc3545',
+      'Done': '#0d6efd',
+      'Pending': '#ffc107',
+    }
+    badge_color = status_colors.get(status, '#6c757d')
+
+    send_mail(
+      subject="RAFI-EJACC: Mass Screening Application Update",
+      message="",
+      from_email=settings.DEFAULT_FROM_EMAIL,
+      recipient_list=[recipient_email],
+      fail_silently=False,
+      html_message=f"""
+        <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
+          <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+            <div style="background: #005baa; padding: 20px; text-align: center;">
+              <img src="https://rafi.org.ph/wp-content/uploads/2021/03/RAFI-LOGO-1.png" alt="RAFI Logo" style="height: 50px; display: block; margin: 0 auto 10px;">
+              <h2 style="color: #fff; margin: 0; font-weight: normal;">Mass Screening Status Update</h2>
+            </div>
+            <div style="padding: 30px;">
+              <p style="margin: 0 0 15px 0;">Dear <b>{getattr(rhu, 'lgu', '')}</b>,</p>
+              {(f"<p style=\"margin: 0 0 10px 0;\"><b>Title:</b> {title}</p>" if title else '')}
+              {(f"<p style=\"margin: 0 0 10px 0;\"><b>Date:</b> {date}</p>" if date else '')}
+              <div style="display: inline-block; background: {badge_color}; color: white; padding: 5px 12px; border-radius: 12px; font-size: 14px; margin: 10px 0 15px 0;">
+                {status}
+              </div>
+              <p style="font-size: 15px; line-height: 1.6; color: #333;">{message_body}</p>
+              <a href="/login" style="display: inline-block; margin-top: 20px; padding: 12px 20px; background: #005baa; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                View Application
+              </a>
+            </div>
+            <div style="background: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+              <p>If you have any questions, please contact our support team at <a href="mailto:no-reply@gmail.com" style="color: #005baa;">no-reply@gmail.com</a>.</p>
+              <p>This is an automated message from RAFI-EJACC. Please do not reply directly to this email.</p>
+            </div>
+          </div>
+        </div>
+      """
+    )
+    return True
+  except Exception as e:
+    return str(e)
+  
 def send_cancer_treatment_status_email(patient, status, treatment_date=None, interview_date=None, remarks=None):
   try:
     first_name, last_name, recipient_email = _extract_contact_info(patient)

@@ -1,5 +1,6 @@
 from django.db import models
 from apps.patient.models import Patient
+from apps.rhu.models import RHU
 
 # Create your models here.
 
@@ -77,3 +78,48 @@ class PreCancerousMedsRequest(models.Model):
 
   def __str__(self):
     return f"PreCancerousMedsRequest for {self.patient.full_name}"
+
+class MassScreeningRequest(models.Model):
+  """Represents an RHU-initiated mass screening request."""
+  rhu = models.ForeignKey(RHU, on_delete=models.CASCADE, related_name='mass_screening_requests')
+  title = models.CharField(max_length=255)
+  venue = models.CharField(max_length=255)
+  date = models.DateField()
+  beneficiaries = models.CharField(max_length=255, blank=True, null=True)
+  description = models.TextField(blank=True, null=True)
+  support_need = models.TextField(blank=True, null=True)
+
+  status = models.CharField(
+    max_length=20,
+    choices=[('Pending', 'Pending'), ('Verified', 'Verified'), ('Rejected', 'Rejected'), ('Done', 'Done')],
+    default='Pending'
+  )
+
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  class Meta:
+    ordering = ['-created_at']
+
+  def __str__(self):
+    return f"{self.title} ({self.rhu.lgu})"
+
+class MassScreeningAttachment(models.Model):
+  request = models.ForeignKey(MassScreeningRequest, on_delete=models.CASCADE, related_name='attachments')
+  file = models.FileField(upload_to='attachments/mass_screening/')
+  uploaded_at = models.DateTimeField(auto_now_add=True)
+
+  def __str__(self):
+    return f"Attachment for {self.request_id} - {self.file.name}"
+
+class MassScreeningAttendanceEntry(models.Model):
+  """Attendance entry for a Mass Screening request."""
+  request = models.ForeignKey(MassScreeningRequest, on_delete=models.CASCADE, related_name='attendance_entries')
+  name = models.CharField(max_length=255)
+  result = models.CharField(max_length=255, blank=True, null=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  class Meta:
+    ordering = ['id']
+
+  def __str__(self):
+    return f"{self.name} - {self.result or ''}"

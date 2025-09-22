@@ -1,6 +1,7 @@
 // pages/admin/Services/CancerScreening/MassScreeningView.jsx
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { getAdminMassScreeningDetail } from "../../../../../api/massScreening";
 
 export default function MassScreeningView() {
   const location = useLocation();
@@ -11,70 +12,80 @@ export default function MassScreeningView() {
       (location.state.record || location.state.item || location.state)) ||
     null;
 
-  // Fallbacks for demo
-  const record = {
-    id: selected?.id ?? "APP-2025-001",
-    title: selected?.title ?? "Cancer Screening",
-    venue: selected?.venue ?? "Argao Sports Complex",
-    description: selected?.description ?? "Community-Based Cancer Screening",
-    beneficiaries: selected?.beneficiaries ?? "200",
-    date: selected?.date ?? "2025-04-12",
-    supportNeed:
-      selected?.supportNeed ??
-      "Consumable, Medical Supplies, Laboratory Processing (Cervical Screening, Prostate, Thyroid)",
-    status: selected?.status ?? "approved",
-  };
+  const passedId = selected?.id || location.state?.id || null;
 
-  const status = (record.status || "").toLowerCase();
-  const statusClasses =
-    status === "approved"
-      ? "bg-green-100 text-green-700"
-      : "bg-yellow-100 text-yellow-700";
+  const [record, setRecord] = useState({
+    id: selected?.id || "",
+    title: selected?.title || "",
+    venue: selected?.venue || "",
+    description: selected?.description || "",
+    beneficiaries: selected?.beneficiaries || "",
+    date: selected?.date || "",
+    supportNeed: selected?.supportNeed || "",
+    status: selected?.status || "",
+  });
+  const [attachments, setAttachments] = useState(
+    Array.isArray(selected?.attachments) ? selected.attachments : []
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  /* -------------------- Sample attachments (viewable) -------------------- */
-  const sampleAttachments = [
-    {
-      name: "Program Proposal.pdf",
-      size: 284_512,
-      url: "https://www.africau.edu/images/default/sample.pdf",
-    },
-    {
-      name: "Attendance Template.xlsx",
-      size: 96_404,
-      url: "https://file-examples.com/storage/fe6a0b263c4f9c4f1a1cc3e/2017/02/file_example_XLSX_10.xlsx",
-    },
-    {
-      name: "RHU Endorsement.docx",
-      size: 178_230,
-      url: "https://file-examples.com/storage/fe6a0b263c4f9c4f1a1cc3e/2017/02/file-sample_100kB.doc",
-    },
-  ];
+  const status = record.status || ""; // Pending | Verified | Rejected | Done
+  const statusClasses = (() => {
+    switch (status) {
+      case "Verified":
+        return "bg-green-100 text-green-700";
+      case "Rejected":
+        return "bg-red-100 text-red-700";
+      case "Done":
+        return "bg-blue-100 text-blue-700";
+      default:
+        return "bg-yellow-100 text-yellow-700";
+    }
+  })();
+
+  // Fetch admin detail if needed
+  useEffect(() => {
+    const run = async () => {
+      if (!passedId) return;
+      try {
+        setLoading(true);
+        setError("");
+        const data = await getAdminMassScreeningDetail(passedId);
+        setRecord({
+          id: data.id,
+          title: data.title || "",
+          venue: data.venue || "",
+          description: data.description || "",
+          beneficiaries: data.beneficiaries || "",
+          date: data.date || "",
+          supportNeed: data.support_need || "",
+          status: data.status || "",
+        });
+        const atts = Array.isArray(data.attachments) ? data.attachments : [];
+        setAttachments(atts);
+      } catch (e) {
+        setError(e?.response?.data?.detail || "Failed to load record.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    // If selected looks incomplete, or to ensure fresh data
+    if (!selected || !selected.title) run();
+  }, [passedId]);
 
   const attachmentsToShow = useMemo(() => {
-    const a = Array.isArray(selected?.attachments) ? selected.attachments : [];
-    if (a.length) {
-      return a.map((att, i) =>
-        typeof att === "string"
-          ? { name: att.split("/").pop() || `Attachment ${i + 1}`, url: att }
-          : { name: att.name, url: att.url, size: att.size }
-      );
-    }
-    return sampleAttachments;
-  }, [selected]);
+    const a = Array.isArray(attachments) ? attachments : [];
+    return a.map((att, i) => {
+      if (typeof att === "string") return { name: att.split("/").pop() || `Attachment ${i + 1}`, url: att };
+      if (att && typeof att === "object" && typeof att.file === "string") {
+        return { name: att.file.split("/").pop(), url: att.file };
+      }
+      return { name: att?.name || `Attachment ${i + 1}`, url: att?.url };
+    });
+  }, [attachments]);
 
-  // sample attendance to pass forward (view page no longer renders it)
-  const samplePatients = [
-    { name: "Juan Dela Cruz", result: "BP 120/80 — Normal" },
-    { name: "Maria Santos", result: "BP 140/90 — Elevated" },
-    { name: "Pedro Reyes", result: "Glucose 95 mg/dL — Normal" },
-    { name: "Ana Bautista", result: "Cholesterol 230 — High" },
-    { name: "Jose Ramirez", result: "Referred to doctor" },
-  ];
-
-  const patientsToPass =
-    (Array.isArray(selected?.patients) && selected.patients.length
-      ? selected.patients
-      : samplePatients) || samplePatients;
+  // We will not pass sample patients; admin attendance page will fetch from backend
 
   const prettyDate = (iso) => {
     try {
@@ -109,6 +120,10 @@ export default function MassScreeningView() {
           <h2 className="text-2xl font-semibold">
             Request Review - {record.id}
           </h2>
+          {loading && <div className="text-sm text-gray-600 mt-1">Loading…</div>}
+          {error && !loading && (
+            <div className="text-sm text-red-600 mt-1">{error}</div>
+          )}
           <p className="text-yellow mt-1">
             Review patient submitted requirements for cancer screening
             qualification.
@@ -119,10 +134,8 @@ export default function MassScreeningView() {
         <section className="bg-white rounded-2xl border border-gray-200 px-5 md:px-7 py-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Request Info</h3>
-            <span
-              className={`px-2 py-1 rounded text-xs font-medium ${statusClasses}`}
-            >
-              {status === "approved" ? "Approved" : "Pending"}
+            <span className={`px-2 py-1 rounded text-xs font-medium ${statusClasses}`}>
+              {status || "—"}
             </span>
           </div>
 
@@ -152,7 +165,7 @@ export default function MassScreeningView() {
         <div className="w-full flex flex-col md:flex-row gap-3 justify-end">
           <Link
             to="/admin/cancer-screening/view/mass-attendance-view"
-            state={{ patients: patientsToPass, screening: record }}
+            state={{ screening: record }}
             className="px-4 py-2 rounded-md md:w-[30%] text-center bg-secondary text-white font-semibold"
           >
             Attendance

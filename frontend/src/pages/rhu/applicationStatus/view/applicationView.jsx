@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import React, { useEffect, useRef, useState } from "react";
+import { getMyMassScreeningDetail, updateMyMassScreening, addMassScreeningAttachments, deleteMassScreeningAttachment } from "../../../../api/massScreening";
 
 /* Notification (no close button) */
 function Notification({ message }) {
@@ -27,6 +28,7 @@ const applicationView = () => {
     (location.state &&
       (location.state.record || location.state.item || location.state)) ||
     null;
+  const passedId = selected?.id || location.state?.id || null;
 
   /* ------------------------- Editable form state ------------------------- */
   const [form, setForm] = useState({
@@ -37,49 +39,68 @@ const applicationView = () => {
     description: selected?.description ?? "",
     supportNeed: selected?.supportNeed ?? "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [statusValue, setStatusValue] = useState(selected?.status || "");
+  const [saving, setSaving] = useState(false);
 
   const onChange = (k) => (e) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const status = (selected?.status || "").toLowerCase(); // "pending" | "approved"
-  const statusClasses =
-    status === "approved"
-      ? "bg-green-100 text-green-700"
-      : "bg-yellow-100 text-yellow-700";
+  const status = statusValue || ""; // Pending | Verified | Rejected | Done
+  const statusClasses = (() => {
+    switch (status) {
+      case "Verified":
+        return "bg-green-100 text-green-700";
+      case "Rejected":
+        return "bg-red-100 text-red-700";
+      case "Done":
+        return "bg-blue-100 text-blue-700";
+      default:
+        return "bg-yellow-100 text-yellow-700"; // Pending or others
+    }
+  })();
 
   const handleCheckAttendance = () => {
-    const defaultPatients = [
-      { name: "Juan Dela Cruz", result: "" },
-      { name: "Maria Santos", result: "" },
-      { name: "Pedro Reyes", result: "" },
-      { name: "Ana Bautista", result: "" },
-      { name: "Jose Ramirez", result: "" },
-    ];
     navigate("/rhu/application/view/applicationAttendance", {
       state: {
         record: form, // pass edited values forward
-        patients: selected?.patients ?? defaultPatients,
+        // Only pass patients if they exist; otherwise let Attendance fetch from backend
+        ...(Array.isArray(selected?.patients) && selected.patients.length
+          ? { patients: selected.patients }
+          : {}),
       },
     });
   };
 
-  /* ------------------- Editable attachments (with samples) ------------------- */
-  const sampleAttachments = [
-    { name: "Program Proposal.pdf", size: 284_512, url: "#" },
-    { name: "Attendance Template.xlsx", size: 96_404, url: "#" },
-    { name: "RHU Endorsement.docx", size: 178_230, url: "#" },
-  ];
+  /* ------------------- Editable attachments ------------------- */
 
   // Normalize initial attachments
+  const toAttachment = (a) => {
+    // Normalize both server and local attachments to a common shape
+    // Server: { id, file: <url>, uploaded_at }
+    // Local (new): { name, size, file: File, url: blob: }
+    if (typeof a === "string") return { name: a.split("/").pop(), url: a };
+    if (a && typeof a === "object") {
+      if (a.file instanceof File) {
+        return { name: a.name || a.file.name, size: a.size, file: a.file, url: a.url };
+      }
+      // from API
+      if (a.id != null && typeof a.file === "string") {
+        return { id: a.id, name: a.file.split("/").pop(), url: a.file };
+      }
+      if (a.url) {
+        return { name: a.name, size: a.size, url: a.url };
+      }
+    }
+    return a;
+  };
+
   const initialAtt = (
     Array.isArray(selected?.attachments) && selected.attachments.length
       ? selected.attachments
-      : sampleAttachments
-  ).map((a) =>
-    typeof a === "string"
-      ? { name: a.split("/").pop(), url: a }
-      : { name: a.name, size: a.size, url: a.url, file: a.file }
-  );
+      : []
+  ).map(toAttachment);
 
   const [attachments, setAttachments] = useState(initialAtt);
   const fileInputRef = useRef(null);
@@ -103,11 +124,25 @@ const applicationView = () => {
     if (next.length) setAttachments((prev) => [...prev, ...next]);
   };
 
-  const removeAttachment = (idx) => {
+  const removeAttachment = async (idx) => {
+    const item = attachments[idx];
+    if (!item) return;
+    // If server-side (has id), call API to delete then remove from state
+    if (item.id != null) {
+      try {
+        await deleteMassScreeningAttachment(item.id);
+        setAttachments((prev) => prev.filter((_, i) => i !== idx));
+        setNotif("Attachment removed.");
+      } catch (e) {
+        setNotif(e?.response?.data?.detail || "Failed to remove attachment.");
+      }
+      return;
+    }
+    // Local unsaved file: just remove
     setAttachments((prev) => {
       const copy = [...prev];
-      const item = copy[idx];
-      if (item?.url?.startsWith("blob:")) URL.revokeObjectURL(item.url);
+      const it = copy[idx];
+      if (it?.url?.startsWith("blob:")) URL.revokeObjectURL(it.url);
       copy.splice(idx, 1);
       return copy;
     });
@@ -131,19 +166,76 @@ const applicationView = () => {
     return () => clearTimeout(t);
   }, [notif]);
 
+  // Fetch detail if we only have an id or want to refresh from backend
+  useEffect(() => {
+    const fetchDetail = async () => {
+      if (!passedId) return;
+      try {
+        setLoading(true);
+        setError("");
+        const data = await getMyMassScreeningDetail(passedId);
+        setForm({
+          id: data.id,
+          title: data.title || "",
+          date: data.date || "",
+          beneficiaries: data.beneficiaries || "",
+          description: data.description || "",
+          supportNeed: data.support_need || "",
+        });
+        setStatusValue(data.status || "");
+        const atts = Array.isArray(data.attachments) ? data.attachments : [];
+        setAttachments(atts.map(toAttachment));
+      } catch (e) {
+        setError(e?.response?.data?.detail || "Failed to load record.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    // Only fetch if we weren't given a full selected record (heuristic)
+    if (!selected || !selected.title) fetchDetail();
+  }, [passedId]);
+
   const handleSaveClick = () => setShowSaveConfirm(true);
-  const confirmSave = () => {
-    setShowSaveConfirm(false);
-    console.log("Changes saved:", {
-      form,
-      attachments: attachments.map((a) => ({
-        name: a.name,
-        size: a.size,
-        url: a.url?.slice(0, 50) + (a.url?.length > 50 ? "…" : ""),
-        isLocalFile: !!a.file,
-      })),
-    });
-    setNotif("Changes saved successfully.");
+  const confirmSave = async () => {
+    try {
+      setSaving(true);
+      setShowSaveConfirm(false);
+      // 1) Update basic fields
+      const payload = {
+        title: form.title,
+        date: form.date,
+        beneficiaries: form.beneficiaries,
+        description: form.description,
+        support_need: form.supportNeed,
+      };
+      await updateMyMassScreening(form.id, payload);
+
+      // 2) Upload any new local attachments
+      const newFiles = attachments.filter((a) => a.file instanceof File && a.id == null).map((a) => a.file);
+      if (newFiles.length) {
+        await addMassScreeningAttachments(form.id, newFiles);
+      }
+
+      // 3) Refresh from backend to sync
+      const data = await getMyMassScreeningDetail(form.id);
+      setForm({
+        id: data.id,
+        title: data.title || "",
+        date: data.date || "",
+        beneficiaries: data.beneficiaries || "",
+        description: data.description || "",
+        supportNeed: data.support_need || "",
+      });
+      setStatusValue(data.status || "");
+      const atts = Array.isArray(data.attachments) ? data.attachments : [];
+      setAttachments(atts.map(toAttachment));
+
+      setNotif("Changes saved successfully.");
+    } catch (e) {
+      setNotif(e?.response?.data?.detail || e?.response?.data?.error || "Failed to save changes.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -162,7 +254,11 @@ const applicationView = () => {
         </h2>
 
         <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-5">
-          {!selected ? (
+          {(!selected && loading) ? (
+            <div className="text-center text-gray-500 py-8">Loading…</div>
+          ) : (!selected && error) ? (
+            <div className="text-center text-red-600 py-8">{error}</div>
+          ) : (!selected && !passedId) ? (
             <div className="text-center text-gray-500 py-8">
               Record not found.
             </div>
@@ -172,10 +268,8 @@ const applicationView = () => {
                 <h3 className="text-lg font-semibold">
                   Mass Screening Details
                 </h3>
-                <span
-                  className={`px-2 py-1 rounded text-xs font-medium ${statusClasses}`}
-                >
-                  {status === "approved" ? "Approved" : "Pending"}
+                <span className={`px-2 py-1 rounded text-xs font-medium ${statusClasses}`}>
+                  {status || "—"}
                 </span>
               </div>
 
@@ -325,9 +419,10 @@ const applicationView = () => {
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   onClick={handleSaveClick}
-                  className="px-4 py-2 rounded-md bg-green-600 text-white font-semibold"
+                  disabled={saving}
+                  className={`px-4 py-2 rounded-md bg-green-600 text-white font-semibold ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
                 >
-                  Save Changes
+                  {saving ? "Saving…" : "Save Changes"}
                 </button>
                 <button
                   onClick={handleCheckAttendance}
@@ -370,9 +465,10 @@ const applicationView = () => {
               <button
                 type="button"
                 onClick={confirmSave}
-                className="px-4 py-2 rounded-md bg-green-600 text-white font-semibold"
+                disabled={saving}
+                className={`px-4 py-2 rounded-md bg-green-600 text-white font-semibold ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
               >
-                Confirm
+                {saving ? "Saving…" : "Confirm"}
               </button>
             </div>
           </div>

@@ -1,27 +1,39 @@
 // pages/admin/Services/CancerScreening/MassAttendanceView.jsx
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { getAdminMassScreeningAttendance } from "../../../../../api/massScreening";
 
 export default function MassAttendanceView() {
   const location = useLocation();
 
-  // patients + optional screening info passed via Link state
-  const passedPatients = location.state?.patients;
+  // Optional screening info passed via Link state
   const screening = location.state?.screening;
+  const requestId = screening?.id;
 
-  const samplePatients = [
-    { name: "Juan Dela Cruz", result: "BP 120/80 — Normal" },
-    { name: "Maria Santos", result: "BP 140/90 — Elevated" },
-    { name: "Pedro Reyes", result: "Glucose 95 mg/dL — Normal" },
-    { name: "Ana Bautista", result: "Cholesterol 230 — High" },
-    { name: "Jose Ramirez", result: "Referred to doctor" },
-  ];
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const patients = useMemo(() => {
-    if (Array.isArray(passedPatients) && passedPatients.length)
-      return passedPatients;
-    return samplePatients;
-  }, [passedPatients]);
+  useEffect(() => {
+    const run = async () => {
+      if (!requestId) return;
+      try {
+        setLoading(true);
+        setError("");
+        const data = await getAdminMassScreeningAttendance(requestId);
+        const normalized = (Array.isArray(data) ? data : []).map((e) => ({
+          name: e.name,
+          result: e.result || "",
+        }));
+        setPatients(normalized);
+      } catch (e) {
+        setError(e?.response?.data?.detail || "Failed to load attendance.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    run();
+  }, [requestId]);
 
   return (
     <div className="h-screen w-full bg-gray flex flex-col">
@@ -48,6 +60,12 @@ export default function MassAttendanceView() {
               <p className="text-sm text-gray-600 mt-1">
                 For request: {screening.id}
               </p>
+            )}
+            {loading && (
+              <div className="text-sm text-gray-600 mt-1">Loading…</div>
+            )}
+            {error && !loading && (
+              <div className="text-sm text-red-600 mt-1">{error}</div>
             )}
           </div>
           <Link
