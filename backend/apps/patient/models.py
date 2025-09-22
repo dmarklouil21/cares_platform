@@ -19,7 +19,7 @@ CIVIL_STATUS_CHOICES = [
 PATIENT_STATUS_CHOICES = [
   ('validated', 'Validated'),
   ('pending', 'Pending'),
-  # ('active', 'Active'),
+  ('active', 'Active'),
   ('rejected', 'Rejected'),
   ('archived', 'Archived'),
 ]
@@ -117,6 +117,18 @@ class CancerDiagnosis(models.Model):
   def __str__(self):
     return f"Diagnosis for {self.patient.full_name}: {self.cancer_site or 'N/A'} - Stage {self.cancer_stage or 'N/A'}"
   
+class ServiceReceived(models.Model):
+  patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='service_received')
+  service_type = models.CharField(max_length=100)
+  date_completed = models.DateField(blank=True, null=True)
+
+  class Meta:
+    verbose_name = 'ServiceReceived'
+    verbose_name_plural = 'ServicesReceived'
+
+  def __str__(self):
+    return f"Service received by {self.patient.full_name}"
+
 class HistoricalUpdate(models.Model):
   patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='historical_updates')
   date = models.DateField(blank=True, null=True)

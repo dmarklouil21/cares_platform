@@ -32,6 +32,7 @@ const IndividualScreening = () => {
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
+  const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null); 
 
   useEffect(() => {
@@ -91,7 +92,8 @@ const IndividualScreening = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setModalText('Make sure all your inputs are correct!');
+    setModalText('Confirm Submit?');
+    setModalDesc('Make sure all your inputs are correct!');
     setModalAction({ type: "submit" }); 
     setModalOpen(true);
   };
@@ -154,7 +156,8 @@ const IndividualScreening = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={() => {
           setModalOpen(false);

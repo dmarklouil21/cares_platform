@@ -36,6 +36,7 @@ const IndividualScreening = () => {
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
+  const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null); 
 
   useEffect(() => {
@@ -116,6 +117,7 @@ const IndividualScreening = () => {
   const handleActionClick = (id, action) => {
     if (action === "delete") {
       setModalText("Confirm delete?");
+      setModalDesc("This action cannot be undone.");
       setModalAction({ id, action });
       setModalOpen(true);
     }
@@ -134,7 +136,8 @@ const IndividualScreening = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={() => {
           setModalOpen(false);

@@ -53,6 +53,7 @@ const AdminCancerManagement = () => {
     try {
       const response = await api.get("/cancer-management/list/");
       setTableData(response.data);
+      console.log("Response Data: ", response.data);
     } catch (error) {
       console.error("Error fetching cancer treatment requests:", error);
     }
@@ -86,42 +87,61 @@ const AdminCancerManagement = () => {
     });
   };
 
-  const handleModalConfirm = () => {
+  const handleModalConfirm = async () => {
     if (modalAction?.action === "delete") {
-      setLoading(true);
-      setModalOpen(false);
-      setTimeout(() => {
-        setTableData((prev) => prev.filter((x) => x.id !== modalAction.id));
-        setLoading(false);
+      try {
+        setModalOpen(false);
+        setLoading(true);
+        const response = await api.delete(`/cancer-management/cancer-treatment/delete/${modalAction?.id}/`);
         setModalInfo({
           type: "success",
-          title: "Deleted",
-          message: "Record deleted (sample only).",
+          title: "Success!",
+          message: "Deleted Successfully.",
         });
         setShowModal(true);
-      }, 600);
+      } catch (error) {
+        // setNotification("Failed to delete patient");
+        setModalInfo({
+          type: "error",
+          title: "Failed to delete this object",
+          message: "Something went wrong while deleting the record.",
+        });
+        setShowModal(true);
+        console.error(error);
+      } finally {
+        fetchData();
+        setLoading(false);
+      }
     }
     setModalAction(null);
     setModalText("");
   };
 
-  const handleActionClick = (id, action) => {
-    if (action === "delete") {
-      setModalText("Confirm delete?");
-      setModalDesc("This record will be deleted permanently.")
-      setModalAction({ id, action });
-      setModalOpen(true);
-    }
+  const handleDelete = (id, action) => {
+    setModalText(`Confirm delete?`);
+    setModalDesc("This record will be deleted permanently.")
+    setModalAction({ id, action });
+    setModalOpen(true);
   };
+
+  // const handleActionClick = (id, action) => {
+  //   if (action === "delete") {
+  //     setModalText("Confirm delete?");
+  //     setModalDesc("This record will be deleted permanently.")
+  //     setModalAction({ id, action });
+  //     setModalOpen(true);
+  //   }
+  // };
 
   // ---------- Status badge colors (normalized keys) ----------
   const statusColors = {
-    Pending: "bg-yellow-100 text-yellow-700",
-    Approved: "bg-blue-100 text-blue-700",
-    "In Progress": "bg-orange-100 text-orange-700",
-    Complete: "bg-green-100 text-green-700",
-    Rejected: "bg-red-100 text-red-700",
-    Default: "bg-gray-100 text-gray-700",
+    Pending: "text-yellow-700",
+    "Interview Process": "text-blue-700",
+    Approved: "text-indigo-700",
+    "Case Summary Generation": "text-yellow-700",
+    Completed: "text-green-700",
+    Rejected: "text-red-700",
+    Default: "text-gray-700",
   };
 
   return (
@@ -295,7 +315,7 @@ const AdminCancerManagement = () => {
                           </button>
                           <button
                             className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
-                            onClick={() => handleActionClick(item.id, "delete")}
+                            onClick={() => handleDelete(item.id, "delete")}
                           >
                             Delete
                           </button>

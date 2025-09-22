@@ -72,6 +72,7 @@ const PreCancerStatus = () => {
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
+  const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null); // { type: "cancel", id }
 
   // Fetch from API
@@ -105,7 +106,8 @@ const PreCancerStatus = () => {
 
   // Cancel flow (no loading modal, just top banner notification)
   const handleCancel = (id) => {
-    setModalText("Are you sure you want to cancel this application?");
+    setModalText("Confirm Cancel?");
+    setModalDesc("Are you sure you want to cancel this application?")
     setModalAction({ type: "cancel", id });
     setModalOpen(true);
   };
@@ -183,7 +185,8 @@ const PreCancerStatus = () => {
       {/* Confirmation Modal */}
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={handleModalCancel}
       />

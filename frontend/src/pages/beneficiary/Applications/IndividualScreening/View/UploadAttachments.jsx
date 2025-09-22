@@ -25,6 +25,7 @@ const UploadAttachments = () => {
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
+  const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null); 
 
   const handleAddFile = () => {
@@ -53,6 +54,7 @@ const UploadAttachments = () => {
     e.stopPropagation();
 
     setModalText('Are you sure you want to delete this attachment?');
+    setModalDesc('This action cannot be undone.');
     setModalAction({ type: "delete", file: files[index] }); 
     setModalOpen(true);
   };
@@ -143,7 +145,8 @@ const UploadAttachments = () => {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    setModalText('Make sure to submit the correct file, you can only submit once!');
+    setModalText('Confirm Submission?');
+    setModalDesc('Make sure to submit the correct file, you can only submit once!');
     setModalAction({ type: "submit" }); 
     setModalOpen(true);
   };
@@ -152,7 +155,8 @@ const UploadAttachments = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={() => {
           setModalOpen(false);

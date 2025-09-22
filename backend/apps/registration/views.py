@@ -63,7 +63,7 @@ class RegistrationLoginAPIView(APIView):
     refresh = RefreshToken.for_user(user)
       
     patient_id = getattr(
-      getattr(getattr(user, 'beneficiary', None), 'patient', None),
+      getattr(user, 'patient', None),
       'patient_id',
       None
     )

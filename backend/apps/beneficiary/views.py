@@ -215,6 +215,17 @@ class CancerTreatmentSubmissionView(generics.CreateAPIView):
 
   def create(self, request, *args, **kwargs):
     try:
+      existing_request = CancerTreatment.objects.filter(
+        patient=self.request.user.patient, 
+      ).first()
+
+      if existing_request.status != 'Completed':
+        raise ValidationError({
+          'non_field_errors': [
+            "You can only request for a treatment service one at a time. Please wait for its feedback before submitting another."
+          ]
+        })
+      
       # Convert stringified JSON into dict
       well_being_data = json.loads(request.data.get("well_being_data", "{}"))
     
@@ -239,6 +250,28 @@ class CancerTreatmentSubmissionView(generics.CreateAPIView):
 
     except Exception as e:
       return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+class CancerManagementDetailedView(generics.RetrieveAPIView):
+  queryset = CancerTreatment.objects.all()
+  serializer_class = CancerTreatmentSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def get_object(self):
+    return CancerTreatment.objects.get(patient=self.request.user.patient)
+
+  # def get_queryset(self):
+  #   qs = CancerTreatment.objects.all()
+
+  #   status_filter = self.request.query_params.get('status')
+  #   if status_filter:
+  #     qs = qs.filter(status=status_filter)
+
+  #   patient_id = self.request.query_params.get('patient_id')
+  #   if patient_id:
+  #     qs = qs.filter(patient__patient_id=patient_id)
+
+  #   return qs 
   
 class CancerManagementListView(generics.ListAPIView):
   serializer_class = CancerTreatmentSerializer
@@ -266,8 +299,8 @@ class TreatmentResultUploadView(APIView):
     validate_attachment(attachments[0])
 
     cancer_treatment.uploaded_result = attachments[0]
-    # cancer_treatment.has_patient_response = True
-    # cancer_treatment.response_description = 'Uploaded screening results.'
+    cancer_treatment.has_patient_response = True
+    cancer_treatment.response_description = 'Uploaded treatment results.'
     cancer_treatment.save()
 
     return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
@@ -280,8 +313,8 @@ class CaseSummaryUploadView(APIView):
   def patch(self, request, id):
     cancer_treatment = get_object_or_404(CancerTreatment, id=id)
 
-    # if cancer_treatment.has_patient_response:
-    #   raise ValidationError ({'non_field_errors': ['You can only submit once. Please wait for it\'s feedback before submitting again.']})
+    if cancer_treatment.has_patient_response: 
+      raise ValidationError ({'non_field_errors': ['You can only submit once. Please wait for it\'s feedback before submitting again.']})
     
     attachments = request.FILES.getlist('attachments')
     for file in attachments:
@@ -291,6 +324,10 @@ class CaseSummaryUploadView(APIView):
         file=file,
         doc_type="signedCaseSummary"
       )
+    
+    cancer_treatment.has_patient_response = True
+    cancer_treatment.response_description = 'Uploaded signed case summary & intervention plan.'
+    cancer_treatment.save()
 
     return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
 

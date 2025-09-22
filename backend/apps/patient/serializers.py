@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Patient, CancerDiagnosis, EmergencyContact, HistoricalUpdate
+from .models import Patient, CancerDiagnosis, EmergencyContact, HistoricalUpdate, ServiceReceived
 from .models import (
   DiagnosisBasis, PrimarySite, DistantMetastasisSite, TreatmentOption,
   PreScreeningForm
@@ -28,6 +28,14 @@ class HistoricalUpdateSerializer(serializers.ModelSerializer):
     fields = [
       'date',
       'note',
+    ]
+
+class ServiceReceivedSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = ServiceReceived
+    fields = [
+      'service_type',
+      'date_completed',
     ]
 
 # --- Atomic Serializers ---
@@ -79,6 +87,7 @@ class PatientSerializer(serializers.ModelSerializer):
   pre_screening_form = PreScreeningFormSerializer(read_only=True)
   emergency_contacts = EmergencyContactSerializer(many=True)
   diagnosis = CancerDiagnosisSerializer(many=True, read_only=True) # required=False , allow_empty=True, allow_null=True, default=[]
+  service_received = ServiceReceivedSerializer(many=True, required=False)
   historical_updates = HistoricalUpdateSerializer(many=True, required=False) # , allow_empty=True, allow_null=True, default=[]
 
   # computed fields
@@ -92,7 +101,7 @@ class PatientSerializer(serializers.ModelSerializer):
       'civil_status', 'number_of_children', 'status', 'address', 'city', 'barangay', 'mobile_number', 'email', 
       'source_of_information', 'other_rafi_programs_availed', 'highest_educational_attainment', 'registered_by',
       'occupation', 'source_of_income', 'monthly_income', 'created_at', 'full_name', 'emergency_contacts', 'diagnosis',
-      'historical_updates', 'photo_url', 'pre_screening_form'
+      'historical_updates', 'photo_url', 'pre_screening_form', 'service_received'
     ]
     read_only_fields = ('created_at', 'patient_id', 'photo_url')
   

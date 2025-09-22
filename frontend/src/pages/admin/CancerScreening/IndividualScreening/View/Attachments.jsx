@@ -23,6 +23,7 @@ const ViewAttachments = () => {
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
+  const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null); 
 
   useEffect(() => {
@@ -66,7 +67,8 @@ const ViewAttachments = () => {
   const handleDelete = async (index, e) => {
     e.stopPropagation();
 
-    setModalText('Are you sure you want to delete this attachment?');
+    setModalText('Confirm Deletion of this file?');
+    setModalDesc("This action cannot be undone.");
     setModalAction({ type: "delete", file: files[index] }); 
     setModalOpen(true);
   };
@@ -194,7 +196,8 @@ const ViewAttachments = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={() => {
           setModalOpen(false);

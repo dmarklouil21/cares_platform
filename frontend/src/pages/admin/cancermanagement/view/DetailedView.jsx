@@ -334,9 +334,17 @@ const AdminCancerManagementView = () => {
   };
 
   const statusPillClasses =
-    status === "Complete"
-      ? "bg-green-100 text-green-700 border border-green-200"
-      : "bg-gray-100 text-gray-700 border border-gray-200";
+    status === "Completed"
+      ? "bg-green-100 text-green-700 border border-green-200" 
+      : status === "Interview Process" 
+      ? "bg-blue-100 text-blue-700 border border-blue-200"
+      : status === "Approved" 
+      ? "bg-indigo-100 text-indigo-700 border border-indigo-200"
+      : status === "Case Summary Generation" 
+      ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
+      : status === "Rejected" 
+      ? "bg-red-100 text-red-700 border border-red-200"
+      : "bg-yellow-100 text-yellow-700"
 
   if (!record) {
     return (

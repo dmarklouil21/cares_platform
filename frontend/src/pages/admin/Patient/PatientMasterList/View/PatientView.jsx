@@ -535,7 +535,7 @@ const PatientView = () => {
 
           <div className="mb-6 mt-8 border-b border-gray-200 px-5">
             <h2 className="text-md font-bold tracking-wide uppercase pb-1">
-              Services Provided
+              Treatment/Services Recieved
             </h2>
           </div>
           <div className="p-4">
@@ -544,35 +544,39 @@ const PatientView = () => {
                 <thead>
                   <tr className="bg-gray-100">
                     <th className="py-2 px-4 border-b text-left text-sm font-bold">Type</th>
-                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Status</th>
-                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Result</th>
+                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Date Completed</th>
+                    {/* <th className="py-2 px-4 border-b text-left text-sm font-bold">Result</th> */}
                   </tr>
                 </thead>
                 <tbody>
-                  {/* {(patient?.historical_updates ?? []).map((update, index) => (
+                  {(patient?.service_received ?? []).map((service, index) => (
                     <tr
                       key={index}
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                     >
                       <td className="py-2 px-4 border-b text-sm">
-                        {update?.date ?? ""}
+                        {service?.service_type ?? ""}
                       </td>
                       <td className="py-2 px-4 border-b text-sm">
-                        {update?.note ?? ""}
+                        {service?.date_completed ?? ""}
                       </td>
                     </tr>
-                  ))} */}
-                  <tr
+                  ))}
+                  {(patient?.service_received ?? []).length === 0 && (
+                    <tr>
+                      <td className="py-2 px-4 border-b text-sm" colSpan={2}>
+                        No service/treatment recieve yet.
+                      </td>
+                    </tr>
+                  )}
+                  {/* <tr
                     className={"bg-white"}
                   >
                     <td className="py-2 px-4 border-b text-sm">
                       Cancer Screening
                     </td>
                     <td className="py-2 px-4 border-b text-sm">
-                      Completed
-                    </td>
-                    <td className="py-2 px-4 border-b text-sm">
-                      View
+                      September 21, 2025
                     </td>
                   </tr>
                   <tr
@@ -582,19 +586,9 @@ const PatientView = () => {
                       Radiotherapy
                     </td>
                     <td className="py-2 px-4 border-b text-sm">
-                      Dropped
+                      September 11, 2025
                     </td>
-                    <td className="py-2 px-4 border-b text-sm color-blue">
-                      NA
-                    </td>
-                  </tr>
-                  {/* {(patient?.historical_updates ?? []).length === 0 && (
-                    <tr>
-                      <td className="py-2 px-4 border-b text-sm" colSpan={2}>
-                        No history available.
-                      </td>
-                    </tr>
-                  )} */}
+                  </tr> */}
                 </tbody>
               </table>
             </div>

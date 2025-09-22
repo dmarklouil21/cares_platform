@@ -40,6 +40,12 @@ const AdminSidebar = () => {
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
     {
+      name: "Survivorship",
+      icon: "/src/assets/images/navigation/admin/survivorship.svg",
+      path: "",
+      arrow: "/src/assets/images/navigation/admin/arrow.svg", // ⬅️ make expandable
+    },
+    {
       name: "Cancer Management",
       icon: "/src/assets/images/navigation/admin/cancermanagement.svg",
       path: "/admin/cancer-management",
@@ -50,12 +56,6 @@ const AdminSidebar = () => {
       icon: "/src/assets/images/navigation/admin/usermanagementicon.svg",
       path: "/admin/user-management",
       arrow: "",
-    },
-    {
-      name: "Survivorship",
-      icon: "/src/assets/images/navigation/admin/survivorship.svg",
-      path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg", // ⬅️ make expandable
     },
   ];
 

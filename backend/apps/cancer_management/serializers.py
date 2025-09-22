@@ -60,6 +60,8 @@ class CancerTreatmentSerializer(serializers.ModelSerializer):
       "status",
       "uploaded_result",
       "attachments",
+      'has_patient_response',
+      'response_description',
     ]
 
 class CancerTreatmentSubmissionSerializer(serializers.Serializer):
