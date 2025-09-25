@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 
 import api from "src/api/axiosInstance";
 
@@ -92,7 +92,9 @@ const AdminCancerManagement = () => {
       try {
         setModalOpen(false);
         setLoading(true);
-        const response = await api.delete(`/cancer-management/cancer-treatment/delete/${modalAction?.id}/`);
+        const response = await api.delete(
+          `/cancer-management/cancer-treatment/delete/${modalAction?.id}/`
+        );
         setModalInfo({
           type: "success",
           title: "Success!",
@@ -119,7 +121,7 @@ const AdminCancerManagement = () => {
 
   const handleDelete = (id, action) => {
     setModalText(`Confirm delete?`);
-    setModalDesc("This record will be deleted permanently.")
+    setModalDesc("This record will be deleted permanently.");
     setModalAction({ id, action });
     setModalOpen(true);
   };
@@ -167,202 +169,187 @@ const AdminCancerManagement = () => {
       <Notification message={notification} type={notificationType} />
       <LoadingModal open={loading} text="Submitting changes..." />
 
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Admin</h1>
-          <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-            <img
-              src="/images/Avatar.png"
-              alt="User Profile"
-              className="rounded-full"
-            />
-          </div>
-        </div>
-
-        <div className="w-full flex-1 py-5 flex flex-col justify-around px-5">
+      <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
+        <div className="flex justify-between items-center w-full">
           <h2 className="text-xl font-bold text-left w-full pl-5">
             Cancer Management
           </h2>
+          <Link
+            to="/admin/cancer-management/add"
+            className="bg-yellow px-5 py-1 rounded-sm text-white"
+          >
+            Add
+          </Link>
+        </div>
 
-          <div className="flex flex-col bg-white rounded-[4px] w-full shadow-md px-5 py-5 gap-3">
-            <p className="text-md font-semibold text-yellow">
-              Service Treatment Application List
-            </p>
+        <div className="flex flex-col bg-white rounded-[4px] w-full shadow-md px-5 py-5 gap-3">
+          <p className="text-md font-semibold text-yellow">
+            Service Treatment Application List
+          </p>
 
-            <div className="flex justify-between flex-wrap gap-3">
-              <input
-                type="text"
-                placeholder="Search by patient ID or name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
-              />
+          <div className="flex justify-between flex-wrap gap-3">
+            <input
+              type="text"
+              placeholder="Search by patient ID or name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+            />
 
-              {/* UPDATED FILTER OPTIONS */}
-              <select
-                className="border border-gray-200 rounded-md p-2 bg-white"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="All">All</option>
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-                <option value="Rejected">Rejected</option>
-              </select>
+            {/* UPDATED FILTER OPTIONS */}
+            <select
+              className="border border-gray-200 rounded-md p-2 bg-white"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="All">All</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Rejected">Rejected</option>
+            </select>
 
-              <input
-                type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-              />
+            <input
+              type="date"
+              className="border border-gray-200 py-2 px-5 rounded-md"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+            />
 
-              <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
-                Filter
-              </button>
-            </div>
+            <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
+              Filter
+            </button>
+          </div>
 
-            <div className="bg-white shadow">
+          <div className="bg-white shadow">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr className="bg-lightblue">
+                  <th className="w-[13%] text-center text-sm py-3 !bg-lightblue">
+                    Patient ID
+                  </th>
+                  <th className="w-[20%] text-sm py-3">Name</th>
+                  <th className="w-[15%] text-center text-sm py-3">
+                    Service Requested
+                  </th>
+                  <th className="w-[15%] text-center text-sm py-3">
+                    Date Submitted
+                  </th>
+                  <th className="w-[13.4%] text-center text-sm py-3">Status</th>
+                  <th className="w-[22%] text-center text-sm py-3">Actions</th>
+                </tr>
+              </thead>
+            </table>
+
+            <div className="max-h-[200px] min-h-[200px] overflow-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr className="bg-lightblue">
-                    <th className="w-[13%] text-center text-sm py-3 !bg-lightblue">
-                      Patient ID
-                    </th>
-                    <th className="w-[20%] text-sm py-3">Name</th>
-                    <th className="w-[15%] text-center text-sm py-3">
-                      Service Requested
-                    </th>
-                    <th className="w-[15%] text-center text-sm py-3">
-                      Date Submitted
-                    </th>
-                    <th className="w-[13.4%] text-center text-sm py-3">
-                      Status
-                    </th>
-                    <th className="w-[22%] text-center text-sm py-3">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-              </table>
-
-              <div className="max-h-[200px] min-h-[200px] overflow-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <colgroup>
-                    <col className="w-[13%]" />
-                    <col className="w-[20%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[13.4%]" />
-                    <col className="w-[22%]" />
-                  </colgroup>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredData.map((item) => (
-                      <tr key={item.id}>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {item.patient.patient_id}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {item.patient.full_name}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {item.service_type}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {new Date(item.date_submitted).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            }
-                          )}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          <span
-                            className={`px-3 py-1 inline-flex items-center gap-1 text-xs font-semibold rounded-md ${
-                              statusColors[item.status] || statusColors.Default
-                            }`}
-                          >
-                            {item.status}
-                            <span
-                              title={
-                                item.has_patient_response
-                                  ? item.response_description
-                                  : "Info icon."
-                              }
-                              className="cursor-pointer"
-                            >
-                              <Info
-                                size={14}
-                                className={
-                                  item.has_patient_response
-                                    ? "text-blue-500"
-                                    : "text-gray-300"
-                                }
-                              />
-                            </span>
-                          </span>
-                        </td>
-                        <td className="text-center text-sm py-4 flex gap-2 justify-center">
-                          <button
-                            onClick={() => handleViewClick(item.id)}
-                            className="text-white py-1 px-3 rounded-[5px] shadow bg-primary cursor-pointer"
-                          >
-                            View
-                          </button>
-                          <button
-                            className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
-                            onClick={() => handleDelete(item.id, "delete")}
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-
-                    {filteredData.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan="6"
-                          className="text-center py-4 text-gray-500"
+                <colgroup>
+                  <col className="w-[13%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[13.4%]" />
+                  <col className="w-[22%]" />
+                </colgroup>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredData.map((item) => (
+                    <tr key={item.id}>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {item.patient.patient_id}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {item.patient.full_name}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {item.service_type}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {new Date(item.date_submitted).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          }
+                        )}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        <span
+                          className={`px-3 py-1 inline-flex items-center gap-1 text-xs font-semibold rounded-md ${
+                            statusColors[item.status] || statusColors.Default
+                          }`}
                         >
-                          No records found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                          {item.status}
+                          <span
+                            title={
+                              item.has_patient_response
+                                ? item.response_description
+                                : "Info icon."
+                            }
+                            className="cursor-pointer"
+                          >
+                            <Info
+                              size={14}
+                              className={
+                                item.has_patient_response
+                                  ? "text-blue-500"
+                                  : "text-gray-300"
+                              }
+                            />
+                          </span>
+                        </span>
+                      </td>
+                      <td className="text-center text-sm py-4 flex gap-2 justify-center">
+                        <button
+                          onClick={() => handleViewClick(item.id)}
+                          className="text-white py-1 px-3 rounded-[5px] shadow bg-primary cursor-pointer"
+                        >
+                          View
+                        </button>
+                        <button
+                          className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
+                          onClick={() => handleDelete(item.id, "delete")}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
 
-            {/* Footer Pagination (static demo) */}
-            <div className="flex justify-end items-center py-2 gap-5">
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor="recordsPerPage"
-                  className="text-sm text-gray-700"
-                >
-                  Record per page:
-                </label>
-                <select
-                  id="recordsPerPage"
-                  className="w-16 rounded-md shadow-sm"
-                >
-                  <option>10</option>
-                  <option>20</option>
-                  <option>50</option>
-                </select>
-              </div>
-              <div className="flex gap-3 items-center">
-                <span className="text-sm text-gray-700">
-                  1 – 10 of {filteredData.length}
-                </span>
-                <button className="text-gray-600">←</button>
-                <button className="text-gray-600">→</button>
-              </div>
+                  {filteredData.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="text-center py-4 text-gray-500"
+                      >
+                        No records found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Footer Pagination (static demo) */}
+          <div className="flex justify-end items-center py-2 gap-5">
+            <div className="flex items-center gap-2">
+              <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                Record per page:
+              </label>
+              <select id="recordsPerPage" className="w-16 rounded-md shadow-sm">
+                <option>10</option>
+                <option>20</option>
+                <option>50</option>
+              </select>
+            </div>
+            <div className="flex gap-3 items-center">
+              <span className="text-sm text-gray-700">
+                1 – 10 of {filteredData.length}
+              </span>
+              <button className="text-gray-600">←</button>
+              <button className="text-gray-600">→</button>
             </div>
           </div>
         </div>

@@ -13,6 +13,8 @@ import CancerManagement from "../pages/admin/CancerManagement/CancerManagement";
 import UserManagement from "../pages/admin/UserManagement/UserManagement";
 import MassScreening from "../pages/admin/CancerScreening/MassScreening/MassScreening";
 import HomeVisit from "../pages/admin/survivorship/HomeVisit/HomeVisit";
+import EditProfile from "../pages/admin/profile/ViewProfile";
+
 //views
 import PostTreatmentView from "../pages/admin/TreatmentAssistance/PostTreatment/View/TreatmentView";
 import HomeVisitView from "../pages/admin/survivorship/HomeVisit/View/HomeView";
@@ -35,6 +37,8 @@ import PreEnrollPreScreeningForm from "../pages/admin/Patient/PreEnrollment/View
 
 // Treatment Assistance Features
 import PreCancerousDetailedView from "../pages/admin/TreatmentAssistance/PrecancerousMeds/View/DetailedView";
+import PreCancerousMedsAdd from "../pages/admin/TreatmentAssistance/PrecancerousMeds/Add/AddMeds";
+import PostTreatmentAdd from "../pages/admin/TreatmentAssistance/PostTreatment/Add/Addtreatment";
 
 // Cancer Screening Features
 import IndividualScreeningDetailedView from "../pages/admin/CancerScreening/IndividualScreening/View/DetailedView";
@@ -42,6 +46,10 @@ import IndividualScreeningAttachments from "../pages/admin/CancerScreening/Indiv
 import IndividualScreeningPreScreeningForm from "../pages/admin/CancerScreening/IndividualScreening/View/PreScreeningForm";
 import IndividualScreeningResults from "../pages/admin/CancerScreening/IndividualScreening/View/Results";
 // import IndividualScreeningLOAPrintTemplate from "../pages/admin/CancerScreening/IndividualScreening/View/DetailedView";
+
+//cancer screening add
+import IndividualScreeningAdd from "../pages/admin/CancerScreening/IndividualScreening/Add/AddIndividual";
+import MassScreeningAdd from "../pages/admin/CancerScreening/MassScreening/Add/AddMass";
 
 import MassScreeningView from "../pages/admin/CancerScreening/MassScreening/view/MassScreeningView";
 import MassAttendanceView from "../pages/admin/CancerScreening/MassScreening/view/MassAttendanceView";
@@ -53,6 +61,7 @@ import CancerManagementPreScreeningForm from "../pages/admin/CancerManagement/Vi
 import CancerManagementResults from "../pages/admin/CancerManagement/View/Results";
 import CancerManagementWellBeingForm from "../pages/admin/CancerManagement/View/WellBeingTool";
 import CaseSummary from "../pages/admin/CancerManagement/View/CaseSummary";
+import CancerManagementAdd from "../pages/admin/cancermanagement/Add/AddCancer";
 
 // User Management Features
 import ViewUser from "../pages/admin/UserManagement/View/ViewUser";
@@ -70,6 +79,7 @@ const AdminRoutes = () => (
   >
     {/* Dashboard */}
     <Route index element={<Dashboard />} />
+    <Route path="profile" element={<EditProfile />} />
 
     {/* Patients */}
     <Route path="patient">
@@ -128,6 +138,10 @@ const AdminRoutes = () => (
         {/* <Route path="loa-print" element={<IndividualScreeningLOAPrintTemplate />} /> */}
         <Route path="results" element={<IndividualScreeningResults />} />
       </Route>
+      <Route path="add">
+        <Route path="individual" element={<IndividualScreeningAdd />} />
+        <Route path="mass" element={<MassScreeningAdd />} />
+      </Route>
     </Route>
 
     {/* Treatment Assistance */}
@@ -136,6 +150,8 @@ const AdminRoutes = () => (
       <Route path="post-treatment" element={<PostTreatment />} />
       <Route path="view/:id" element={<PreCancerousDetailedView />} />
       <Route path="postview/:id" element={<PostTreatmentView />} />
+      <Route path="add-pre-cancerous" element={<PreCancerousMedsAdd />} />
+      <Route path="add-post-treatment" element={<PostTreatmentAdd />} />
     </Route>
 
     {/* Cancer Management */}
@@ -157,6 +173,9 @@ const AdminRoutes = () => (
           element={<CancerManagementWellBeingForm />}
         />
         <Route path=":id/case-summary" element={<CaseSummary />} />
+      </Route>
+      <Route path="add">
+        <Route index element={<CancerManagementAdd />} />
       </Route>
     </Route>
 

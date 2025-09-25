@@ -77,7 +77,11 @@ export default function MassScreeningView() {
   const attachmentsToShow = useMemo(() => {
     const a = Array.isArray(attachments) ? attachments : [];
     return a.map((att, i) => {
-      if (typeof att === "string") return { name: att.split("/").pop() || `Attachment ${i + 1}`, url: att };
+      if (typeof att === "string")
+        return {
+          name: att.split("/").pop() || `Attachment ${i + 1}`,
+          url: att,
+        };
       if (att && typeof att === "object" && typeof att.file === "string") {
         return { name: att.file.split("/").pop(), url: att.file };
       }
@@ -101,26 +105,16 @@ export default function MassScreeningView() {
   };
 
   return (
-    <div className="h-screen w-full bg-gray flex flex-col">
-      {/* Header */}
-      <div className="bg-white py-4 px-6 md:px-10 flex items-center justify-between">
-        <div className="font-bold">Admin</div>
-        <div className="w-8 h-8 rounded-full overflow-hidden">
-          <img
-            src="/images/Avatar.png"
-            alt="User"
-            className="w-full h-full object-cover"
-          />
-        </div>
-      </div>
-
+    <div className="h-screen w-full bg-gray flex flex-col overflow-auto">
       {/* Body */}
-      <div className="w-full flex-1 py-6 px-6 md:px-10 flex flex-col gap-6 overflow-auto">
+      <div className="w-full flex-1 py-6 px-6 md:px-10 flex flex-col gap-4 overflow-auto">
         <div>
           <h2 className="text-2xl font-semibold">
             Request Review - {record.id}
           </h2>
-          {loading && <div className="text-sm text-gray-600 mt-1">Loading…</div>}
+          {loading && (
+            <div className="text-sm text-gray-600 mt-1">Loading…</div>
+          )}
           {error && !loading && (
             <div className="text-sm text-red-600 mt-1">{error}</div>
           )}
@@ -134,7 +128,9 @@ export default function MassScreeningView() {
         <section className="bg-white rounded-2xl border border-gray-200 px-5 md:px-7 py-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Request Info</h3>
-            <span className={`px-2 py-1 rounded text-xs font-medium ${statusClasses}`}>
+            <span
+              className={`px-2 py-1 rounded text-xs font-medium ${statusClasses}`}
+            >
               {status || "—"}
             </span>
           </div>

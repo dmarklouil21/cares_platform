@@ -58,7 +58,8 @@ const AdminCancerManagementView = () => {
   const [loaFile, setLoaFile] = useState(null);
 
   // Send Case Summary Modal State
-  const [sendCaseSummaryModalOpen, setSendCaseSummaryModalOpen] = useState(false);
+  const [sendCaseSummaryModalOpen, setSendCaseSummaryModalOpen] =
+    useState(false);
   const [caseSummaryFile, setCaseSummaryFile] = useState(null);
 
   useEffect(() => {
@@ -91,7 +92,9 @@ const AdminCancerManagementView = () => {
       setModalAction({ newStatus: selectedStatus });
     } else {
       setModalText(`Mark this request as '${selectedStatus}'?`);
-      setModalDesc("Marking this as complete means that the treatment is done.")
+      setModalDesc(
+        "Marking this as complete means that the treatment is done."
+      );
       setModalAction({ newStatus: selectedStatus });
       setModalOpen(true);
       // setStatus(selectedStatus);
@@ -134,22 +137,19 @@ const AdminCancerManagementView = () => {
     }
     setSendLOAModalOpen(false);
     setLoaFile(null);
-    
+
     setLoading(true);
     try {
       const formData = new FormData();
       formData.append("file", loaFile);
-      formData.append("patient_name", record.patient.full_name); 
-      formData.append("email", record.patient.email); 
+      formData.append("patient_name", record.patient.full_name);
+      formData.append("email", record.patient.email);
 
-      await api.post(
-        `/cancer-management/send-loa/`,
-        formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      await api.post(`/cancer-management/send-loa/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       setModalInfo({
         type: "success",
@@ -187,17 +187,14 @@ const AdminCancerManagementView = () => {
     try {
       const formData = new FormData();
       formData.append("file", caseSummaryFile);
-      formData.append("patient_name", record.patient.full_name); 
-      formData.append("email", record.patient.email); 
+      formData.append("patient_name", record.patient.full_name);
+      formData.append("email", record.patient.email);
 
-      await api.post(
-        `/cancer-management/send-case-summary/`,
-        formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      await api.post(`/cancer-management/send-case-summary/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       setModalInfo({
         type: "success",
@@ -232,12 +229,12 @@ const AdminCancerManagementView = () => {
           payload
         );
         console.log(payload);
-        navigate("/admin/cancer-management", { 
-          state: { 
-            type: "success", message: "Updated Successfully." 
-          } 
+        navigate("/admin/cancer-management", {
+          state: {
+            type: "success",
+            message: "Updated Successfully.",
+          },
         });
-
       } catch (error) {
         setModalInfo({
           type: "error",
@@ -257,10 +254,11 @@ const AdminCancerManagementView = () => {
           { treatment_date: treatmentDate }
         );
 
-        navigate("/admin/cancer-management", { 
-          state: { 
-            type: "success", message: "Treatment date updated Successfully." 
-          } 
+        navigate("/admin/cancer-management", {
+          state: {
+            type: "success",
+            message: "Treatment date updated Successfully.",
+          },
         });
       } catch (error) {
         setModalInfo({
@@ -278,7 +276,7 @@ const AdminCancerManagementView = () => {
     setModalAction(null);
     setModalText("");
   };
-  
+
   const handleReturn = async () => {
     if (modalAction?.newStatus === "Return") {
       setModalOpen(false);
@@ -290,10 +288,11 @@ const AdminCancerManagementView = () => {
           { remarks }
         );
 
-        navigate("/Admin/cancerscreening/AdminIndividualScreening", { 
-          state: { 
-            type: "success", message: "Return remarks sent." 
-          } 
+        navigate("/Admin/cancerscreening/AdminIndividualScreening", {
+          state: {
+            type: "success",
+            message: "Return remarks sent.",
+          },
         });
       } catch {
         setModalInfo({
@@ -315,10 +314,11 @@ const AdminCancerManagementView = () => {
           `/cancer-screening/individual-screening/status-reject/${record.id}/`,
           { status: modalAction.newStatus, remarks }
         );
-        navigate("/Admin/cancerscreening/AdminIndividualScreening", { 
-          state: { 
-            type: "success", message: "Request Rejected." 
-          } 
+        navigate("/Admin/cancerscreening/AdminIndividualScreening", {
+          state: {
+            type: "success",
+            message: "Request Rejected.",
+          },
         });
       } catch {
         setModalInfo({
@@ -335,16 +335,16 @@ const AdminCancerManagementView = () => {
 
   const statusPillClasses =
     status === "Completed"
-      ? "bg-green-100 text-green-700 border border-green-200" 
-      : status === "Interview Process" 
+      ? "bg-green-100 text-green-700 border border-green-200"
+      : status === "Interview Process"
       ? "bg-blue-100 text-blue-700 border border-blue-200"
-      : status === "Approved" 
+      : status === "Approved"
       ? "bg-indigo-100 text-indigo-700 border border-indigo-200"
-      : status === "Case Summary Generation" 
+      : status === "Case Summary Generation"
       ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-      : status === "Rejected" 
+      : status === "Rejected"
       ? "bg-red-100 text-red-700 border border-red-200"
-      : "bg-yellow-100 text-yellow-700"
+      : "bg-yellow-100 text-yellow-700";
 
   if (!record) {
     return (
@@ -401,7 +401,9 @@ const AdminCancerManagementView = () => {
       {remarksModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Remarks</h2>
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Remarks
+            </h2>
             <textarea
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none mb-4 resize-none"
               rows={4}
@@ -447,11 +449,11 @@ const AdminCancerManagementView = () => {
         onCancel={() => setSendCaseSummaryModalOpen(false)}
       />
 
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray overflow-auto">
         {/* Header */}
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+        <div className=" h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Cancer Management</h1>
-          <div className="p-3">
+          <div>
             <Link to={"/admin/cancer-management"}>
               <img
                 src="/images/back.png"
@@ -463,11 +465,13 @@ const AdminCancerManagementView = () => {
         </div>
 
         {/* Content */}
-        <div className="h-full w-full overflow-auto p-5 flex flex-col gap-4">
+        <div className="h-fit w-full  flex flex-col gap-4">
           <div className="bg-white rounded-md shadow border border-black/10">
             <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
               <h2 className="text-lg font-semibold">Request Information</h2>
-              <span className={`text-xs px-2 py-1 rounded ${statusPillClasses}`}>
+              <span
+                className={`text-xs px-2 py-1 rounded ${statusPillClasses}`}
+              >
                 {status}
               </span>
             </div>
@@ -498,11 +502,14 @@ const AdminCancerManagementView = () => {
                 <span className="font-medium w-40">Date Submitted</span>
                 <span className="text-gray-700">
                   {record?.date_submitted
-                    ? new Date(record?.date_submitted).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
+                    ? new Date(record?.date_submitted).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        }
+                      )
                     : "---"}
                 </span>
               </div>
@@ -516,12 +523,14 @@ const AdminCancerManagementView = () => {
                 >
                   <option value="Pending">Pending</option>
                   <option value="Interview Process">Interview Process</option>
-                  <option value="Case Summary Generation">Case Summary Generation</option>
+                  <option value="Case Summary Generation">
+                    Case Summary Generation
+                  </option>
                   <option value="Approved">Approved</option>
                   <option value="Completed">Completed</option>
                   <option value="Rejected">Rejected</option>
                 </select>
-              </div> 
+              </div>
 
               <div className="flex gap-2">
                 <span className="font-medium w-40">Treatment Date</span>

@@ -10,9 +10,12 @@ const AdminSidebar = () => {
   const [isSampleOpen, setIsSampleOpen] = useState(false);
   const [isCancerScreeningOpen, setIsCancerScreeningOpen] = useState(false);
   const [isTreatmentOpen, setIsTreatmentOpen] = useState(false);
-  const [isSurvivorshipOpen, setIsSurvivorshipOpen] = useState(false); // ⬅️ NEW
+  const [isSurvivorshipOpen, setIsSurvivorshipOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Dashboard");
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // 👇 New: suppress highlights while on /admin/profile
+  const isProfilePage = location.pathname.startsWith("/admin/profile");
 
   const nav = [
     {
@@ -43,7 +46,7 @@ const AdminSidebar = () => {
       name: "Survivorship",
       icon: "/src/assets/images/navigation/admin/survivorship.svg",
       path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg", // ⬅️ make expandable
+      arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
     {
       name: "Cancer Management",
@@ -81,7 +84,7 @@ const AdminSidebar = () => {
   ];
 
   const survivorshipSubNav = [
-    { name: "Home visit", path: "/admin/survivorship" }, // ⬅️ NEW
+    { name: "Home visit", path: "/admin/survivorship" },
   ];
 
   const sampleSubNav = [
@@ -102,6 +105,17 @@ const AdminSidebar = () => {
   useEffect(() => {
     const path = location.pathname;
     setIsTransitioning(false);
+
+    // 🛑 While on /admin/profile, clear all active/open states and stop
+    if (path.startsWith("/admin/profile")) {
+      setActiveNav("");
+      setIsPatientOpen(false);
+      setIsSampleOpen(false);
+      setIsCancerScreeningOpen(false);
+      setIsTreatmentOpen(false);
+      setIsSurvivorshipOpen(false);
+      return;
+    }
 
     const activePatient = patientSubNav.find((item) =>
       path.startsWith(item.path)
@@ -250,7 +264,7 @@ const AdminSidebar = () => {
     else if (name === "Sample") toggleSample();
     else if (name === "Cancer Screening") toggleCancerScreening();
     else if (name === "Treatment Assistance") toggleTreatment();
-    else if (name === "Survivorship") toggleSurvivorship(); // ⬅️ NEW
+    else if (name === "Survivorship") toggleSurvivorship();
     else {
       setActiveNav(name);
       closeAll();
@@ -268,21 +282,22 @@ const AdminSidebar = () => {
           alt="Rafi Logo"
         />
         <h1 className="font-bold text-xl text-white">
-          CARES <br />
-          Platform
+          CARES <br /> Platform
         </h1>
       </div>
 
       <div className="h-[80%] flex flex-col justify-between overflow-auto">
         <ul className="flex flex-col overflow-auto custom-scrollbar flex-1">
           {nav.map((item, index) => {
-            const isActive = activeNav === item.name;
+            // 🚫 No active state while on /admin/profile
+            const isActive = !isProfilePage && activeNav === item.name;
+
             const isExpandable =
               item.name === "Patient" ||
               item.name === "Sample" ||
               item.name === "Cancer Screening" ||
               item.name === "Treatment Assistance" ||
-              item.name === "Survivorship"; // ⬅️ NEW
+              item.name === "Survivorship";
 
             const isOpen =
               item.name === "Patient"
@@ -307,7 +322,7 @@ const AdminSidebar = () => {
                 : item.name === "Treatment Assistance"
                 ? treatmentSubNav
                 : item.name === "Survivorship"
-                ? survivorshipSubNav // ⬅️ NEW
+                ? survivorshipSubNav
                 : [];
 
             return (
@@ -369,23 +384,28 @@ const AdminSidebar = () => {
 
                 {isExpandable && isOpen && (
                   <ul className="pl-5 flex flex-col gap-2">
-                    {subNav.map((subItem, subIndex) => (
-                      <li
-                        key={subIndex}
-                        className={`rounded-lg px-5 hover:font-bold hover:text-primary block py-2 hover:bg-gray ${
-                          location.pathname === subItem.path
-                            ? "bg-gray text-primary font-bold"
-                            : "text-white"
-                        } ${isTransitioning ? "pointer-events-none" : ""}`}
-                      >
-                        <button
-                          onClick={() => handleNavigation(subItem.path)}
-                          className="w-full text-left cursor-pointer"
+                    {subNav.map((subItem, subIndex) => {
+                      // 🚫 No sub-item highlight while on /admin/profile
+                      const subActive =
+                        !isProfilePage && location.pathname === subItem.path;
+                      return (
+                        <li
+                          key={subIndex}
+                          className={`rounded-lg px-5 hover:font-bold hover:text-primary block py-2 hover:bg-gray ${
+                            subActive
+                              ? "bg-gray text-primary font-bold"
+                              : "text-white"
+                          } ${isTransitioning ? "pointer-events-none" : ""}`}
                         >
-                          {subItem.name}
-                        </button>
-                      </li>
-                    ))}
+                          <button
+                            onClick={() => handleNavigation(subItem.path)}
+                            className="w-full text-left cursor-pointer"
+                          >
+                            {subItem.name}
+                          </button>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </li>
@@ -393,7 +413,7 @@ const AdminSidebar = () => {
           })}
         </ul>
 
-        <button
+        {/* <button
           className="bg-white/5 py-1 flex items-center justify-between gap-5 px-5 rounded-md hover:bg-white/50 cursor-pointer"
           onClick={() => {
             logout();
@@ -402,7 +422,7 @@ const AdminSidebar = () => {
         >
           <h1 className="text-white">Logout</h1>
           <img src="/images/logout.svg" alt="Logout icon" className="h-7" />
-        </button>
+        </button> */}
       </div>
     </div>
   );

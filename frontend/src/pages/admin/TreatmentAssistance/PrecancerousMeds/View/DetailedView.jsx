@@ -117,7 +117,7 @@ const PreCancerousView = () => {
   }
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+    <div className="h-screen w-full flex p-5 gap-3 flex-col justify-between items-center bg-gray">
       {/* Toast (uses your markup) */}
       {toast && (
         <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
@@ -132,160 +132,152 @@ const PreCancerousView = () => {
         </div>
       )}
 
-      {/* Header bar */}
-      <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
-        <h1 className="text-md font-bold">Request Pre-Cancerous Meds</h1>
-      </div>
-
-      <div className="h-full w-full overflow-auto p-5 flex flex-col gap-4">
-        {/* Header Card: LGU + meta */}
-        <div className="bg-white rounded-md shadow border border-black/10">
-          <div className="border-b border-black/10 px-5 py-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">
-              Request Pre-Cancerous Meds
-            </h2>
-            <span
-              className={`text-xs px-2 py-1 rounded ${
-                status === "Verified"
-                  ? "bg-green-100 text-green-700 border border-green-200"
-                  : status === "Done"
-                  ? "bg-blue-100 text-blue-700 border border-blue-200"
-                  : "bg-gray-100 text-gray-700 border border-gray-200"
-              }`}
-              title="Current status"
-            >
-              {status}
+      <div className="bg-white w-full rounded-md shadow border border-black/10">
+        <div className="border-b border-black/10 px-5 py-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Request Pre-Cancerous Meds</h2>
+          <span
+            className={`text-xs px-2 py-1 rounded ${
+              status === "Verified"
+                ? "bg-green-100 text-green-700 border border-green-200"
+                : status === "Done"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : "bg-gray-100 text-gray-700 border border-gray-200"
+            }`}
+            title="Current status"
+          >
+            {status}
+          </span>
+        </div>
+        <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+          <div className="flex gap-2">
+            <span className="font-medium w-40">LGU Name</span>
+            <span className="text-gray-700">{patient.lgu_name || "—"}</span>
+          </div>
+          <div className="flex gap-2">
+            <span className="font-medium w-40">Date</span>
+            <span className="text-gray-700">{patient.date}</span>
+          </div>
+          <div className="flex gap-2">
+            <span className="font-medium w-40">Contact Number</span>
+            <span className="text-gray-700">
+              {patient.contact_number || "—"}
             </span>
           </div>
-          <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-            <div className="flex gap-2">
-              <span className="font-medium w-40">LGU Name</span>
-              <span className="text-gray-700">{patient.lgu_name || "—"}</span>
-            </div>
-            <div className="flex gap-2">
-              <span className="font-medium w-40">Date</span>
-              <span className="text-gray-700">{patient.date}</span>
-            </div>
-            <div className="flex gap-2">
-              <span className="font-medium w-40">Contact Number</span>
-              <span className="text-gray-700">{patient.contact_number || "—"}</span>
-            </div>
-            <div className="flex gap-2">
-              <span className="font-medium w-40">Prepared by</span>
-              <span className="text-gray-700">{patient.prepared_by || "—"}</span>
-            </div>
-            <div className="flex gap-2">
-              <span className="font-medium w-40">Approved by</span>
-              <span className="text-gray-700">{patient.approved_by || "—"}</span>
-            </div>
+          <div className="flex gap-2">
+            <span className="font-medium w-40">Prepared by</span>
+            <span className="text-gray-700">{patient.prepared_by || "—"}</span>
+          </div>
+          <div className="flex gap-2">
+            <span className="font-medium w-40">Approved by</span>
+            <span className="text-gray-700">{patient.approved_by || "—"}</span>
           </div>
         </div>
+      </div>
 
-        {/* Patient Row Table */}
-        <div className="bg-white rounded-md shadow border border-black/10">
-          <table className="min-w-full border-separate border-spacing-0">
-            <thead>
-              <tr className="bg-gray/30">
-                <th className="text-left text-sm font-semibold px-4 py-3">
-                  No.
-                </th>
-                <th className="text-left text-sm font-semibold px-4 py-3">
-                  Patient No.
-                </th>
-                <th className="text-left text-sm font-semibold px-4 py-3">
-                  Last Name
-                </th>
-                <th className="text-left text-sm font-semibold px-4 py-3">
-                  First Name
-                </th>
-                <th className="text-left text-sm font-semibold px-4 py-3">
-                  Middle Initial
-                </th>
-                <th className="text-left text-sm font-semibold px-4 py-3">
-                  Date of Birth
-                </th>
-                <th className="text-left text-sm font-semibold px-4 py-3">
-                  Interpretation of Result
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-t">
-                <td className="px-4 py-3 text-sm">1</td>
-                <td className="px-4 py-3 text-sm">{patient.patient_id}</td>
-                <td className="px-4 py-3 text-sm">{patient.last_name}</td>
-                <td className="px-4 py-3 text-sm">{patient.first_name}</td>
-                <td className="px-4 py-3 text-sm">
-                  {patient.middle_initial || "—"}
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  {new Date(patient.date_of_birth).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  {patient.interpretation_of_result}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      {/* Patient Row Table */}
+      <div className="bg-white w-full rounded-md shadow border border-black/10">
+        <table className="min-w-full border-separate border-spacing-0">
+          <thead>
+            <tr className="bg-gray/30">
+              <th className="text-left text-sm font-semibold px-4 py-3">No.</th>
+              <th className="text-left text-sm font-semibold px-4 py-3">
+                Patient No.
+              </th>
+              <th className="text-left text-sm font-semibold px-4 py-3">
+                Last Name
+              </th>
+              <th className="text-left text-sm font-semibold px-4 py-3">
+                First Name
+              </th>
+              <th className="text-left text-sm font-semibold px-4 py-3">
+                Middle Initial
+              </th>
+              <th className="text-left text-sm font-semibold px-4 py-3">
+                Date of Birth
+              </th>
+              <th className="text-left text-sm font-semibold px-4 py-3">
+                Interpretation of Result
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-t">
+              <td className="px-4 py-3 text-sm">1</td>
+              <td className="px-4 py-3 text-sm">{patient.patient_id}</td>
+              <td className="px-4 py-3 text-sm">{patient.last_name}</td>
+              <td className="px-4 py-3 text-sm">{patient.first_name}</td>
+              <td className="px-4 py-3 text-sm">
+                {patient.middle_initial || "—"}
+              </td>
+              <td className="px-4 py-3 text-sm">
+                {new Date(patient.date_of_birth).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </td>
+              <td className="px-4 py-3 text-sm">
+                {patient.interpretation_of_result}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Release Date input */}
+      <div className="bg-white w-full rounded-md shadow border border-black/10 p-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+          <label className="flex items-center gap-4">
+            <span className="font-medium w-40">Release Date</span>
+            <input
+              type="date"
+              className="border rounded px-3 py-2 w-full md:w-auto"
+              value={releaseDate}
+              onChange={(e) => setReleaseDate(e.target.value)}
+            />
+          </label>
         </div>
+      </div>
 
-        {/* Release Date input */}
-        <div className="bg-white rounded-md shadow border border-black/10 p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-            <label className="flex items-center gap-4">
-              <span className="font-medium w-40">Release Date</span>
-              <input
-                type="date"
-                className="border rounded px-3 py-2 w-full md:w-auto"
-                value={releaseDate}
-                onChange={(e) => setReleaseDate(e.target.value)}
-              />
-            </label>
-          </div>
-        </div>
+      {/* Bottom actions */}
+      <div className="w-full flex flex-col md:flex-row gap-3 justify-between md:justify-around">
+        <Link
+          className="text-center bg-white text-black py-2 md:w-[30%] w-full border border-black hover:border-black/15 rounded-md"
+          to="/admin/treatment-assistance/pre-cancerous"
+        >
+          BACK
+        </Link>
 
-        {/* Bottom actions */}
-        <div className="w-full flex flex-col md:flex-row gap-3 justify-between md:justify-around">
-          <Link
-            className="text-center bg-white text-black py-2 md:w-[30%] w-full border border-black hover:border-black/15 rounded-md"
-            to="/admin/treatment-assistance/pre-cancerous"
-          >
-            BACK
-          </Link>
+        <button
+          type="button"
+          onClick={handleSaveClick}
+          disabled={!releaseDate}
+          className={`text-center py-2 md:w-[30%] w-full rounded-md shadow ${
+            !releaseDate
+              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+              : "bg-primary text-white hover:opacity-90"
+          }`}
+        >
+          Save changes
+        </button>
 
-          <button
-            type="button"
-            onClick={handleSaveClick}
-            disabled={!releaseDate}
-            className={`text-center py-2 md:w-[30%] w-full rounded-md shadow ${
-              !releaseDate
-                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                : "bg-primary text-white hover:opacity-90"
-            }`}
-          >
-            Save changes
-          </button>
-
-          <button
-            type="button"
-            onClick={handleMarkDoneClick}
-            disabled={status !== "Verified"}
-            title={
-              status !== "Verified" ? "Only available when status is Verified" : ""
-            }
-            className={`text-center py-2 md:w-[30%] w-full rounded-md shadow ${
-              status !== "Verified"
-                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                : "bg-primary text-white hover:opacity-90"
-            }`}
-          >
-            Mark as done
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleMarkDoneClick}
+          disabled={status !== "Verified"}
+          title={
+            status !== "Verified"
+              ? "Only available when status is Verified"
+              : ""
+          }
+          className={`text-center py-2 md:w-[30%] w-full rounded-md shadow ${
+            status !== "Verified"
+              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+              : "bg-primary text-white hover:opacity-90"
+          }`}
+        >
+          Mark as done
+        </button>
       </div>
 
       {/* Confirmation Modal */}

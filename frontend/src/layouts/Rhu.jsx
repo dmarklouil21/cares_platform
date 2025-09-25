@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import api from "../api/axiosInstance";
 import PropagateLoaderComponent from "../components/loading/PropagateLoaderComponent ";
 import TextLoader from "../components/loading/TextLoader";
+import RhuHeader from "../components/header/RhuHeader";
 
 const Rhulayout = () => {
   const navigate = useNavigate();
@@ -64,7 +65,10 @@ const Rhulayout = () => {
   return (
     <div className="flex w-full h-screen items-center justify-start bg-gray1">
       <RhuSidebar />
-      <Outlet />
+      <div className="w-full h-full flex flex-col overflow-y-auto">
+        <RhuHeader />
+        <Outlet />
+      </div>
     </div>
   );
 };

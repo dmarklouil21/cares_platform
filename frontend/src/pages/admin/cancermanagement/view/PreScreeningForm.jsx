@@ -65,10 +65,10 @@ const ViewPreScreeningForm = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting changes..." />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+      <div className="h-screen w-full flex flex-col justify-between p-5 gap-3 items-center bg-gray overflow-auto">
+        <div className=" h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Cancer Management</h1>
-          <div className="p-3">
+          <div>
             <Link to={`/admin/cancer-management/view/${id}`}>
               <img
                 src="/images/back.png"
@@ -79,7 +79,7 @@ const ViewPreScreeningForm = () => {
           </div>
         </div>
 
-        <div className="h-full w-full p-5 flex flex-col justify-between">
+        <div className="h-full w-full flex flex-col justify-between">
           <form className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
               <h2 className="text-md font-bold tracking-wide uppercase pb-1">
@@ -238,9 +238,7 @@ const ViewPreScreeningForm = () => {
                       )}
                       readOnly
                     />
-                    <label className=" text-sm">
-                      Death Certificates Only
-                    </label>
+                    <label className=" text-sm">Death Certificates Only</label>
                   </div>
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
@@ -253,9 +251,7 @@ const ViewPreScreeningForm = () => {
                       )}
                       readOnly
                     />
-                    <label className=" text-sm">
-                      Clinical Investigation
-                    </label>
+                    <label className=" text-sm">Clinical Investigation</label>
                   </div>
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
@@ -268,9 +264,7 @@ const ViewPreScreeningForm = () => {
                       )}
                       readOnly
                     />
-                    <label className=" text-sm">
-                      Specific Tumors Makers
-                    </label>
+                    <label className=" text-sm">Specific Tumors Makers</label>
                   </div>
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
@@ -293,9 +287,7 @@ const ViewPreScreeningForm = () => {
                       )}
                       readOnly
                     />
-                    <label className=" text-sm">
-                      Cytology or Hermotology
-                    </label>
+                    <label className=" text-sm">Cytology or Hermotology</label>
                   </div>
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
@@ -308,9 +300,7 @@ const ViewPreScreeningForm = () => {
                       )}
                       readOnly
                     />
-                    <label className=" text-sm">
-                      Histology of Metastasis
-                    </label>
+                    <label className=" text-sm">Histology of Metastasis</label>
                   </div>
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
@@ -323,9 +313,7 @@ const ViewPreScreeningForm = () => {
                       )}
                       readOnly
                     />
-                    <label className=" text-sm">
-                      Histology of Primary
-                    </label>
+                    <label className=" text-sm">Histology of Primary</label>
                   </div>
                 </div>
               </div>
@@ -1127,10 +1115,7 @@ const ViewPreScreeningForm = () => {
                         "Radiotherapy"
                       )}
                     />
-                    <label
-                      htmlFor="radiotherapyOther"
-                      className="text-sm"
-                    >
+                    <label htmlFor="radiotherapyOther" className="text-sm">
                       Radiotherapy
                     </label>
                   </div>
@@ -1145,10 +1130,7 @@ const ViewPreScreeningForm = () => {
                         "Chemotherapy"
                       )}
                     />
-                    <label
-                      htmlFor="chemotherapyOther"
-                      className="text-sm"
-                    >
+                    <label htmlFor="chemotherapyOther" className="text-sm">
                       Chemotherapy
                     </label>
                   </div>
@@ -1166,10 +1148,7 @@ const ViewPreScreeningForm = () => {
                         "Immunotherapy/Cytrotherapy"
                       )}
                     />
-                    <label
-                      htmlFor="immunotherapyOther"
-                      className="text-sm"
-                    >
+                    <label htmlFor="immunotherapyOther" className="text-sm">
                       Immunotherapy/Cytrotherapy
                     </label>
                   </div>
@@ -1214,7 +1193,7 @@ const ViewPreScreeningForm = () => {
           </form>
           <div className="w-full flex justify-end mt-5">
             <Link
-              className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+              className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
               to={`/admin/cancer-management/view/${id}`}
               state={{ record: record }}
             >

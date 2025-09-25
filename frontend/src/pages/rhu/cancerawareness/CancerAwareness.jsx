@@ -9,8 +9,18 @@ import api from "src/api/axiosInstance";
 const CancerAwareness = () => {
   // Generate month options
   const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   // Notification Modal
@@ -20,12 +30,12 @@ const CancerAwareness = () => {
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalAction, setModalAction] = useState(null); 
+  const [modalAction, setModalAction] = useState(null);
 
   // Generate year options
   const currentYear = new Date().getFullYear();
@@ -54,7 +64,9 @@ const CancerAwareness = () => {
 
   const fetchData = async () => {
     try {
-      const response = await api.get("/partners/cancer-awareness/list-activity/");
+      const response = await api.get(
+        "/partners/cancer-awareness/list-activity/"
+      );
       setActivities(response.data);
     } catch (error) {
       console.error("Error fetching pre-enrollment requests:", error);
@@ -76,21 +88,27 @@ const CancerAwareness = () => {
 
   // Reset Form
   const resetForm = () => {
-    setFormData({ title: "", description: "", date: "", photo: null, attachment: null });
+    setFormData({
+      title: "",
+      description: "",
+      date: "",
+      photo: null,
+      attachment: null,
+    });
     setEditingActivity(null);
   };
 
   // Handle Submit
   const handleSubmit = () => {
     setShowModal(false);
-    setModalText('Confirm submit?');
-    setModalAction({ type: "submit" }); 
+    setModalText("Confirm submit?");
+    setModalAction({ type: "submit" });
     setModalOpen(true);
   };
 
   const handleDelete = (id) => {
-    setModalText('Confirm delete?');
-    setModalAction({ type: "delete", id }); 
+    setModalText("Confirm delete?");
+    setModalAction({ type: "delete", id });
     setModalOpen(true);
   };
 
@@ -111,11 +129,15 @@ const CancerAwareness = () => {
 
         if (editingActivity) {
           setLoading(true);
-          const response = await api.patch(`/partners/cancer-awareness/update-activity/${formData.id}/`, form, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
+          const response = await api.patch(
+            `/partners/cancer-awareness/update-activity/${formData.id}/`,
+            form,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
 
           setModalInfo({
             type: "success",
@@ -125,11 +147,15 @@ const CancerAwareness = () => {
           setNotificationModal(true);
         } else {
           setLoading(true);
-          const response = await api.post("/partners/cancer-awareness/create-activity/", form, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
+          const response = await api.post(
+            "/partners/cancer-awareness/create-activity/",
+            form,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
 
           setModalInfo({
             type: "success",
@@ -138,16 +164,15 @@ const CancerAwareness = () => {
           });
           setNotificationModal(true);
         }
-
-      } catch(error) {
-        let errorMessage = "Something went wrong while submitting the form."; 
+      } catch (error) {
+        let errorMessage = "Something went wrong while submitting the form.";
 
         if (error.response && error.response.data) {
           // DRF ValidationError returns an object with arrays of messages
           if (error.response.data.non_field_errors) {
             errorMessage = error.response.data.non_field_errors[0];
           } //else if (typeof error.response.data === "string") {
-            //errorMessage = error.response.data; // for plain text errors
+          //errorMessage = error.response.data; // for plain text errors
           //}
         }
         setModalInfo({
@@ -156,7 +181,7 @@ const CancerAwareness = () => {
           message: errorMessage,
         });
         setNotificationModal(true);
-        console.error(error)
+        console.error(error);
       } finally {
         fetchData();
         setLoading(false);
@@ -164,7 +189,9 @@ const CancerAwareness = () => {
     } else if (modalAction?.type === "delete") {
       try {
         setLoading(true);
-        const response = await api.delete(`/partners/cancer-awareness/delete-activity/${modalAction.id}/`);
+        const response = await api.delete(
+          `/partners/cancer-awareness/delete-activity/${modalAction.id}/`
+        );
         setModalInfo({
           type: "success",
           title: "Success!",
@@ -191,7 +218,7 @@ const CancerAwareness = () => {
     setModalOpen(false);
     setModalAction(null);
     setModalText("");
-  }
+  };
 
   // Filter activities
   const filteredActivities = activities.filter((activity) => {
@@ -232,9 +259,8 @@ const CancerAwareness = () => {
       />
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="bg-gray w-full h-screen flex flex-col items-center ">
-
         {/* Header */}
-        <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
+        {/* <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
           <h1 className="text-md font-bold h-full flex items-center ">RHU</h1>
           <button
             onClick={() => {
@@ -247,7 +273,7 @@ const CancerAwareness = () => {
           >
             <p className="text-white text-sm">Add event</p>
           </button>
-        </div>
+        </div> */}
 
         {/* Main Content */}
         <div className="w-full flex-1 py-3 gap-3 flex flex-col justify-start px-5">
@@ -320,7 +346,7 @@ const CancerAwareness = () => {
                     </div>
                     <div className="flex flex-col justify-start gap-9.5 py-5 items-start">
                       <div className="flex gap-3">
-                        <button 
+                        <button
                           className="bg-primary px-5 py-1 text-sm text-white rounded-sm"
                           onClick={() => {
                             setEditingActivity(activity);
@@ -330,7 +356,7 @@ const CancerAwareness = () => {
                         >
                           Edit
                         </button>
-                        <button 
+                        <button
                           className="bg-white border-[1.5px] border-red-500 px-3 py-1 text-sm text-red-500 rounded-sm"
                           onClick={() => handleDelete(activity.id)}
                         >
@@ -363,12 +389,16 @@ const CancerAwareness = () => {
               <input
                 type="text"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
                 className="border w-full p-2 rounded mb-3"
               />
 
               {/* Description */}
-              <label className="block text-sm font-semibold mb-1">Description</label>
+              <label className="block text-sm font-semibold mb-1">
+                Description
+              </label>
               <textarea
                 value={formData.description}
                 onChange={(e) =>
@@ -403,8 +433,8 @@ const CancerAwareness = () => {
                   <img
                     src={
                       formData.photo instanceof File
-                      ? URL.createObjectURL(formData.photo) // Local new upload
-                      : formData.photo // Existing image URL from backend
+                        ? URL.createObjectURL(formData.photo) // Local new upload
+                        : formData.photo // Existing image URL from backend
                     }
                     alt="Preview"
                     className="w-full h-32 object-cover rounded"
@@ -413,14 +443,15 @@ const CancerAwareness = () => {
                     {/* Selected image: {formData.photo.name} */}
                     {formData.photo instanceof File
                       ? `Selected image: ${formData.photo.name}`
-                      : "Existing image"
-                    }
+                      : "Existing image"}
                   </p>
                 </div>
               )}
 
               {/* Attachment */}
-              <label className="block text-sm font-semibold mb-1">Attachment</label>
+              <label className="block text-sm font-semibold mb-1">
+                Attachment
+              </label>
               <input
                 type="file"
                 onChange={(e) =>

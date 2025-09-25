@@ -9,10 +9,10 @@ const RadioTherapyWellBeingTool = () => {
   const location = useLocation();
   const record = location.state;
   const { id } = useParams();
-  const [ wellBeingAssessment, setWellBeingAssessment ] = useState();
+  const [wellBeingAssessment, setWellBeingAssessment] = useState();
   const { user } = useAuth();
-  const [ patient, setPatient ] = useState(null);
-  const [ questions, setQuestions ] = useState([]);
+  const [patient, setPatient] = useState(null);
+  const [questions, setQuestions] = useState([]);
 
   // paragraph answer
   const [improve, setImprove] = useState("");
@@ -42,7 +42,9 @@ const RadioTherapyWellBeingTool = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await api.get(`/cancer-management/well-being-questions/`);
+        const { data } = await api.get(
+          `/cancer-management/well-being-questions/`
+        );
         // setPatient(data);
         console.log("Questions: ", data);
         setQuestions(data);
@@ -85,27 +87,21 @@ const RadioTherapyWellBeingTool = () => {
     };
 
     navigate(
-      "/beneficiary/services/cancer-management-options/radiotherapy/documents", 
+      "/beneficiary/services/cancer-management-options/radiotherapy/documents",
       { state: { wellBeningData } }
     );
   };
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
-      <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+    <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
+      <div className=" h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">Cancer Management</h1>
-        <div className="p-3">
-          <Link to={`/admin/cancer-management/view/${id}`}>
-            <img
-              src="/images/back.png"
-              alt="Back button icon"
-              className="h-6"
-            />
-          </Link>
-        </div>
+        <Link to={`/admin/cancer-management/view/${id}`}>
+          <img src="/images/back.png" alt="Back button icon" className="h-6" />
+        </Link>
       </div>
 
-      <div className="h-full w-full p-5 flex flex-col justify-between">
+      <div className="h-full w-full flex flex-col justify-between">
         <div className="border border-black/15 p-3 bg-white rounded-sm">
           {/* Header */}
           <div className="flex w-full justify-between gap-6 p-4">
@@ -225,7 +221,9 @@ const RadioTherapyWellBeingTool = () => {
                         {idx + 1}.
                       </td>
                       <td className="border border-gray-300 p-2 align-top">
-                        <div className="font-medium leading-tight">{q.text_en}</div>
+                        <div className="font-medium leading-tight">
+                          {q.text_en}
+                        </div>
                         <div className="text-primary text-xs leading-tight">
                           {q.text_ceb}
                         </div>
@@ -292,7 +290,7 @@ const RadioTherapyWellBeingTool = () => {
         <div className="w-full flex justify-end mt-5">
           <Link
             to={`/admin/cancer-management/view/${id}`}
-            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
           >
             Back
           </Link>
