@@ -51,8 +51,7 @@ const NavigationGuide = () => {
         />
       </div>
 
-      <div className="bg-white py-4 px-10 flex justify-between items-center ">
-        {/* Menu Button for Mobile */}
+      {/* <div className="bg-white py-4 px-10 flex justify-between items-center ">
         <img
           className="md:hidden size-5 cursor-pointer"
           src="/images/menu-line.svg"
@@ -67,7 +66,7 @@ const NavigationGuide = () => {
             className="rounded-full"
           />
         </div>
-      </div>
+      </div> */}
 
       <div className="py-6 overflow-auto px-10">
         <h1 className="text-[16px] md:text-lg font-bold mb-6 uppercase">

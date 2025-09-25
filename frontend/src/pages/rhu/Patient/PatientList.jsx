@@ -50,14 +50,15 @@ const PatientMasterList = () => {
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
-  const [modalAction, setModalAction] = useState(null); 
+  const [modalAction, setModalAction] = useState(null);
 
-  const fetchData = async () => { //?status=validated&registered_by=rhu&city=${user.city}
+  const fetchData = async () => {
+    //?status=validated&registered_by=rhu&city=${user.city}
     try {
       const response = await api.get("/patient/list/", {
         params: {
@@ -65,7 +66,7 @@ const PatientMasterList = () => {
           registered_by: "rhu",
           city: user.city,
         },
-      }); 
+      });
       setPatients(response.data);
     } catch (error) {
       console.error("Error fetching patient data:", error);
@@ -97,11 +98,11 @@ const PatientMasterList = () => {
       statusFilter === "all" ||
       (statusFilter === "active" && patient.is_active) ||
       (statusFilter === "inactive" && !patient.is_active); */
-    return matchesSearch /* && matchesStatus; */
+    return matchesSearch; /* && matchesStatus; */
   });
 
   const handleViewClick = (id) => {
-    navigate(`/rhu/patients/view/${id}`) 
+    navigate(`/rhu/patients/view/${id}`);
   };
 
   const handleEditClick = (id) => {
@@ -192,9 +193,9 @@ const PatientMasterList = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting changes..." />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
-        <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
-          <h1 className="text-md font-bold h-full flex items-center ">Admin</h1>
+      <div className="h-screen w-full flex flex-col justify-start items-center bg-gray p-5 gap-3">
+        <div className="w-full flex justify-between items-center px-5">
+          <h2 className="text-xl font-bold text-left w-full ">Patient List</h2>
           <Link
             to="/rhu/patients/add"
             className="bg-yellow gap-3 flex justify-center items-center px-5 py-1 rounded-sm"
@@ -202,184 +203,173 @@ const PatientMasterList = () => {
             <img
               src="/images/add.svg"
               alt="Add User Icon"
-              className="h-[18px]"
+              className="h-[15px]"
             />
-            <p className="text-white text-sm">Add Patient</p>
+            <p className="text-white text-sm">Add</p>
           </Link>
         </div>
-        <div className=" w-full flex-1 py-5 flex flex-col justify-around px-5">
-          <h2 className="text-xl font-bold text-left w-full pl-5">
-            Patient List
-          </h2>
-          <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-3">
-            <p className="text-md font-semibold text-yellow">
-              Manage all RHU patients
-            </p>
-            <div className="flex justify-between flex-wrap gap-3">
-              <input
-                type="text"
-                placeholder="Search by patient ID, name, or LGU..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
-              />
+        <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-3">
+          <p className="text-md font-semibold text-yellow">
+            Manage all RHU patients
+          </p>
+          <div className="flex justify-between flex-wrap gap-3">
+            <input
+              type="text"
+              placeholder="Search by patient ID, name, or LGU..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+            />
 
-              <select
-                className="border border-gray-200 rounded-md p-2 bg-white"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="all">All</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
+            <select
+              className="border border-gray-200 rounded-md p-2 bg-white"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
 
-              <input
-                type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
-              />
-              <button className="px-7 rounded-md text-sm text-white bg-lightblue">
-                Filter
-              </button>
-            </div>
-            <div className="bg-white shadow overflow-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr className="bg-lightblue">
-                    <th className="w-[13%] text-center text-sm py-3 !bg-lightblue">
-                      Patient ID
-                    </th>
-                    <th className="w-[15%] text-center text-sm py-3">First Name</th>
-                    <th className="w-[15%] text-center text-sm py-3">
-                      Last Name
-                    </th>
-                    <th className="w-[15%] text-center text-sm py-3">
-                      Middle Name
-                    </th>
-                    {/* <th className="w-[12%] text-center text-sm py-3">
+            <input
+              type="date"
+              className="border border-gray-200 py-2 px-5 rounded-md"
+            />
+            <button className="px-7 rounded-md text-sm text-white bg-lightblue">
+              Filter
+            </button>
+          </div>
+          <div className="bg-white shadow overflow-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr className="bg-lightblue">
+                  <th className="w-[13%] text-center text-sm py-3 !bg-lightblue">
+                    Patient ID
+                  </th>
+                  <th className="w-[15%] text-center text-sm py-3">
+                    First Name
+                  </th>
+                  <th className="w-[15%] text-center text-sm py-3">
+                    Last Name
+                  </th>
+                  <th className="w-[15%] text-center text-sm py-3">
+                    Middle Name
+                  </th>
+                  {/* <th className="w-[12%] text-center text-sm py-3">
                       Birthdate
                     </th> */}
-                    <th className="w-[13%] text-center text-sm py-3">LGU</th>
-                    <th className="w-[21%] text-center text-sm py-3 ">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-              </table>
-              <div className="max-h-[200px] min-h-[200px] overflow-auto">
-                <table className="min-w-full divide-y divide-gray-200 border-spacing-0">
-                  <colgroup>
-                    <col className="w-[13%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[12%]" />
-                    {/* <col className="w-[13%]" /> */}
-                    <col className="w-[21%]" />
-                  </colgroup>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {paginatedData.map((patient) => (
-                      <tr key={patient.patient_id}>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {patient.patient_id}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {patient.first_name}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {patient.last_name}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {patient.middle_name}
-                        </td>
-                        {/* <td className="text-center text-sm py-4 text-gray-800">
+                  <th className="w-[13%] text-center text-sm py-3">LGU</th>
+                  <th className="w-[21%] text-center text-sm py-3 ">Actions</th>
+                </tr>
+              </thead>
+            </table>
+            <div className="max-h-[200px] min-h-[200px] overflow-auto">
+              <table className="min-w-full divide-y divide-gray-200 border-spacing-0">
+                <colgroup>
+                  <col className="w-[13%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[12%]" />
+                  {/* <col className="w-[13%]" /> */}
+                  <col className="w-[21%]" />
+                </colgroup>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {paginatedData.map((patient) => (
+                    <tr key={patient.patient_id}>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {patient.patient_id}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {patient.first_name}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {patient.last_name}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {patient.middle_name}
+                      </td>
+                      {/* <td className="text-center text-sm py-4 text-gray-800">
                           {patient.date_of_birth}
                         </td> */}
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {patient.city}
-                        </td>
-                        <td className="text-center text-sm py-4 flex gap-2 justify-center">
-                          <button
-                            onClick={() => handleViewClick(patient.patient_id)}
-                            className="text-white py-1 px-2 rounded-md shadow bg-primary"
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleEditClick(patient.patient_id)}
-                            className="text-white py-1 px-2 rounded-md shadow bg-yellow-500"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleActionClick(patient.patient_id, "delete")
-                            }
-                            className="text-white py-1 px-2 rounded-md shadow bg-red-500"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {paginatedData.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan="8"
-                          className="text-center py-4 text-gray-500"
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {patient.city}
+                      </td>
+                      <td className="text-center text-sm py-4 flex gap-2 justify-center">
+                        <button
+                          onClick={() => handleViewClick(patient.patient_id)}
+                          className="text-white py-1 px-2 rounded-md shadow bg-primary"
                         >
-                          No records found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                          View
+                        </button>
+                        <button
+                          onClick={() => handleEditClick(patient.patient_id)}
+                          className="text-white py-1 px-2 rounded-md shadow bg-yellow-500"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleActionClick(patient.patient_id, "delete")
+                          }
+                          className="text-white py-1 px-2 rounded-md shadow bg-red-500"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {paginatedData.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan="8"
+                        className="text-center py-4 text-gray-500"
+                      >
+                        No records found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-            {/* Footer Pagination */}
-            <div className="flex justify-end items-center py-2 gap-5">
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor="recordsPerPage"
-                  className="text-sm text-gray-700"
-                >
-                  Record per page:
-                </label>
-                <select
-                  id="recordsPerPage"
-                  className="w-16 rounded-md shadow-sm"
-                  value={recordsPerPage}
-                  onChange={handleRecordsPerPageChange}
-                >
-                  <option>10</option>
-                  <option>20</option>
-                  <option>50</option>
-                </select>
-              </div>
-              <div className="flex gap-3 items-center">
-                <span className="text-sm text-gray-700">
-                  {Math.min(
-                    (currentPage - 1) * recordsPerPage + 1,
-                    totalRecords
-                  )}{" "}
-                  – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                  {totalRecords}
-                </span>
-                <button
-                  onClick={handlePrev}
-                  disabled={currentPage === 1}
-                  className="text-gray-600"
-                >
-                  ←
-                </button>
-                <button
-                  onClick={handleNext}
-                  disabled={currentPage === totalPages}
-                  className="text-gray-600"
-                >
-                  →
-                </button>
-              </div>
+          </div>
+          {/* Footer Pagination */}
+          <div className="flex justify-end items-center py-2 gap-5">
+            <div className="flex items-center gap-2">
+              <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                Record per page:
+              </label>
+              <select
+                id="recordsPerPage"
+                className="w-16 rounded-md shadow-sm"
+                value={recordsPerPage}
+                onChange={handleRecordsPerPageChange}
+              >
+                <option>10</option>
+                <option>20</option>
+                <option>50</option>
+              </select>
+            </div>
+            <div className="flex gap-3 items-center">
+              <span className="text-sm text-gray-700">
+                {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
+                – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
+                {totalRecords}
+              </span>
+              <button
+                onClick={handlePrev}
+                disabled={currentPage === 1}
+                className="text-gray-600"
+              >
+                ←
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="text-gray-600"
+              >
+                →
+              </button>
             </div>
           </div>
         </div>

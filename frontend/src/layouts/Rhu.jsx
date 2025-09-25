@@ -1,5 +1,6 @@
+// Rhulayout.jsx
 import { useState, useEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import RhuSidebar from "../components/navigation/Rhu";
 // import NotValidated from "../pages/beneficiary/registration/note/preenrollment/NotValidated";
 import { useAuth } from "../context/AuthContext";
@@ -8,9 +9,22 @@ import PropagateLoaderComponent from "../components/loading/PropagateLoaderCompo
 import TextLoader from "../components/loading/TextLoader";
 import RhuHeader from "../components/header/RhuHeader";
 
+// Show header ONLY on these exact paths
+const HEADER_PATHS = [
+  "/Rhu", // (kept exact as requested)
+  "/rhu", // include lowercase variant in case your route is lowercase
+  "/rhu/cancer-awareness",
+  "/rhu/patients",
+  "/rhu/patients/mass-screening",
+  "/rhu/services/cancer-screening",
+  "/rhu/application",
+];
+
 const Rhulayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+
   const [loading, setLoading] = useState(true);
   const [isValidated, setIsValidated] = useState(false);
 
@@ -26,7 +40,6 @@ const Rhulayout = () => {
         }
       } catch (error) {
         console.error("Error fetching pre-enrollment data:", error);
-        // navigate("/PreEnrollmentBeneficiary");
         setIsValidated(false);
       } finally {
         setLoading(false);
@@ -53,20 +66,23 @@ const Rhulayout = () => {
     );
   }
 
-  //   if (!isValidated) {
-  //     return (
-  //       <NotValidated
-  //         fullName={user.first_name}
-  //         submittedDate={user.date_of_birth}
-  //       />
-  //     );
-  //   }
+  // If you re-enable validation gating, keep it here.
+  // if (!isValidated) {
+  //   return (
+  //     <NotValidated
+  //       fullName={user.first_name}
+  //       submittedDate={user.date_of_birth}
+  //     />
+  //   );
+  // }
+
+  const showHeader = HEADER_PATHS.includes(location.pathname);
 
   return (
     <div className="flex w-full h-screen items-center justify-start bg-gray1">
       <RhuSidebar />
       <div className="w-full h-full flex flex-col overflow-y-auto">
-        <RhuHeader />
+        {showHeader && <RhuHeader />}
         <Outlet />
       </div>
     </div>

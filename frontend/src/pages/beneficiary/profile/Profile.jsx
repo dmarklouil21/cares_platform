@@ -1,27 +1,30 @@
+// src/pages/beneficiary/Profile.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 
-const ViewProfile = () => {
+const Profile = () => {
   const navigate = useNavigate();
 
-  // Start in read-only mode
+  // View-only by default
   const [readOnly, setReadOnly] = useState(true);
 
-  // Seed with sample values (UI-only). Replace with real values if you pass state/props.
+  // Seed with sample values for demo; wire these to real data when available
   const [formData, setFormData] = useState({
-    lgu: "RHU Argao",
-    address: "Poblacion, Argao, Cebu",
-    phone_number: "09171234567",
-    email: "rhu.argaosec@example.com",
-    representative_first_name: "Ana",
-    representative_last_name: "Santos",
-    official_representative_name: "Ana Santos",
+    firstName: "Juan",
+    lastName: "Dela Cruz",
+    birthDate: "1990-01-01",
+    age: "35",
+    email: "juan.delacruz@example.com",
+    phone: "09171234567",
+    isResident: "yes",
+    lgu: "Cebu City",
+    address: "123 Example St, Cebu",
     agreed: true,
   });
 
-  // Keep a snapshot for cancel
+  // Snapshot for Cancel
   const [beforeEdit, setBeforeEdit] = useState(formData);
 
   // Modals
@@ -34,17 +37,24 @@ const ViewProfile = () => {
   });
 
   // Helpers
-  const emailOk = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-  const phoneOk = (p) => /^\d{11}$/.test(p);
+  const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  const phoneOk = (v) => /^\d{11}$/.test(v); // PH mobile (11 digits)
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
-    // keep phone digits only, max 11 (UI validation)
-    if (name === "phone_number") {
+
+    if (name === "phone") {
       const digits = value.replace(/\D/g, "").slice(0, 11);
-      setFormData((prev) => ({ ...prev, [name]: digits }));
+      setFormData((p) => ({ ...p, phone: digits }));
       return;
     }
+
+    if (name === "age") {
+      const digits = value.replace(/\D/g, "").slice(0, 3);
+      setFormData((p) => ({ ...p, age: digits }));
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -63,18 +73,17 @@ const ViewProfile = () => {
 
   const handleSave = () => setConfirmOpen(true);
 
-  const validateAll = () => {
-    const required = { ...formData };
-    // All fields required in Registration; keep same strictness here
-    const allFilled = Object.entries(required).every(([k, v]) =>
+  const validate = () => {
+    // Mirror registration strictness: all fields required and agreed must be true
+    const requiredOk = Object.entries(formData).every(([k, v]) =>
       typeof v === "boolean" ? v === true : String(v ?? "").trim() !== ""
     );
-    if (!allFilled) {
+    if (!requiredOk) {
       setNotify({
         show: true,
         type: "info",
         title: "Incomplete",
-        message: "Please fill in all fields and agree to the notice.",
+        message: "Please fill in all fields and agree to the privacy notice.",
       });
       return false;
     }
@@ -87,7 +96,7 @@ const ViewProfile = () => {
       });
       return false;
     }
-    if (!phoneOk(formData.phone_number)) {
+    if (!phoneOk(formData.phone)) {
       setNotify({
         show: true,
         type: "info",
@@ -101,7 +110,7 @@ const ViewProfile = () => {
 
   const confirmSave = () => {
     setConfirmOpen(false);
-    if (!validateAll()) return;
+    if (!validate()) return;
 
     // UI-only "save"
     setReadOnly(true);
@@ -109,20 +118,19 @@ const ViewProfile = () => {
       show: true,
       type: "success",
       title: "Saved",
-      message: "Your profile has been updated (UI only).",
+      message: "Your profile has been updated",
     });
   };
 
-  // Shared field classes: subtle difference for view vs edit
+  // Styles for inputs (different look when readOnly)
   const fieldBase = "rounded-md p-2";
   const fieldView = "bg-gray-100";
   const fieldEdit = "bg-white border border-black/15";
   const fieldCls = `${fieldBase} ${readOnly ? fieldView : fieldEdit}`;
 
-  // 🔙 Back (no Link)
   const handleBack = () => {
     if (window.history.length > 1) navigate(-1);
-    else navigate("/"); // fallback
+    else navigate("/beneficiary");
   };
 
   return (
@@ -147,7 +155,7 @@ const ViewProfile = () => {
         {/* Header */}
         <div className="flex items-center px-5 justify-between">
           <div className="flex items-center gap-5">
-            <h1 className="text-lg font-bold">View Profile</h1>
+            <h1 className="text-lg font-bold">Beneficiary Profile</h1>
             {readOnly ? (
               <button
                 onClick={handleEdit}
@@ -188,16 +196,52 @@ const ViewProfile = () => {
           </button>
         </div>
 
-        {/* Content */}
+        {/* Personal Details */}
         <div className="bg-white rounded-2xl shadow border border-black/10 p-5 md:p-8">
-          <h2 className="text-lg font-semibold mb-4">RHU Details</h2>
+          <h2 className="text-lg font-semibold mb-4">Personal Details</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
             <div className="flex flex-col gap-2">
-              <label className="text-sm">LGU</label>
+              <label className="text-sm">First Name</label>
               <input
-                name="lgu"
-                value={formData.lgu}
+                name="firstName"
+                value={formData.firstName}
+                onChange={onChange}
+                disabled={readOnly}
+                className={fieldCls}
+                type="text"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm">Last Name</label>
+              <input
+                name="lastName"
+                value={formData.lastName}
+                onChange={onChange}
+                disabled={readOnly}
+                className={fieldCls}
+                type="text"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm">Date of Birth</label>
+              <input
+                name="birthDate"
+                value={formData.birthDate}
+                onChange={onChange}
+                disabled={readOnly}
+                className={fieldCls}
+                type="date"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm">Age</label>
+              <input
+                name="age"
+                value={formData.age}
                 onChange={onChange}
                 disabled={readOnly}
                 className={fieldCls}
@@ -214,15 +258,15 @@ const ViewProfile = () => {
                 disabled={readOnly}
                 className={fieldCls}
                 type="email"
-                placeholder="name@example.com"
+                placeholder="ejacc@gmail.com"
               />
             </div>
 
             <div className="flex flex-col gap-2">
               <label className="text-sm">Phone Number</label>
               <input
-                name="phone_number"
-                value={formData.phone_number}
+                name="phone"
+                value={formData.phone}
                 onChange={onChange}
                 disabled={readOnly}
                 className={fieldCls}
@@ -232,6 +276,44 @@ const ViewProfile = () => {
               <p className="text-xs text-gray-400">
                 11 digits (e.g., 09171234567)
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Residency & Address */}
+        <div className="bg-white rounded-2xl shadow border border-black/10 p-5 md:p-8">
+          <h2 className="text-lg font-semibold mb-4">Residency & Address</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm">Resident of Cebu (province)</label>
+              <select
+                name="isResident"
+                value={formData.isResident}
+                onChange={onChange}
+                disabled={readOnly}
+                className={fieldCls}
+              >
+                <option value="">Select</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+              <p className="text-xs text-gray-400">
+                Our cancer care services are currently limited to residents of
+                Cebu.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm">LGU</label>
+              <input
+                name="lgu"
+                value={formData.lgu}
+                onChange={onChange}
+                disabled={readOnly}
+                className={fieldCls}
+                type="text"
+              />
             </div>
 
             <div className="flex flex-col gap-2 md:col-span-2">
@@ -246,52 +328,10 @@ const ViewProfile = () => {
               />
             </div>
           </div>
-
-          <h2 className="text-lg font-semibold mt-8 mb-4">
-            Representative Details
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm">Representative First Name</label>
-              <input
-                name="representative_first_name"
-                value={formData.representative_first_name}
-                onChange={onChange}
-                disabled={readOnly}
-                className={fieldCls}
-                type="text"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm">Representative Last Name</label>
-              <input
-                name="representative_last_name"
-                value={formData.representative_last_name}
-                onChange={onChange}
-                disabled={readOnly}
-                className={fieldCls}
-                type="text"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2 md:col-span-2">
-              <label className="text-sm">Official Representative Name</label>
-              <input
-                name="official_representative_name"
-                value={formData.official_representative_name}
-                onChange={onChange}
-                disabled={readOnly}
-                className={fieldCls}
-                type="text"
-              />
-            </div>
-          </div>
         </div>
       </div>
     </>
   );
 };
 
-export default ViewProfile;
+export default Profile;

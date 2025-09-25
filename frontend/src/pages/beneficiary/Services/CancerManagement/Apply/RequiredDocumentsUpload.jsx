@@ -63,7 +63,7 @@ const CheckIcon = ({ active }) => (
   />
 );
 
-const RadioactiveDocument = ( ) => {
+const RadioactiveDocument = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { wellBeningData } = location.state || {};
@@ -71,7 +71,7 @@ const RadioactiveDocument = ( ) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [notif, setNotif] = useState("");
   const inputRef = useRef(null);
-  
+
   const serviceType = wellBeningData?.serviceType;
   const requiredDocs = REQUIRED_DOCS[serviceType] || [];
 
@@ -129,7 +129,7 @@ const RadioactiveDocument = ( ) => {
         formData.append(`files.${key}`, files[key]);
       }
     }
-    
+
     setLoading(true);
 
     try {
@@ -139,13 +139,13 @@ const RadioactiveDocument = ( ) => {
         },
       });
       // alert("Submitted successfully");
-      navigate("/beneficiary/applications/cancer-treatment", { 
-        state: { 
-          type: "success", message: "Submitted Successfully." 
-        } 
+      navigate("/beneficiary/applications/cancer-treatment", {
+        state: {
+          type: "success",
+          message: "Submitted Successfully.",
+        },
       });
-
-    } catch(error) {
+    } catch (error) {
       alert(error);
       console.error();
     } finally {
@@ -166,7 +166,7 @@ const RadioactiveDocument = ( ) => {
     <>
       {loading && <SystemLoader />}
       <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        <div className="bg-white py-4 px-10 flex justify-between items-center">
+        {/* <div className="bg-white py-4 px-10 flex justify-between items-center">
           <div className="font-bold">Beneficiary</div>
           <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
             <img
@@ -175,10 +175,12 @@ const RadioactiveDocument = ( ) => {
               className="rounded-full"
             />
           </div>
-        </div>
+        </div> */}
 
         <div className="py-6 px-10 flex flex-col flex-1 overflow-auto">
-          <h2 className="text-xl font-semibold mb-6">Cancer Treatment Application</h2>
+          <h2 className="text-xl font-semibold mb-6">
+            Cancer Treatment Application
+          </h2>
 
           <div className="rounded-2xl bg-white p-7 flex flex-col gap-3">
             <h2 className="text-3xl text-yellow font-bold">{serviceType}</h2>
@@ -243,7 +245,9 @@ const RadioactiveDocument = ( ) => {
               {files[activeDoc?.key] && (
                 <div className="mt-3 text-xs text-gray-700">
                   Selected:{" "}
-                  <span className="font-medium">{files[activeDoc.key].name}</span>
+                  <span className="font-medium">
+                    {files[activeDoc.key].name}
+                  </span>
                 </div>
               )}
             </div>
@@ -259,12 +263,12 @@ const RadioactiveDocument = ( ) => {
             <div className="mt-6 flex items-center justify-between">
               <Link
                 to="/beneficiary/services/cancer-management/apply/well-being-tool"
-                className="border py-3 rounded-md text-center px-6 w-[40%] hover:bg-black/10 hover:border-white"
+                className="border border-black/15 py-3 rounded-md text-center px-6 w-[40%] hover:bg-black/10 hover:border-black"
                 state={serviceType}
               >
                 Back
               </Link>
-              
+
               {allUploaded ? (
                 <button
                   type="button"

@@ -1,6 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
-import { listMyMassScreenings, deleteMyMassScreening } from "../../../api/massScreening";
+import {
+  listMyMassScreenings,
+  deleteMyMassScreening,
+} from "../../../api/massScreening";
 
 /* Notification (no close button) */
 function Notification({ message }) {
@@ -67,13 +70,13 @@ const applicationStatus = () => {
     return items.filter((it) => {
       const matchesSearch =
         !q ||
-        String(it.id ?? "").toLowerCase().includes(q) ||
+        String(it.id ?? "")
+          .toLowerCase()
+          .includes(q) ||
         (it.title ?? "").toLowerCase().includes(q) ||
         (it.beneficiaries ?? "").toLowerCase().includes(q);
       const matchesStatus =
-        statusFilter === "all"
-          ? true
-          : (it.status ?? "") === statusFilter;
+        statusFilter === "all" ? true : (it.status ?? "") === statusFilter;
       const matchesDate = !dateFilter ? true : (it.date ?? "") === dateFilter;
       return matchesSearch && matchesStatus && matchesDate;
     });
@@ -145,11 +148,6 @@ const applicationStatus = () => {
     <div className="h-screen w-full flex flex-col justify-between items-center bg-gray relative">
       {/* Notification */}
       <Notification message={notif} />
-
-      {/* Top bar */}
-      <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
-        <h1 className="text-md font-bold h-full flex items-center">RHU</h1>
-      </div>
 
       {/* Content */}
       <div className="w-full flex-1 py-5 flex flex-col justify-start gap-5 px-5">

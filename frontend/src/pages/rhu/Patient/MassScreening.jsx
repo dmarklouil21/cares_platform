@@ -136,7 +136,10 @@ const MassScreening = () => {
       setAttachments([]);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
-      const msg = err?.response?.data?.detail || err?.response?.data?.error || "Failed to submit. Please try again.";
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.error ||
+        "Failed to submit. Please try again.";
       setNotif(String(msg));
     } finally {
       setSubmitting(false);
@@ -146,17 +149,6 @@ const MassScreening = () => {
   return (
     <div className="w-full h-screen bg-gray overflow-auto relative">
       <Notification message={notif} />
-
-      <div className="bg-white py-4 px-10 flex justify-between items-center">
-        <div className="font-bold">RHU</div>
-        <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white overflow-hidden">
-          <img
-            src="/images/Avatar.png"
-            alt="User Profile"
-            className="rounded-full w-full h-full object-cover"
-          />
-        </div>
-      </div>
 
       <div className="py-6 px-10">
         <h2 className="text-xl font-semibold mb-6">Mass Screening</h2>
@@ -336,7 +328,9 @@ const MassScreening = () => {
               type="button"
               onClick={handleSubmitClick}
               disabled={submitting}
-              className={`bg-primary font-bold text-white w-[40%] py-2 rounded-md mt-4 ${submitting ? "opacity-60 cursor-not-allowed" : ""}`}
+              className={`bg-primary font-bold text-white w-[40%] py-2 rounded-md mt-4 ${
+                submitting ? "opacity-60 cursor-not-allowed" : ""
+              }`}
             >
               {submitting ? "Submitting..." : "Submit"}
             </button>
@@ -344,7 +338,7 @@ const MassScreening = () => {
         </div>
       </div>
 
-      <div className="h-16 bg-secondary"></div>
+      {/* <div className="h-16 bg-secondary"></div> */}
 
       {showConfirm && (
         <div className="fixed inset-0 z-40 flex items-center justify-center">
