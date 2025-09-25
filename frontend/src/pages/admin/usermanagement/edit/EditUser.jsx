@@ -39,7 +39,13 @@ const EditUser = () => {
     username: backendUser.username || backendUser.email || "",
     password: "",
     confirmPassword: "",
-    role: backendUser.is_superuser ? "admin" : backendUser.is_rhu ? "rhu" : backendUser.is_private ? "private" : "beneficiary",
+    role: backendUser.is_superuser
+      ? "admin"
+      : backendUser.is_rhu
+      ? "rhu"
+      : backendUser.is_private
+      ? "private"
+      : "beneficiary",
     status: backendUser.is_active ? "active" : "inactive",
   });
   const [notification, setNotification] = useState("");
@@ -61,7 +67,13 @@ const EditUser = () => {
       username: backendUser.username || backendUser.email || "",
       password: "",
       confirmPassword: "",
-      role: backendUser.is_superuser ? "admin" : backendUser.is_rhu ? "rhu" : backendUser.is_private ? "private" : "beneficiary",
+      role: backendUser.is_superuser
+        ? "admin"
+        : backendUser.is_rhu
+        ? "rhu"
+        : backendUser.is_private
+        ? "private"
+        : "beneficiary",
       status: backendUser.is_active ? "active" : "inactive",
     });
   }, [backendUser]);
@@ -76,9 +88,16 @@ const EditUser = () => {
       newErrors.email = "Invalid email address.";
     }
     if (form.password || form.confirmPassword) {
-      if (!form.password) newErrors.password = "Password is required if changing password.";
-      if (!form.confirmPassword) newErrors.confirmPassword = "Confirm password is required if changing password.";
-      if (form.password && form.confirmPassword && form.password !== form.confirmPassword) {
+      if (!form.password)
+        newErrors.password = "Password is required if changing password.";
+      if (!form.confirmPassword)
+        newErrors.confirmPassword =
+          "Confirm password is required if changing password.";
+      if (
+        form.password &&
+        form.confirmPassword &&
+        form.password !== form.confirmPassword
+      ) {
         newErrors.confirmPassword = "Passwords do not match.";
       }
     }
@@ -147,7 +166,7 @@ const EditUser = () => {
         }, 2000);
       } catch (error) {
         setNotification("Failed to update user");
-        setTimeout(() => setNotification("") , 2000);
+        setTimeout(() => setNotification(""), 2000);
       }
     } else if (modalAction?.type === "reset") {
       // Only update password
@@ -157,7 +176,7 @@ const EditUser = () => {
       } catch (error) {
         setNotification("Failed to reset password");
       }
-      setTimeout(() => setNotification("") , 2000);
+      setTimeout(() => setNotification(""), 2000);
       setResetPassword("");
       setResetConfirmPassword("");
     }
@@ -210,7 +229,9 @@ const EditUser = () => {
               onChange={(e) => setResetConfirmPassword(e.target.value)}
               className="border border-gray-300 rounded px-3 py-2 focus:outline-none w-full"
             />
-            {resetNotification && <span className="text-red-500 text-xs">{resetNotification}</span>}
+            {resetNotification && (
+              <span className="text-red-500 text-xs">{resetNotification}</span>
+            )}
             <div className="flex gap-3 justify-end mt-2">
               <button
                 className="bg-gray-200 text-black px-4 py-2 rounded hover:bg-gray-300"
@@ -242,15 +263,12 @@ const EditUser = () => {
         onCancel={handleModalCancel}
       />
 
-      <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
-        <h1 className="text-md font-bold">Edit Profile</h1>
-      </div>
       <form
         onSubmit={handleSubmit}
         className="h-full w-full p-5 flex flex-col justify-between"
       >
         <div className="border border-black/15 p-3 bg-white rounded-sm">
-          <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
+          <div className=" rounded-sm py-3 px-5 w-full flex justify-between items-center">
             <h1 className="text-md font-bold">Account Information</h1>
           </div>
           <div className="flex flex-row gap-8 p-4">
@@ -265,7 +283,11 @@ const EditUser = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none "
                 />
-                {errors.firstName && <span className="text-red-500 text-xs">{errors.firstName}</span>}
+                {errors.firstName && (
+                  <span className="text-red-500 text-xs">
+                    {errors.firstName}
+                  </span>
+                )}
               </div>
               <div>
                 <label className="block text-gray-700 mb-1">Email:</label>
@@ -276,7 +298,9 @@ const EditUser = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none "
                 />
-                {errors.email && <span className="text-red-500 text-xs">{errors.email}</span>}
+                {errors.email && (
+                  <span className="text-red-500 text-xs">{errors.email}</span>
+                )}
               </div>
               <div>
                 <label className="block text-gray-700 mb-1">Role:</label>
@@ -310,7 +334,11 @@ const EditUser = () => {
                     Reset password
                   </button>
                 </div>
-                {errors.password && <span className="text-red-500 text-xs">{errors.password}</span>}
+                {errors.password && (
+                  <span className="text-red-500 text-xs">
+                    {errors.password}
+                  </span>
+                )}
               </div>
             </div>
             {/* Second Column */}
@@ -324,7 +352,11 @@ const EditUser = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none "
                 />
-                {errors.lastName && <span className="text-red-500 text-xs">{errors.lastName}</span>}
+                {errors.lastName && (
+                  <span className="text-red-500 text-xs">
+                    {errors.lastName}
+                  </span>
+                )}
               </div>
               <div>
                 <label className="block text-gray-700 mb-1">Username:</label>
@@ -353,7 +385,7 @@ const EditUser = () => {
         </div>
         <div className="w-full flex justify-around">
           <Link
-            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
             to="/admin/user-management"
           >
             CANCEL

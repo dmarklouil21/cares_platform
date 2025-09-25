@@ -19,7 +19,9 @@ const ViewResults = () => {
   const record = location.state;
   const { id } = useParams();
   const [files, setFiles] = useState(null);
-  const [description, setDescription] = useState(record?.result_description || "");
+  const [description, setDescription] = useState(
+    record?.result_description || ""
+  );
   const [showDescriptionField, setShowDescriptionField] = useState(
     !!record?.result_description // show by default if description already exists
   );
@@ -238,35 +240,35 @@ const ViewResults = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting your data..." />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+      <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
+        <div className=" h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Cancer Management</h1>
-          <div className="p-3">
-            <Link to={`/admin/cancer-management/view/${id}`}>
-              <img
-                src="/images/back.png"
-                alt="Back button icon"
-                className="h-6"
-              />
-            </Link>
-          </div>
+          <Link to={`/admin/cancer-management/view/${id}`}>
+            <img
+              src="/images/back.png"
+              alt="Back button icon"
+              className="h-6"
+            />
+          </Link>
         </div>
 
-        <div className="h-full w-full p-5 flex flex-col justify-between">
+        <div className="h-full w-full flex flex-col justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
-              <h2 className="text-3xl text-yellow font-bold">Treatment Result</h2>
+              <h2 className="text-3xl text-yellow font-bold">
+                Treatment Result
+              </h2>
               <p className="font-bold italic">
                 View the uploaded result of the patient.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-6">
-                <div
-                  className="flex items-center gap-3 justify-between bg-gray-50 px-4 py-3 rounded-lg shadow-sm"
-                >
+                <div className="flex items-center gap-3 justify-between bg-gray-50 px-4 py-3 rounded-lg shadow-sm">
                   <div className="flex items-center gap-3">
                     <CheckIcon active={files} />
-                    <span className="text-gray-900 font-medium">Patient Result</span>
+                    <span className="text-gray-900 font-medium">
+                      Patient Result
+                    </span>
                   </div>
                   {files ? (
                     <a
@@ -296,7 +298,9 @@ const ViewResults = () => {
               {/* NEW DESCRIPTION FIELD */}
               {showDescriptionField && (
                 <div className="flex flex-col gap-2">
-                  <label className="text-gray-900 font-medium">Result Description</label>
+                  <label className="text-gray-900 font-medium">
+                    Result Description
+                  </label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -306,13 +310,12 @@ const ViewResults = () => {
                   />
                 </div>
               )}
-
             </div>
           </div>
           <div className="w-full flex justify-around">
-            <Link 
+            <Link
               to={`/admin/cancer-management/view/${id}`}
-              className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+              className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
             >
               Back
             </Link>

@@ -484,10 +484,6 @@ const Dashboard = () => {
 
   return (
     <div className="h-screen w-full bg-gray overflow-auto">
-      <div className="bg-white h-[10%] px-5 w-full flex justify-between items-center">
-        <h1 className="text-md font-bold">Admin</h1>
-      </div>
-
       <div className="flex-1 w-full p-5 space-y-5">
         <div className="flex justify-center items-center">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-fit">

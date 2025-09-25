@@ -32,7 +32,10 @@ const ViewAttachments = () => {
   const record = location.state;
 
   const serviceType = record?.service_type;
-  const requiredDocs = [...(REQUIRED_DOCS[serviceType] || []), { key: "signedCaseSummary", label: "Signed Case Summary" }];
+  const requiredDocs = [
+    ...(REQUIRED_DOCS[serviceType] || []),
+    { key: "signedCaseSummary", label: "Signed Case Summary" },
+  ];
 
   const { id } = useParams();
 
@@ -196,24 +199,24 @@ const ViewAttachments = () => {
       />
       <LoadingModal open={loading} text="Submitting your data..." />
 
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+      <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 overflow-auto items-center bg-gray">
+        <div className=" h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Cancer Management</h1>
-          <div className="p-3">
-            <Link to={`/admin/cancer-management/view/${id}`}>
-              <img
-                src="/images/back.png"
-                alt="Back button icon"
-                className="h-6"
-              />
-            </Link>
-          </div>
+          <Link to={`/admin/cancer-management/view/${id}`}>
+            <img
+              src="/images/back.png"
+              alt="Back button icon"
+              className="h-6"
+            />
+          </Link>
         </div>
 
-        <div className="h-full w-full p-5 flex flex-col justify-between">
+        <div className="h-full w-full flex flex-col gap-5 justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
-              <h2 className="text-3xl text-yellow font-bold">Submitted Documents</h2>
+              <h2 className="text-3xl text-yellow font-bold">
+                Submitted Documents
+              </h2>
               <p className="font-bold italic">
                 Review all uploaded documents before approving or rejecting.
               </p>
@@ -225,7 +228,7 @@ const ViewAttachments = () => {
                   // const fileName = uploaded
                   //   ? decodeURIComponent(uploaded.file.split("/").pop()) // extract last part of URL
                   //   : null;
-                  
+
                   return (
                     <div
                       key={d.key}
@@ -233,7 +236,9 @@ const ViewAttachments = () => {
                     >
                       <div className="flex items-center gap-3">
                         <CheckIcon active={!!uploaded} />
-                        <span className="text-gray-900 font-medium">{d.label}</span>
+                        <span className="text-gray-900 font-medium">
+                          {d.label}
+                        </span>
                       </div>
                       {uploaded ? (
                         <a
@@ -254,9 +259,9 @@ const ViewAttachments = () => {
             </div>
           </div>
           <div className="w-full flex justify-end">
-            <Link 
+            <Link
               to={`/admin/cancer-management/view/${id}`}
-              className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+              className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
             >
               Back
             </Link>
@@ -264,7 +269,7 @@ const ViewAttachments = () => {
         </div>
       </div>
     </>
-  ); 
+  );
 };
 
 export default ViewAttachments;

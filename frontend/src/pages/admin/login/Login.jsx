@@ -10,7 +10,7 @@ import api from "src/api/axiosInstance";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); 
+  const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +22,7 @@ const Login = () => {
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -34,7 +34,7 @@ const Login = () => {
       if (!loggedInUser.is_active) {
         navigate("/ResetPassword");
       } else if (!loggedInUser.is_superuser) {
-        alert('This account doesn\'t have priviliges to access the admin site.');
+        alert("This account doesn't have priviliges to access the admin site.");
         return;
       } else {
         navigate("/admin");
@@ -96,20 +96,20 @@ const Login = () => {
           <button
             id="login-button"
             type="submit"
-            className="w-full font-bold bg-primary text-white py-2 w-[45%] border-[1px] border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+            className="w-full font-bold bg-primary text-white py-2 border-[1px] border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
           >
             Login
           </button>
           <p className="text-sm text-black">
             Don't have an account?{" "}
             <Link
-              to="/NoteRhu"
+              to="/admin-registration"
               className="text-primary font-semibold hover:underline"
             >
               Sign Up
             </Link>
           </p>
-          <div className="w-full flex items-center my-2">
+          {/* <div className="w-full flex items-center my-2">
             <hr className="flex-grow border-gray-200" />
             <span className="mx-4 text-gray-400">Or</span>
             <hr className="flex-grow border-gray-200" />
@@ -125,7 +125,7 @@ const Login = () => {
               <rect fill="#ffba08" x="13" y="13" width="9" height="9" />
             </svg>
             Sign up with Microsoft
-          </button>
+          </button> */}
         </form>
       </div>
     </>

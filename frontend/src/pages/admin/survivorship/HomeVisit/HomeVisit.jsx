@@ -157,207 +157,199 @@ const HomeVisit = () => {
         onCancel={cancelAction}
       />
       <Notification message={notification} />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Admin</h1>
-          <Link
-            to="/admin/survivorship/add"
-            className="bg-yellow gap-3 flex justify-center items-center px-5 py-1 rounded-sm"
-          >
-            <p className="text-white text-sm">Add new</p>
-          </Link>
-        </div>
-        <div className="w-full flex-1 py-5 flex flex-col gap-5 overflow-auto justify-around px-5">
+      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center  bg-gray">
+        <div className="flex justify-between items-center w-full">
           <h2 className="text-xl font-bold text-left w-full pl-5">
             Home visit requests
           </h2>
-          <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-5 gap-3">
-            <p className="text-md font-semibold text-yellow">Request List</p>
-            <div className="flex justify-between flex-wrap gap-3">
-              <input
-                type="text"
-                placeholder="Search by patient no, patient name, or diagnosis..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
-              />
+          <Link
+            to="/admin/survivorship/add"
+            className="bg-yellow px-5 py-1 rounded-sm text-white"
+          >
+            Add
+          </Link>
+        </div>
+
+        <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-3 gap-3">
+          <p className="text-md font-semibold text-yellow">Request List</p>
+          <div className="flex justify-between flex-wrap gap-3">
+            <input
+              type="text"
+              placeholder="Search by patient no, patient name, or diagnosis..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+            />
+            <select
+              className="border border-gray-200 rounded-md p-2 bg-white"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="all">All</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="completed">Completed</option>
+            </select>
+            <input
+              type="date"
+              className="border border-gray-200 py-2 px-5 rounded-md"
+              value={dateFilter}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+          <div className="bg-white shadow">
+            <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
+              <thead>
+                <tr className="bg-lightblue">
+                  <th className="w-[15%] text-center text-sm py-3 !bg-lightblue">
+                    Patient no
+                  </th>
+                  <th className="w-[20%] text-center text-sm py-3">
+                    Patient Name
+                  </th>
+                  <th className="w-[20%] text-center text-sm py-3">
+                    Diagnosis
+                  </th>
+                  <th className="w-[15%] text-center text-sm py-3">Date</th>
+                  <th className="w-[10%] text-center text-sm py-3">Status</th>
+                  <th className="w-[20%] text-center text-sm py-3">Action</th>
+                </tr>
+              </thead>
+            </table>
+            <div className="max-h-[240px] min-h-[240px] overflow-auto">
+              <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
+                <colgroup>
+                  <col className="w-[15%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[10%]" />
+                  <col className="w-[20%]" />
+                </colgroup>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {paginated.map((p) => (
+                    <tr key={p.id}>
+                      <td className="text-center text-sm py-3 text-gray-800">
+                        {p.patient_id}
+                      </td>
+                      <td className="text-center text-sm py-3 text-gray-800">
+                        {p.patient_name}
+                      </td>
+                      <td className="text-center text-sm py-3 text-gray-800">
+                        {p.diagnosis}
+                      </td>
+                      <td className="text-center text-sm py-3 text-gray-800">
+                        {new Date(p.date).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </td>
+                      <td className="text-center text-sm py-3">
+                        <span
+                          className={`px-3 py-1 inline-flex text-xs font-semibold rounded-md ${
+                            p.status === "Approved"
+                              ? "bg-green-50 text-green-600"
+                              : p.status === "Completed"
+                              ? "bg-blue-50 text-blue-600"
+                              : "bg-amber-50 text-amber-600"
+                          }`}
+                        >
+                          {p.status}
+                        </span>
+                      </td>
+                      <td className="text-center text-sm py-3">
+                        <div className="flex gap-2 justify-center">
+                          <button
+                            onClick={() => handleView(p.id)}
+                            className="text-white py-1 px-2 rounded-[5px] shadow bg-primary"
+                          >
+                            View
+                          </button>
+                          {p.status === "Pending" && (
+                            <>
+                              <button
+                                onClick={() => openConfirm(p.id, "accept")}
+                                className="text-white py-1 px-2 rounded-[5px] shadow bg-green-500"
+                              >
+                                Accept
+                              </button>
+                              <button
+                                onClick={() => openConfirm(p.id, "reject")}
+                                className="text-white py-1 px-2 rounded-[5px] shadow bg-red-500"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {paginated.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="text-center py-4 text-gray-500"
+                      >
+                        No records found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="flex justify-end items-center py-2 gap-5">
+            <div className="flex items-center gap-2">
+              <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                Records per page:
+              </label>
               <select
-                className="border border-gray-200 rounded-md p-2 bg-white"
-                value={statusFilter}
+                id="recordsPerPage"
+                className="w-16 rounded-md shadow-sm"
+                value={recordsPerPage}
                 onChange={(e) => {
-                  setStatusFilter(e.target.value);
+                  setRecordsPerPage(Number(e.target.value));
                   setCurrentPage(1);
                 }}
               >
-                <option value="all">All</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="completed">Completed</option>
+                <option>10</option>
+                <option>20</option>
+                <option>50</option>
               </select>
-              <input
-                type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
-                value={dateFilter}
-                onChange={(e) => {
-                  setDateFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
             </div>
-            <div className="bg-white shadow">
-              <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
-                <thead>
-                  <tr className="bg-lightblue">
-                    <th className="w-[15%] text-center text-sm py-3 !bg-lightblue">
-                      Patient no
-                    </th>
-                    <th className="w-[20%] text-center text-sm py-3">
-                      Patient Name
-                    </th>
-                    <th className="w-[20%] text-center text-sm py-3">
-                      Diagnosis
-                    </th>
-                    <th className="w-[15%] text-center text-sm py-3">Date</th>
-                    <th className="w-[10%] text-center text-sm py-3">Status</th>
-                    <th className="w-[20%] text-center text-sm py-3">Action</th>
-                  </tr>
-                </thead>
-              </table>
-              <div className="max-h-[240px] min-h-[240px] overflow-auto">
-                <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
-                  <colgroup>
-                    <col className="w-[15%]" />
-                    <col className="w-[20%]" />
-                    <col className="w-[20%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[10%]" />
-                    <col className="w-[20%]" />
-                  </colgroup>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {paginated.map((p) => (
-                      <tr key={p.id}>
-                        <td className="text-center text-sm py-3 text-gray-800">
-                          {p.patient_id}
-                        </td>
-                        <td className="text-center text-sm py-3 text-gray-800">
-                          {p.patient_name}
-                        </td>
-                        <td className="text-center text-sm py-3 text-gray-800">
-                          {p.diagnosis}
-                        </td>
-                        <td className="text-center text-sm py-3 text-gray-800">
-                          {new Date(p.date).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}
-                        </td>
-                        <td className="text-center text-sm py-3">
-                          <span
-                            className={`px-3 py-1 inline-flex text-xs font-semibold rounded-md ${
-                              p.status === "Approved"
-                                ? "bg-green-50 text-green-600"
-                                : p.status === "Completed"
-                                ? "bg-blue-50 text-blue-600"
-                                : "bg-amber-50 text-amber-600"
-                            }`}
-                          >
-                            {p.status}
-                          </span>
-                        </td>
-                        <td className="text-center text-sm py-3">
-                          <div className="flex gap-2 justify-center">
-                            <button
-                              onClick={() => handleView(p.id)}
-                              className="text-white py-1 px-2 rounded-[5px] shadow bg-primary"
-                            >
-                              View
-                            </button>
-                            {p.status === "Pending" && (
-                              <>
-                                <button
-                                  onClick={() => openConfirm(p.id, "accept")}
-                                  className="text-white py-1 px-2 rounded-[5px] shadow bg-green-500"
-                                >
-                                  Accept
-                                </button>
-                                <button
-                                  onClick={() => openConfirm(p.id, "reject")}
-                                  className="text-white py-1 px-2 rounded-[5px] shadow bg-red-500"
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {paginated.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="text-center py-4 text-gray-500"
-                        >
-                          No records found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div className="flex justify-end items-center py-2 gap-5">
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor="recordsPerPage"
-                  className="text-sm text-gray-700"
-                >
-                  Records per page:
-                </label>
-                <select
-                  id="recordsPerPage"
-                  className="w-16 rounded-md shadow-sm"
-                  value={recordsPerPage}
-                  onChange={(e) => {
-                    setRecordsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                >
-                  <option>10</option>
-                  <option>20</option>
-                  <option>50</option>
-                </select>
-              </div>
-              <div className="flex gap-3 items-center">
-                <span className="text-sm text-gray-700">
-                  {Math.min(
-                    (currentPage - 1) * recordsPerPage + 1,
-                    totalRecords
-                  )}{" "}
-                  – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                  {totalRecords}
-                </span>
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="text-gray-600"
-                >
-                  ←
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="text-gray-600"
-                >
-                  →
-                </button>
-              </div>
+            <div className="flex gap-3 items-center">
+              <span className="text-sm text-gray-700">
+                {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
+                – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
+                {totalRecords}
+              </span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="text-gray-600"
+              >
+                ←
+              </button>
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="text-gray-600"
+              >
+                →
+              </button>
             </div>
           </div>
         </div>

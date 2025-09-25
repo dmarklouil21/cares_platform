@@ -37,18 +37,6 @@ export default function MassAttendanceView() {
 
   return (
     <div className="h-screen w-full bg-gray flex flex-col">
-      {/* Header */}
-      <div className="bg-white py-4 px-6 md:px-10 flex items-center justify-between">
-        <div className="font-bold">Admin</div>
-        <div className="w-8 h-8 rounded-full overflow-hidden">
-          <img
-            src="/images/Avatar.png"
-            alt="User"
-            className="w-full h-full object-cover"
-          />
-        </div>
-      </div>
-
       {/* Body */}
       <div className="w-full flex-1 py-6 px-6 md:px-10 flex flex-col gap-6 overflow-auto">
         <div className="flex items-center justify-between">

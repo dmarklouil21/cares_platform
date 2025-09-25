@@ -4,10 +4,11 @@ import ProtectedRHURoute from "../components/RoleGuard/ProtectedRHURoute";
 
 // Main Modules
 import Dashboard from "../pages/rhu/Dashboard/Dashboard";
-import CancerAwareness from "../pages/rhu/CancerAwareness/CancerAwareness";
+import CancerAwareness from "../pages/rhu/cancerawareness/CancerAwareness";
 import PatientList from "../pages/rhu/Patient/PatientList";
 import CancerScreening from "../pages/rhu/Services/CancerScreening/CancerScreening";
 import ApplicationStatus from "../pages/rhu/applicationStatus/applicationStatus";
+import ViewProfile from "../pages/rhu/Profile/ViewProfile";
 
 // sub list
 import MassScreening from "../pages/rhu/Patient/MassScreening";
@@ -37,6 +38,7 @@ const RhuRoutes = () => (
   >
     {/* Dashboard */}
     <Route index element={<Dashboard />} />
+    <Route path="profile" element={<ViewProfile />} />
 
     {/* Awareness */}
     <Route path="cancer-awareness" element={<CancerAwareness />} />

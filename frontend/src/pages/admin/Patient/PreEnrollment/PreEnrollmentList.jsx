@@ -56,7 +56,7 @@ const PreEnrollmentList = () => {
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
-  const [modalAction, setModalAction] = useState(null); 
+  const [modalAction, setModalAction] = useState(null);
 
   // Fetch data function so it can be reused
   const fetchData = async () => {
@@ -92,8 +92,7 @@ const PreEnrollmentList = () => {
         ? new Date(dateFilter).toISOString().split("T")[0]
         : null;
 
-      const matchesDate =
-        !formattedDate || record.created_at === formattedDate;
+      const matchesDate = !formattedDate || record.created_at === formattedDate;
 
       return matchesSearch && matchesStatus && matchesDate;
     }) || [];
@@ -151,9 +150,9 @@ const PreEnrollmentList = () => {
       let actionWord =
         action === "validate"
           ? "Validated"
-          // : action === "reject"
-          // ? "Rejected"
-          : action.charAt(0).toUpperCase() + action.slice(1);
+          : // : action === "reject"
+            // ? "Rejected"
+            action.charAt(0).toUpperCase() + action.slice(1);
       setNotification(`${actionWord} Successfully`);
       fetchData();
       setTimeout(() => setNotification(""), 3500);
@@ -201,224 +200,202 @@ const PreEnrollmentList = () => {
         message={notification}
         onClose={() => setNotification("")}
       />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Admin</h1>
-        </div>
-        
-        <div className="w-full flex-1 py-5 flex flex-col justify-around px-5">
-          <h2 className="text-xl font-bold text-left w-full pl-5">
-            Pre-Enrollment
-          </h2>
+      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray">
+        <h2 className="text-xl font-bold text-left w-full pl-5">
+          Pre-Enrollment
+        </h2>
 
-          <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-5 gap-3">
-            <p className="text-md font-semibold text-yellow">
-              Pre-Enrollment Requests
-            </p>
+        <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-5 gap-3">
+          <p className="text-md font-semibold text-yellow">
+            Pre-Enrollment Requests
+          </p>
 
-            <div className="flex justify-between flex-wrap gap-3">
-              <input
-                type="text"
-                placeholder="Search by beneficiary ID ..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
-              />
+          <div className="flex justify-between flex-wrap gap-3">
+            <input
+              type="text"
+              placeholder="Search by beneficiary ID ..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+            />
 
-              <select
-                className="border border-gray-200 rounded-md p-2 bg-white"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="all">All</option>
-                <option value="pending">Pending</option>
-                <option value="validated">Validated</option>
-                <option value="rejected">Rejected</option>
-              </select>
+            <select
+              className="border border-gray-200 rounded-md p-2 bg-white"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="pending">Pending</option>
+              <option value="validated">Validated</option>
+              <option value="rejected">Rejected</option>
+            </select>
 
-              <input
-                type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-              />
+            <input
+              type="date"
+              className="border border-gray-200 py-2 px-5 rounded-md"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+            />
 
-              <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
-                Filter
-              </button>
-            </div>
+            <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
+              Filter
+            </button>
+          </div>
 
+          <div className="bg-white shadow">
             <div className="bg-white shadow">
-              <div className="bg-white shadow">
+              <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
+                <thead>
+                  <tr className="bg-lightblue">
+                    <th className="w-[15%] text-center text-sm py-3 !bg-lightblue">
+                      Beneficiary ID
+                    </th>
+                    <th className="w-[20%] text-center text-sm py-3 ">Name</th>
+                    <th className="w-[15%] text-center text-sm py-3 ">
+                      Submission Date
+                    </th>
+                    <th className="w-[15%] text-center text-sm py-3 ">LGU</th>
+                    <th className="w-[8.4%] text-center text-sm py-3 ">
+                      Status
+                    </th>
+                    <th className="w-[25%] text-center text-sm py-3 ">
+                      Actions
+                    </th>
+                    {paginatedData.length >= 4 && (
+                      <th className="!bg-lightblue w-[1.6%] p-0 m-0"></th>
+                    )}
+                  </tr>
+                </thead>
+              </table>
+              <div className="max-h-[200px] min-h-[200px] overflow-auto">
                 <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
-                  <thead>
-                    <tr className="bg-lightblue">
-                      <th className="w-[15%] text-center text-sm py-3 !bg-lightblue">
-                        Beneficiary ID
-                      </th>
-                      <th className="w-[20%] text-center text-sm py-3 ">
-                        Name
-                      </th>
-                      <th className="w-[15%] text-center text-sm py-3 ">
-                        Submission Date
-                      </th>
-                      <th className="w-[15%] text-center text-sm py-3 ">LGU</th>
-                      <th className="w-[8.4%] text-center text-sm py-3 ">
-                        Status
-                      </th>
-                      <th className="w-[25%] text-center text-sm py-3 ">
-                        Actions
-                      </th>
-                      {paginatedData.length >= 4 && (
-                        <th className="!bg-lightblue w-[1.6%] p-0 m-0"></th>
-                      )}
-                    </tr>
-                  </thead>
-                </table>
-                <div className="max-h-[200px] min-h-[200px] overflow-auto">
-                  <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
-                    <colgroup>
-                      <col className="w-[15%]" />
-                      <col className="w-[20%] " />
-                      <col className="w-[15%]" />
-                      <col className="w-[15%]" />
-                      <col className="w-[8.4%]" />
-                      <col className="w-[25%]" />
-                    </colgroup>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {paginatedData?.map((item) => (
-                        <tr key={item.patient_id}>
-                          <td className="text-center text-sm py-4 text-gray-800">
-                            {item.patient_id}
-                          </td>
-                          <td className="text-center text-sm py-4 text-gray-800">
-                            {item.full_name}
-                          </td>
-                          <td className="text-center text-sm py-4 text-gray-800">
-                            {new Date(item.created_at).toLocaleDateString(
-                              "en-US",
-                              { year: "numeric", month: "long", day: "numeric" }
-                            )}
-                          </td>
-                          <td className="text-center text-sm py-4 text-gray-800">
-                            {item.city}
-                          </td>
-                          <td className="text-center text-sm py-4 text-gray-800">
-                            <span className="px-3 py-1 inline-flex text-xs font-semibold rounded-md bg-amber-50 text-amber-600">
-                              {item.status}
-                            </span>
-                          </td>
-                          <td className="text-center text-sm py-4 flex gap-2 justify-center">
+                  <colgroup>
+                    <col className="w-[15%]" />
+                    <col className="w-[20%] " />
+                    <col className="w-[15%]" />
+                    <col className="w-[15%]" />
+                    <col className="w-[8.4%]" />
+                    <col className="w-[25%]" />
+                  </colgroup>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paginatedData?.map((item) => (
+                      <tr key={item.patient_id}>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          {item.patient_id}
+                        </td>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          {item.full_name}
+                        </td>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          {new Date(item.created_at).toLocaleDateString(
+                            "en-US",
+                            { year: "numeric", month: "long", day: "numeric" }
+                          )}
+                        </td>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          {item.city}
+                        </td>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          <span className="px-3 py-1 inline-flex text-xs font-semibold rounded-md bg-amber-50 text-amber-600">
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="text-center text-sm py-4 flex gap-2 justify-center">
+                          <button
+                            onClick={() => handleViewClick(item.patient_id)}
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-primary"
+                          >
+                            View
+                          </button>
+                          {item.status === "pending" && (
                             <button
                               onClick={() =>
-                                handleViewClick(item.patient_id)
+                                handleActionClick(item.patient_id, "validate")
                               }
-                              className="text-white py-1 px-3 rounded-[5px] shadow bg-primary"
+                              className="text-white py-1 px-3 rounded-[5px] shadow bg-green-500"
                             >
-                              View
+                              Validate
                             </button>
-                            {item.status === "pending" && (
-                              <button
-                                onClick={() =>
-                                  handleActionClick(
-                                    item.patient_id,
-                                    "validate"
-                                  )
-                                }
-                                className="text-white py-1 px-3 rounded-[5px] shadow bg-green-500"
-                              >
-                                Validate
-                              </button>
-                            )}
-                            {item.status === "pending" ? (
-                              <button
-                                onClick={() =>
-                                  handleActionClick(
-                                    item.patient_id,
-                                    "reject"
-                                  )
-                                }
-                                className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
-                              >
-                                Reject
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() =>
-                                  handleActionClick(
-                                    item.patient_id,
-                                    "delete"
-                                  )
-                                }
-                                className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                      {paginatedData?.length === 0 && (
-                        <tr>
-                          <td
-                            colSpan="6"
-                            className="text-center py-4 text-gray-500"
-                          >
-                            No records found.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                          )}
+                          {item.status === "pending" ? (
+                            <button
+                              onClick={() =>
+                                handleActionClick(item.patient_id, "reject")
+                              }
+                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
+                            >
+                              Reject
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() =>
+                                handleActionClick(item.patient_id, "delete")
+                              }
+                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {paginatedData?.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan="6"
+                          className="text-center py-4 text-gray-500"
+                        >
+                          No records found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
+          </div>
 
-            {/* Footer Pagination */}
-            <div className="flex justify-end items-center py-2 gap-5">
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor="recordsPerPage"
-                  className="text-sm text-gray-700"
-                >
-                  Record per page:
-                </label>
-                <select
-                  id="recordsPerPage"
-                  className="w-16 rounded-md shadow-sm"
-                  value={recordsPerPage}
-                  onChange={handleRecordsPerPageChange}
-                >
-                  <option>10</option>
-                  <option>20</option>
-                  <option>50</option>
-                </select>
-              </div>
-              <div className="flex gap-3 items-center">
-                <span className="text-sm text-gray-700">
-                  {/* 1 – 10 of {filteredData.length} */}
-                  {Math.min(
-                    (currentPage - 1) * recordsPerPage + 1,
-                    totalRecords
-                  )}{" "}
-                  – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                  {totalRecords}
-                </span>
-                <button
-                  onClick={handlePrev}
-                  disabled={currentPage === 1}
-                  className="text-gray-600"
-                >
-                  ←
-                </button>
-                <button
-                  onClick={handleNext}
-                  disabled={currentPage === totalPages}
-                  className="text-gray-600"
-                >
-                  →
-                </button>
-              </div>
+          {/* Footer Pagination */}
+          <div className="flex justify-end items-center py-2 gap-5">
+            <div className="flex items-center gap-2">
+              <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                Record per page:
+              </label>
+              <select
+                id="recordsPerPage"
+                className="w-16 rounded-md shadow-sm"
+                value={recordsPerPage}
+                onChange={handleRecordsPerPageChange}
+              >
+                <option>10</option>
+                <option>20</option>
+                <option>50</option>
+              </select>
+            </div>
+            <div className="flex gap-3 items-center">
+              <span className="text-sm text-gray-700">
+                {/* 1 – 10 of {filteredData.length} */}
+                {Math.min(
+                  (currentPage - 1) * recordsPerPage + 1,
+                  totalRecords
+                )}{" "}
+                – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
+                {totalRecords}
+              </span>
+              <button
+                onClick={handlePrev}
+                disabled={currentPage === 1}
+                className="text-gray-600"
+              >
+                ←
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="text-gray-600"
+              >
+                →
+              </button>
             </div>
           </div>
         </div>

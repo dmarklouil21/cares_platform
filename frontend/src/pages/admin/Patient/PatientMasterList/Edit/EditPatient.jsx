@@ -7,6 +7,54 @@ import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
 
+const DEFAULT_CONTACT = {
+  name: "",
+  relationship_to_patient: "",
+  landline_number: "",
+  address: "",
+  email: "",
+  mobile_number: "",
+};
+
+function ensureTwoContacts(arr) {
+  const out = Array.isArray(arr) ? [...arr] : [];
+  while (out.length < 2) out.push({ ...DEFAULT_CONTACT });
+  return out.slice(0, 2).map((c) => ({ ...DEFAULT_CONTACT, ...c }));
+}
+
+function normalizePatient(p = {}) {
+  return {
+    ...p,
+    // keep strings controlled
+    first_name: p.first_name ?? "",
+    middle_name: p.middle_name ?? "",
+    last_name: p.last_name ?? "",
+    suffix: p.suffix ?? "",
+    date_of_birth: p.date_of_birth ?? "",
+    civil_status: p.civil_status ?? "",
+    number_of_children: p.number_of_children ?? "",
+    sex: p.sex ?? "Male",
+    address: p.address ?? "",
+    city: p.city ?? "",
+    barangay: p.barangay ?? "",
+    email: p.email ?? "",
+    mobile_number: p.mobile_number ?? "",
+    highest_educational_attainment: p.highest_educational_attainment ?? "",
+    source_of_income: p.source_of_income ?? "",
+    occupation: p.occupation ?? "",
+    monthly_income: p.monthly_income ?? "",
+    source_of_information: p.source_of_information ?? "",
+    other_rafi_programs_availed: p.other_rafi_programs_availed ?? "",
+    emergency_contacts: ensureTwoContacts(p.emergency_contacts),
+    diagnosis:
+      Array.isArray(p.diagnosis) && p.diagnosis.length > 0 ? p.diagnosis : [{}],
+    historical_updates: Array.isArray(p.historical_updates)
+      ? p.historical_updates
+      : [],
+    photo_url: p.photo_url ?? null,
+  };
+}
+
 const PatientMasterListEdit = () => {
   const { patient_id } = useParams();
   const navigate = useNavigate();
@@ -18,7 +66,7 @@ const PatientMasterListEdit = () => {
     {
       date: "",
       note: "",
-    }
+    },
   ]);
 
   // Notification Modal
@@ -28,12 +76,12 @@ const PatientMasterListEdit = () => {
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalAction, setModalAction] = useState(null); 
+  const [modalAction, setModalAction] = useState(null);
 
   // 2×2 photo preview (UI only; no data changes)
   const [photoUrl, setPhotoUrl] = useState(null);
@@ -53,67 +101,80 @@ const PatientMasterListEdit = () => {
     const fetchData = async () => {
       try {
         const response = await api.get(`/patient/details/${patient_id}/`);
-        if (isMounted) {
-          setForm(response.data);
-          setHistoricalUpdates(response.data.historical_updates)
-          setPhotoUrl(response.data.photo_url);
-        }
+        if (!isMounted) return;
+
+        const normalized = normalizePatient(response.data || {});
+        setForm(normalized);
+        setHistoricalUpdates(normalized.historical_updates);
+        setPhotoUrl(normalized.photo_url);
       } catch (error) {
         console.error("Error fetching patient data:", error);
       }
     };
-    
-    fetchData();
 
+    fetchData();
     return () => {
       isMounted = false;
     };
-
   }, [patient_id]);
+
   console.log("Historical Update: 0", historicalUpdates);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // city change resets barangay
     if (name === "city") {
       setForm((prev) => ({
         ...prev,
-        [name]: value,
-        barangay: "", // Reset barangay when city changes
+        city: value,
+        barangay: "",
       }));
-    } else if (name.startsWith("emergencyContact")) {
+      return;
+    }
+
+    // emergency contacts: names like "emergencyContact1.name"
+    if (name.startsWith("emergencyContact")) {
       const [contactKey, field] = name.split(".");
       const index = contactKey === "emergencyContact1" ? 0 : 1;
 
       setForm((prev) => {
-        const updatedContacts = [...prev.emergency_contacts];
-        updatedContacts[index] = {
-          ...updatedContacts[index],
-          [field]: value,
-        };
+        const prevContacts = ensureTwoContacts(prev?.emergency_contacts);
+        const updatedContacts = [...prevContacts];
+        const current = { ...updatedContacts[index] };
+        current[field] = value;
+        updatedContacts[index] = current;
+
         return {
           ...prev,
           emergency_contacts: updatedContacts,
         };
       });
-    } else if (name.startsWith("cancer_diagnosis")) {
-      const field = name.split("_").slice(2).join("_"); // Extract field name after "cancer_diagnosis"
+      return;
+    }
+
+    // diagnosis fields (if any in other steps)
+    if (name.startsWith("cancer_diagnosis")) {
+      const field = name.split("_").slice(2).join("_");
       setForm((prev) => {
-        const updatedDiagnosis = [...prev.diagnosis];
-        updatedDiagnosis[0] = {
-          ...updatedDiagnosis[0],
-          [field]: value,
-        };
+        const diag =
+          Array.isArray(prev?.diagnosis) && prev.diagnosis.length
+            ? [...prev.diagnosis]
+            : [{}];
+        diag[0] = { ...(diag[0] || {}), [field]: value };
         return {
           ...prev,
-          diagnosis: updatedDiagnosis,
+          diagnosis: diag,
         };
       });
-    } else {
-      setForm((prev) => ({
-        ...prev,
-        [name]: name === "children" ? parseInt(value) || 0 : value,
-      }));
+      return;
     }
+
+    // default change
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "number_of_children" ? parseInt(value, 10) || 0 : value,
+    }));
   };
 
   const handleHistoricalUpdateChange = (index, e) => {
@@ -127,8 +188,8 @@ const PatientMasterListEdit = () => {
   };
 
   const addHistoricalUpdate = () => {
-    setNewUpdate([
-      ...newUpdate,
+    setNewUpdate((prev) => [
+      ...prev,
       {
         date: "",
         note: "",
@@ -150,17 +211,14 @@ const PatientMasterListEdit = () => {
   };
 
   const handleNext = () => {
-    // Create the updated array manually
-    const updatedUpdates = historicalUpdates?.length > 0
-      ? [...historicalUpdates, ...newUpdate]
-      : [...newUpdate];
+    if (!validate()) return;
 
-    // Update state
+    const updatedUpdates =
+      Array.isArray(historicalUpdates) && historicalUpdates.length > 0
+        ? [...historicalUpdates, ...newUpdate]
+        : [...newUpdate];
+
     setHistoricalUpdates(updatedUpdates);
-
-    console.log("Updates Passed: ", newUpdate);
-    
-    // console.log("Historical Update 1: ", historicalUpdates);
 
     navigate(`/admin/patient/edit/${form?.patient_id}/cancer-data`, {
       state: {
@@ -168,11 +226,11 @@ const PatientMasterListEdit = () => {
           ...form,
           historical_updates: updatedUpdates,
         },
-        photoUrl: imageFile
-      }
+        photoUrl: imageFile,
+      },
     });
-  }
-  
+  };
+
   return (
     <>
       <ConfirmationModal
@@ -193,28 +251,31 @@ const PatientMasterListEdit = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting changes..." />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+
+      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center bg-[#F8F9FA] overflow-auto">
+        <div className=" h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Edit Patient</h1>
-          <div className="p-3">
+          <div>
             <Link to={"/admin/patient/master-list"}>
-              <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
+              <img
+                src="/images/back.png"
+                alt="Back"
+                className="h-6 cursor-pointer"
+              />
             </Link>
           </div>
         </div>
 
-        <form className="h-full w-full p-5 flex flex-col justify-between gap-5 bg[#F8F9FA]">
+        <form className="h-full w-full flex flex-col justify-between gap-5 bg[#F8F9FA]">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between py-3 px-5 items-start md:items-center gap-6 mb-6">
               <div className="flex flex-col gap-2">
-                <h1 className="text-xl font-bold">
-                  PATIENT PROFILE
-                </h1>
+                <h1 className="text-xl font-bold">PATIENT PROFILE</h1>
                 <p className="text-sm text-gray-600">
                   Patient ID:{" "}
                   <span className="font-semibold">
-                    {form?.patient_id || "N/A"}
+                    {form?.patient_id ?? "N/A"}
                   </span>
                 </p>
               </div>
@@ -257,18 +318,22 @@ const PatientMasterListEdit = () => {
             </div>
 
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-              <h2 className="text-md font-bold tracking-wide uppercase pb-1">Basic Information</h2>
+              <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+                Basic Information
+              </h2>
             </div>
 
             <div className="flex flex-row gap-8 p-4">
               {/* Column 1 */}
               <div className="flex flex-col gap-3 w-1/2">
                 <div className="w-full">
-                  <label className="text-sm font-medium block mb-1">First Name:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    First Name:
+                  </label>
                   <input
                     type="text"
                     name="first_name"
-                    value={form?.first_name}
+                    value={form?.first_name ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                     required
@@ -276,22 +341,26 @@ const PatientMasterListEdit = () => {
                 </div>
 
                 <div className="w-full">
-                  <label className="text-sm font-medium block mb-1">Middle Name:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Middle Name:
+                  </label>
                   <input
                     type="text"
                     name="middle_name"
-                    value={form?.middle_name}
+                    value={form?.middle_name ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                   />
                 </div>
 
                 <div className="w-full">
-                  <label className="text-sm font-medium block mb-1">Birthdate:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Birthdate:
+                  </label>
                   <input
                     type="date"
                     name="date_of_birth"
-                    value={form?.date_of_birth}
+                    value={form?.date_of_birth ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                     required
@@ -299,10 +368,12 @@ const PatientMasterListEdit = () => {
                 </div>
 
                 <div className="w-full">
-                  <label className="text-sm font-medium block mb-1">Civil Status:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Civil Status:
+                  </label>
                   <select
                     name="civil_status"
-                    value={form?.civil_status}
+                    value={form?.civil_status ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                   >
@@ -320,11 +391,13 @@ const PatientMasterListEdit = () => {
               {/* Column 2 */}
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Last Name:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Last Name:
+                  </label>
                   <input
                     type="text"
                     name="last_name"
-                    value={form?.last_name}
+                    value={form?.last_name ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                     required
@@ -332,11 +405,13 @@ const PatientMasterListEdit = () => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium block mb-1">Suffix:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Suffix:
+                  </label>
                   <input
                     type="text"
                     name="suffix"
-                    value={form?.suffix}
+                    value={form?.suffix ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                   />
@@ -349,7 +424,7 @@ const PatientMasterListEdit = () => {
                   <input
                     type="text"
                     name="number_of_children"
-                    value={form?.number_of_children}
+                    value={String(form?.number_of_children ?? "")}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                   />
@@ -359,7 +434,7 @@ const PatientMasterListEdit = () => {
                   <label className="text-sm font-medium block mb-1">Sex:</label>
                   <select
                     name="sex"
-                    value={form?.sex}
+                    value={form?.sex ?? "Male"}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                   >
@@ -374,37 +449,45 @@ const PatientMasterListEdit = () => {
           {/* Contact and Address Information Section */}
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-              <h2 className="text-md font-bold tracking-wide uppercase pb-1">Contact and Address Information</h2>
+              <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+                Contact and Address Information
+              </h2>
             </div>
 
             <div className="flex flex-row gap-8 p-4">
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Permanent Address:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Permanent Address:
+                  </label>
                   <input
                     type="text"
                     name="address"
-                    value={form?.address}
+                    value={form?.address ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100e"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">City/Municipality:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    City/Municipality:
+                  </label>
                   <input
                     type="text"
                     name="city"
-                    value={form?.city}
+                    value={form?.city ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100e"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Barangay:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Barangay:
+                  </label>
                   <input
                     type="text"
                     name="barangay"
-                    value={form?.barangay}
+                    value={form?.barangay ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100e"
                   />
@@ -414,21 +497,25 @@ const PatientMasterListEdit = () => {
               {/* Second Column */}
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Email:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Email:
+                  </label>
                   <input
                     type="text"
                     name="email"
-                    value={form?.email}
+                    value={form?.email ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100e"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Mobile Number:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Mobile Number:
+                  </label>
                   <input
                     type="text"
                     name="mobile_number"
-                    value={form?.mobile_number}
+                    value={form?.mobile_number ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100e"
                   />
@@ -440,26 +527,33 @@ const PatientMasterListEdit = () => {
           {/* Additional Information Section */}
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-              <h2 className="text-md font-bold tracking-wide uppercase pb-1">Additional Information</h2>
+              <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+                Additional Information
+              </h2>
             </div>
             <div className="flex flex-row gap-8 p-4">
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Source of Information (Where did you here about RAFI-EJACC?):</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Source of Information (Where did you hear about
+                    RAFI-EJACC?):
+                  </label>
                   <input
                     type="text"
                     name="source_of_information"
-                    value={form?.source_of_information}
+                    value={form?.source_of_information ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Other RAFI program you availed:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Other RAFI program you availed:
+                  </label>
                   <input
                     type="text"
                     name="other_rafi_programs_availed"
-                    value={form?.other_rafi_programs_availed}
+                    value={form?.other_rafi_programs_availed ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
@@ -471,26 +565,32 @@ const PatientMasterListEdit = () => {
           {/* Socioeconomic Info Section */}
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-              <h2 className="text-md font-bold tracking-wide uppercase pb-1">Socioeconomic Information</h2>
+              <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+                Socioeconomic Information
+              </h2>
             </div>
             <div className="flex flex-row gap-8 p-4">
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Highest Educational Attainment:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Highest Educational Attainment:
+                  </label>
                   <input
                     type="text"
                     name="highest_educational_attainment"
-                    value={form?.highest_educational_attainment}
+                    value={form?.highest_educational_attainment ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Source of Income:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Source of Income:
+                  </label>
                   <input
                     type="text"
                     name="source_of_income"
-                    value={form?.source_of_income}
+                    value={form?.source_of_income ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
@@ -500,21 +600,25 @@ const PatientMasterListEdit = () => {
               {/* Second Column */}
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Occupation:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Occupation:
+                  </label>
                   <input
                     type="text"
                     name="occupation"
-                    value={form?.occupation}
+                    value={form?.occupation ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Income:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Income:
+                  </label>
                   <input
                     type="text"
                     name="monthly_income"
-                    value={form?.monthly_income}
+                    value={form?.monthly_income ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
@@ -526,130 +630,163 @@ const PatientMasterListEdit = () => {
           {/* Emergency Contacts Section */}
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-              <h2 className="text-md font-bold tracking-wide uppercase pb-1">Emergency Contacts</h2>
+              <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+                Emergency Contacts
+              </h2>
             </div>
             <div className="flex flex-row gap-8 p-4">
+              {/* Contact #1 */}
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Name:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Name:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.name"
-                    value={form?.emergency_contacts[0].name}
+                    value={form?.emergency_contacts?.[0]?.name ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Relationship to Patient:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Relationship to Patient:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.relationship_to_patient"
-                    value={form?.emergency_contacts[0].relationship_to_patient}
+                    value={
+                      form?.emergency_contacts?.[0]?.relationship_to_patient ??
+                      ""
+                    }
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Landline Number:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Landline Number:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.landline_number"
-                    value={form?.emergency_contacts[0].landline_number}
+                    value={form?.emergency_contacts?.[0]?.landline_number ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Address:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Address:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.address"
-                    value={form?.emergency_contacts[0].address}
+                    value={form?.emergency_contacts?.[0]?.address ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Email Address:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Email Address:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.email"
-                    value={form?.emergency_contacts[0].email}
+                    value={form?.emergency_contacts?.[0]?.email ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Mobile Number::</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Mobile Number:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.mobile_number"
-                    value={form?.emergency_contacts[0].mobile_number}
+                    value={form?.emergency_contacts?.[0]?.mobile_number ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
               </div>
 
-              {/* Second Column */}
+              {/* Contact #2 */}
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Name:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Name:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.name"
-                    value={form?.emergency_contacts[1].name}
+                    value={form?.emergency_contacts?.[1]?.name ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Relationship to Patient:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Relationship to Patient:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.relationship_to_patient"
-                    value={form?.emergency_contacts[1].relationship_to_patient}
+                    value={
+                      form?.emergency_contacts?.[1]?.relationship_to_patient ??
+                      ""
+                    }
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Landline Number:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Landline Number:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.landline_number"
-                    value={form?.emergency_contacts[1].landline_number}
+                    value={form?.emergency_contacts?.[1]?.landline_number ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Address:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Address:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.address"
-                    value={form?.emergency_contacts[1].address}
+                    value={form?.emergency_contacts?.[1]?.address ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Email Address:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Email Address:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.email"
-                    value={form?.emergency_contacts[1].email}
+                    value={form?.emergency_contacts?.[1]?.email ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Mobile Number::</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Mobile Number:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.mobile_number"
-                    value={form?.emergency_contacts[1].mobile_number}
+                    value={form?.emergency_contacts?.[1]?.mobile_number ?? ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                   />
@@ -690,30 +827,22 @@ const PatientMasterListEdit = () => {
                       <input
                         type="date"
                         name="date"
-                        value={update.date}
+                        value={update.date ?? ""}
                         onChange={(e) => handleHistoricalUpdateChange(index, e)}
                         className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                       />
-                      {/* {errors[`update_date_${index}`] && (
-                        <span className="text-red-500 text-xs">
-                          {errors[`update_date_${index}`]}
-                        </span>
-                      )} */}
                     </div>
                     <div className="w-1/2">
-                      <label className="text-sm font-medium block mb-1">Notes:</label>
+                      <label className="text-sm font-medium block mb-1">
+                        Notes:
+                      </label>
                       <textarea
                         name="note"
-                        value={update.note}
+                        value={update.note ?? ""}
                         onChange={(e) => handleHistoricalUpdateChange(index, e)}
                         className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                         rows="3"
                       />
-                      {/* {errors[`notes_${index}`] && (
-                        <span className="text-red-500 text-xs">
-                          {errors[`notes_${index}`]}
-                        </span>
-                      )} */}
                     </div>
                   </div>
                 </div>
@@ -728,25 +857,26 @@ const PatientMasterListEdit = () => {
 
               {/* Updates list */}
               <div className="pt-4">
-                {/* <h3 className="font-semibold mb-2">Previous Updates:</h3> */}
                 <div className="mb-6 mt-8 border-b border-gray-200">
                   <h2 className="text-md font-bold tracking-wide uppercase pb-1">
                     Previous Updates
                   </h2>
                 </div>
                 <div className="overflow-x-auto">
-                  {historicalUpdates?.length === 0 ? (
+                  {!historicalUpdates || historicalUpdates.length === 0 ? (
                     <p className="text-sm">No updates recorded</p>
                   ) : (
                     <ul className="space-y-2">
-                      {historicalUpdates?.map((update, index) => (
+                      {historicalUpdates.map((update, index) => (
                         <li
                           key={index}
                           className="flex justify-between items-center bg-gray-50 p-2 rounded"
                         >
                           <div>
-                            <span className="text-sm">{update.date}</span>:{" "}
-                            {update.note}
+                            <span className="text-sm">
+                              {update?.date ?? ""}
+                            </span>
+                            : {update?.note ?? ""}
                           </div>
                           <button
                             type="button"
@@ -766,7 +896,7 @@ const PatientMasterListEdit = () => {
 
           <div className="w-full flex justify-around">
             <Link
-              className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+              className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
               to="/admin/patient/master-list"
             >
               CANCEL

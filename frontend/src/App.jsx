@@ -23,12 +23,14 @@ import RHULogin from "./pages/rhu/login/Login";
 import AdminLogin from "./pages/admin/login/Login";
 import ResetPassword from "./pages/beneficiary/login/resetpassword";
 
-
 import { AuthProvider } from "./context/AuthContext";
 
 import ProtectedRoute from "./components/RoleGuard/ProtectedRoute";
 import ProtectedAuthenticatedRoute from "./components/RoleGuard/ProtectedAuthenticatedRoute";
 import AccountNotSupported from "./pages/AccountNotSupported";
+
+//admin
+import AdminRegistration from "./pages/admin/registration/Registration";
 
 // Route Groups
 import AdminRoutes from "./routes/AdminRoutes";
@@ -68,12 +70,13 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-  
+
             <Route path="NotValidated" element={<NotValidated />} />
             <Route
               path="AccountNotSupported"
               element={<AccountNotSupported />}
             />
+            <Route path="admin-registration" element={<AdminRegistration />} />
           </Route>
 
           {/* Admin Route Group */}
@@ -84,7 +87,6 @@ const App = () => {
 
           {/* RHU Route Group */}
           {RhuRoutes()}
-          
         </Routes>
       </BrowserRouter>
     </AuthProvider>

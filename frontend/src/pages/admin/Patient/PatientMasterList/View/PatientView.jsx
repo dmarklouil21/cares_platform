@@ -1,6 +1,6 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, Link, useParams } from "react-router-dom";
-import api from "src/api/axiosInstance"; 
+import api from "src/api/axiosInstance";
 
 const PatientView = () => {
   const location = useLocation();
@@ -25,34 +25,35 @@ const PatientView = () => {
         console.error("Error fetching beneficiary data:", error);
       }
     };
-    
+
     fetchData();
 
     return () => {
       isMounted = false;
     };
-
   }, [patient_id]);
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
-      <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+    <div className="h-screen w-full flex flex-col justify-between gap-3 p-5 items-center bg-gray overflow-auto">
+      <div className=" h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">View Patient</h1>
-        <div className="p-3">
+        <div>
           <Link to={"/admin/patient/master-list"}>
-            <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
+            <img
+              src="/images/back.png"
+              alt="Back"
+              className="h-6 cursor-pointer"
+            />
           </Link>
         </div>
       </div>
 
-      <form className="h-full w-full p-5 flex flex-col justify-between gap-5 bg[#F8F9FA]">
+      <form className="h-full w-full flex flex-col justify-between gap-5 bg[#F8F9FA]">
         <div className="border border-black/15 p-3 bg-white rounded-sm">
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between py-3 px-5 items-start md:items-center gap-6 mb-6">
             <div className="flex flex-col gap-2">
-              <h1 className="text-xl font-bold">
-                PATIENT PROFILE
-              </h1>
+              <h1 className="text-xl font-bold">PATIENT PROFILE</h1>
               <p className="text-sm text-gray-600">
                 Patient ID:{" "}
                 <span className="font-semibold">
@@ -89,7 +90,9 @@ const PatientView = () => {
             {/* First Column */}
             <div className="flex flex-col gap-3 w-1/2">
               <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Full Name</label>
+                <label className="text-sm font-medium block mb-1">
+                  Full Name
+                </label>
                 <input
                   type="text"
                   value={patient?.full_name || ""}
@@ -98,7 +101,9 @@ const PatientView = () => {
                 />
               </div>
               <div className="w-full">
-                <label className="text-sm font-medium block mb-1">First Name</label>
+                <label className="text-sm font-medium block mb-1">
+                  First Name
+                </label>
                 <input
                   type="text"
                   value={patient?.first_name || ""}
@@ -107,7 +112,9 @@ const PatientView = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Middle Name</label>
+                <label className="text-sm font-medium block mb-1">
+                  Middle Name
+                </label>
                 <input
                   type="text"
                   value={patient?.middle_name || ""}
@@ -116,7 +123,9 @@ const PatientView = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Last Name</label>
+                <label className="text-sm font-medium block mb-1">
+                  Last Name
+                </label>
                 <input
                   type="text"
                   value={patient?.last_name || ""}
@@ -137,7 +146,9 @@ const PatientView = () => {
             {/* Second Column */}
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Birthdate</label>
+                <label className="text-sm font-medium block mb-1">
+                  Birthdate
+                </label>
                 <input
                   type="text"
                   value={patient?.date_of_birth || ""}
@@ -219,7 +230,9 @@ const PatientView = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Barangay</label>
+                <label className="text-sm font-medium block mb-1">
+                  Barangay
+                </label>
                 <input
                   type="text"
                   value={patient?.barangay || ""}
@@ -317,7 +330,9 @@ const PatientView = () => {
             </div>
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Occupation</label>
+                <label className="text-sm font-medium block mb-1">
+                  Occupation
+                </label>
                 <input
                   type="text"
                   value={patient?.occupation || ""}
@@ -373,13 +388,17 @@ const PatientView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient?.emergency_contacts?.[0]?.landline_number ?? ""}
+                  value={
+                    patient?.emergency_contacts?.[0]?.landline_number ?? ""
+                  }
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Address</label>
+                <label className="text-sm font-medium block mb-1">
+                  Address
+                </label>
                 <input
                   type="text"
                   value={patient?.emergency_contacts?.[0]?.address ?? ""}
@@ -442,13 +461,17 @@ const PatientView = () => {
                 </label>
                 <input
                   type="text"
-                  value={patient?.emergency_contacts?.[1]?.landline_number ?? ""}
+                  value={
+                    patient?.emergency_contacts?.[1]?.landline_number ?? ""
+                  }
                   disabled
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Address</label>
+                <label className="text-sm font-medium block mb-1">
+                  Address
+                </label>
                 <input
                   type="text"
                   value={patient?.emergency_contacts?.[1]?.address ?? ""}
@@ -500,7 +523,9 @@ const PatientView = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Diagnosis</label>
+                <label className="text-sm font-medium block mb-1">
+                  Diagnosis
+                </label>
                 <input
                   type="text"
                   value={patient?.diagnosis?.[0]?.diagnosis ?? ""}
@@ -522,7 +547,9 @@ const PatientView = () => {
             </div>
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Cancer Site</label>
+                <label className="text-sm font-medium block mb-1">
+                  Cancer Site
+                </label>
                 <input
                   type="text"
                   value={patient?.diagnosis?.[0]?.cancer_site ?? ""}
@@ -543,8 +570,12 @@ const PatientView = () => {
               <table className="min-w-full bg-white border border-gray-300">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Type</th>
-                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Date Completed</th>
+                    <th className="py-2 px-4 border-b text-left text-sm font-bold">
+                      Type
+                    </th>
+                    <th className="py-2 px-4 border-b text-left text-sm font-bold">
+                      Date Completed
+                    </th>
                     {/* <th className="py-2 px-4 border-b text-left text-sm font-bold">Result</th> */}
                   </tr>
                 </thead>
@@ -604,8 +635,12 @@ const PatientView = () => {
               <table className="min-w-full bg-white border border-gray-300">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Last Checkup</th>
-                    <th className="py-2 px-4 border-b text-left text-sm font-bold">Note</th>
+                    <th className="py-2 px-4 border-b text-left text-sm font-bold">
+                      Last Checkup
+                    </th>
+                    <th className="py-2 px-4 border-b text-left text-sm font-bold">
+                      Note
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -637,9 +672,9 @@ const PatientView = () => {
 
         <div className="w-full flex justify-end">
           <Link
-            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
             to={`/admin/patient/view/${patient?.patient_id}/cancer-data`}
-            state={{patient: patient}}
+            state={{ patient: patient }}
           >
             NEXT
           </Link>

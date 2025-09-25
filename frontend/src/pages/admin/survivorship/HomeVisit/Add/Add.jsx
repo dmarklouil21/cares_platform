@@ -123,7 +123,7 @@ const HomeVisitAdd = () => {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
+    <div className="h-screen w-full flex flex-col justify-between items-center bg-gray overflow-auto">
       <ConfirmationModal
         open={modalOpen}
         text={modalText}
@@ -144,17 +144,17 @@ const HomeVisitAdd = () => {
         </div>
       )}
 
-      <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
+      {/* <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">Add home visit</h1>
-      </div>
+      </div> */}
 
       <form
         onSubmit={handleSubmit}
         className="h-full w-full p-5 flex flex-col gap-5 overflow-auto"
       >
         <div className="border border-black/15 p-5 bg-white rounded-sm">
-          <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4">
-            <h2 className="text-md font-bold">Home Visit Details</h2>
+          <div className=" rounded-sm py-3  w-full flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Home Visit Details</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
@@ -217,8 +217,8 @@ const HomeVisitAdd = () => {
         </div>
 
         <div className="border border-black/15 p-5 bg-white rounded-sm">
-          <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center mb-4">
-            <h2 className="text-md font-bold">Narrative</h2>
+          <div className=" rounded-sm py-3  w-full flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Narrative</h2>
           </div>
           <div className="grid grid-cols-1 gap-4">
             <Input
@@ -250,7 +250,7 @@ const HomeVisitAdd = () => {
 
         <div className="w-full flex justify-around pb-6">
           <Link
-            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
             to="/admin/survivorship"
           >
             CANCEL

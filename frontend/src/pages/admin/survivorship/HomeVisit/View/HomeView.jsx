@@ -279,9 +279,9 @@ const HomeVisitView = () => {
         onCancel={closeConfirm}
         onConfirm={handleConfirm}
       />
-      <div className="bg-white h-[64px] px-5 w-full flex items-center justify-between">
+      {/* <div className="bg-white h-[64px] px-5 w-full flex items-center justify-between">
         <h1 className="text-md font-bold">Admin</h1>
-      </div>
+      </div> */}
       <div className="w-full h-fit flex flex-col gap-5 p-5 overflow-auto">
         <div className="flex items-center justify-between px-5">
           <h2 className="text-xl font-semibold">Patient Home Visit Report</h2>
