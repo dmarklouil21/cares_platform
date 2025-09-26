@@ -201,6 +201,49 @@ const Profile = () => {
           <h2 className="text-lg font-semibold mb-4">Personal Details</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+            <div className="h-auto w-full flex flex-col items-start gap-3 md:col-span-2 mt-5">
+              <label className="text-sm">Profile Picture</label>
+
+              <div className="relative">
+                <img
+                  src={formData.profilePic || "/images/bigAvatar.png"}
+                  alt="Profile"
+                  className="h-28 md:h-50 object-cover rounded-full border border-gray-300"
+                />
+                {!readOnly && (
+                  <label
+                    htmlFor="profilePic"
+                    className="absolute bottom-1 right-1 bg-primary text-white p-1 rounded-full cursor-pointer text-md hover:bg-primary/80"
+                  >
+                    Change
+                  </label>
+                )}
+              </div>
+
+              {!readOnly && (
+                <input
+                  id="profilePic"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          profilePic: reader.result,
+                          profileFile: file,
+                        }));
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              )}
+            </div>
+
             <div className="flex flex-col gap-2">
               <label className="text-sm">First Name</label>
               <input
