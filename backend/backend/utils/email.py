@@ -242,8 +242,8 @@ def send_mass_screening_status_email(rhu, status, request_obj=None, remarks=None
             </div>
             <div style="padding: 30px;">
               <p style="margin: 0 0 15px 0;">Dear <b>{getattr(rhu, 'lgu', '')}</b>,</p>
-              {(f"<p style=\"margin: 0 0 10px 0;\"><b>Title:</b> {title}</p>" if title else '')}
-              {(f"<p style=\"margin: 0 0 10px 0;\"><b>Date:</b> {date}</p>" if date else '')}
+              {(f"<p style='margin: 0 0 10px 0;'><b>Title:</b> {title}</p>" if title else '')}
+              {(f"<p style='margin: 0 0 10px 0;'><b>Date:</b> {date}</p>" if date else '')}
               <div style="display: inline-block; background: {badge_color}; color: white; padding: 5px 12px; border-radius: 12px; font-size: 14px; margin: 10px 0 15px 0;">
                 {status}
               </div>
