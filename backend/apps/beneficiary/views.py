@@ -113,13 +113,27 @@ class IndividualScreeningRequestView(generics.CreateAPIView):
           has_patient_response=True,
           response_description='Submitted screening procedure'
         )
-        
-        for file in self.request.FILES.getlist('screening_attachments'):
-          validate_attachment(file)
+
+        files_dict = {}
+        for key, value in self.request.FILES.items():
+          if key.startswith("files."):
+            field_name = key.split("files.")[1]  # e.g. "quotation"
+            files_dict[field_name] = value
+
+        # 4. Save ServiceAttachments
+        for key, file in files_dict.items():
           ScreeningAttachment.objects.create(
             individual_screening=instance,
-            file=file
+            file=file,
+            doc_type=key 
           )
+        
+        # for file in self.request.FILES.getlist('screening_attachments'):
+        #   validate_attachment(file)
+        #   ScreeningAttachment.objects.create(
+        #     individual_screening=instance,
+        #     file=file
+        #   )
 
     except Exception as e:
       logger.error(f"Error creating screening procedure: {str(e)}")

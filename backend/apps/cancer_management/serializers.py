@@ -114,7 +114,6 @@ class CancerTreatmentSubmissionSerializer(serializers.Serializer):
       )
     return cancer_treatment
 
-
 # for doc_type, f in files.items():
     #   ServiceAttachment.objects.create(
     #     cancer_treatment=cancer_treatment,

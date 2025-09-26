@@ -37,6 +37,8 @@ class ScreeningAttachment(models.Model):
   file = models.FileField(upload_to='attachments/screening_files/')
   uploaded_at = models.DateTimeField(auto_now_add=True)
 
+  doc_type = models.CharField(max_length=100, blank=True, null=True)
+
   def __str__(self):
     return f"Attachment for {self.individual_screening}"
 

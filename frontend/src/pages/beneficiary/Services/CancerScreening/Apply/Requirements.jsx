@@ -54,13 +54,13 @@ const Requirements = () => {
         <div className="flex justify-between gap-5">
           <Link
             to="/beneficiary/services/cancer-screening"
-            className=" border  py-3 rounded-md text-center w-full bg-white border-black/15 hover:border-black"
+            className="border border-black/15 py-3 rounded-md text-center px-6 w-[40%] hover:bg-black/10 hover:border-black"
           >
             I can't comply
           </Link>
           <Link
             to="/beneficiary/services/cancer-screening/procedure"
-            className="bg-primary text-white py-3 rounded-md font-bold text-center w-full hover:bg-primary/50"
+            className="bg-[#749AB6] text-white w-[40%] font-bold py-3 px-8 rounded-md border border-[#749AB6] hover:bg-[#C5D7E5] hover:border-[#C5D7E5]"
           >
             Continue
           </Link>

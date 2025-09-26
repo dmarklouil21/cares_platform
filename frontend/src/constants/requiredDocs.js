@@ -52,4 +52,7 @@ export const REQUIRED_DOCS = {
     { key: "labResults", label: "Laboratory Results" },
     { key: "barangay", label: "Barangay Indigency" },
   ],
+  "Post Treatment": [
+    { key: "labRequest", label: "Laboratory Request" },
+  ],
 };

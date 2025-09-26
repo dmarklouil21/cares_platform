@@ -14,7 +14,7 @@ from apps.rhu.models import RHU
 class ScreeningAttachmentSerializer(serializers.ModelSerializer):
   class Meta:
     model = ScreeningAttachment
-    fields = ['id', 'file', 'uploaded_at']
+    fields = ['id', 'file', 'uploaded_at', 'doc_type']
 
 class PreCancerousMedsRequestSerializer(serializers.ModelSerializer):
   patient_id = serializers.CharField(source='patient.patient_id', read_only=True)

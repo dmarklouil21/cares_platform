@@ -81,8 +81,6 @@ const RadioactiveDocument = () => {
 
   const handleChooseFile = () => inputRef.current?.click();
 
-  console.log("Wellbeing Data:", wellBeningData);
-
   // helper to build a cleared files map
   const makeEmptyFiles = () =>
     requiredDocs.reduce((acc, d) => ({ ...acc, [d.key]: null }), {});
