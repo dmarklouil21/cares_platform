@@ -23,8 +23,8 @@ const CancerAwareness = () => {
   }, []);
 
   return (
-    <div className="w-full h-screen bg-gray flex flex-col">
-      <div className="md:hidden">
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+      {/* <div className="md:hidden">
         <BeneficiarySidebar
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}
@@ -32,7 +32,6 @@ const CancerAwareness = () => {
       </div>
 
       <div className="bg-white py-4 px-10 flex justify-between items-center ">
-        {/* Menu Button for Mobile */}
         <img
           className="md:hidden size-5 cursor-pointer"
           src="/images/menu-line.svg"
@@ -47,7 +46,7 @@ const CancerAwareness = () => {
             className="rounded-full"
           />
         </div>
-      </div>
+      </div> */}
 
       <div className="h-full flex flex-col justify-between overflow-auto ">
         <div className="py-6 px-10">

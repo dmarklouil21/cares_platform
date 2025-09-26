@@ -1,6 +1,9 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState, useRef } from "react";
-import { getMassScreeningAttendance, saveMassScreeningAttendance } from "../../../../api/massScreening";
+import {
+  getMassScreeningAttendance,
+  saveMassScreeningAttendance,
+} from "../../../../api/massScreening";
 
 /* Notification (no close button) */
 function Notification({ message }) {
@@ -50,7 +53,9 @@ const ApplicationAttendance = () => {
         setError("");
         const data = await getMassScreeningAttendance(record.id);
         if (Array.isArray(data) && data.length) {
-          setPatients(data.map((e) => ({ name: e.name, result: e.result || "" })));
+          setPatients(
+            data.map((e) => ({ name: e.name, result: e.result || "" }))
+          );
         }
       } catch (e) {
         setError(e?.response?.data?.detail || "Failed to load attendance.");
@@ -110,13 +115,19 @@ const ApplicationAttendance = () => {
     try {
       setSaving(true);
       const entries = patients
-        .map((p) => ({ name: String(p.name || "").trim(), result: String(p.result || "").trim() }))
+        .map((p) => ({
+          name: String(p.name || "").trim(),
+          result: String(p.result || "").trim(),
+        }))
         .filter((p) => p.name);
       await saveMassScreeningAttendance(record.id, entries);
       setNotif("Attendance saved successfully.");
       setShowConfirm(false);
     } catch (e) {
-      const msg = e?.response?.data?.detail || e?.response?.data?.error || "Failed to save attendance.";
+      const msg =
+        e?.response?.data?.detail ||
+        e?.response?.data?.error ||
+        "Failed to save attendance.";
       setNotif(String(msg));
     } finally {
       setSaving(false);
@@ -136,9 +147,9 @@ const ApplicationAttendance = () => {
       <Notification message={notif} />
 
       {/* Top bar */}
-      <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
+      {/* <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
         <h1 className="text-md font-bold h-full flex items-center">RHU</h1>
-      </div>
+      </div> */}
 
       {/* Content */}
       <div className="w-full flex-1 py-5 flex flex-col justify-start gap-5 px-5 overflow-auto">
@@ -239,7 +250,9 @@ const ApplicationAttendance = () => {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className={`px-4 py-2 rounded-md bg-primary text-white font-semibold ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
+                className={`px-4 py-2 rounded-md bg-primary text-white font-semibold ${
+                  saving ? "opacity-60 cursor-not-allowed" : ""
+                }`}
               >
                 {saving ? "Saving…" : "Save Attendance"}
               </button>
@@ -284,7 +297,9 @@ const ApplicationAttendance = () => {
                 type="button"
                 onClick={confirmSave}
                 disabled={saving}
-                className={`px-4 py-2 rounded-md bg-primary text-white font-semibold ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
+                className={`px-4 py-2 rounded-md bg-primary text-white font-semibold ${
+                  saving ? "opacity-60 cursor-not-allowed" : ""
+                }`}
               >
                 {saving ? "Saving…" : "Confirm"}
               </button>

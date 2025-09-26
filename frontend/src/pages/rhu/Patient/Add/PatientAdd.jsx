@@ -60,7 +60,7 @@ const PatientMasterListAdd = () => {
       cancer_stage: "",
     },
   ]);
-  
+
   const [historicalUpdates, setHistoricalUpdates] = useState([
     {
       date: "",
@@ -98,12 +98,12 @@ const PatientMasterListAdd = () => {
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalAction, setModalAction] = useState(null); 
+  const [modalAction, setModalAction] = useState(null);
 
   const validate = () => {
     const newErrors = {};
@@ -125,7 +125,7 @@ const PatientMasterListAdd = () => {
 
     return newErrors;
   };
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "city") {
@@ -232,7 +232,7 @@ const PatientMasterListAdd = () => {
   //   }
 
   //   setModalText("Are you sure you want to add this data?");
-  //   setModalAction({ type: "submit" }); 
+  //   setModalAction({ type: "submit" });
   //   setModalOpen(true);
   // };
 
@@ -243,13 +243,13 @@ const PatientMasterListAdd = () => {
           ...form,
           historical_updates: historicalUpdates,
         },
-        photoUrl: imageFile
-      }
+        photoUrl: imageFile,
+      },
     });
-  }
+  };
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
+    <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
       <ConfirmationModal
         open={modalOpen}
         text={modalText}
@@ -282,31 +282,28 @@ const PatientMasterListAdd = () => {
         </div>
       )} */}
 
-      <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+      <div className=" px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">Add Patient</h1>
-        <div className="p-3">
-          <Link to={"/rhu/patients"}>
-            <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
-          </Link>
-        </div>
+        <Link to={"/rhu/patients"}>
+          <img
+            src="/images/back.png"
+            alt="Back"
+            className="h-6 cursor-pointer"
+          />
+        </Link>
       </div>
 
       <form
         // onSubmit={handleSubmit}
-        className="h-full w-full p-5 flex flex-col justify-between gap-5 bg[#F8F9FA]"
+        className="h-full w-full flex flex-col justify-between gap-5 bg[#F8F9FA]"
       >
         <div className="border border-black/15 p-3 bg-white rounded-sm">
-        {/* Header */}
+          {/* Header */}
           <div className="flex flex-col md:flex-row justify-between py-3 px-5 items-start md:items-center gap-6 mb-6">
             <div className="flex flex-col gap-2">
-              <h1 className="text-xl font-bold">
-                PATIENT PROFILE
-              </h1>
+              <h1 className="text-xl font-bold">PATIENT PROFILE</h1>
               <p className="text-sm text-gray-600">
-                Patient ID:{" "}
-                <span className="font-semibold">
-                  {"N/A"}
-                </span>
+                Patient ID: <span className="font-semibold">{"N/A"}</span>
               </p>
             </div>
 
@@ -393,7 +390,9 @@ const PatientMasterListAdd = () => {
                 />
               </div>
               <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Birthdate:</label>
+                <label className="text-sm font-medium block mb-1">
+                  Birthdate:
+                </label>
                 <input
                   type="date"
                   name="date_of_birth"
@@ -408,7 +407,9 @@ const PatientMasterListAdd = () => {
                 )}
               </div>
               <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Civil Status:</label>
+                <label className="text-sm font-medium block mb-1">
+                  Civil Status:
+                </label>
                 <select
                   name="civil_status"
                   value={form.civil_status}
@@ -424,14 +425,18 @@ const PatientMasterListAdd = () => {
                   <option value="annulled">Annulled</option>
                 </select>
                 {errors.civil_status && (
-                  <span className="text-red-500 text-xs">{errors.civil_status}</span>
+                  <span className="text-red-500 text-xs">
+                    {errors.civil_status}
+                  </span>
                 )}
               </div>
             </div>
 
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Last Name:</label>
+                <label className="text-sm font-medium block mb-1">
+                  Last Name:
+                </label>
                 <input
                   type="text"
                   name="last_name"
@@ -446,7 +451,9 @@ const PatientMasterListAdd = () => {
                 )}
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Suffix:</label>
+                <label className="text-sm font-medium block mb-1">
+                  Suffix:
+                </label>
                 <input
                   type="text"
                   name="suffix"
@@ -495,7 +502,9 @@ const PatientMasterListAdd = () => {
           <div className="flex flex-row gap-8 p-4">
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Permanent Address:</label>
+                <label className="text-sm font-medium block mb-1">
+                  Permanent Address:
+                </label>
                 <input
                   type="text"
                   name="address"
@@ -508,7 +517,9 @@ const PatientMasterListAdd = () => {
                 )}
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">City/Municipality:</label>
+                <label className="text-sm font-medium block mb-1">
+                  City/Municipality:
+                </label>
                 <input
                   type="text"
                   name="city"
@@ -521,7 +532,9 @@ const PatientMasterListAdd = () => {
                 )}
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Barangay:</label>
+                <label className="text-sm font-medium block mb-1">
+                  Barangay:
+                </label>
                 <input
                   type="text"
                   name="barangay"
@@ -549,13 +562,13 @@ const PatientMasterListAdd = () => {
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
                 {errors.email && (
-                  <span className="text-red-500 text-xs">
-                    {errors.email}
-                  </span>
+                  <span className="text-red-500 text-xs">{errors.email}</span>
                 )}
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Mobile Number:</label>
+                <label className="text-sm font-medium block mb-1">
+                  Mobile Number:
+                </label>
                 <input
                   type="text"
                   name="mobile_number"
@@ -576,7 +589,9 @@ const PatientMasterListAdd = () => {
           <div className="flex flex-row gap-8 p-4">
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Source of Information (Where did you here about RAFI-EJACC?):</label>
+                <label className="text-sm font-medium block mb-1">
+                  Source of Information (Where did you here about RAFI-EJACC?):
+                </label>
                 <input
                   type="text"
                   name="source_of_information"
@@ -586,7 +601,9 @@ const PatientMasterListAdd = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Other RAFI program you availed:</label>
+                <label className="text-sm font-medium block mb-1">
+                  Other RAFI program you availed:
+                </label>
                 <input
                   type="text"
                   name="other_rafi_programs_availed"
@@ -607,7 +624,9 @@ const PatientMasterListAdd = () => {
           <div className="flex flex-row gap-8 p-4">
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Highest Educational Attainment:</label>
+                <label className="text-sm font-medium block mb-1">
+                  Highest Educational Attainment:
+                </label>
                 <input
                   type="text"
                   name="highest_educational_attainment"
@@ -617,7 +636,9 @@ const PatientMasterListAdd = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Source of Income:</label>
+                <label className="text-sm font-medium block mb-1">
+                  Source of Income:
+                </label>
                 <input
                   type="text"
                   name="source_of_income"
@@ -631,7 +652,9 @@ const PatientMasterListAdd = () => {
             {/* Second Column */}
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Occupation:</label>
+                <label className="text-sm font-medium block mb-1">
+                  Occupation:
+                </label>
                 <input
                   type="text"
                   name="occupation"
@@ -641,7 +664,9 @@ const PatientMasterListAdd = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Income:</label>
+                <label className="text-sm font-medium block mb-1">
+                  Income:
+                </label>
                 <input
                   type="text"
                   name="monthly_income"
@@ -660,132 +685,152 @@ const PatientMasterListAdd = () => {
             </h2>
           </div>
           <div className="flex flex-row gap-8 p-4">
-              <div className="flex flex-col gap-3 w-1/2">
-                <div>
-                  <label className="text-sm font-medium block mb-1">Name:</label>
-                  <input
-                    type="text"
-                    name="emergencyContact1.name"
-                    value={form.emergency_contacts[0].name}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-1">Relationship to Patient:</label>
-                  <input
-                    type="text"
-                    name="emergencyContact1.relationship_to_patient"
-                    value={form.emergency_contacts[0].relationship_to_patient}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-1">Landline Number:</label>
-                  <input
-                    type="text"
-                    name="emergencyContact1.landline_number"
-                    value={form.emergency_contacts[0].landline_number}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-1">Address:</label>
-                  <input
-                    type="text"
-                    name="emergencyContact1.address"
-                    value={form.emergency_contacts[0].address}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-1">Email Address:</label>
-                  <input
-                    type="text"
-                    name="emergencyContact1.email"
-                    value={form.emergency_contacts[0].email}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-1">Mobile Number::</label>
-                  <input
-                    type="text"
-                    name="emergencyContact1.mobile_number"
-                    value={form.emergency_contacts[0].mobile_number}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                  />
-                </div>
+            <div className="flex flex-col gap-3 w-1/2">
+              <div>
+                <label className="text-sm font-medium block mb-1">Name:</label>
+                <input
+                  type="text"
+                  name="emergencyContact1.name"
+                  value={form.emergency_contacts[0].name}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
               </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Relationship to Patient:
+                </label>
+                <input
+                  type="text"
+                  name="emergencyContact1.relationship_to_patient"
+                  value={form.emergency_contacts[0].relationship_to_patient}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Landline Number:
+                </label>
+                <input
+                  type="text"
+                  name="emergencyContact1.landline_number"
+                  value={form.emergency_contacts[0].landline_number}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Address:
+                </label>
+                <input
+                  type="text"
+                  name="emergencyContact1.address"
+                  value={form.emergency_contacts[0].address}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Email Address:
+                </label>
+                <input
+                  type="text"
+                  name="emergencyContact1.email"
+                  value={form.emergency_contacts[0].email}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Mobile Number::
+                </label>
+                <input
+                  type="text"
+                  name="emergencyContact1.mobile_number"
+                  value={form.emergency_contacts[0].mobile_number}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+            </div>
 
-              {/* Second Column */}
-              <div className="flex flex-col gap-3 w-1/2">
-                <div>
-                  <label className="text-sm font-medium block mb-1">Name:</label>
-                  <input
-                    type="text"
-                    name="emergencyContact2.name"
-                    value={form.emergency_contacts[1].name}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-1">Relationship to Patient:</label>
-                  <input
-                    type="text"
-                    name="emergencyContact2.relationship_to_patient"
-                    value={form.emergency_contacts[1].relationship_to_patient}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-1">Landline Number:</label>
-                  <input
-                    type="text"
-                    name="emergencyContact2.landline_number"
-                    value={form.emergency_contacts[1].landline_number}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-1">Address:</label>
-                  <input
-                    type="text"
-                    name="emergencyContact2.address"
-                    value={form.emergency_contacts[1].address}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-1">Email Address:</label>
-                  <input
-                    type="text"
-                    name="emergencyContact2.email"
-                    value={form.emergency_contacts[1].email}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-1">Mobile Number::</label>
-                  <input
-                    type="text"
-                    name="emergencyContact2.mobile_number"
-                    value={form.emergency_contacts[1].mobile_number}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                  />
-                </div>
+            {/* Second Column */}
+            <div className="flex flex-col gap-3 w-1/2">
+              <div>
+                <label className="text-sm font-medium block mb-1">Name:</label>
+                <input
+                  type="text"
+                  name="emergencyContact2.name"
+                  value={form.emergency_contacts[1].name}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
               </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Relationship to Patient:
+                </label>
+                <input
+                  type="text"
+                  name="emergencyContact2.relationship_to_patient"
+                  value={form.emergency_contacts[1].relationship_to_patient}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Landline Number:
+                </label>
+                <input
+                  type="text"
+                  name="emergencyContact2.landline_number"
+                  value={form.emergency_contacts[1].landline_number}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Address:
+                </label>
+                <input
+                  type="text"
+                  name="emergencyContact2.address"
+                  value={form.emergency_contacts[1].address}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Email Address:
+                </label>
+                <input
+                  type="text"
+                  name="emergencyContact2.email"
+                  value={form.emergency_contacts[1].email}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Mobile Number::
+                </label>
+                <input
+                  type="text"
+                  name="emergencyContact2.mobile_number"
+                  value={form.emergency_contacts[1].mobile_number}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Medical Information Section */}
@@ -910,7 +955,9 @@ const PatientMasterListAdd = () => {
                     )}
                   </div>
                   <div className="w-1/2">
-                    <label className="text-sm font-medium block mb-1">Notes:</label>
+                    <label className="text-sm font-medium block mb-1">
+                      Notes:
+                    </label>
                     <textarea
                       name="note"
                       value={update.note}
@@ -939,7 +986,7 @@ const PatientMasterListAdd = () => {
 
         <div className="w-full flex justify-around">
           <Link
-            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
             to="/rhu/patients"
           >
             CANCEL

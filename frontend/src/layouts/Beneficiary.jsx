@@ -1,15 +1,30 @@
+// BeneficiaryLayout.jsx
 import { useState, useEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import BeneficiarySidebar from "../components/navigation/Beneficiary";
 import NotValidated from "../pages/beneficiary/registration/note/preenrollment/NotValidated";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axiosInstance";
 import PropagateLoaderComponent from "../components/loading/PropagateLoaderComponent ";
 import TextLoader from "../components/loading/TextLoader";
+import BeneficiaryHeader from "../components/header/BeneficiaryHeader";
+
+const HEADER_PATHS = [
+  "/beneficiary",
+  "/beneficiary/cancer-awareness",
+  "/beneficiary/services/cancer-screening",
+  "/beneficiary/services/cancer-management",
+  "/beneficiary/services/survivorship",
+  "/beneficiary/applications/individual-screening",
+  "/beneficiary/applications/cancer-treatment",
+  "/beneficiary/applications/precancerous",
+];
 
 const BeneficiaryLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+
   const [loading, setLoading] = useState(true);
   const [isValidated, setIsValidated] = useState(false);
 
@@ -22,10 +37,9 @@ const BeneficiaryLayout = () => {
           setIsValidated(true);
         } else if (status === "pending") {
           setIsValidated(false);
-        } 
+        }
       } catch (error) {
         console.error("Error fetching pre-enrollment data:", error);
-        // navigate("/PreEnrollmentBeneficiary");
         setIsValidated(false);
       } finally {
         setLoading(false);
@@ -46,7 +60,6 @@ const BeneficiaryLayout = () => {
             className="h-[50px]"
           />
         </div>
-
         <PropagateLoaderComponent />
       </div>
     );
@@ -61,10 +74,17 @@ const BeneficiaryLayout = () => {
     );
   }
 
+  // Show header only for the listed paths and their sub-routes
+  const pathname = location.pathname;
+  const showHeader = HEADER_PATHS.includes(pathname);
+
   return (
     <div className="flex w-full h-screen items-center justify-start bg-gray1">
       <BeneficiarySidebar />
-      <Outlet />
+      <div className="w-full h-full flex flex-col overflow-y-auto">
+        {showHeader && <BeneficiaryHeader />}
+        <Outlet />
+      </div>
     </div>
   );
 };

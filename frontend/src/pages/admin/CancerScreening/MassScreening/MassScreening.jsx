@@ -168,7 +168,9 @@ const AdminMassScreening = () => {
       <Notification message={notification} type={notificationType} />
 
       <div className="flex justify-between items-center w-full">
-        <h2 className="text-3xl font-bold text-left w-full">Mass Screening</h2>
+        <h2 className="text-xl pl-5 font-bold text-left w-full">
+          Mass Screening
+        </h2>
         <Link
           to="/admin/cancer-screening/add/mass"
           className="bg-yellow px-5 py-1 rounded-sm text-white"
