@@ -165,7 +165,7 @@ const IndividualScreening = () => {
       <LoadingModal open={loading} text="Submitting changes..." />
       <div className="h-screen w-full flex p-5 gap-3 flex-col justify-start items-center bg-gray">
         <div className="flex justify-between items-center w-full">
-          <h2 className="text-xl font-bold text-left w-full pl-5">
+          <h2 className="text-xl font-bold text-left w-full pl-1">
             Individual Screening
           </h2>
           <Link
@@ -178,7 +178,7 @@ const IndividualScreening = () => {
 
         <div className="flex flex-col bg-white rounded-[4px] w-full shadow-md px-5 py-5 gap-3">
           <p className="text-md font-semibold text-yellow">
-            Individual Screening
+            Manage Individual Screening Records
           </p>
 
           <div className="flex justify-between flex-wrap gap-3">

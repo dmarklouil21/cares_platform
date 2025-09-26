@@ -28,7 +28,7 @@ const PatientMasterListAdd = () => {
     highest_educational_attainment: "",
     occupation: "",
     source_of_income: "",
-    monthly_income: "",
+    monthly_income: 0,
     registered_by: "rafi",
     emergency_contacts: [
       {
@@ -48,25 +48,25 @@ const PatientMasterListAdd = () => {
         mobile_number: "",
       },
     ],
-    diagnosis: [],
-    historical_updates: [],
+    // diagnosis: [],
+    // historical_updates: [],
   });
 
-  const [diagnosis, setDiagnosis] = useState([
-    {
-      date_diagnosed: "",
-      diagnosis: "",
-      cancer_site: "",
-      cancer_stage: "",
-    },
-  ]);
+  // const [diagnosis, setDiagnosis] = useState([
+  //   {
+  //     date_diagnosed: "",
+  //     diagnosis: "",
+  //     cancer_site: "",
+  //     cancer_stage: "",
+  //   },
+  // ]);
 
-  const [historicalUpdates, setHistoricalUpdates] = useState([
-    {
-      date: "",
-      note: "",
-    },
-  ]);
+  // const [historicalUpdates, setHistoricalUpdates] = useState([
+  //   {
+  //     date: "",
+  //     note: "",
+  //   },
+  // ]);
 
   // 2×2 photo preview (UI only; no data changes)
   const [photoUrl, setPhotoUrl] = useState(null);
@@ -107,21 +107,53 @@ const PatientMasterListAdd = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!form.first_name.trim())
-      newErrors.first_name = "First name is required.";
-    if (!form.last_name.trim()) newErrors.last_name = "Last name is required.";
-    if (!form.birthdate) newErrors.birthdate = "Birthdate is required.";
-    if (!form.sex) newErrors.sex = "Sex is required.";
-    if (!form.barangay) newErrors.barangay = "Barangay is required.";
-    if (!form.lgu) newErrors.lgu = "LGU is required.";
 
-    // Validate historical updates
-    // historicalUpdates.forEach((update, index) => {
-    //   if (!update.update_date)
-    //     newErrors[`update_date_${index}`] = "Update date is required.";
-    //   if (!update.notes.trim())
-    //     newErrors[`notes_${index}`] = "Notes are required.";
-    // });
+    // Required fields
+    const requiredFields = {
+      first_name: "First name is required.",
+      last_name: "Last name is required.",
+      date_of_birth: "Birthdate is required.",
+      sex: "Sex is required.",
+      civil_status: "Civil status is required.",
+      barangay: "Barangay is required.",
+      address: "Address is required.",
+      email: "Email is required.",
+      city: "City/Municipality is required.",
+      mobile_number: "Mobile number is required.",
+      source_of_information: "Source of information is required.",
+      highest_educational_attainment: "Educational attainment is required.",
+      occupation: "Occupation is required.",
+      source_of_income: "Source of income is required.",
+      monthly_income: "Monthly income is required.",
+    };
+
+    // Validate form fields
+    Object.entries(requiredFields).forEach(([field, message]) => {
+      if (!form[field] || !form[field].toString().trim()) {
+        newErrors[field] = message;
+      }
+    });
+
+    // Validate photo
+    if (!photoUrl) {
+      newErrors.photoUrl = "2×2 photo is required.";
+    }
+
+    // Validate emergency contacts
+    form.emergency_contacts.forEach((contact, index) => {
+      if (!contact.name.trim()) {
+        newErrors[`emergency_contact_${index}_name`] = "Contact name is required.";
+      }
+      if (!contact.relationship_to_patient.trim()) {
+        newErrors[`emergency_contact_${index}_relationship`] = "Relationship is required.";
+      }
+      if (!contact.address.trim()) {
+        newErrors[`emergency_contact_${index}_address`] = "Address is required.";
+      }
+      if (!contact.mobile_number.trim()) {
+        newErrors[`emergency_contact_${index}_mobile_number`] = "Mobile number is required.";
+      }
+    });
 
     return newErrors;
   };
@@ -181,33 +213,33 @@ const PatientMasterListAdd = () => {
   //   // setErrors((prev) => ({ ...prev, [`${name}_${index}`]: undefined }));
   // };
 
-  const handleHistoricalUpdateChange = (index, e) => {
-    const { name, value } = e.target;
-    const updatedUpdates = [...historicalUpdates];
-    updatedUpdates[index] = {
-      ...updatedUpdates[index],
-      [name]: value,
-    };
-    setHistoricalUpdates(updatedUpdates);
-    setErrors((prev) => ({ ...prev, [`${name}_${index}`]: undefined }));
-  };
+  // const handleHistoricalUpdateChange = (index, e) => {
+  //   const { name, value } = e.target;
+  //   const updatedUpdates = [...historicalUpdates];
+  //   updatedUpdates[index] = {
+  //     ...updatedUpdates[index],
+  //     [name]: value,
+  //   };
+  //   setHistoricalUpdates(updatedUpdates);
+  //   setErrors((prev) => ({ ...prev, [`${name}_${index}`]: undefined }));
+  // };
 
-  const addHistoricalUpdate = () => {
-    setHistoricalUpdates([
-      ...historicalUpdates,
-      {
-        date: "",
-        note: "",
-      },
-    ]);
-  };
+  // const addHistoricalUpdate = () => {
+  //   setHistoricalUpdates([
+  //     ...historicalUpdates,
+  //     {
+  //       date: "",
+  //       note: "",
+  //     },
+  //   ]);
+  // };
 
-  const removeHistoricalUpdate = (index) => {
-    if (historicalUpdates.length > 1) {
-      const updatedUpdates = historicalUpdates.filter((_, i) => i !== index);
-      setHistoricalUpdates(updatedUpdates);
-    }
-  };
+  // const removeHistoricalUpdate = (index) => {
+  //   if (historicalUpdates.length > 1) {
+  //     const updatedUpdates = historicalUpdates.filter((_, i) => i !== index);
+  //     setHistoricalUpdates(updatedUpdates);
+  //   }
+  // };
 
   // const handleSubmit = (e) => {
   //   e.preventDefault();
@@ -281,12 +313,15 @@ const PatientMasterListAdd = () => {
   //             photoUrl: imageFile
   //           }}
   const handleNext = () => {
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
     navigate(`/admin/patient/add/cancer-data`, {
       state: {
-        formData: {
-          ...form,
-          historical_updates: historicalUpdates,
-        },
+        formData: form,
         photoUrl: imageFile,
       },
     });
@@ -326,7 +361,7 @@ const PatientMasterListAdd = () => {
         </div>
       )} */}
 
-      <div className=" h-[10%] px-5 w-full flex justify-between items-center">
+      {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">Add Patient</h1>
         <div>
           <Link to={"/admin/patient/master-list"}>
@@ -337,7 +372,7 @@ const PatientMasterListAdd = () => {
             />
           </Link>
         </div>
-      </div>
+      </div> */}
 
       <form
         // onSubmit={handleSubmit}
@@ -368,9 +403,17 @@ const PatientMasterListAdd = () => {
                   />
                 ) : (
                   <span className="p-2 text-center leading-tight">
-                    Upload 2×2 photo
-                    <br />
-                    <span className="text-[11px] opacity-70">JPG/PNG</span>
+                    {errors.photoUrl ? (
+                      <span className="text-red-500 text-xs">
+                        {errors.photoUrl}
+                      </span>
+                    ) : (
+                      <>
+                        Upload 2×2 photo
+                        <br />
+                        <span className="text-[11px] opacity-70">JPG/PNG</span>
+                      </>
+                    )}
                   </span>
                 )}
                 <input
@@ -622,6 +665,11 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors.mobile_number && (
+                  <span className="text-red-500 text-xs">
+                    {errors.mobile_number}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -645,6 +693,11 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors.source_of_information && (
+                  <span className="text-red-500 text-xs">
+                    {errors.source_of_information}
+                  </span>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
@@ -680,6 +733,11 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors.highest_educational_attainment && (
+                  <span className="text-red-500 text-xs">
+                    {errors.highest_educational_attainment}
+                  </span>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
@@ -692,6 +750,11 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors.source_of_income && (
+                  <span className="text-red-500 text-xs">
+                    {errors.source_of_income}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -708,6 +771,11 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors.occupation && (
+                  <span className="text-red-500 text-xs">
+                    {errors.occupation}
+                  </span>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
@@ -741,6 +809,9 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors[`emergency_contact_0_name`] && (
+                  <span className="text-red-500 text-xs">{errors[`emergency_contact_0_name`]}</span>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
@@ -753,6 +824,9 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors[`emergency_contact_0_relationship`] && (
+                  <span className="text-red-500 text-xs">{errors[`emergency_contact_0_relationship`]}</span>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
@@ -777,6 +851,9 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors[`emergency_contact_0_address`] && (
+                  <span className="text-red-500 text-xs">{errors[`emergency_contact_0_address`]}</span>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
@@ -801,6 +878,9 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors[`emergency_contact_0_mobile_number`] && (
+                  <span className="text-red-500 text-xs">{errors[`emergency_contact_0_mobile_number`]}</span>
+                )}
               </div>
             </div>
 
@@ -815,6 +895,9 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors[`emergency_contact_1_name`] && (
+                  <span className="text-red-500 text-xs">{errors[`emergency_contact_1_name`]}</span>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
@@ -827,6 +910,9 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors[`emergency_contact_1_relationship`] && (
+                  <span className="text-red-500 text-xs">{errors[`emergency_contact_1_relationship`]}</span>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
@@ -851,6 +937,9 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors[`emergency_contact_1_address`] && (
+                  <span className="text-red-500 text-xs">{errors[`emergency_contact_1_address`]}</span>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
@@ -875,6 +964,9 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors[`emergency_contact_1_mobile_number`] && (
+                  <span className="text-red-500 text-xs">{errors[`emergency_contact_1_mobile_number`]}</span>
+                )}
               </div>
             </div>
           </div>
@@ -962,7 +1054,7 @@ const PatientMasterListAdd = () => {
           </div> */}
 
           {/* Historical Updates Section */}
-          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+          {/* <div className="mb-6 mt-8 border-b border-gray-200 px-5">
             <h2 className="text-md font-bold tracking-wide uppercase pb-1">
               Patient Historical Updates
             </h2>
@@ -1027,7 +1119,7 @@ const PatientMasterListAdd = () => {
             >
               + Add Another Update
             </button>
-          </div>
+          </div>s */}
         </div>
 
         <div className="w-full flex justify-around">

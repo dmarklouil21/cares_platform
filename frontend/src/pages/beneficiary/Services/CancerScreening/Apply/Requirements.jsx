@@ -49,10 +49,10 @@ const Requirements = () => {
                 <img src="/public/images/check-icon.svg" alt="check icon" />
                 <p>Barangay Certification or Certificate of Indigency</p>
               </div>
-              <div className="flex gap-5">
+              {/* <div className="flex gap-5">
                 <img src="/public/images/check-icon.svg" alt="check icon" />
                 <p>One 1x1 Photo</p>
-              </div>
+              </div> */}
             </div>
           </div>
           <div className="flex justify-between gap-5">

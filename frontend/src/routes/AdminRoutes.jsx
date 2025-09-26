@@ -25,6 +25,7 @@ import HomeVisitAdd from "../pages/admin/survivorship/HomeVisit/Add/Add";
 // Patient Features
 import PatientView from "../pages/admin/Patient/PatientMasterList/View/PatientView";
 import PatientPreScreeningForm from "../pages/admin/Patient/PatientMasterList/View/PreScreeningForm";
+import HistoricalUpdates from "../pages/admin/Patient/PatientMasterList/View/HistoricalUpdates";
 
 import AddPatient from "../pages/admin/Patient/PatientMasterList/Add/AddPatient";
 import AddPreScreeningForm from "../pages/admin/Patient/PatientMasterList/Add/PreScreeningForm";
@@ -100,6 +101,10 @@ const AdminRoutes = () => (
         <Route
           path=":patient_id/cancer-data"
           element={<PatientPreScreeningForm />}
+        />
+        <Route
+          path=":patient_id/historical-updates"
+          element={<HistoricalUpdates />}
         />
       </Route>
 

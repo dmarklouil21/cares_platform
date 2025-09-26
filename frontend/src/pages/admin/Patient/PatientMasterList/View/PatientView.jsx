@@ -35,7 +35,7 @@ const PatientView = () => {
 
   return (
     <div className="h-screen w-full flex flex-col justify-between gap-3 p-5 items-center bg-gray overflow-auto">
-      <div className=" h-[10%] px-5 w-full flex justify-between items-center">
+      {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">View Patient</h1>
         <div>
           <Link to={"/admin/patient/master-list"}>
@@ -46,7 +46,7 @@ const PatientView = () => {
             />
           </Link>
         </div>
-      </div>
+      </div> */}
 
       <form className="h-full w-full flex flex-col justify-between gap-5 bg[#F8F9FA]">
         <div className="border border-black/15 p-3 bg-white rounded-sm">
@@ -560,7 +560,7 @@ const PatientView = () => {
             </div>
           </div>
 
-          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+          {/* <div className="mb-6 mt-8 border-b border-gray-200 px-5">
             <h2 className="text-md font-bold tracking-wide uppercase pb-1">
               Treatment/Services Recieved
             </h2>
@@ -576,7 +576,7 @@ const PatientView = () => {
                     <th className="py-2 px-4 border-b text-left text-sm font-bold">
                       Date Completed
                     </th>
-                    {/* <th className="py-2 px-4 border-b text-left text-sm font-bold">Result</th> */}
+                    {/* <th className="py-2 px-4 border-b text-left text-sm font-bold">Result</th> *s/}
                   </tr>
                 </thead>
                 <tbody>
@@ -619,13 +619,13 @@ const PatientView = () => {
                     <td className="py-2 px-4 border-b text-sm">
                       September 11, 2025
                     </td>
-                  </tr> */}
+                  </tr> *s/}
                 </tbody>
               </table>
             </div>
-          </div>
+          </div> */}
 
-          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+          {/* <div className="mb-6 mt-8 border-b border-gray-200 px-5">
             <h2 className="text-md font-bold tracking-wide uppercase pb-1">
               Patient Historical Updates
             </h2>
@@ -667,7 +667,7 @@ const PatientView = () => {
                 </tbody>
               </table>
             </div>
-          </div>
+          </div>s */}
         </div>
 
         <div className="w-full flex justify-end">

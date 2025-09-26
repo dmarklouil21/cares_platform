@@ -191,7 +191,7 @@ const PatientMasterList = () => {
       <LoadingModal open={loading} text="Submitting changes..." />
       <div className="h-screen w-full flex flex-col justify-start gap-3 p-5 items-center bg-gray">
         <div className="flex justify-between items-center w-full">
-          <h2 className="text-xl font-bold text-left w-full pl-5">
+          <h2 className="text-xl font-bold text-left w-full pl-1">
             Patient Master List
           </h2>
           <Link
@@ -201,9 +201,9 @@ const PatientMasterList = () => {
             Add
           </Link>
         </div>
-        <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-5 gap-3">
+        <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
           <p className="text-md font-semibold text-yellow">
-            Manage all patients
+            Manage All Patients
           </p>
           <div className="flex justify-between flex-wrap gap-3">
             <input

@@ -5,6 +5,8 @@ import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
 
+import { REQUIRED_DOCS } from "src/constants/requiredDocs";
+
 import api from "src/api/axiosInstance";
 
 /* =========================
@@ -128,6 +130,14 @@ const SearchableSelect = ({
   );
 };
 
+const CheckIcon = ({ active }) => (
+  <img
+    src="/images/check.svg"
+    alt=""
+    className={`h-5 w-5 transition ${active ? "" : "grayscale opacity-50"}`}
+  />
+);
+
 const AddIndividualScreening = () => {
   const navigate = useNavigate();
 
@@ -138,10 +148,21 @@ const AddIndividualScreening = () => {
   const [cancerSite, setCancerSite] = useState("");
   const [screeningDate, setScreeningDate] = useState("");
   const [status, setStatus] = useState("Pending");
+  const inputRef = useRef(null);
+
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  const requiredDocs = REQUIRED_DOCS["Individual Screening"] || [];
+
+  // helper to build a cleared files map
+  const makeEmptyFiles = () =>
+    requiredDocs.reduce((acc, d) => ({ ...acc, [d.key]: null }), {});
+
+  const [files, setFiles] = useState(makeEmptyFiles);
 
   // Uploads
   const [preScreeningForm, setPreScreeningForm] = useState(null);
-  const [requiredDocs, setRequiredDocs] = useState([]); // multiple
+  // const [requiredDocs, setRequiredDocs] = useState([]); // multiple
   const [labResults, setLabResults] = useState(null);
   const [loaFile, setLoaFile] = useState(null); // LOA upload
 
@@ -154,6 +175,8 @@ const AddIndividualScreening = () => {
     message: "Record has been created.",
   });
 
+  const handleChooseFile = () => inputRef.current?.click();
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState(
     "Create this screening record?"
@@ -165,6 +188,18 @@ const AddIndividualScreening = () => {
   const handleRequiredDocsChange = (e) => {
     const files = Array.from(e.target.files || []);
     setRequiredDocs(files);
+  };
+
+  const onFilePicked = (f) => {
+    if (!f) return;
+    const docKey = activeDoc.key;
+    setFiles((prev) => ({ ...prev, [docKey]: f }));
+  };
+
+  const handleInputChange = (e) => {
+    const f = e.target.files?.[0];
+    onFilePicked(f);
+    e.target.value = ""; // allow re-picking the same file
   };
 
   const validate = () => {
@@ -237,7 +272,7 @@ const AddIndividualScreening = () => {
       {/* Screen */}
       <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center bg-gray overflow-auto">
         {/* Header */}
-        <div className=" h-[10%] px-5 w-full flex justify-between items-center">
+        {/* <div className=" h-[10%] px-1 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Add Individual Screening</h1>
           <Link to={"/admin/cancer-screening"}>
             <img
@@ -246,7 +281,7 @@ const AddIndividualScreening = () => {
               className="h-6 cursor-pointer"
             />
           </Link>
-        </div>
+        </div> */}
 
         {/* Content */}
         <div className="h-fit w-full flex flex-col gap-4">
@@ -327,7 +362,7 @@ const AddIndividualScreening = () => {
                 />
               </div>
 
-              <div className="w-full">
+              {/* <div className="w-full">
                 <label className="text-sm font-medium block mb-1">
                   Screening Date
                 </label>
@@ -337,17 +372,17 @@ const AddIndividualScreening = () => {
                   value={screeningDate}
                   onChange={(e) => setScreeningDate(e.target.value)}
                 />
-              </div>
+              </div> */}
             </div>
           </div>
 
           {/* Uploads */}
           <div className="bg-white rounded-md shadow border border-black/10">
             <div className="border-b border-black/10 px-5 py-3">
-              <h2 className="text-lg font-semibold">Uploads</h2>
+              <h2 className="text-lg font-semibold">Requirements</h2>
             </div>
 
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            {/* <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
               <div className="w-full">
                 <label className="text-sm font-medium block mb-1">
                   Pre-Screening Form (PDF)
@@ -405,11 +440,39 @@ const AddIndividualScreening = () => {
                   </ul>
                 )}
               </div>
+            </div>s */}
+            <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-6">
+              {requiredDocs.map((d, idx) => {
+                const uploaded = !!files[d.key];
+                const isActive = idx === activeIdx;
+                return (
+                  <button
+                    key={d.key}
+                    type="button"
+                    onClick={() => setActiveIdx(idx)}
+                    className="flex items-center gap-3 text-left group"
+                  >
+                    <CheckIcon active={uploaded} />
+                    <span
+                      className={`${
+                        isActive ? "text-sm font-bold" : "text-sm"
+                      }`}
+                    >
+                      {d.label}
+                    </span>
+                    {isActive && (
+                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                        Current
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* LOA Actions — Upload only */}
-          <div className="bg-white rounded-md shadow border border-black/10">
+          {/* <div className="bg-white rounded-md shadow border border-black/10">
             <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
               <h2 className="text-lg font-semibold">LOA Actions</h2>
             </div>
@@ -431,7 +494,7 @@ const AddIndividualScreening = () => {
                 </div>
               )}
             </div>
-          </div>
+          </div> */}
 
           {/* Actions */}
           <div className="w-full flex flex-col md:flex-row gap-3 justify-between">

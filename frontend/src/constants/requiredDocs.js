@@ -47,4 +47,9 @@ export const REQUIRED_DOCS = {
     { key: "caseStudy", label: "Case Study Report" },
     { key: "incomeTax", label: "Income Tax Report" },
   ],
+  "Individual Screening": [
+    { key: "medCert", label: "Medical Certificate" },
+    { key: "labResults", label: "Laboratory Results" },
+    { key: "barangay", label: "Barangay Indigency" },
+  ],
 };

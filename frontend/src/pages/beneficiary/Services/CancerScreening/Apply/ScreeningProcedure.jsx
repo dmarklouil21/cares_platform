@@ -10,6 +10,16 @@ import LoadingModal from "src/components/Modal/LoadingModal";
 import SystemLoader from "src/components/SystemLoader";
 import SystemSuccess from "src/components/SystemSuccess";
 
+import { REQUIRED_DOCS } from "src/constants/requiredDocs";
+
+const CheckIcon = ({ active }) => (
+  <img
+    src="/images/check.svg"
+    alt=""
+    className={`h-5 w-5 transition ${active ? "" : "grayscale opacity-50"}`}
+  />
+);
+
 const IndividualScreening = () => {
   const navigate = useNavigate();
   const [ screeningID, setScreeningID ] = useState(null);
@@ -34,6 +44,18 @@ const IndividualScreening = () => {
   const [modalText, setModalText] = useState("Confirm Status Change?");
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null); 
+
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  const requiredDocs = REQUIRED_DOCS["Individual Screening"] || [];
+
+  // helper to build a cleared files map
+  const makeEmptyFiles = () =>
+    requiredDocs.reduce((acc, d) => ({ ...acc, [d.key]: null }), {});
+
+  const [files, setFiles] = useState(makeEmptyFiles);
+
+  const activeDoc = requiredDocs[activeIdx];
 
   useEffect(() => {
     const fetchScreeningData = async () => {
@@ -188,7 +210,7 @@ const IndividualScreening = () => {
         </div>
 
         <div className="py-6 px-10 flex flex-col flex-1">
-          <h2 className="text-xl font-semibold mb-6">Cancer Screening</h2>
+          <h2 className="text-xl font-semibold mb-6">Cancer Screening Application</h2>
 
           <form className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-8 flex-1 overflow-auto">
             {/* <div className="flex flex-col gap-3">
@@ -201,9 +223,9 @@ const IndividualScreening = () => {
               </p>
             </div> */}
             <div className="flex flex-col gap-6">
-              <h1 className="font-bold text-xl">Screening Procedure</h1>
+              <h1 className="font-bold text-3xl text-yellow">Individual Screening</h1>
               <div className="flex flex-col gap-2">
-                <label htmlFor="screeningprocedure">Screening Procedure:</label>
+                <label htmlFor="screeningprocedure">Screening Procedure</label>
                 <input
                   type="text"
                   name="screening_procedure_name"
@@ -244,7 +266,76 @@ const IndividualScreening = () => {
             </div>
             <div className="flex flex-col gap-6">
               <h1 className="font-bold text-xl">Requirements/Attachments</h1>
-              <div className="font-bold px-3 flex flex-col gap-4">
+              <p className="font-bold italic">
+                Please comply with the following requirements before submission
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-3">
+              {requiredDocs.map((d, idx) => {
+                const uploaded = !!files[d.key];
+                const isActive = idx === activeIdx;
+                return (
+                  <button
+                    key={d.key}
+                    type="button"
+                    onClick={() => setActiveIdx(idx)}
+                    className="flex items-center gap-3 text-left group"
+                  >
+                    <CheckIcon active={uploaded} />
+                    <span
+                      className={`${
+                        isActive ? "font-bold text-gray-900" : "text-gray-800"
+                      }`}
+                    >
+                      {d.label}
+                    </span>
+                    {isActive && (
+                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                        Current
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mb-1 text-sm text-gray-600">
+              Currently uploading:{" "}
+              <span className="font-semibold">{activeDoc?.label}</span>
+            </div>
+
+            <div
+              // onClick={handleChooseFile}
+              // onDragOver={handleDragOver}
+              // onDrop={handleDrop}
+              className="mt-1 border border-gray-200 rounded-xl bg-primary/20 hover:bg-gray-100 transition cursor-pointer flex flex-col items-center justify-center h-56"
+            >
+              <div className="px-1.5 py-1 bg-primary rounded-4xl">
+                <img
+                  src="/src/assets/images/services/cancerscreening/upload_icon.svg"
+                  alt="upload icon"
+                  className="h-6"
+                />
+              </div>
+              <div className="text-sm text-gray-700">
+                Choose file or drag here
+              </div>
+              <div className="text-xs text-gray-400">Size limit: 10MB</div>
+              {files[activeDoc?.key] && (
+                <div className="mt-3 text-xs text-gray-700">
+                  Selected:{" "}
+                  <span className="font-medium">{files[activeDoc.key].name}</span>
+                </div>
+              )}
+            </div>
+
+            <input
+              // ref={inputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.odt,.ods"
+              // onChange={handleInputChange}
+              className="hidden"
+            />
+              {/* <div className="font-bold px-3 flex flex-col gap-4">
                 <div className="flex gap-5">
                   <img src="/public/images/check-icon.svg" alt="check icon" />
                   <p>Medical Certificate</p>
@@ -257,12 +348,12 @@ const IndividualScreening = () => {
                   <img src="/public/images/check-icon.svg" alt="check icon" />
                   <p>Barangay Certificate of Indigency</p>
                 </div>
-                <div className="flex gap-5">
+                {/* <div className="flex gap-5">
                   <img src="/public/images/check-icon.svg" alt="check icon" />
                   <p>One 1x1 Photo</p>
-                </div>
-              </div>
-              <div
+                </div> *s/}
+              </div> */}
+              {/* <div
                 className="bg-gray-100 border border-dashed border-gray-300 rounded-xl p-10 flex flex-col items-center justify-center text-center cursor-pointer"
                 onClick={handleDivClick}
               >
@@ -329,7 +420,7 @@ const IndividualScreening = () => {
                     </div>
                   </div>
                 )}
-              </div>
+              </div>s */}
               <div className="flex justify-between gap-5">
                 <Link
                   to="/beneficiary/services/cancer-screening/requirements"
