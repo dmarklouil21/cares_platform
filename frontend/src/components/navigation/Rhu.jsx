@@ -13,6 +13,9 @@ const RhuSidebar = () => {
   const [activeNav, setActiveNav] = useState("Home");
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  // 🚫 No active state when on /rhu/profile
+  const isProfileRoute = location.pathname === "/rhu/profile";
+
   const nav = [
     {
       name: "Dashboard",
@@ -44,50 +47,15 @@ const RhuSidebar = () => {
       path: "/rhu/application",
       arrow: "",
     },
-    // {
-    //   name: "Rhu",
-    //   icon: "/src/assets/images/navigation/rhu/rhu.svg",
-    //   path: "",
-    //   arrow: "/src/assets/images/navigation/admin/arrow.svg",
-    // },
-    /* {
-      name: "Application Status",
-      icon: "/src/assets/images/navigation/admin/patient.svg",
-      path: "/Beneficiary/applicationstatus",
-      arrow: "",
-    }, */
-    // {
-    //   name: "Individual Screening",
-    //   icon: "/src/assets/images/navigation/admin/patient.svg",
-    //   path: "/Beneficiary/individualscreeningstatus",
-    //   arrow: "",
-    // },
   ];
 
   const servicesSubNav = [
-    {
-      name: "Cancer Screening",
-      path: "/rhu/services/mass-screening",
-    },
+    { name: "Cancer Screening", path: "/rhu/services/cancer-screening" },
   ];
 
-  // NEW: Rhu subnav
-  // const rhuSubNav = [
-  //   {
-  //     name: "Patient List",
-  //     path: "/Rhu/rhu/pre-enrollment",
-  //   },
-  // ];
-
   const patientSubNav = [
-    {
-      name: "Patient List",
-      path: "/rhu/patients",
-    },
-    {
-      name: "Mass Screening",
-      path: "/rhu/patients/mass-screening",
-    },
+    { name: "Patient List", path: "/rhu/patients" },
+    { name: "Mass Screening", path: "/rhu/patients/mass-screening" },
   ];
 
   const debounce = (func, delay) => {
@@ -104,6 +72,15 @@ const RhuSidebar = () => {
     const path = location.pathname;
     setIsTransitioning(false);
 
+    // If on /rhu/profile, clear any active states and keep groups closed
+    if (isProfileRoute) {
+      setActiveNav("");
+      setIsServicesOpen(false);
+      setIsAwarenessOpen(false);
+      setIsPatientOpen(false);
+      return;
+    }
+
     // services active check
     const activeService = servicesSubNav.find((item) =>
       path.startsWith(item.path)
@@ -116,7 +93,7 @@ const RhuSidebar = () => {
       return;
     }
 
-    // rhu active check
+    // patient active check
     const activePatient = patientSubNav.find((item) =>
       path.startsWith(item.path)
     );
@@ -128,8 +105,7 @@ const RhuSidebar = () => {
       return;
     }
 
-    // awarenessSubNav logic removed
-
+    // main nav exact matches
     const activeMainNav = nav.find((item) => item.path && path === item.path);
     if (activeMainNav) {
       setActiveNav(activeMainNav.name);
@@ -137,7 +113,7 @@ const RhuSidebar = () => {
       setIsAwarenessOpen(false);
       setIsPatientOpen(false);
     }
-  }, [location.pathname]);
+  }, [location.pathname, isProfileRoute]);
 
   const handleNavigation = debounce((path) => {
     if (isTransitioning) return;
@@ -150,7 +126,8 @@ const RhuSidebar = () => {
     setIsServicesOpen((prev) => !prev);
     setIsAwarenessOpen(false);
     setIsPatientOpen(false);
-    setActiveNav("Services");
+    // Don't mark active while on /rhu/profile
+    if (!isProfileRoute) setActiveNav("Services");
   };
 
   const togglePatient = () => {
@@ -158,10 +135,10 @@ const RhuSidebar = () => {
     setIsPatientOpen((prev) => !prev);
     setIsServicesOpen(false);
     setIsAwarenessOpen(false);
-    setActiveNav("Patient");
+    // Don't mark active while on /rhu/profile
+    if (!isProfileRoute) setActiveNav("Patient");
   };
 
-  // toggleAwareness removed
   const handleNavClick = (name) => {
     if (isTransitioning) return;
 
@@ -170,10 +147,13 @@ const RhuSidebar = () => {
     } else if (name === "Patient") {
       togglePatient();
     } else {
-      setActiveNav(name);
-      setIsServicesOpen(false);
-      setIsAwarenessOpen(false);
-      setIsPatientOpen(false);
+      // Only set active if not on /rhu/profile
+      if (!isProfileRoute) {
+        setActiveNav(name);
+        setIsServicesOpen(false);
+        setIsAwarenessOpen(false);
+        setIsPatientOpen(false);
+      }
       const targetPath = nav.find((item) => item.name === name)?.path;
       if (targetPath) handleNavigation(targetPath);
     }
@@ -192,12 +172,13 @@ const RhuSidebar = () => {
           Platform
         </h1>
       </div>
-      <div className="h-[80%] flex flex-col justify-between overflow-auto">
-        <ul className="flex flex-col overflow-auto custom-scrollbar  flex-1">
-          {nav.map((item, index) => {
-            const isActive = activeNav === item.name;
 
-            // expanded groups: Services or Rhu
+      <div className="h-[80%] flex flex-col justify-between overflow-auto">
+        <ul className="flex flex-col overflow-auto custom-scrollbar flex-1">
+          {nav.map((item, index) => {
+            // 🔒 Never show as active on /rhu/profile
+            const isActive = !isProfileRoute && activeNav === item.name;
+
             const isExpandable =
               item.name === "Services" || item.name === "Patient";
 
@@ -278,7 +259,8 @@ const RhuSidebar = () => {
                       <li
                         key={subIndex}
                         className={`rounded-lg px-5 hover:font-bold hover:text-primary block py-2 hover:bg-gray ${
-                          location.pathname === subItem.path
+                          // 🔒 Never highlight subnav on /rhu/profile
+                          !isProfileRoute && location.pathname === subItem.path
                             ? "bg-gray text-primary font-bold"
                             : "text-white"
                         } ${isTransitioning ? "pointer-events-none" : ""}`}
@@ -297,7 +279,8 @@ const RhuSidebar = () => {
             );
           })}
         </ul>
-        <button
+
+        {/* <button
           className="bg-white/5 py-1 flex items-center justify-between gap-5 px-5 rounded-md hover:bg-white/50 cursor-pointer"
           onClick={() => {
             logout();
@@ -306,7 +289,7 @@ const RhuSidebar = () => {
         >
           <h1 className="text-white">Logout</h1>
           <img src="/images/logout.svg" alt="Logout icon" className="h-7" />
-        </button>
+        </button> */}
       </div>
     </div>
   );

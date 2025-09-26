@@ -11,6 +11,9 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const [activeNav, setActiveNav] = useState("Home");
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  // 🚫 No active state when on /beneficiary/profile
+  const isProfileRoute = location.pathname === "/beneficiary/profile";
+
   const nav = [
     {
       name: "Home",
@@ -59,10 +62,7 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       name: "Cancer Management",
       path: "/beneficiary/applications/cancer-treatment",
     },
-    {
-      name: "Pre Cancerous",
-      path: "/beneficiary/applications/precancerous",
-    },
+    { name: "Pre Cancerous", path: "/beneficiary/applications/precancerous" },
   ];
 
   const debounce = (func, delay) => {
@@ -78,6 +78,14 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   useEffect(() => {
     const path = location.pathname;
     setIsTransitioning(false);
+
+    // If on /beneficiary/profile, clear active states and close groups
+    if (isProfileRoute) {
+      setActiveNav("");
+      setIsServicesOpen(false);
+      setIsApplicationOpen(false);
+      return;
+    }
 
     const activeService = servicesSubNav.find((item) =>
       path.startsWith(item.path)
@@ -105,7 +113,7 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       setIsServicesOpen(false);
       setIsApplicationOpen(false);
     }
-  }, [location.pathname]);
+  }, [location.pathname, isProfileRoute]); // include flag in deps
 
   const handleNavigation = debounce((path) => {
     if (isTransitioning) return;
@@ -117,14 +125,14 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     if (isTransitioning) return;
     setIsServicesOpen((prev) => !prev);
     setIsApplicationOpen(false);
-    setActiveNav("Services");
+    if (!isProfileRoute) setActiveNav("Services");
   };
 
   const toggleApplications = () => {
     if (isTransitioning) return;
     setIsApplicationOpen((prev) => !prev);
     setIsServicesOpen(false);
-    setActiveNav("Applications");
+    if (!isProfileRoute) setActiveNav("Applications");
   };
 
   const handleNavClick = (name) => {
@@ -135,9 +143,11 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     } else if (name === "Applications") {
       toggleApplications();
     } else {
-      setActiveNav(name);
-      setIsServicesOpen(false);
-      setIsApplicationOpen(false);
+      if (!isProfileRoute) {
+        setActiveNav(name);
+        setIsServicesOpen(false);
+        setIsApplicationOpen(false);
+      }
       const targetPath = nav.find((item) => item.name === name)?.path;
       if (targetPath) handleNavigation(targetPath);
     }
@@ -149,21 +159,20 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         isSidebarOpen ? "translate-x-0" : "-translate-x-full"
       } md:translate-x-0`}
     >
-      <div className=" flex justify-between  items-center gap-3 text-white">
-        <div className="flex items-center justify-center  ">
+      <div className="flex justify-between items-center gap-3 text-white">
+        <div className="flex items-center justify-center">
           <img
             src="/images/logo_white_text.png"
             className="h-15 w-15"
             alt="Rafi Logo"
           />
           <h1 className="font-bold text-xl text-white ml-3">
-            CARES <br />
-            Platform
+            CARES <br /> Platform
           </h1>
         </div>
 
         <img
-          className="md:hidden  cursor-pointer  size-[30px]"
+          className="md:hidden cursor-pointer size-[30px]"
           src="/images/close-svgrepo-com.svg"
           alt="Close"
           onClick={() => setIsSidebarOpen(false)}
@@ -173,7 +182,8 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       <div className="h-[80%] flex flex-col justify-between overflow-auto">
         <ul className="flex flex-col overflow-auto custom-scrollbar flex-1">
           {nav.map((item, index) => {
-            const isActive = activeNav === item.name;
+            // 🔒 Never show as active on /beneficiary/profile
+            const isActive = !isProfileRoute && activeNav === item.name;
             const isExpandable =
               item.name === "Services" || item.name === "Applications";
             const isOpen =
@@ -244,7 +254,8 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                       <li
                         key={subIndex}
                         className={`rounded-lg px-5 hover:font-bold hover:text-primary block py-2 hover:bg-gray ${
-                          location.pathname === subItem.path
+                          // 🔒 Do not highlight subnav on /beneficiary/profile
+                          !isProfileRoute && location.pathname === subItem.path
                             ? "bg-gray text-primary font-bold"
                             : "text-white"
                         } ${isTransitioning ? "pointer-events-none" : ""}`}
@@ -263,7 +274,8 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
             );
           })}
         </ul>
-        <button
+
+        {/* <button
           className="bg-white/5 py-1 flex items-center justify-between gap-5 px-5 rounded-md hover:bg-white/50 cursor-pointer"
           onClick={() => {
             logout();
@@ -272,7 +284,7 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         >
           <h1 className="text-white">Logout</h1>
           <img src="/images/logout.svg" alt="Logout icon" className="h-7" />
-        </button>
+        </button> */}
       </div>
     </div>
   );

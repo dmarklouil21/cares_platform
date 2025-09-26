@@ -2,46 +2,48 @@ import { Route } from "react-router-dom";
 import BeneficiaryLayout from "../layouts/Beneficiary";
 import ProtectedRoute from "../components/RoleGuard/ProtectedRoute";
 
-// Pre Enrollment 
-import PreEnrollment  from "../pages/beneficiary/PreEnrollment/PreEnrollment";
+// Pre Enrollment
+import PreEnrollment from "../pages/beneficiary/PreEnrollment/PreEnrollment";
 import PreScreeningForm from "../pages/beneficiary/PreEnrollment/PreScreeningForm";
 
-// Sidebar Options 
+// Sidebar Options
 import Home from "../pages/beneficiary/Home/Home/";
 import CancerAwareness from "../pages/beneficiary/CancerAwareness/CancerAwareness/";
+import Profile from "../pages/beneficiary/profile/Profile";
 
-// Services 
+// Services
 import CancerScreening from "../pages/beneficiary/Services/CancerScreening/CancerScreening";
 import CancerManagement from "../pages/beneficiary/Services/CancerManagement/CancerManagement";
 import Survivorship from "../pages/beneficiary/Services/Survivorship/Survivorship";
 
-// Applications 
+// Applications
 import IndividualScreening from "../pages/beneficiary/Applications/IndividualScreening/IndividualScreening";
 import CancerTreatment from "../pages/beneficiary/Applications/CancerTreatment/CancerTreatment";
-import PreCancerous from "../pages/beneficiary/Applications/PreCancerous/PreCancerous/"; 
+import PreCancerous from "../pages/beneficiary/Applications/PreCancerous/PreCancerous/";
 
 // Cancer Screening Apply
-import Requirements from "../pages/beneficiary/Services/CancerScreening/Apply/Requirements"; 
-import ScreeningProcedure from "../pages/beneficiary/Services/CancerScreening/Apply/ScreeningProcedure"; 
+import Requirements from "../pages/beneficiary/Services/CancerScreening/Apply/Requirements";
+import ScreeningProcedure from "../pages/beneficiary/Services/CancerScreening/Apply/ScreeningProcedure";
 
-// Cancer Management Apply 
+// Cancer Management Apply
 import RequiredDocumentsUpload from "../pages/beneficiary/Services/CancerManagement/Apply/RequiredDocumentsUpload";
 import WellBeingForm from "../pages/beneficiary/Services/CancerManagement/Apply/WellBeingForm";
 import ServiceApplicationNote from "../pages/beneficiary/Services/CancerManagement/Apply/ServiceApplicationNote";
+import PostTreatment from "../pages/beneficiary/Services/CancerManagement/Apply/PostTreatment/PostTreatment";
 
-import PreCancerousMeds from "../pages/beneficiary/Services/CancerManagement/Apply/PreCancerous/PreCancerousMeds"; 
+import PreCancerousMeds from "../pages/beneficiary/Services/CancerManagement/Apply/PreCancerous/PreCancerousMeds";
 
 import ViewTreatmentRequestStatus from "../pages/beneficiary/Applications/CancerTreatment/View/ViewRequestStatus";
 import CaseSummaryUpload from "../pages/beneficiary/Applications/CancerTreatment/View/UploadAttachments";
 
-// Applications Features 
-import ViewScreeningStatus from "../pages/beneficiary/Applications/IndividualScreening/View/ViewScreeningStatus"; 
-import UploadAttachments from "../pages/beneficiary/Applications/IndividualScreening/View/UploadAttachments"; 
+// Applications Features
+import ViewScreeningStatus from "../pages/beneficiary/Applications/IndividualScreening/View/ViewScreeningStatus";
+import UploadAttachments from "../pages/beneficiary/Applications/IndividualScreening/View/UploadAttachments";
 
-import PreCancerousView from "../pages/beneficiary/Applications/PreCancerous/View/PreCancerousView"; 
+import PreCancerousView from "../pages/beneficiary/Applications/PreCancerous/View/PreCancerousView";
 
 // Success Page
-import SuccessPage from "../pages/beneficiary/SuccessPage"; 
+import SuccessPage from "../pages/beneficiary/SuccessPage";
 
 const BeneficiaryRoutes = () => (
   <Route
@@ -54,6 +56,7 @@ const BeneficiaryRoutes = () => (
   >
     {/* Success Page */}
     <Route path="success-application" element={<SuccessPage />} />
+    <Route path="profile" element={<Profile />} />
 
     <Route path="pre-enrollment">
       <Route index element={<PreEnrollment />} />
@@ -81,10 +84,14 @@ const BeneficiaryRoutes = () => (
         <Route path="apply">
           <Route path="note" element={<ServiceApplicationNote />} />
           <Route path="well-being-tool" element={<WellBeingForm />} />
-          <Route path="upload-documents" element={<RequiredDocumentsUpload />} />
+          <Route
+            path="upload-documents"
+            element={<RequiredDocumentsUpload />}
+          />
 
           {/* Pre-cancerous meds */}
           <Route path="precancerous-meds" element={<PreCancerousMeds />} />
+          <Route path="post-treatment" element={<PostTreatment />} />
         </Route>
       </Route>
 
@@ -94,7 +101,7 @@ const BeneficiaryRoutes = () => (
 
     {/* Applications */}
     <Route path="applications">
-      <Route path="individual-screening"> 
+      <Route path="individual-screening">
         <Route index element={<IndividualScreening />} />
         <Route path="view" element={<ViewScreeningStatus />} />
         <Route path="upload-attachments" element={<UploadAttachments />} />
@@ -111,7 +118,6 @@ const BeneficiaryRoutes = () => (
         <Route path="view/:id" element={<PreCancerousView />} />
       </Route>
     </Route>
-
   </Route>
 );
 

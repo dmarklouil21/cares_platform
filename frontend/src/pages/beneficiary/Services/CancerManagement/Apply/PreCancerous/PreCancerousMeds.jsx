@@ -95,7 +95,10 @@ const PreCancerousMeds = () => {
         setNotification("Submitted successfully.");
         setTimeout(() => setNotification(""), 3000);
       } catch (err) {
-        const msg = err?.response?.data?.detail || err?.response?.data?.non_field_errors?.[0] || "Submission failed. Please try again.";
+        const msg =
+          err?.response?.data?.detail ||
+          err?.response?.data?.non_field_errors?.[0] ||
+          "Submission failed. Please try again.";
         setErrorMsg(msg);
         setNotification(msg);
         setTimeout(() => setNotification(""), 4000);
@@ -138,18 +141,6 @@ const PreCancerousMeds = () => {
         onCancel={handleCancel}
       />
       <Notification message={notification} />
-
-      {/* Header */}
-      <div className="bg-white py-4 px-10 flex justify-between items-center">
-        <div className="font-bold">Beneficiary</div>
-        <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-          <img
-            src="/images/Avatar.png"
-            alt="User Profile"
-            className="rounded-full"
-          />
-        </div>
-      </div>
 
       {/* Content */}
       <div className="py-6 px-10 bg-gray">
@@ -317,7 +308,13 @@ const PreCancerousMeds = () => {
                   ? "bg-primary/40 text-white cursor-not-allowed"
                   : "bg-primary text-white hover:bg-primary/80"
               }`}
-              title={isSubmitDisabled ? "Please fill all required fields" : submitting ? "Submitting..." : ""}
+              title={
+                isSubmitDisabled
+                  ? "Please fill all required fields"
+                  : submitting
+                  ? "Submitting..."
+                  : ""
+              }
             >
               {submitting ? "Submitting..." : "Submit"}
             </button>
@@ -325,7 +322,7 @@ const PreCancerousMeds = () => {
         </div>
       </div>
 
-      <div className="h-16 bg-secondary" />
+      {/* <div className="h-16 bg-secondary" /> */}
     </div>
   );
 };

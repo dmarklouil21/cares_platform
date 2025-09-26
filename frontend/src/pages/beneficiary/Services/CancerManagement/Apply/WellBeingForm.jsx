@@ -10,7 +10,7 @@ const RadioTherapyWellBeingTool = () => {
   const serviceType = location.state;
   const { user } = useAuth();
   // const [ patient, setPatient ] = useState(null);
-  const [ questions, setQuestions ] = useState([]);
+  const [questions, setQuestions] = useState([]);
 
   // paragraph answer
   const [improve, setImprove] = useState("");
@@ -47,8 +47,8 @@ const RadioTherapyWellBeingTool = () => {
             name: data.full_name,
             address: data.address,
             diagnosis: data.diagnosis[0]?.diagnosis,
-          }
-        })
+          };
+        });
       } catch (error) {
         console.error("Error fetching patient data:", error);
       }
@@ -60,7 +60,9 @@ const RadioTherapyWellBeingTool = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await api.get(`/cancer-management/well-being-questions/`);
+        const { data } = await api.get(
+          `/cancer-management/well-being-questions/`
+        );
         // setPatient(data);
         console.log("Questions: ", data);
         setQuestions(data);
@@ -83,20 +85,19 @@ const RadioTherapyWellBeingTool = () => {
     const wellBeningData = {
       ...form,
       improve: improve.trim(),
-      answers, 
+      answers,
     };
 
-    navigate(
-      "/beneficiary/services/cancer-management/apply/upload-documents", 
-      { state: { wellBeningData } }
-    );
+    navigate("/beneficiary/services/cancer-management/apply/upload-documents", {
+      state: { wellBeningData },
+    });
   };
   console.log("Service Type: ", serviceType);
   // console.log("Next Link: ", nextLink);
 
   return (
     <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-      <div className="bg-white py-4 px-10 flex justify-between items-center">
+      {/* <div className="bg-white py-4 px-10 flex justify-between items-center">
         <div className="font-bold">Beneficiary</div>
         <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
           <img
@@ -105,7 +106,7 @@ const RadioTherapyWellBeingTool = () => {
             className="rounded-full"
           />
         </div>
-      </div>
+      </div> */}
 
       <div className="py-6 px-10 flex flex-col flex-1 overflow-auto">
         <div className="bg-white rounded-2xl flex p-7 flex-col gap-7">
@@ -227,7 +228,9 @@ const RadioTherapyWellBeingTool = () => {
                         {idx + 1}.
                       </td>
                       <td className="border border-gray-300 p-2 align-top">
-                        <div className="font-medium leading-tight">{q.text_en}</div>
+                        <div className="font-medium leading-tight">
+                          {q.text_en}
+                        </div>
                         <div className="text-primary text-xs leading-tight">
                           {q.text_ceb}
                         </div>

@@ -18,7 +18,7 @@ const PatientMasterListEdit = () => {
     {
       date: "",
       note: "",
-    }
+    },
   ]);
 
   // Notification Modal
@@ -28,12 +28,12 @@ const PatientMasterListEdit = () => {
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalAction, setModalAction] = useState(null); 
+  const [modalAction, setModalAction] = useState(null);
 
   // 2×2 photo preview (UI only; no data changes)
   const [photoUrl, setPhotoUrl] = useState(null);
@@ -55,20 +55,19 @@ const PatientMasterListEdit = () => {
         const response = await api.get(`/patient/details/${patient_id}/`);
         if (isMounted) {
           setForm(response.data);
-          setHistoricalUpdates(response.data.historical_updates)
+          setHistoricalUpdates(response.data.historical_updates);
           setPhotoUrl(response.data.photo_url);
         }
       } catch (error) {
         console.error("Error fetching patient data:", error);
       }
     };
-    
+
     fetchData();
 
     return () => {
       isMounted = false;
     };
-
   }, [patient_id]);
   console.log("Historical Update: 0", historicalUpdates);
 
@@ -151,15 +150,16 @@ const PatientMasterListEdit = () => {
 
   const handleNext = () => {
     // Create the updated array manually
-    const updatedUpdates = historicalUpdates?.length > 0
-      ? [...historicalUpdates, ...newUpdate]
-      : [...newUpdate];
+    const updatedUpdates =
+      historicalUpdates?.length > 0
+        ? [...historicalUpdates, ...newUpdate]
+        : [...newUpdate];
 
     // Update state
     setHistoricalUpdates(updatedUpdates);
 
     console.log("Updates Passed: ", newUpdate);
-    
+
     // console.log("Historical Update 1: ", historicalUpdates);
 
     navigate(`/rhu/patients/edit/${form?.patient_id}/cancer-data`, {
@@ -168,11 +168,11 @@ const PatientMasterListEdit = () => {
           ...form,
           historical_updates: updatedUpdates,
         },
-        photoUrl: imageFile
-      }
+        photoUrl: imageFile,
+      },
     });
-  }
-  
+  };
+
   return (
     <>
       <ConfirmationModal
@@ -193,24 +193,24 @@ const PatientMasterListEdit = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting changes..." />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+      <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
+        <div className=" px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Edit Patient</h1>
-          <div className="p-3">
-            <Link to={"/rhu/patients"}>
-              <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
-            </Link>
-          </div>
+          <Link to={"/rhu/patients"}>
+            <img
+              src="/images/back.png"
+              alt="Back"
+              className="h-6 cursor-pointer"
+            />
+          </Link>
         </div>
 
-        <form className="h-full w-full p-5 flex flex-col justify-between gap-5 bg[#F8F9FA]">
+        <form className="h-full w-full  flex flex-col justify-between gap-5 bg[#F8F9FA]">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between py-3 px-5 items-start md:items-center gap-6 mb-6">
               <div className="flex flex-col gap-2">
-                <h1 className="text-xl font-bold">
-                  PATIENT PROFILE
-                </h1>
+                <h1 className="text-xl font-bold">PATIENT PROFILE</h1>
                 <p className="text-sm text-gray-600">
                   Patient ID:{" "}
                   <span className="font-semibold">
@@ -257,14 +257,18 @@ const PatientMasterListEdit = () => {
             </div>
 
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-              <h2 className="text-md font-bold tracking-wide uppercase pb-1">Basic Information</h2>
+              <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+                Basic Information
+              </h2>
             </div>
 
             <div className="flex flex-row gap-8 p-4">
               {/* Column 1 */}
               <div className="flex flex-col gap-3 w-1/2">
                 <div className="w-full">
-                  <label className="text-sm font-medium block mb-1">First Name:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    First Name:
+                  </label>
                   <input
                     type="text"
                     name="first_name"
@@ -276,7 +280,9 @@ const PatientMasterListEdit = () => {
                 </div>
 
                 <div className="w-full">
-                  <label className="text-sm font-medium block mb-1">Middle Name:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Middle Name:
+                  </label>
                   <input
                     type="text"
                     name="middle_name"
@@ -287,7 +293,9 @@ const PatientMasterListEdit = () => {
                 </div>
 
                 <div className="w-full">
-                  <label className="text-sm font-medium block mb-1">Birthdate:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Birthdate:
+                  </label>
                   <input
                     type="date"
                     name="date_of_birth"
@@ -299,7 +307,9 @@ const PatientMasterListEdit = () => {
                 </div>
 
                 <div className="w-full">
-                  <label className="text-sm font-medium block mb-1">Civil Status:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Civil Status:
+                  </label>
                   <select
                     name="civil_status"
                     value={form?.civil_status}
@@ -320,7 +330,9 @@ const PatientMasterListEdit = () => {
               {/* Column 2 */}
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Last Name:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Last Name:
+                  </label>
                   <input
                     type="text"
                     name="last_name"
@@ -332,7 +344,9 @@ const PatientMasterListEdit = () => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium block mb-1">Suffix:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Suffix:
+                  </label>
                   <input
                     type="text"
                     name="suffix"
@@ -374,13 +388,17 @@ const PatientMasterListEdit = () => {
           {/* Contact and Address Information Section */}
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-              <h2 className="text-md font-bold tracking-wide uppercase pb-1">Contact and Address Information</h2>
+              <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+                Contact and Address Information
+              </h2>
             </div>
 
             <div className="flex flex-row gap-8 p-4">
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Permanent Address:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Permanent Address:
+                  </label>
                   <input
                     type="text"
                     name="address"
@@ -390,7 +408,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">City/Municipality:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    City/Municipality:
+                  </label>
                   <input
                     type="text"
                     name="city"
@@ -400,7 +420,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Barangay:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Barangay:
+                  </label>
                   <input
                     type="text"
                     name="barangay"
@@ -414,7 +436,9 @@ const PatientMasterListEdit = () => {
               {/* Second Column */}
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Email:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Email:
+                  </label>
                   <input
                     type="text"
                     name="email"
@@ -424,7 +448,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Mobile Number:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Mobile Number:
+                  </label>
                   <input
                     type="text"
                     name="mobile_number"
@@ -440,12 +466,17 @@ const PatientMasterListEdit = () => {
           {/* Additional Information Section */}
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-              <h2 className="text-md font-bold tracking-wide uppercase pb-1">Additional Information</h2>
+              <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+                Additional Information
+              </h2>
             </div>
             <div className="flex flex-row gap-8 p-4">
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Source of Information (Where did you here about RAFI-EJACC?):</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Source of Information (Where did you here about
+                    RAFI-EJACC?):
+                  </label>
                   <input
                     type="text"
                     name="source_of_information"
@@ -455,7 +486,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Other RAFI program you availed:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Other RAFI program you availed:
+                  </label>
                   <input
                     type="text"
                     name="other_rafi_programs_availed"
@@ -471,12 +504,16 @@ const PatientMasterListEdit = () => {
           {/* Socioeconomic Info Section */}
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-              <h2 className="text-md font-bold tracking-wide uppercase pb-1">Socioeconomic Information</h2>
+              <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+                Socioeconomic Information
+              </h2>
             </div>
             <div className="flex flex-row gap-8 p-4">
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Highest Educational Attainment:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Highest Educational Attainment:
+                  </label>
                   <input
                     type="text"
                     name="highest_educational_attainment"
@@ -486,7 +523,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Source of Income:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Source of Income:
+                  </label>
                   <input
                     type="text"
                     name="source_of_income"
@@ -500,7 +539,9 @@ const PatientMasterListEdit = () => {
               {/* Second Column */}
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Occupation:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Occupation:
+                  </label>
                   <input
                     type="text"
                     name="occupation"
@@ -510,7 +551,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Income:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Income:
+                  </label>
                   <input
                     type="text"
                     name="monthly_income"
@@ -526,12 +569,16 @@ const PatientMasterListEdit = () => {
           {/* Emergency Contacts Section */}
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-              <h2 className="text-md font-bold tracking-wide uppercase pb-1">Emergency Contacts</h2>
+              <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+                Emergency Contacts
+              </h2>
             </div>
             <div className="flex flex-row gap-8 p-4">
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Name:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Name:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.name"
@@ -541,7 +588,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Relationship to Patient:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Relationship to Patient:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.relationship_to_patient"
@@ -551,7 +600,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Landline Number:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Landline Number:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.landline_number"
@@ -561,7 +612,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Address:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Address:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.address"
@@ -571,7 +624,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Email Address:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Email Address:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.email"
@@ -581,7 +636,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Mobile Number::</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Mobile Number::
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact1.mobile_number"
@@ -595,7 +652,9 @@ const PatientMasterListEdit = () => {
               {/* Second Column */}
               <div className="flex flex-col gap-3 w-1/2">
                 <div>
-                  <label className="text-sm font-medium block mb-1">Name:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Name:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.name"
@@ -605,7 +664,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Relationship to Patient:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Relationship to Patient:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.relationship_to_patient"
@@ -615,7 +676,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Landline Number:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Landline Number:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.landline_number"
@@ -625,7 +688,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Address:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Address:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.address"
@@ -635,7 +700,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Email Address:</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Email Address:
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.email"
@@ -645,7 +712,9 @@ const PatientMasterListEdit = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1">Mobile Number::</label>
+                  <label className="text-sm font-medium block mb-1">
+                    Mobile Number::
+                  </label>
                   <input
                     type="text"
                     name="emergencyContact2.mobile_number"
@@ -701,7 +770,9 @@ const PatientMasterListEdit = () => {
                       )} */}
                     </div>
                     <div className="w-1/2">
-                      <label className="text-sm font-medium block mb-1">Notes:</label>
+                      <label className="text-sm font-medium block mb-1">
+                        Notes:
+                      </label>
                       <textarea
                         name="note"
                         value={update.note}
@@ -766,7 +837,7 @@ const PatientMasterListEdit = () => {
 
           <div className="w-full flex justify-around">
             <Link
-              className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+              className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
               to="/rhu/patients"
             >
               CANCEL

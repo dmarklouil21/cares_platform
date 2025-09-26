@@ -12,11 +12,11 @@ import SystemSuccess from "src/components/SystemSuccess";
 
 const IndividualScreening = () => {
   const navigate = useNavigate();
-  const [ screeningID, setScreeningID ] = useState(null);
+  const [screeningID, setScreeningID] = useState(null);
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [ screening_procedure_name, setScreening_procedure_name ] = useState("");
-  const [ procedure_details, setProcedure_details ] = useState("");
-  const [ cancer_site, setCancer_site ] = useState("");
+  const [screening_procedure_name, setScreening_procedure_name] = useState("");
+  const [procedure_details, setProcedure_details] = useState("");
+  const [cancer_site, setCancer_site] = useState("");
   const fileInputRef = useRef();
 
   // Notification Modal
@@ -26,20 +26,22 @@ const IndividualScreening = () => {
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
   const [modalDesc, setModalDesc] = useState("");
-  const [modalAction, setModalAction] = useState(null); 
+  const [modalAction, setModalAction] = useState(null);
 
   useEffect(() => {
     const fetchScreeningData = async () => {
       try {
         // setLoading(true);
-        const response = await api.get('/beneficiary/individual-screening/list/');
+        const response = await api.get(
+          "/beneficiary/individual-screening/list/"
+        );
         const screenings = response.data;
         if (screenings.length > 0) {
           const latestScreening = screenings[screenings.length - 1];
@@ -47,8 +49,7 @@ const IndividualScreening = () => {
         }
       } catch (error) {
         console.error("Error fetching screening data:", error);
-      }
-      finally {
+      } finally {
         setLoading(false);
       }
     };
@@ -92,9 +93,9 @@ const IndividualScreening = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setModalText('Confirm Submit?');
-    setModalDesc('Make sure all your inputs are correct!');
-    setModalAction({ type: "submit" }); 
+    setModalText("Confirm Submit?");
+    setModalDesc("Make sure all your inputs are correct!");
+    setModalAction({ type: "submit" });
     setModalOpen(true);
   };
 
@@ -103,20 +104,24 @@ const IndividualScreening = () => {
       try {
         setModalOpen(false);
         setLoading(true);
-        const response = await api.post(`/beneficiary/individual-screening/screening-request/`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const response = await api.post(
+          `/beneficiary/individual-screening/screening-request/`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
 
         navigate("/beneficiary/success-application", {
-          state: { okLink: "beneficiary/applications/individual-screening" }
+          state: { okLink: "beneficiary/applications/individual-screening" },
         });
         // setSuccess(true);
-        // navigate("/beneficiary/applications/individual-screening", { 
-        //   state: { 
-        //     type: "success", message: "Submitted Successfully." 
-        //   } 
+        // navigate("/beneficiary/applications/individual-screening", {
+        //   state: {
+        //     type: "success", message: "Submitted Successfully."
+        //   }
         // }); beneficiary/services/cancer-screening/procedure
         // setModalInfo({
         //   type: "success",
@@ -125,14 +130,14 @@ const IndividualScreening = () => {
         // });
         // setShowModal(true);
       } catch (error) {
-        let errorMessage = "Something went wrong while submitting the form."; 
+        let errorMessage = "Something went wrong while submitting the form.";
 
         if (error.response && error.response.data) {
           // DRF ValidationError returns an object with arrays of messages
           if (error.response.data.non_field_errors) {
             errorMessage = error.response.data.non_field_errors[0];
           } //else if (typeof error.response.data === "string") {
-            //errorMessage = error.response.data; // for plain text errors
+          //errorMessage = error.response.data; // for plain text errors
           //}
         }
         setModalInfo({
@@ -150,7 +155,7 @@ const IndividualScreening = () => {
     setModalOpen(false);
     setModalAction(null);
     setModalText("");
-  }
+  };
 
   return (
     <>
@@ -176,17 +181,6 @@ const IndividualScreening = () => {
       {/* {success && <SystemSuccess message="Transaction Completed!" />} */}
       {/* <LoadingModal open={loading} text="Submitting your data..." /> */}
       <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        <div className="bg-white py-4 px-10 flex justify-between items-center">
-          <div className="font-bold">Beneficary</div>
-          <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-            <img
-              src="/images/Avatar.png"
-              alt="User Profile"
-              className="rounded-full"
-            />
-          </div>
-        </div>
-
         <div className="py-6 px-10 flex flex-col flex-1">
           <h2 className="text-xl font-semibold mb-6">Cancer Screening</h2>
 

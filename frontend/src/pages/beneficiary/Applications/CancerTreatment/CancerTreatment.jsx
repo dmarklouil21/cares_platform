@@ -146,7 +146,9 @@ const CancerTreatmentApplication = () => {
       record.patient.full_name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
-    const recordDate = new Date(record.date_submitted).toISOString().split("T")[0];
+    const recordDate = new Date(record.date_submitted)
+      .toISOString()
+      .split("T")[0];
     const dateMatch = !dateFilter || recordDate === dateFilter;
 
     return statusMatch && searchMatch && dateMatch;
@@ -184,83 +186,107 @@ const CancerTreatmentApplication = () => {
           </div>
         </div>
       )} */}
-      <div class="w-full h-screen  bg-gray overflow-auto">
-        {/*! mobile sidebar  */}
-        <div className="md:hidden">
-          <BeneficiarySidebar
-            isSidebarOpen={isSidebarOpen}
-            setIsSidebarOpen={setIsSidebarOpen}
-          />
-        </div>
+      <div className="w-full flex-1 py-2 gap-2 flex flex-col justify-start px-5 overflow-auto bg-gray">
+        <h2 className="text-xl font-bold text-left w-full pl-5">
+          Cancer Treatment
+        </h2>
 
-        <div className="bg-white py-4 px-10 flex justify-between items-center ">
-          {/* Menu Button for Mobile */}
-          <img
-            className="md:hidden size-5 cursor-pointer"
-            src="/images/menu-line.svg"
-            onClick={() => setIsSidebarOpen(true)}
-          />
-
-          <div className="font-bold">Beneficiary</div>
-          <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-            <img
-              src="/images/Avatar.png"
-              alt="User Profile"
-              className="rounded-full"
-            />
-          </div>
-        </div>
-
-        <div className="w-full flex-1 py-5 flex flex-col justify-around px-5">
-          <h2 className="text-xl font-bold text-left w-full pl-5 mb-5">
-            Cancer Treatment
-          </h2>
-
-          <div className="flex flex-col bg-white rounded-[4px] w-full shadow-md px-5 py-5 gap-3">
-            <p className="text-md font-semibold text-yellow mb-3">
-              Cancer Treatment Application
-            </p>
-            {/* <h2 className="text-xl font-bold text-left w-full pl-5">
+        <div className="flex flex-col bg-white rounded-[4px] w-full shadow-md px-5 py-5 gap-3">
+          <p className="text-md font-semibold text-yellow mb-3">
+            Cancer Treatment Application
+          </p>
+          {/* <h2 className="text-xl font-bold text-left w-full pl-5">
               Individual Screening
             </h2> */}
-            {/* <hr className="border-2 border-[#749AB6]" /> */}
+          {/* <hr className="border-2 border-[#749AB6]" /> */}
 
-            <div className="flex justify-between flex-wrap gap-3 mb-3">
-              <input
-                type="text"
-                placeholder="Search by application ID ..."
-                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md text-[12px] md:text-[16px]"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <select
-                className="border border-gray-200 rounded-md p-2 bg-white"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="all">All</option>
-                <option value="pending">Pending</option>
-                {/* <option value="requirements">Requirements</option> */}
-                <option value="approved">Approve</option>
-              </select>
-              <input
-                type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-              />
-              <button
-                className="px-7 rounded-md text-sm bg-[#C5D7E5]"
-                onClick={(e) => {
-                  e.preventDefault();
-                }}
-              >
-                Filter
-              </button>
-            </div>
+          <div className="flex justify-between flex-wrap gap-3 mb-3">
+            <input
+              type="text"
+              placeholder="Search by application ID ..."
+              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md text-[12px] md:text-[16px]"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <select
+              className="border border-gray-200 rounded-md p-2 bg-white"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="pending">Pending</option>
+              {/* <option value="requirements">Requirements</option> */}
+              <option value="approved">Approve</option>
+            </select>
+            <input
+              type="date"
+              className="border border-gray-200 py-2 px-5 rounded-md"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+            />
+            <button
+              className="px-7 rounded-md text-sm bg-[#C5D7E5]"
+              onClick={(e) => {
+                e.preventDefault();
+              }}
+            >
+              Filter
+            </button>
+          </div>
 
-            <div className="bg-white shadow overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+          <div className="bg-white shadow overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <colgroup>
+                <col className="w-[18%]" />
+                <col className="w-[16%]" />
+                <col className="w-[16%]" />
+                <col className="w-[16%]" />
+                <col className="w-[17%]" />
+                <col className="w-[25%]" />
+              </colgroup>
+              <thead>
+                <tr className="bg-lightblue">
+                  <th
+                    scope="col"
+                    className=" text-center text-[10px] md:text-sm  py-3 !bg-lightblue"
+                  >
+                    Patient ID
+                  </th>
+                  <th
+                    scope="col"
+                    className="  py-3 text-center text-[10px] md:text-sm"
+                  >
+                    Service Requested
+                  </th>
+                  <th
+                    scope="col"
+                    className="  py-3 text-center text-[10px] md:text-sm"
+                  >
+                    Submission Date
+                  </th>
+                  <th
+                    scope="col"
+                    className="  py-3 text-center text-[10px] md:text-sm"
+                  >
+                    Date Approved
+                  </th>
+                  <th
+                    scope="col"
+                    className="  py-3 text-center text-[10px] md:text-sm"
+                  >
+                    Status
+                  </th>
+                  <th
+                    scope="col"
+                    className="   py-3 text-center text-[10px] md:text-sm tracking-wider"
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+            </table>
+            <div className="max-h-[277px] min-h-[277px] overflow-auto">
+              <table className="min-w-full divide-y divide-gray-200 border-spacing-0">
                 <colgroup>
                   <col className="w-[18%]" />
                   <col className="w-[16%]" />
@@ -269,119 +295,67 @@ const CancerTreatmentApplication = () => {
                   <col className="w-[17%]" />
                   <col className="w-[25%]" />
                 </colgroup>
-                <thead>
-                  <tr className="bg-lightblue">
-                    <th
-                      scope="col"
-                      className=" text-center text-[10px] md:text-sm  py-3 !bg-lightblue"
-                    >
-                      Patient ID
-                    </th>
-                    <th
-                      scope="col"
-                      className="  py-3 text-center text-[10px] md:text-sm"
-                    >
-                      Service Requested
-                    </th>
-                    <th
-                      scope="col"
-                      className="  py-3 text-center text-[10px] md:text-sm"
-                    >
-                      Submission Date
-                    </th>
-                    <th
-                      scope="col"
-                      className="  py-3 text-center text-[10px] md:text-sm"
-                    >
-                      Date Approved
-                    </th>
-                    <th
-                      scope="col"
-                      className="  py-3 text-center text-[10px] md:text-sm"
-                    >
-                      Status
-                    </th>
-                    <th
-                      scope="col"
-                      className="   py-3 text-center text-[10px] md:text-sm tracking-wider"
-                    >
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-              </table>
-              <div className="max-h-[277px] min-h-[277px] overflow-auto">
-                <table className="min-w-full divide-y divide-gray-200 border-spacing-0">
-                  <colgroup>
-                    <col className="w-[18%]" />
-                    <col className="w-[16%]" />
-                    <col className="w-[16%]" />
-                    <col className="w-[16%]" />
-                    <col className="w-[17%]" />
-                    <col className="w-[25%]" />
-                  </colgroup>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredData.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan="6"
-                          className="text-center py-4 text-gray-500"
-                        >
-                          No records found.
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredData.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="text-center py-4 text-gray-500"
+                      >
+                        No records found.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredData.map((app) => (
+                      <tr key={app.id}>
+                        <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
+                          {app.patient.patient_id}
+                        </td>
+                        <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
+                          {app.service_type}
+                        </td>
+                        <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
+                          {app.date_submitted.split("T")[0]}
+                        </td>
+                        <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
+                          {app.date_approved
+                            ? app.date_approved.split("T")[0]
+                            : "--"}
+                        </td>
+                        <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
+                          <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full text-[#1976D2]">
+                            {app.status}
+                          </span>
+                        </td>
+                        <td className="text-center text-sm py-4 flex gap-2 justify-center">
+                          {" "}
+                          {/*flex py-2 gap-2 px-2 justify-around text-sm text-center text-[#333333]" */}
+                          {app.status !== "Pending" && (
+                            <button
+                              type="button"
+                              className="text-white py-1 px-3 rounded-md shadow bg-primary cursor-pointer"
+                              onClick={() => handleView(app.id)}
+                            >
+                              {" "}
+                              {/*custom-shadow w-[50%] cursor-pointer text-white bg-primary py-[5px] rounded-md px-3 */}
+                              View
+                            </button>
+                          )}
+                          {app.status !== "Complete" && (
+                            <button
+                              type="button"
+                              className="text-white py-1 px-3 rounded-md shadow bg-red-500 cursor-pointer"
+                              onClick={() => handleCancel(app.id)}
+                            >
+                              Cancel
+                            </button>
+                          )}
                         </td>
                       </tr>
-                    ) : (
-                      filteredData.map((app) => (
-                        <tr key={app.id}>
-                          <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
-                            {app.patient.patient_id}
-                          </td>
-                          <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
-                            {app.service_type}
-                          </td>
-                          <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
-                            {app.date_submitted.split("T")[0]}
-                          </td>
-                          <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
-                            {app.date_approved
-                              ? app.date_approved.split("T")[0]
-                              : "--"}
-                          </td>
-                          <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
-                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full text-[#1976D2]">
-                              {app.status}
-                            </span>
-                          </td>
-                          <td className="text-center text-sm py-4 flex gap-2 justify-center">
-                            {" "}
-                            {/*flex py-2 gap-2 px-2 justify-around text-sm text-center text-[#333333]" */}
-                            {app.status !== "Pending" && (
-                              <button
-                                type="button"
-                                className="text-white py-1 px-3 rounded-md shadow bg-primary cursor-pointer"
-                                onClick={() => handleView(app.id)}
-                              >
-                                {" "}
-                                {/*custom-shadow w-[50%] cursor-pointer text-white bg-primary py-[5px] rounded-md px-3 */}
-                                View
-                              </button>
-                            )}
-                            {app.status !== "Complete" && (
-                              <button
-                                type="button"
-                                className="text-white py-1 px-3 rounded-md shadow bg-red-500 cursor-pointer"
-                                onClick={() => handleCancel(app.id)}
-                              >
-                                Cancel
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

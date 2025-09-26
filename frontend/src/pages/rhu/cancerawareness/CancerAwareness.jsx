@@ -259,23 +259,6 @@ const CancerAwareness = () => {
       />
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="bg-gray w-full h-screen flex flex-col items-center ">
-        {/* Header */}
-        {/* <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
-          <h1 className="text-md font-bold h-full flex items-center ">RHU</h1>
-          <button
-            onClick={() => {
-              // setShowAddModal(true)
-              resetForm();
-              setShowModal(true);
-              
-            }}
-            className="bg-yellow gap-3 flex justify-center items-center px-5 py-1 rounded-sm"
-          >
-            <p className="text-white text-sm">Add event</p>
-          </button>
-        </div> */}
-
-        {/* Main Content */}
         <div className="w-full flex-1 py-3 gap-3 flex flex-col justify-start px-5">
           <h2 className="text-xl font-bold text-left w-full pl-5">
             Cancer Awareness Activities
@@ -378,8 +361,8 @@ const CancerAwareness = () => {
 
         {/* Add/Edit Event Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black/20 backdrop-blur-[3px] flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg w-[400px] max-h-[80vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/20  backdrop-blur-[3px] flex justify-center items-center z-50">
+            <div className="bg-white p-6 rounded-lg w-[40%] max-h-[80vh] overflow-y-auto scroll-none">
               <h2 className="text-lg font-bold mb-4">
                 {editingActivity ? "Edit Activity" : "Add New Activity"}
               </h2>
@@ -459,8 +442,9 @@ const CancerAwareness = () => {
                 }
                 className="border w-full p-2 rounded mb-3"
               />
+
               {formData.attachment && (
-                <p className="text-xs text-gray-600 mb-2">
+                <p className="text-xs text-gray-600 mb-2 break-all whitespace-normal leading-snug">
                   {formData.attachment instanceof File
                     ? `Selected file: ${formData.attachment.name}`
                     : `Existing file: ${formData.attachment}`}

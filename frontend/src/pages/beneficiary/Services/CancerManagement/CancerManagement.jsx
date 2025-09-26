@@ -58,7 +58,7 @@ const cancerTreatmentOptions = [
   {
     title: "Post-Treatment Laboratory Tests",
     icon: "/src/assets/images/patient/services/cancermanagement/laboratory.png",
-    href: "",
+    href: "/beneficiary/services/cancer-management/apply/post-treatment",
     description:
       "Post-treatment lab tests help monitor a patient’s recovery, detect recurrence, and manage long-term effects of treatment. These may include blood counts, tumor markers, and imaging.",
   },
@@ -81,8 +81,10 @@ const CancerManagementPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await api.get(`/beneficiary/cancer-treatment/details/`);
-        setIsApplicationOngoing(data.status !== "Completed")
+        const { data } = await api.get(
+          `/beneficiary/cancer-treatment/details/`
+        );
+        setIsApplicationOngoing(data.status !== "Completed");
         console.log("Treatment Status: ", data.status);
       } catch (error) {
         console.error("Error fetching screening data:", error);
@@ -95,19 +97,26 @@ const CancerManagementPage = () => {
   // console.log("User: ");
 
   const handleApply = (serviceType, link) => {
-    const relatedServices = ["Radiotherapy", "Radioactive Therapy", "Brachytherapy", "Chemotherapy", "Surgery"]
+    const relatedServices = [
+      "Radiotherapy",
+      "Radioactive Therapy",
+      "Brachytherapy",
+      "Chemotherapy",
+      "Surgery",
+    ];
     if (relatedServices.includes(serviceType) && isApplicationOngoing) {
       setModalInfo({
         type: "info",
         title: "Invalid Application",
-        message: "You can only request for a treatment service one at a time. Complete your ongoing application or wait for it's feedback before submitting another.",
+        message:
+          "You can only request for a treatment service one at a time. Complete your ongoing application or wait for it's feedback before submitting another.",
       });
       setShowModal(true);
       return;
     }
 
-    navigate(link, {state: serviceType});
-  }
+    navigate(link, { state: serviceType });
+  };
 
   return (
     <>
@@ -119,31 +128,6 @@ const CancerManagementPage = () => {
         onClose={() => setShowModal(false)}
       />
       <div className="w-full h-screen bg-gray overflow-auto">
-        <div className="md:hidden">
-          <BeneficiarySidebar
-            isSidebarOpen={isSidebarOpen}
-            setIsSidebarOpen={setIsSidebarOpen}
-          />
-        </div>
-
-        <div className="bg-white py-4 px-10 flex justify-between items-center ">
-          {/* Menu Button for Mobile */}
-          <img
-            className="md:hidden size-5 cursor-pointer"
-            src="/images/menu-line.svg"
-            onClick={() => setIsSidebarOpen(true)}
-          />
-
-          <div className="font-bold">Beneficiary</div>
-          <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-            <img
-              src="/images/Avatar.png"
-              alt="User Profile"
-              className="rounded-full"
-            />
-          </div>
-        </div>
-
         <div className="py-6 px-10 bg-gray">
           <h2 className="text-xl font-semibold mb-6">
             Cancer Management & Treatment Assistance
@@ -210,7 +194,7 @@ const CancerManagementPage = () => {
           </div>
         </div>
 
-        <div className="h-16 bg-secondary"></div>
+        {/* <div className="h-16 bg-secondary"></div> */}
       </div>
     </>
   );

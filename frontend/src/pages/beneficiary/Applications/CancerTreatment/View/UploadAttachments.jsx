@@ -21,12 +21,12 @@ const UploadAttachments = () => {
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalAction, setModalAction] = useState(null); 
+  const [modalAction, setModalAction] = useState(null);
 
   const handleAddFile = () => {
     const input = document.createElement("input");
@@ -53,8 +53,8 @@ const UploadAttachments = () => {
   const handleDelete = async (index, e) => {
     e.stopPropagation();
 
-    setModalText('Are you sure you want to delete this attachment?');
-    setModalAction({ type: "delete", file: files[index] }); 
+    setModalText("Are you sure you want to delete this attachment?");
+    setModalAction({ type: "delete", file: files[index] });
     setModalOpen(true);
   };
 
@@ -72,18 +72,21 @@ const UploadAttachments = () => {
       try {
         setModalOpen(false);
         setLoading(true);
-        const url = purpose === 'case_summary_upload' ? `/beneficiary/cancer-treatment/case-summary/upload/${id}/` : 
-                    purpose === 'result_upload' ? `/beneficiary/cancer-treatment/result/upload/${id}/` : '';
-         const response = await api.patch(url, formData,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-          }
-        );
+        const url =
+          purpose === "case_summary_upload"
+            ? `/beneficiary/cancer-treatment/case-summary/upload/${id}/`
+            : purpose === "result_upload"
+            ? `/beneficiary/cancer-treatment/result/upload/${id}/`
+            : "";
+        const response = await api.patch(url, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
 
-        navigate("/beneficiary/applications/cancer-treatment", { 
-          state: { 
-            type: "success", message: "Submitted Successfully." 
-          } 
+        navigate("/beneficiary/applications/cancer-treatment", {
+          state: {
+            type: "success",
+            message: "Submitted Successfully.",
+          },
         });
         // setModalInfo({
         //   type: "success",
@@ -92,7 +95,8 @@ const UploadAttachments = () => {
         // });
         // setShowModal(true);
       } catch (error) {
-        let errorMessage = "Something went wrong while submitting the attachment."; 
+        let errorMessage =
+          "Something went wrong while submitting the attachment.";
 
         if (error.response && error.response.data) {
           // DRF ValidationError returns an object with arrays of messages
@@ -110,8 +114,7 @@ const UploadAttachments = () => {
       } finally {
         setLoading(false);
       }
-    }
-    else if (modalAction?.type === "delete") {
+    } else if (modalAction?.type === "delete") {
       const fileToDelete = modalAction.file;
 
       if (!fileToDelete) {
@@ -144,8 +147,10 @@ const UploadAttachments = () => {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    setModalText('Make sure to submit the correct file, you can only submit once!');
-    setModalAction({ type: "submit" }); 
+    setModalText(
+      "Make sure to submit the correct file, you can only submit once!"
+    );
+    setModalAction({ type: "submit" });
     setModalOpen(true);
   };
 
@@ -171,22 +176,18 @@ const UploadAttachments = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting your data..." />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+      <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-[#F8F9FA]">
+        <div className=" px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Cancer Treatment</h1>
-          <div className="p-3">
-            <Link 
-              to={`/beneficiary/applications/cancer-treatment/view/${id}`}
-            >
-              <img
-                src="/images/back.png"
-                alt="Back button icon"
-                className="h-6 cursor-pointer"
-              />
-            </Link>
-          </div>
+          <Link to={`/beneficiary/applications/cancer-treatment/view/${id}`}>
+            <img
+              src="/images/back.png"
+              alt="Back button icon"
+              className="h-6 cursor-pointer"
+            />
+          </Link>
         </div>
-        <div className="h-full w-full p-5 flex flex-col justify-between">
+        <div className="h-full w-full flex flex-col justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="w-full bg-white rounded-[4px] p-4 ">
               <h1 id="details_title" className="text-md font-bold mb-3">

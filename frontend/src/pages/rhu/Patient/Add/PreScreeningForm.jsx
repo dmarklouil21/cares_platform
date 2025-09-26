@@ -24,12 +24,12 @@ const ViewPreScreeningForm = () => {
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalAction, setModalAction] = useState(null); 
+  const [modalAction, setModalAction] = useState(null);
 
   const [historicalUpdates, setHistoricalUpdates] = useState([]);
 
@@ -43,20 +43,20 @@ const ViewPreScreeningForm = () => {
     e.preventDefault();
 
     if (historicalUpdates.length > 0) {
-        generalData.historical_updates = historicalUpdates.filter(
+      generalData.historical_updates = historicalUpdates.filter(
         (h) => h.date && h.note
       );
     }
 
-    setModalText('Make sure all your inputs are correct!');
-    setModalAction({ type: "submit" }); 
+    setModalText("Make sure all your inputs are correct!");
+    setModalAction({ type: "submit" });
     setModalOpen(true);
   };
 
   const handleModalConfirm = async () => {
     if (modalAction?.type === "submit") {
       try {
-        const form = document.getElementById("pre-screening-form"); 
+        const form = document.getElementById("pre-screening-form");
         const formElements = form.elements;
         const data = {
           general_data: generalData,
@@ -68,7 +68,7 @@ const ViewPreScreeningForm = () => {
           "primary_sites",
           "distant_metastasis_sites",
           "adjuvant_treatments_received",
-          "other_source_treatments"
+          "other_source_treatments",
         ];
 
         checkboxGroups.forEach((group) => {
@@ -80,7 +80,9 @@ const ViewPreScreeningForm = () => {
           const { name, id, type, checked, value } = element;
 
           if (name) {
-            const isCheckboxGroup = checkboxGroups.find((group) => name.startsWith(group));
+            const isCheckboxGroup = checkboxGroups.find((group) =>
+              name.startsWith(group)
+            );
             if (type === "checkbox" && isCheckboxGroup && checked) {
               data.cancer_data[isCheckboxGroup].push({ name: value });
             } else if (type === "radio" && checked) {
@@ -99,7 +101,7 @@ const ViewPreScreeningForm = () => {
 
         setModalOpen(false);
         setLoading(true);
-    
+
         const response = await api.post("/patient/pre-enrollment/", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -107,14 +109,13 @@ const ViewPreScreeningForm = () => {
         });
 
         navigate("/rhu/patients");
-
       } catch (error) {
-        let errorMessage = "Something went wrong while submitting the form."; 
+        let errorMessage = "Something went wrong while submitting the form.";
 
         if (error.response && error.response.data) {
           if (error.response.data.non_field_errors) {
             errorMessage = error.response.data.non_field_errors[0];
-          } 
+          }
         }
         setModalInfo({
           type: "error",
@@ -160,28 +161,26 @@ const ViewPreScreeningForm = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting changes..." />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+      <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
+        <div className=" px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Add Patient</h1>
-          <div className="p-3">
-            <Link 
-              to={"/rhu/patients/add"}
-              // state={{record: record}}
-            >
-              <img
-                src="/images/back.png"
-                alt="Back button icon"
-                className="h-6"
-              />
-            </Link>
-          </div>
-        </div>
-        <div className="h-full w-full p-5 flex flex-col justify-between">
-          <form 
-            id="pre-screening-form"
-            className="border border-black/15 p-3 bg-white rounded-sm"
-            onSubmit={handleSubmit}
+          <Link
+            to={"/rhu/patients/add"}
+            // state={{record: record}}
           >
+            <img
+              src="/images/back.png"
+              alt="Back button icon"
+              className="h-6"
+            />
+          </Link>
+        </div>
+        <form
+          id="pre-screening-form"
+          className=" rounded-sm"
+          onSubmit={handleSubmit}
+        >
+          <div className="bg-white flex flex-col rounded-md">
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
               <h2 className="text-md font-bold tracking-wide uppercase pb-1">
                 Cancer Data
@@ -192,7 +191,9 @@ const ViewPreScreeningForm = () => {
               <div className="flex flex-row gap-8">
                 <div className="flex flex-col gap-3 w-1/2">
                   <div>
-                    <label className="text-sm font-medium block mb-1">Referred From</label>
+                    <label className="text-sm font-medium block mb-1">
+                      Referred From
+                    </label>
                     <input
                       type="text"
                       name="referred_from"
@@ -202,7 +203,9 @@ const ViewPreScreeningForm = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium block mb-1">Reason for Referral</label>
+                    <label className="text-sm font-medium block mb-1">
+                      Reason for Referral
+                    </label>
                     <textarea
                       name="reason_for_referral"
                       className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
@@ -211,7 +214,9 @@ const ViewPreScreeningForm = () => {
                     ></textarea>
                   </div>
                   <div>
-                    <label className="text-sm font-medium block mb-1">Date of Consultation / Admission</label>
+                    <label className="text-sm font-medium block mb-1">
+                      Date of Consultation / Admission
+                    </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <svg
@@ -231,7 +236,7 @@ const ViewPreScreeningForm = () => {
                       </div>
                       <input
                         type="date"
-                        name="date_of_consultation" 
+                        name="date_of_consultation"
                         className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50 pl-10"
                         // className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
                         placeholder="Select date"
@@ -243,7 +248,9 @@ const ViewPreScreeningForm = () => {
                 </div>
                 <div className="flex flex-col gap-3 w-1/2">
                   <div>
-                    <label className="text-sm font-medium block mb-1">Name of Referring Doctor / Facility</label>
+                    <label className="text-sm font-medium block mb-1">
+                      Name of Referring Doctor / Facility
+                    </label>
                     <input
                       type="text"
                       name="referring_doctor_or_facility"
@@ -253,7 +260,9 @@ const ViewPreScreeningForm = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium block mb-1">Chief Complaint</label>
+                    <label className="text-sm font-medium block mb-1">
+                      Chief Complaint
+                    </label>
                     <textarea
                       type="text"
                       name="chief_complaint"
@@ -263,7 +272,9 @@ const ViewPreScreeningForm = () => {
                     ></textarea>
                   </div>
                   <div>
-                    <label className="text-sm font-medium block mb-1">Date of Diagnosis</label>
+                    <label className="text-sm font-medium block mb-1">
+                      Date of Diagnosis
+                    </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <svg
@@ -543,8 +554,8 @@ const ViewPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                       name="primary_sites_nasopharnyx"
-                       value="Nasopharnyx"
+                      name="primary_sites_nasopharnyx"
+                      value="Nasopharnyx"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       // checked={isChecked("primary_sites", "Nasopharnyx")}
                       // onChange={() => handleCheckboxChange("primary_sites", "Nasopharnyx")}
@@ -686,7 +697,7 @@ const ViewPreScreeningForm = () => {
                 </div>
                 <div>
                   <p className="text-sm">
-                    Other's, specify: 
+                    Other's, specify:
                     <input
                       type="text"
                       name="primary_sites_other"
@@ -974,7 +985,7 @@ const ViewPreScreeningForm = () => {
                 </div>
                 <div>
                   <p className="text-sm">
-                    Other's, specify: 
+                    Other's, specify:
                     <input
                       type="text"
                       name="distant_metastasis_sites_other"
@@ -986,9 +997,7 @@ const ViewPreScreeningForm = () => {
                 </div>
                 <div className="flex flex-col gap-5">
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm">
-                      Final Diagnosis
-                    </label>
+                    <label className="text-sm">Final Diagnosis</label>
                     <textarea
                       name="final_diagnosis"
                       className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
@@ -1065,13 +1074,13 @@ const ViewPreScreeningForm = () => {
                 </div>
                 <div>
                   <p className="text-sm">
-                    Other's, specify: 
+                    Other's, specify:
                     <input
                       type="text"
                       name="treatment_purpose_other"
                       className="border-b-[1px] focus:outline-none"
                       // value={pre_screening_form?.treatment_purpose_other}
-                      // onChange={handleInputChange} 
+                      // onChange={handleInputChange}
                     />
                   </p>
                 </div>
@@ -1090,9 +1099,7 @@ const ViewPreScreeningForm = () => {
                   />
                 </div>
                 <div className="flex gap-2 flex-col w-full">
-                  <label className="text-sm">
-                    Date of Assistance
-                  </label>
+                  <label className="text-sm">Date of Assistance</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <svg
@@ -1112,7 +1119,7 @@ const ViewPreScreeningForm = () => {
                     </div>
                     <input
                       type="date"
-                      name="date_of_assistance" 
+                      name="date_of_assistance"
                       className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50 pl-10"
                       // className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
                       placeholder="Select date"
@@ -1153,10 +1160,7 @@ const ViewPreScreeningForm = () => {
                       // checked={isChecked("adjuvant_treatments_received", "Radiotherapy")}
                       // onChange={() => handleCheckboxChange("adjuvant_treatments_received", "Radiotherapy")}
                     />
-                    <label
-                      htmlFor="radiotherapy"
-                      className="text-sm"
-                    >
+                    <label htmlFor="radiotherapy" className="text-sm">
                       Radiotherapy
                     </label>
                   </div>
@@ -1170,10 +1174,7 @@ const ViewPreScreeningForm = () => {
                       // checked={isChecked("adjuvant_treatments_received", "Chemotherapy")}
                       // onChange={() => handleCheckboxChange("adjuvant_treatments_received", "Chemotherapy")}
                     />
-                    <label
-                      htmlFor="chemotherapy"
-                      className="text-sm"
-                    >
+                    <label htmlFor="chemotherapy" className="text-sm">
                       Chemotherapy
                     </label>
                   </div>
@@ -1190,10 +1191,7 @@ const ViewPreScreeningForm = () => {
                       // checked={isChecked("adjuvant_treatments_received", "Immunotherapy/Cytrotherapy")}
                       // onChange={() => handleCheckboxChange("adjuvant_treatments_received", "Immunotherapy/Cytrotherapy")}
                     />
-                    <label
-                      htmlFor="immunotherapy"
-                      className="text-sm"
-                    >
+                    <label htmlFor="immunotherapy" className="text-sm">
                       Immunotherapy/Cytrotherapy
                     </label>
                   </div>
@@ -1255,10 +1253,7 @@ const ViewPreScreeningForm = () => {
                       // checked={isChecked("other_source_treatments", "Surgery")}
                       // onChange={() => handleCheckboxChange("other_source_treatments", "Surgery")}
                     />
-                    <label
-                      htmlFor="surgeryOther"
-                      className="text-sm"
-                    >
+                    <label htmlFor="surgeryOther" className="text-sm">
                       Surgery
                     </label>
                   </div>
@@ -1272,10 +1267,7 @@ const ViewPreScreeningForm = () => {
                       // checked={isChecked("other_source_treatments", "Radiotherapy")}
                       // onChange={() => handleCheckboxChange("other_source_treatments", "Radiotherapy")}
                     />
-                    <label
-                      htmlFor="radiotherapyOther"
-                      className="text-sm"
-                    >
+                    <label htmlFor="radiotherapyOther" className="text-sm">
                       Radiotherapy
                     </label>
                   </div>
@@ -1289,10 +1281,7 @@ const ViewPreScreeningForm = () => {
                       // checked={isChecked("other_source_treatments", "Chemotherapy")}
                       // onChange={() => handleCheckboxChange("other_source_treatments", "Chemotherapy")}
                     />
-                    <label
-                      htmlFor="chemotherapyOther"
-                      className="text-sm"
-                    >
+                    <label htmlFor="chemotherapyOther" className="text-sm">
                       Chemotherapy
                     </label>
                   </div>
@@ -1309,10 +1298,7 @@ const ViewPreScreeningForm = () => {
                       // checked={isChecked("other_source_treatments", "Immunotherapy/Cytrotherapy")}
                       // onChange={() => handleCheckboxChange("other_source_treatments", "Immunotherapy/Cytrotherapy")}
                     />
-                    <label
-                      htmlFor="immunotherapyOther"
-                      className="text-sm"
-                    >
+                    <label htmlFor="immunotherapyOther" className="text-sm">
                       Immunotherapy/Cytrotherapy
                     </label>
                   </div>
@@ -1326,10 +1312,7 @@ const ViewPreScreeningForm = () => {
                       // checked={isChecked("other_source_treatments", "Hormonal")}
                       // onChange={() => handleCheckboxChange("other_source_treatments", "Hormonal")}
                     />
-                    <label
-                      htmlFor="hormonalOther"
-                      className="text-sm"
-                    >
+                    <label htmlFor="hormonalOther" className="text-sm">
                       Hormonal
                     </label>
                   </div>
@@ -1343,10 +1326,7 @@ const ViewPreScreeningForm = () => {
                       // checked={isChecked("other_source_treatments", "Unknown")}
                       // onChange={() => handleCheckboxChange("other_source_treatments", "Unknown")}
                     />
-                    <label
-                      htmlFor="unknownOther"
-                      className="text-sm"
-                    >
+                    <label htmlFor="unknownOther" className="text-sm">
                       Unknown
                     </label>
                   </div>
@@ -1365,24 +1345,23 @@ const ViewPreScreeningForm = () => {
                 </div>
               </div>
             </div>
-            <div className="w-full flex justify-around mt-5">
-              <Link
-                className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
-                to="/rhu/patients/add"
-                // state={{record: record}}
-              >
-                Back
-              </Link>
-              <button
-                type="submit"
-                className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-              >
-                Submit
-              </button>
-            </div>
-          </form>
-          <br />
-        </div>
+          </div>
+          <div className="w-full flex justify-around mt-5">
+            <Link
+              className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
+              to="/rhu/patients/add"
+              // state={{record: record}}
+            >
+              Back
+            </Link>
+            <button
+              type="submit"
+              className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+            >
+              Submit
+            </button>
+          </div>
+        </form>
         {/* <div className="h-16 bg-secondary"></div> */}
       </div>
     </>
