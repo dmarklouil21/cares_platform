@@ -2,72 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import LOAPrintTemplate from "../generate/LOAPrintTemplate";
 
-const SAMPLE_DETAILS = {
-  "REQ-001": {
-    serialNo: "DAA301",
-    date: "2025-09-19",
-    providerName: "CHONG HUA HOSPITAL - MANDAUE",
-    providerAddress: "Cebu City",
-    patientName: "Ana Dela Cruz",
-    patientAddress: "Cebu City",
-    age: 41,
-    diagnosis: "Hypertension",
-    procedure: "Basic Metabolic Panel",
-    labRequest: "BMP",
-    labResult: "Pending",
-    schedule: "2025-09-20",
-    preparedBy: "Nurse Jane Rivera",
-    approvedBy: "Dr. Ramon Cruz",
-  },
-  "REQ-002": {
-    serialNo: "DAA302",
-    date: "2025-09-18",
-    providerName: "Cebu Doctors University Hospital",
-    providerAddress: "Cebu City",
-    patientName: "Mark Reyes",
-    patientAddress: "Mandaue City",
-    age: 39,
-    diagnosis: "Diabetes Mellitus Type II",
-    procedure: "HbA1c",
-    labRequest: "HbA1c",
-    labResult: "To follow",
-    schedule: "2025-09-19",
-    preparedBy: "Nurse Carla Gomez",
-    approvedBy: "Dr. Luis Tan",
-  },
-  "REQ-003": {
-    serialNo: "DAA303",
-    date: "2025-09-17",
-    providerName: "Vicente Sotto Memorial Medical Center",
-    providerAddress: "Cebu City",
-    patientName: "Joy Santos",
-    patientAddress: "Cebu City",
-    age: 28,
-    diagnosis: "Asthma",
-    procedure: "Chest X-ray PA",
-    labRequest: "CXR PA",
-    labResult: "No acute findings",
-    schedule: "2025-09-18",
-    preparedBy: "Nurse Paolo Dizon",
-    approvedBy: "Dr. Mia Ortega",
-  },
-  "REQ-004": {
-    serialNo: "DAA304",
-    date: "2025-09-15",
-    providerName: "Perpetual Succour Hospital",
-    providerAddress: "Cebu City",
-    patientName: "Carlos Lim",
-    patientAddress: "Cebu City",
-    age: 52,
-    diagnosis: "Hyperlipidemia",
-    procedure: "Lipid Panel",
-    labRequest: "Fasting Lipid Profile",
-    labResult: "Pending",
-    schedule: "2025-09-16",
-    preparedBy: "Nurse Lea Ponce",
-    approvedBy: "Dr. A. Valdez",
-  },
-};
+import api from "src/api/axiosInstance";
 
 const FALLBACK = {
   serialNo: "—",
@@ -162,7 +97,8 @@ const fmtDDMMYYYY = (iso) => {
 const PostTreatmentView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const data = SAMPLE_DETAILS[id] || FALLBACK;
+  const [data, setData] = useState({})
+  const [status, setStatus] = useState("");
 
   const [toast, setToast] = useState("");
   const [confirm, setConfirm] = useState({
@@ -170,6 +106,21 @@ const PostTreatmentView = () => {
     action: null,
     tone: "primary",
   });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data } = await api.get(`/post-treatment/view/${id}/`);
+        console.log("Response Data: ", data);
+        setData(data);
+        setStatus(data.status);
+      } catch (error) {
+        console.error("Error fetching screening data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   useEffect(() => {
     if (!toast) return;
@@ -206,12 +157,12 @@ const PostTreatmentView = () => {
 
   const loaData = {
     patient: {
-      full_name: data.patientName,
-      city: data.patientAddress,
-      age: data.age,
-      diagnosis: [{ diagnosis: data.diagnosis }],
+      full_name: data.patient?.full_name,
+      city: data.patient?.city,
+      age: data.patient?.age,
+      diagnosis: [{ }],
     },
-    procedure_name: data.procedure,
+    procedure_name: data.procedure_name,
   };
 
   const handleGenerate = () => window.print();
@@ -258,17 +209,17 @@ const PostTreatmentView = () => {
             </button>
           </div>
           <Line />
-          <Row label="Diagnosis/Impression" value={data.diagnosis} />
-          <Row label="Procedure" value={data.procedure} />
-          <Row label="Laboratory Request" value={data.labRequest} />
-          <Row label="Laboratory Result" value={data.labResult} />
+          <Row label="Diagnosis/Impression" value={data.patient?.diagnosis[0]?.diagnosis || "NA"} />
+          <Row label="Procedure" value={data.procedure_name} />
+          <Row label="Laboratory Request" value={""} />
+          <Row label="Laboratory Result" value={""} />
           <Row
             label="Schedule (dd/mm/yyyy)"
-            value={fmtDDMMYYYY(data.schedule)}
+            value={fmtDDMMYYYY(data.created_at)}
           />
         </div>
 
-        <div className="bg-white rounded-md shadow border border-black/10 p-6 print:hidden">
+        {/* <div className="bg-white rounded-md shadow border border-black/10 p-6 print:hidden">
           <h3 className="text-lg font-semibold mb-2">LOA GENERATION</h3>
           <Line />
           <Row label="Serial No." value={data.serialNo} />
@@ -285,7 +236,7 @@ const PostTreatmentView = () => {
           <Row label="Procedure" value={data.procedure} />
           <Row label="Prepared by" value={data.preparedBy} />
           <Row label="Approved by" value={data.approvedBy} />
-        </div>
+        </div> */}
 
         <div className="flex justify-around print:hidden">
           <button

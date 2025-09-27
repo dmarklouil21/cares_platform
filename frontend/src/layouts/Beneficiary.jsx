@@ -17,6 +17,7 @@ const HEADER_PATHS = [
   "/beneficiary/services/survivorship",
   "/beneficiary/applications/individual-screening",
   "/beneficiary/applications/cancer-treatment",
+  "/beneficiary/applications/post-treatment",
   "/beneficiary/applications/precancerous",
 ];
 

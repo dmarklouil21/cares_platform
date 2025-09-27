@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 
+import api from "src/api/axiosInstance";
+
 function ConfirmationModal({ open, text, onConfirm, onCancel }) {
   if (!open) return null;
   return (
@@ -42,46 +44,11 @@ function Notification({ message }) {
   );
 }
 
-const sampleData = [
-  {
-    id: "REQ-001",
-    patient_id: "P-0001",
-    patient_name: "Ana Dela Cruz",
-    diagnosis: "Hypertension",
-    date: "2025-09-19",
-    status: "Pending",
-  },
-  {
-    id: "REQ-002",
-    patient_id: "P-0002",
-    patient_name: "Mark Reyes",
-    diagnosis: "Diabetes Type II",
-    date: "2025-09-18",
-    status: "Approved",
-  },
-  {
-    id: "REQ-003",
-    patient_id: "P-0003",
-    patient_name: "Joy Santos",
-    diagnosis: "Asthma",
-    date: "2025-09-17",
-    status: "Completed",
-  },
-  {
-    id: "REQ-004",
-    patient_id: "P-0004",
-    patient_name: "Carlos Lim",
-    diagnosis: "Hyperlipidemia",
-    date: "2025-09-15",
-    status: "Pending",
-  },
-];
-
 const PostTreatment = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [tableData, setTableData] = useState(sampleData);
+  const [tableData, setTableData] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("");
@@ -91,6 +58,21 @@ const PostTreatment = () => {
   const [modalText, setModalText] = useState("");
   const [pendingAction, setPendingAction] = useState(null);
   const [notification, setNotification] = useState("");
+
+  const fetchData = async () => {
+    try {
+      const response = await api.get(
+        "/post-treatment/list/"
+      );
+      setTableData(response.data);
+    } catch (error) {
+      console.error("Error fetching post-treatment requests:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   // Show flash from Add page once, then clear route state
   useEffect(() => {
@@ -116,12 +98,12 @@ const PostTreatment = () => {
     return tableData.filter((row) => {
       const matchesSearch =
         !q ||
-        (row.patient_id || "").toLowerCase().includes(q) ||
-        (row.patient_name || "").toLowerCase().includes(q) ||
-        (row.diagnosis || "").toLowerCase().includes(q);
+        (row.patient.patient_id || "").toLowerCase().includes(q) ||
+        (row.patient.full_name || "").toLowerCase().includes(q);
+        // (row.diagnosis || "").toLowerCase().includes(q);
       const matchesStatus =
         s === "all" || (row.status || "").toLowerCase() === s;
-      const matchesDate = !d || row.date === d;
+      const matchesDate = !d || row.created_at === d;
       return matchesSearch && matchesStatus && matchesDate;
     });
   }, [tableData, searchQuery, statusFilter, dateFilter]);
@@ -178,7 +160,7 @@ const PostTreatment = () => {
 
       <div className="flex-1 w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray">
         <div className="flex justify-between items-center w-full">
-          <h2 className="text-xl font-bold text-left w-full pl-5">
+          <h2 className="text-xl font-bold text-left w-full pl-1">
             Post Treatment Assistance
           </h2>
           <Link
@@ -190,7 +172,7 @@ const PostTreatment = () => {
         </div>
 
         <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-5 gap-3">
-          <p className="text-md font-semibold text-yellow">Request List</p>
+          <p className="text-md font-semibold text-yellow">Manage Post Treatment</p>
 
           <div className="flex justify-between flex-wrap gap-3">
             <input
@@ -263,16 +245,16 @@ const PostTreatment = () => {
                   {paginated.map((p) => (
                     <tr key={p.id}>
                       <td className="text-center text-sm py-3 text-gray-800">
-                        {p.patient_id}
+                        {p.patient.patient_id}
                       </td>
                       <td className="text-center text-sm py-3 text-gray-800">
-                        {p.patient_name}
+                        {p.patient.full_name}
                       </td>
                       <td className="text-center text-sm py-3 text-gray-800">
-                        {p.diagnosis}
+                        {p.patient.diagnosis[0]?.diagnosis || "N/A"}
                       </td>
                       <td className="text-center text-sm py-3 text-gray-800">
-                        {new Date(p.date).toLocaleDateString("en-US", {
+                        {new Date(p.created_at).toLocaleDateString("en-US", {
                           year: "numeric",
                           month: "long",
                           day: "numeric",

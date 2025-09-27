@@ -85,11 +85,11 @@ class IndividualScreeningDeleteView(generics.DestroyAPIView):
   lookup_field = 'id'
   permission_classes = [IsAuthenticated, IsAdminUser]
 
-class PreScreeningFormUpdateView(generics.UpdateAPIView):
-  queryset = PreScreeningForm.objects.all()
-  serializer_class = PreScreeningFormSerializer
-  lookup_field = 'id'
-  permission_classes = [IsAuthenticated, IsAdminUser]
+# class PreScreeningFormUpdateView(generics.UpdateAPIView):
+#   queryset = PreScreeningForm.objects.all()
+#   serializer_class = PreScreeningFormSerializer
+#   lookup_field = 'id'
+#   permission_classes = [IsAuthenticated, IsAdminUser]
 
 class ScreeningAttachmentUpdateView(APIView):
   parser_classes = [MultiPartParser, FormParser]

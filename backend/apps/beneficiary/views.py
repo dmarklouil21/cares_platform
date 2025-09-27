@@ -25,6 +25,9 @@ from apps.cancer_screening.serializers import (
 
 from apps.precancerous.models import PreCancerousMedsRequest
 
+from apps.post_treatment.models import PostTreatment, RequiredAttachment
+from apps.post_treatment.serializers import PostTreatmentSerializer, RequiredAttachmentSerializer
+
 from apps.cancer_management.models import CancerTreatment, ServiceAttachment
 from apps.cancer_management.serializers import CancerTreatmentSubmissionSerializer, CancerTreatmentSerializer
 
@@ -34,6 +37,9 @@ import logging, json
 
 logger = logging.getLogger(__name__)
 
+# ----------------------------
+# Patient Pre Enrollment Views
+# ----------------------------
 class PreEnrollmentView(generics.CreateAPIView):
   queryset = Patient.objects.all() 
   serializer_class = PreEnrollmentSerializer
@@ -82,11 +88,17 @@ class PatientDetailView(generics.RetrieveAPIView):
     except Patient.DoesNotExist:
       raise NotFound("No patient record found for this user.")
 
+# ---------------------------------
+# Cancer Awareness Activities Views
+# ---------------------------------
 class CancerAwarenessActivityListView(generics.ListAPIView):
   queryset = CancerAwarenessActivity.objects.all()
   serializer_class = CancerAwarenessActivitySerializer
   permission_classes = [IsAuthenticated]
 
+# ---------------------------------------------
+# Cancer Screening - Individual Screening Views
+# ---------------------------------------------
 class IndividualScreeningRequestView(generics.CreateAPIView):
   queryset = IndividualScreening.objects.all()
   serializer_class = IndividualScreeningSerializer
@@ -117,23 +129,15 @@ class IndividualScreeningRequestView(generics.CreateAPIView):
         files_dict = {}
         for key, value in self.request.FILES.items():
           if key.startswith("files."):
-            field_name = key.split("files.")[1]  # e.g. "quotation"
+            field_name = key.split("files.")[1] 
             files_dict[field_name] = value
 
-        # 4. Save ServiceAttachments
         for key, file in files_dict.items():
           ScreeningAttachment.objects.create(
             individual_screening=instance,
             file=file,
             doc_type=key 
           )
-        
-        # for file in self.request.FILES.getlist('screening_attachments'):
-        #   validate_attachment(file)
-        #   ScreeningAttachment.objects.create(
-        #     individual_screening=instance,
-        #     file=file
-        #   )
 
     except Exception as e:
       logger.error(f"Error creating screening procedure: {str(e)}")
@@ -220,9 +224,38 @@ class LOAAttachmentUploadView(APIView):
 
     return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
   
-# ---------------------------
-# Cancer Management Submission
-# ---------------------------
+class ResultAttachmentUploadView(APIView):
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+
+  def patch(self, request, screening_id):
+    individual_screening = get_object_or_404(IndividualScreening, id=screening_id)
+    # individual_screening = get_object_or_404(IndividualScreening, screening_procedure=screening_procedure)
+
+    if individual_screening.uploaded_result and not request.user.is_superuser:
+      raise ValidationError ({'non_field_errors': ['You can only submit once. Please wait for it\'s feedback before submitting again.']})
+    
+    attachments = request.FILES.getlist('screening_attachments')
+
+    validate_attachment(attachments[0])
+
+    individual_screening.uploaded_result = attachments[0]
+    individual_screening.has_patient_response = True
+    individual_screening.response_description = 'Uploaded screening results.'
+    individual_screening.save()
+
+    """ for file in attachments:
+      validate_attachment(file)
+      ScreeningAttachment.objects.create(
+        screening_procedure=screening_procedure,
+        file=file
+      ) """
+
+    return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
+  
+# -----------------------
+# Cancer Management Views
+# -----------------------
 class CancerTreatmentSubmissionView(generics.CreateAPIView):
   queryset = CancerTreatment.objects.all()
   serializer_class = CancerTreatmentSubmissionSerializer
@@ -345,6 +378,9 @@ class CaseSummaryUploadView(APIView):
 
     return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
 
+# -----------------------
+# Pre Cancerous Views
+# -----------------------
 class PreCancerousMedsCreateView(generics.CreateAPIView):
   queryset = PreCancerousMedsRequest.objects.all()
   serializer_class = PreCancerousMedsRequestSerializer
@@ -384,34 +420,68 @@ class PreCancerousMedsCancelView(APIView):
 
     return Response(PreCancerousMedsRequestSerializer(obj).data, status=status.HTTP_200_OK)
 
-class ResultAttachmentUploadView(APIView):
+# -----------------------
+# Post Treatment Views
+# -----------------------
+class PostTreatmentRequestView(generics.CreateAPIView):
+  queryset = PostTreatment.objects.all()
+  serializer_class = PostTreatmentSerializer
   parser_classes = [MultiPartParser, FormParser]
   permission_classes = [IsAuthenticated]
 
-  def patch(self, request, screening_id):
-    individual_screening = get_object_or_404(IndividualScreening, id=screening_id)
-    # individual_screening = get_object_or_404(IndividualScreening, screening_procedure=screening_procedure)
+  def perform_create(self, serializer):
+    try:
+      with transaction.atomic():
+        existing_request = PostTreatment.objects.filter(
+          patient=self.request.user.patient, 
+          has_patient_response=True
+        ).first()
 
-    if individual_screening.uploaded_result and not request.user.is_superuser:
-      raise ValidationError ({'non_field_errors': ['You can only submit once. Please wait for it\'s feedback before submitting again.']})
+        if existing_request:
+          raise ValidationError({
+            'non_field_errors': [
+              "You already have an ongoing request. Please wait for its feedback before submitting another."
+            ]
+          })
     
-    attachments = request.FILES.getlist('screening_attachments')
+        instance = serializer.save(
+          patient=self.request.user.patient,  # ensure patient is set
+          has_patient_response=True,
+          response_description='Submitted post treatment laboratory test request'
+        )
 
-    validate_attachment(attachments[0])
+        files_dict = {}
+        for key, value in self.request.FILES.items():
+          if key.startswith("files."):
+            field_name = key.split("files.")[1] 
+            files_dict[field_name] = value
 
-    individual_screening.uploaded_result = attachments[0]
-    individual_screening.has_patient_response = True
-    individual_screening.response_description = 'Uploaded screening results.'
-    individual_screening.save()
+        for key, file in files_dict.items():
+          RequiredAttachment.objects.create(
+            post_treatment=instance,
+            file=file,
+            doc_type=key 
+          )
 
-    """ for file in attachments:
-      validate_attachment(file)
-      ScreeningAttachment.objects.create(
-        screening_procedure=screening_procedure,
-        file=file
-      ) """
+    except Exception as e:
+      logger.error(f"Error creating post treatment request: {str(e)}")
+      raise e
 
-    return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
+class PostTreatmentDetailView(generics.RetrieveAPIView):
+  queryset = PostTreatment.objects.all()
+  serializer_class = PostTreatmentSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+class PostTreatmentListView(generics.ListAPIView):
+  serializer_class = PostTreatmentSerializer
+  permission_classes = [IsAuthenticated]
+
+  def get_queryset(self):
+    user = self.request.user
+    patient = get_object_or_404(Patient, user=user)
+    # patient_id = self.kwargs.get("patient_id")
+    return PostTreatment.objects.filter(patient=patient)
 
 def validate_attachment(file):
   max_size_mb = 5

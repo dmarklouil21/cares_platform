@@ -20,6 +20,7 @@ import Survivorship from "../pages/beneficiary/Services/Survivorship/Survivorshi
 import IndividualScreening from "../pages/beneficiary/Applications/IndividualScreening/IndividualScreening";
 import CancerTreatment from "../pages/beneficiary/Applications/CancerTreatment/CancerTreatment";
 import PreCancerous from "../pages/beneficiary/Applications/PreCancerous/PreCancerous/";
+import PostTreatmentApplication from "../pages/beneficiary/Applications/PostTreatment/PostTreatment";
 
 // Cancer Screening Apply
 import Requirements from "../pages/beneficiary/Services/CancerScreening/Apply/Requirements";
@@ -116,6 +117,11 @@ const BeneficiaryRoutes = () => (
       <Route path="precancerous">
         <Route index element={<PreCancerous />} />
         <Route path="view/:id" element={<PreCancerousView />} />
+      </Route>
+
+      <Route path="post-treatment">
+        <Route index element={<PostTreatmentApplication />} />
+        {/* <Route path="view/:id" element={<PreCancerousView />} /> */}
       </Route>
     </Route>
   </Route>

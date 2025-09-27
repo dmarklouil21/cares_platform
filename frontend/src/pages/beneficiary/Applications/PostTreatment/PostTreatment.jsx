@@ -10,7 +10,7 @@ import LoadingModal from "src/components/Modal/LoadingModal";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import BeneficiarySidebar from "src/components/navigation/Beneficiary";
 
-const CancerTreatmentApplication = () => {
+const PostTreatmentStatus = () => {
   const location = useLocation();
   const { user } = useAuth();
   const [tableData, setTableData] = useState([]);
@@ -59,8 +59,7 @@ const CancerTreatmentApplication = () => {
 
   const fetchData = async () => {
     try {
-      const response = await api.get(`/beneficiary/cancer-treatment/list/`);
-      console.log("Response Data: ", response.data);
+      const response = await api.get(`/beneficiary/post-treatment/list/`);
       setTableData(response.data);
     } catch (error) {
       console.error("Error fetching pre-enrollment requests:", error);
@@ -134,7 +133,9 @@ const CancerTreatmentApplication = () => {
 
   const handleView = (id) => {
     // console.log("Value Passed: ", app);
-    navigate(`/beneficiary/applications/cancer-treatment/view/${id}`);
+    navigate("/beneficiary/applications/individual-screening/view", {
+      state: { id: id },
+    });
   };
 
   const filteredData = tableData.filter((record) => {
@@ -146,9 +147,7 @@ const CancerTreatmentApplication = () => {
       record.patient.full_name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
-    const recordDate = new Date(record.date_submitted)
-      .toISOString()
-      .split("T")[0];
+    const recordDate = new Date(record.created_at).toISOString().split("T")[0];
     const dateMatch = !dateFilter || recordDate === dateFilter;
 
     return statusMatch && searchMatch && dateMatch;
@@ -186,14 +185,14 @@ const CancerTreatmentApplication = () => {
           </div>
         </div>
       )} */}
-      <div className="w-full flex-1 py-2 flex flex-col justify-around px-5 overflow-auto bg-gray">
+      <div className="w-full flex-1 py-2  flex flex-col justify-around px-5 overflow-auto bg-gray">
         <h2 className="text-xl font-bold text-left w-full pl-1">
-          Cancer Treatment
+          Post Treatment Laboratory Request
         </h2>
 
         <div className="flex flex-col bg-white rounded-[4px] w-full shadow-md px-5 py-5 gap-3">
           <p className="text-md font-semibold text-yellow mb-3">
-            Track the status of your cancer treatment applications here.
+            Track the status of your post treatment laboratory requests here.
           </p>
           {/* <h2 className="text-xl font-bold text-left w-full pl-5">
               Individual Screening
@@ -256,19 +255,19 @@ const CancerTreatmentApplication = () => {
                     scope="col"
                     className="  py-3 text-center text-[10px] md:text-sm"
                   >
-                    Service Requested
-                  </th>
-                  <th
-                    scope="col"
-                    className="  py-3 text-center text-[10px] md:text-sm"
-                  >
-                    Submission Date
+                    Date Created
                   </th>
                   <th
                     scope="col"
                     className="  py-3 text-center text-[10px] md:text-sm"
                   >
                     Date Approved
+                  </th>
+                  <th
+                    scope="col"
+                    className="  py-3 text-center text-[10px] md:text-sm"
+                  >
+                    Lab Test Date
                   </th>
                   <th
                     scope="col"
@@ -312,14 +311,16 @@ const CancerTreatmentApplication = () => {
                           {app.patient.patient_id}
                         </td>
                         <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
-                          {app.service_type}
-                        </td>
-                        <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
-                          {app.date_submitted.split("T")[0]}
+                          {app.created_at.split("T")[0]}
                         </td>
                         <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
                           {app.date_approved
                             ? app.date_approved.split("T")[0]
+                            : "--"}
+                        </td>
+                        <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
+                          {app.screening_date
+                            ? app.screening_date.split("T")[0]
                             : "--"}
                         </td>
                         <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
@@ -364,4 +365,4 @@ const CancerTreatmentApplication = () => {
   );
 };
 
-export default CancerTreatmentApplication;
+export default PostTreatmentStatus;
