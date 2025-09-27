@@ -119,6 +119,7 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     if (isTransitioning) return;
     setIsTransitioning(true);
     navigate(path);
+    setIsSidebarOpen(false);
   }, 300);
 
   const toggleServices = () => {
@@ -149,7 +150,10 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         setIsApplicationOpen(false);
       }
       const targetPath = nav.find((item) => item.name === name)?.path;
-      if (targetPath) handleNavigation(targetPath);
+      if (targetPath) {
+        handleNavigation(targetPath);
+        setIsSidebarOpen(false); // 👈 close sidebar for main nav link
+      }
     }
   };
 
@@ -261,7 +265,10 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                         } ${isTransitioning ? "pointer-events-none" : ""}`}
                       >
                         <button
-                          onClick={() => handleNavigation(subItem.path)}
+                          onClick={() => {
+                            handleNavigation(subItem.path);
+                            setIsSidebarOpen(false); // 👈 close sidebar after navigating
+                          }}
                           className="w-full text-left cursor-pointer"
                         >
                           {subItem.name}

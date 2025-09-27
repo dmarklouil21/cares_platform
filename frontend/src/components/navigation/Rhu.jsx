@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ScanLine, ClipboardCheck } from "lucide-react";
 import { logout } from "src/services/authService";
 
-const RhuSidebar = () => {
+const RhuSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isServicesOpen, setIsServicesOpen] = useState(false);
@@ -119,6 +119,7 @@ const RhuSidebar = () => {
     if (isTransitioning) return;
     setIsTransitioning(true);
     navigate(path);
+    setIsSidebarOpen(false);
   }, 300);
 
   const toggleServices = () => {
@@ -155,22 +156,37 @@ const RhuSidebar = () => {
         setIsPatientOpen(false);
       }
       const targetPath = nav.find((item) => item.name === name)?.path;
-      if (targetPath) handleNavigation(targetPath);
+      if (targetPath) {
+        handleNavigation(targetPath);
+        setIsSidebarOpen(false); // 👈 close sidebar for main nav link
+      }
     }
   };
 
   return (
-    <div className="flex flex-col h-screen justify-between px-3 py-7 bg-primary w-[30%]">
-      <div className="flex justify-start items-end gap-3">
+    <div
+      className={`fixed md:static top-0 left-0 h-screen w-[70%] md:w-[30%] bg-primary px-3 py-7 flex flex-col justify-between z-50 transition-transform duration-300 ease-in-out ${
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      } md:translate-x-0`}
+    >
+      <div className="flex justify-between items-center gap-3 text-white">
+        <div className="flex items-center justify-center">
+          <img
+            src="/images/logo_white_text.png"
+            className="h-15 w-15"
+            alt="Rafi Logo"
+          />
+          <h1 className="font-bold text-xl text-white ml-3">
+            CARES <br /> Platform
+          </h1>
+        </div>
+
         <img
-          src="/images/logo_white_text.png"
-          className="h-15 w-15"
-          alt="Rafi Logo"
+          className="md:hidden cursor-pointer size-[30px]"
+          src="/images/close-svgrepo-com.svg"
+          alt="Close"
+          onClick={() => setIsSidebarOpen(false)}
         />
-        <h1 className="font-bold text-xl text-white">
-          CARES <br />
-          Platform
-        </h1>
       </div>
 
       <div className="h-[80%] flex flex-col justify-between overflow-auto">
