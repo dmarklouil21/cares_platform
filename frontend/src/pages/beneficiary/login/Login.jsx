@@ -53,7 +53,7 @@ const Login = () => {
           }
         } catch (error) {
           // If no beneficiary record, go to pre-enrollment
-          navigate("/NoteBeneficiary");
+          navigate("/beneficiary/pre-enrollment/note");
         }
       }
 

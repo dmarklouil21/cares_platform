@@ -92,6 +92,7 @@ const ViewUser = () => {
             </div>
           </div>
         </div>
+        
         <div className="w-full flex justify-end">
           <Link
             className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black  rounded-md"

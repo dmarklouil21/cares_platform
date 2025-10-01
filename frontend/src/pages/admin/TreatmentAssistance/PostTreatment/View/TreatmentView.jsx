@@ -1,308 +1,622 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import LOAPrintTemplate from "../generate/LOAPrintTemplate";
+import api from "src/api/axiosInstance";
 
-const SAMPLE_DETAILS = {
-  "REQ-001": {
-    serialNo: "DAA301",
-    date: "2025-09-19",
-    providerName: "CHONG HUA HOSPITAL - MANDAUE",
-    providerAddress: "Cebu City",
-    patientName: "Ana Dela Cruz",
-    patientAddress: "Cebu City",
-    age: 41,
-    diagnosis: "Hypertension",
-    procedure: "Basic Metabolic Panel",
-    labRequest: "BMP",
-    labResult: "Pending",
-    schedule: "2025-09-20",
-    preparedBy: "Nurse Jane Rivera",
-    approvedBy: "Dr. Ramon Cruz",
-  },
-  "REQ-002": {
-    serialNo: "DAA302",
-    date: "2025-09-18",
-    providerName: "Cebu Doctors University Hospital",
-    providerAddress: "Cebu City",
-    patientName: "Mark Reyes",
-    patientAddress: "Mandaue City",
-    age: 39,
-    diagnosis: "Diabetes Mellitus Type II",
-    procedure: "HbA1c",
-    labRequest: "HbA1c",
-    labResult: "To follow",
-    schedule: "2025-09-19",
-    preparedBy: "Nurse Carla Gomez",
-    approvedBy: "Dr. Luis Tan",
-  },
-  "REQ-003": {
-    serialNo: "DAA303",
-    date: "2025-09-17",
-    providerName: "Vicente Sotto Memorial Medical Center",
-    providerAddress: "Cebu City",
-    patientName: "Joy Santos",
-    patientAddress: "Cebu City",
-    age: 28,
-    diagnosis: "Asthma",
-    procedure: "Chest X-ray PA",
-    labRequest: "CXR PA",
-    labResult: "No acute findings",
-    schedule: "2025-09-18",
-    preparedBy: "Nurse Paolo Dizon",
-    approvedBy: "Dr. Mia Ortega",
-  },
-  "REQ-004": {
-    serialNo: "DAA304",
-    date: "2025-09-15",
-    providerName: "Perpetual Succour Hospital",
-    providerAddress: "Cebu City",
-    patientName: "Carlos Lim",
-    patientAddress: "Cebu City",
-    age: 52,
-    diagnosis: "Hyperlipidemia",
-    procedure: "Lipid Panel",
-    labRequest: "Fasting Lipid Profile",
-    labResult: "Pending",
-    schedule: "2025-09-16",
-    preparedBy: "Nurse Lea Ponce",
-    approvedBy: "Dr. A. Valdez",
-  },
-};
-
-const FALLBACK = {
-  serialNo: "—",
-  date: "—",
-  providerName: "—",
-  providerAddress: "—",
-  patientName: "—",
-  patientAddress: "—",
-  age: "—",
-  diagnosis: "—",
-  procedure: "—",
-  labRequest: "—",
-  labResult: "—",
-  schedule: "",
-  preparedBy: "—",
-  approvedBy: "—",
-};
-
-const Toast = ({ message }) => {
-  if (!message) return null;
-  return (
-    <div className="fixed top-2 left-1/2 -translate-x-1/2 z-50">
-      <div className="bg-gray2 text-white px-4 py-2 rounded shadow flex items-center gap-2">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="logo"
-          className="h-[20px]"
-        />
-        <span className="text-sm">{message}</span>
-      </div>
-    </div>
-  );
-};
-
-const ConfirmModal = ({
-  open,
-  title,
-  body,
-  onCancel,
-  onConfirm,
-  confirmTone = "primary",
-}) => {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <div className="relative bg-white w-[92%] max-w-md rounded-lg shadow-lg p-6">
-        <h3 className="text-lg font-semibold mb-1">{title}</h3>
-        <p className="text-sm text-gray-700 mb-4">{body}</p>
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            className={`px-4 py-2 rounded text-white ${
-              confirmTone === "danger"
-                ? "bg-red-600 hover:bg-red-700"
-                : "bg-primary hover:bg-primary/80"
-            }`}
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const Line = () => <hr className="my-3 border-gray-200" />;
-const Row = ({ label, value }) => (
-  <div className="flex items-start gap-4 py-1">
-    <div className="w-56 shrink-0 text-gray-700 font-medium">{label}</div>
-    <div className="text-gray-900">{value}</div>
-  </div>
-);
-
-const fmtDDMMYYYY = (iso) => {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
-};
+// Components
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import Notification from "src/components/Notification";
+import SystemLoader from "src/components/SystemLoader";
+import DateModal from "src/components/Modal/DateModal";
+import FileUploadModal from "src/components/Modal/FileUploadModal";
+import CheckupScheduleModal from "src/components/Modal/CheckupScheduleModal";
 
 const PostTreatmentView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const data = SAMPLE_DETAILS[id] || FALLBACK;
+  const location = useLocation();
 
-  const [toast, setToast] = useState("");
-  const [confirm, setConfirm] = useState({
-    open: false,
-    action: null,
-    tone: "primary",
-  });
+  // Data
+  const [data, setData] = useState({});
+  const [status, setStatus] = useState("");
+  const [labTestDate, setLabTestDate] = useState(null);
+  const [isNewDate, setIsNewDate] = useState(false);
+
+  // Loading & Notification
+  const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState(location.state?.type || "");
+
+  // Confirmation Modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("Confirm Action?");
+  const [modalDesc, setModalDesc] = useState("");
+  const [modalAction, setModalAction] = useState(null);
+
+  // Treatment Date Modal
+  const [dateModalOpen, setDateModalOpen] = useState(false);
+  const [tempDate, setTempDate] = useState("");
+  const [dateModalTitle, setDateModalTitle] = useState("Set Laboratory Test Date");
+
+  // LOA Modal
+  const [sendLOAModalOpen, setSendLOAModalOpen] = useState(false);
+  const [loaFile, setLoaFile] = useState(null);
+
+  // Checkup Schedules Modal & Followup Checkups
+  const [isCheckupModalOpen, setIsCheckupModalOpen] = useState(false);
+  const [followupCheckups, setFollowupCheckups] = useState([
+    { date: "", note: "" },
+  ]);
+
+  // Fetch Data
+  const fetchData = async () => {
+    try {
+      const { data } = await api.get(`/post-treatment/view/${id}/`);
+      setData(data);
+      setStatus(data.status);
+      setLabTestDate(data.laboratory_test_date || null);
+    } catch (error) {
+      console.error("Error fetching record:", error);
+    }
+  };
 
   useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(""), 2500);
-    return () => clearTimeout(t);
-  }, [toast]);
+    fetchData();
+  }, []);
 
-  const openAccept = () =>
-    setConfirm({
-      open: true,
-      action: "accept",
-      tone: "primary",
-      title: "Accept this request?",
-      body: `This will mark LOA ${data.serialNo} for ${data.patientName} as Approved.`,
-    });
+  // Auto-hide notification
+  useEffect(() => {
+    if (!notification) return;
+    const timer = setTimeout(() => setNotification(""), 3000);
+    return () => clearTimeout(timer);
+  }, [notification]);
 
-  const openReject = () =>
-    setConfirm({
-      open: true,
-      action: "reject",
-      tone: "danger",
-      title: "Reject this request?",
-      body: `This will reject LOA ${data.serialNo} for ${data.patientName}.`,
-    });
-
-  const closeConfirm = () =>
-    setConfirm({ open: false, action: null, tone: "primary" });
-  const handleConfirm = () => {
-    setToast(
-      confirm.action === "accept" ? "Request approved." : "Request rejected."
-    );
-    closeConfirm();
+  // Handlers
+  const handleStatusChange = (e) => {
+    const selectedStatus = e.target.value;
+    if (selectedStatus === "Approved") {
+      setDateModalOpen(true);
+      setModalAction({ newStatus: selectedStatus });
+      setStatus(selectedStatus);
+    } else {
+      setModalAction({ newStatus: selectedStatus });
+      setStatus(selectedStatus);
+    }
   };
+
+  const handleFollowupCheckupsChanges = (index, e) => {
+    const { name, value } = e.target;
+    const updatedUpdates = [...followupCheckups];
+    updatedUpdates[index] = {
+      ...updatedUpdates[index],
+      [name]: value,
+    };
+    setFollowupCheckups(updatedUpdates);
+  };
+
+  const addFollowupCheckups = () => {
+    setFollowupCheckups([
+      ...followupCheckups,
+      {
+        date: "",
+        note: "",
+      },
+    ]);
+  };
+
+  const removeFollowupCheckups = (index) => {
+    if (followupCheckups.length > 1) {
+      const updatedUpdates = followupCheckups.filter((_, i) => i !== index);
+      setFollowupCheckups(updatedUpdates);
+    }
+  };
+
+  const handleDateModalConfirm = async () => {
+    if (!tempDate) {
+      alert("Please select a date before proceeding.");
+      return;
+    }
+
+    if (modalAction?.type === "reschedule") {
+      try {
+        setLoading(true);
+        setDateModalOpen(false);
+        await api.patch(
+          `/post-treatment/followup-checkups/reschedule/${modalAction?.id}/`,
+          { date: tempDate }
+        );
+
+        setNotificationType("success");
+        setNotification("Success.");
+        fetchData();
+      } catch (error) {
+        setNotificationType("error");
+        setNotification("Something went wrong while submitting the changes.");
+        console.error("Error rescheduling checkup:", error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setLabTestDate(tempDate);
+      setModalAction((prev) => ({ ...prev, newLabTestDate: tempDate }));
+      setIsNewDate(true);
+      setDateModalOpen(false);
+    }
+  };
+
+  const handleSendLOA = async () => {
+    if (!loaFile) {
+      setSendLOAModalOpen(false);
+      setModalInfo({
+        type: "info",
+        title: "Note",
+        message: "Please select a file before sending.",
+      });
+      setShowModal(true);
+      return;
+    }
+
+    try {
+      setSendLOAModalOpen(false);
+      setLoading(true);
+      const formData = new FormData();
+      formData.append("file", loaFile);
+      formData.append("patient_name", data.patient?.full_name);
+      formData.append("email", data.patient?.email);
+
+      await api.post(`/post-treatment/send-loa/`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setNotificationType("success");
+      setNotification("Success.");
+
+    } catch (error) {
+      setNotificationType("error");
+      setNotification("Something went wrong while submitting the changes.");
+    } finally {
+      setLoading(false);
+      setLoaFile(null);
+    }
+  };
+
+  const handleSaveChanges = () => {
+    setModalText("Save changes?");
+    setModalDesc("Confirm to save the changes.");
+    setModalOpen(true);
+    setModalAction({ newStatus: null });
+  };
+
+  const handleMarkDone = (id) => {
+    setModalText("Mark As Done?");
+    setModalDesc("Please confirm before proceeding.");
+    setModalOpen(true);
+    setModalAction({ type: "markDone", id: id }); // No status change, just save
+  };
+
+  const handleReschedule = (id) => {
+    setDateModalOpen(true);
+    setDateModalTitle("Reschedule Checkup Date");
+    setModalAction({ type: "reschedule", id: id }); // No status change, just save
+  };
+
+  const handleCancel = (id) => {
+    setModalText("Cancel this schedule?");
+    setModalDesc("Please confirm before proceeding.");
+    setModalOpen(true);
+    setModalAction({ type: "cancel", id: id }); 
+  };
+
+  const handleModalConfirm = async () => {
+    if (modalAction?.type === "markDone") {
+      setModalOpen(false);
+      setLoading(true);
+      try {
+        await api.patch(`/post-treatment/followup-checkups/mark-as-done/${modalAction?.id}/`);
+
+        setNotificationType("success");
+        setNotification("Success.");
+        fetchData();
+      } catch (error) {
+        setNotificationType("error");
+        setNotification("Something went wrong while submitting the changes.");
+
+        console.error(error);
+      } finally {
+        setLoading(false);
+      };
+    } else if (modalAction?.type === "cancel") {
+      setModalOpen(false);
+      setLoading(true);
+      try {
+        await api.delete(`/post-treatment/cancel-schedule/${modalAction?.id}/`);
+
+        setNotificationType("success");
+        setNotification("Success.");
+        fetchData();
+      } catch (error) {
+        setNotificationType("error");
+        setNotification("Something went wrong while submitting the changes.");
+
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      try {
+        setLoading(true);
+        setModalOpen(false);
+
+        let payload = {
+          status: modalAction.newStatus || status,
+          laboratory_test_date: modalAction.newLabTestDate || labTestDate,
+          followup_checkups: followupCheckups.filter((f) => f.date) || [],
+        };
+
+        await api.patch(`/post-treatment/update/${data.id}/`, payload);
+
+        setNotificationType("success");
+        setNotification("Success.");
+        fetchData();
+      } catch (error) {
+        setNotificationType("error");
+        setNotification("Something went wrong while submitting the changes.");
+      } finally {
+        setLoading(false);
+        setModalAction(null);
+      }
+    };
+  }
 
   const loaData = {
     patient: {
-      full_name: data.patientName,
-      city: data.patientAddress,
-      age: data.age,
-      diagnosis: [{ diagnosis: data.diagnosis }],
+      full_name: data.patient?.full_name,
+      city: data.patient?.city,
+      age: data.patient?.age,
+      diagnosis: [{}],
     },
-    procedure_name: data.procedure,
+    procedure_name: data.procedure_name,
   };
 
-  const handleGenerate = () => window.print();
+  const statusPillClasses =
+    data?.status === "Completed"
+      ? "bg-green-100 text-green-700 border border-green-200"
+      : data?.status === "Follow-up Required"
+      ? "bg-blue-100 text-blue-700 border border-blue-200"
+      : data?.status === "Approved"
+      ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
+      : data?.status === "Closed"
+      ? "bg-gray-100 text-gray-700 border border-gray-200"
+      : data?.status === "Pending"
+      ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
+      : data?.status === "Rejected"
+      ? "bg-red-100 text-red-700 border border-red-200"
+      : "bg-yellow-100 text-yellow-700";
 
   return (
-    <div className="h-screen w-full bg-gray flex flex-col overflow-auto">
-      <Toast message={toast} />
-      <ConfirmModal
-        open={confirm.open}
-        title={confirm.title}
-        body={confirm.body}
-        confirmTone={confirm.tone}
-        onCancel={closeConfirm}
-        onConfirm={handleConfirm}
+    <>
+      {loading && <SystemLoader />}
+
+      {/* Modals */}
+      <ConfirmationModal
+        open={modalOpen}
+        title={modalText}
+        desc={modalDesc}
+        onConfirm={handleModalConfirm}
+        onCancel={() => setModalOpen(false)}
+      />
+      <Notification message={notification} type={notificationType} />
+      <DateModal
+        open={dateModalOpen}
+        title={dateModalTitle}
+        value={tempDate}
+        onChange={setTempDate}
+        onConfirm={handleDateModalConfirm}
+        onCancel={() => setDateModalOpen(false)}
+      />
+      <FileUploadModal
+        open={sendLOAModalOpen}
+        title="Send LOA"
+        recipient={data?.patient?.email}
+        onFileChange={setLoaFile}
+        onConfirm={handleSendLOA}
+        onCancel={() => setSendLOAModalOpen(false)}
       />
 
       <LOAPrintTemplate loaData={loaData} />
 
-      <div className="w-full flex-1 flex flex-col gap-5 p-5 overflow-auto">
-        <div className="flex items-center justify-between px-5">
-          <h2 className="text-xl font-semibold">Treatment Info</h2>
-          <button onClick={() => navigate(-1)}>
-            <img
-              src="/images/back.png"
-              alt="Back"
-              className="h-6 cursor-pointer"
-            />
-          </button>
+      {/* Page Content */}
+      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray overflow-auto">
+        {/* Header */}
+        <div className="h-[10%] px-5 w-full flex justify-between items-center">
+          <h1 className="text-md font-bold">Treatment Info</h1>
+          <Link to={"/admin/treatment-assistance/post-treatment"}>
+            <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
+          </Link>
         </div>
 
-        <div className="bg-white rounded-md shadow border border-black/10 p-6 print:hidden">
-          <h3 className="text-md font-semibold mb-3">
-            Request Post-Treatment Labs
-          </h3>
-          <div className="flex items-center gap-3">
-            <div className="text-sm font-medium text-gray-600">
-              Viewing ID: <span className="font-mono">{id}</span>
+        {/* Treatment Info */}
+        <div className="h-fit w-full flex flex-col gap-4">
+          <div className="bg-white rounded-md shadow border border-black/10">
+            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Post-Treatment Laboratory Request</h2>
+              <span className={`text-xs px-2 py-1 rounded ${statusPillClasses}`}>
+                {data?.status}
+              </span>
             </div>
-            <button
-              onClick={handleGenerate}
-              className="px-3.5 py-1 text-sm cursor-pointer text-white rounded-md bg-primary hover:opacity-90 print:hidden"
+            {/* Info Fields */}
+            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Patient ID</span>
+                <span className="text-gray-700">{data?.patient?.patient_id || "---"}</span>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Patient Name</span>
+                <span className="text-gray-700">{data?.patient?.full_name || "---"}</span>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Diagnosis</span>
+                <span className="text-gray-700">
+                  {data?.patient?.diagnosis?.[0]?.diagnosis || "---"}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Procedure</span>
+                <span className="text-gray-700">{data?.procedure_name || "---"}</span>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Status</span>
+                <select
+                  className="-ml-1 outline-none focus:ring-0 text-gray-700"
+                  value={status}
+                  onChange={handleStatusChange}
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Follow-up Required">Follow-up Required</option>
+                  <option value="Closed">Closed</option>
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Date Submitted</span>
+                <span className="text-gray-700">
+                  {data?.created_at
+                    ? new Date(data?.created_at).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "---"}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Lab Test Date</span>
+                <span className="text-gray-700">
+                  {labTestDate
+                    ? new Date(labTestDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "---"}
+                </span>
+                {status === "Approved" && labTestDate && (
+                  <span
+                    className="text-sm text-blue-700 cursor-pointer"
+                    onClick={() => setDateModalOpen(true)}
+                  >
+                    Edit
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Info */}
+          <div className="bg-white rounded-md shadow border border-black/10">
+            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Additional Information</h2>
+            </div>
+            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Laboratory Request</span>
+                <Link
+                  className="text-blue-700"
+                  to={`/admin/treatment-assistance/postview/${data?.id}/lab-request`}
+                  state={data}
+                >
+                  View
+                </Link>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Lab Results</span>
+                <Link
+                  className="text-blue-700"
+                  to={`/admin/treatment-assistance/postview/${data?.id}/lab-result`}
+                  state={data}
+                >
+                  View
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* LOA Actions */}
+          {data?.status !== "Pending" && (
+            <div className="bg-white rounded-md shadow border border-black/10">
+              <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+                <h2 className="text-lg font-semibold">LOA Actions</h2>
+              </div>
+              <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                <div className="flex gap-2">
+                  <span className="font-medium w-40">Letter of Authority</span>
+                  <span
+                    className="text-blue-700 cursor-pointer"
+                    onClick={() => window.print()}
+                  >
+                    Download
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium w-40">Send LOA</span>
+                  <span
+                    className="text-blue-700 cursor-pointer"
+                    onClick={() => setSendLOAModalOpen(true)}
+                  >
+                    Send
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Followup Checkups */}
+          {data?.status === "Follow-up Required" && (
+            <div className="bg-white rounded-md shadow border border-black/10">
+              <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+                <h2 className="text-lg font-semibold">
+                  Follow-up Checkups
+                </h2>
+              </div>
+              <div className="p-4 space-y-4">
+                {followupCheckups.map((update, index) => (
+                  <div key={index} className="flex flex-col gap-3 border-b pb-4">
+                    <div className="flex justify-end items-center">
+                      {followupCheckups.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeFollowupCheckups(index)}
+                          className="text-sm text-red-500 hover:text-red-700"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="w-1/2">
+                        <label className="text-sm font-medium block mb-1">
+                          Checkup Date:
+                        </label>
+                        <input
+                          type="date"
+                          name="date"
+                          value={update.date}
+                          onChange={(e) => handleFollowupCheckupsChanges(index, e)}
+                          className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                        />
+                      </div>
+                      <div className="w-1/2">
+                        <label className="text-sm font-medium block mb-1">
+                          Notes:
+                        </label>
+                        <textarea
+                          name="note"
+                          value={update.note}
+                          onChange={(e) => handleFollowupCheckupsChanges(index, e)}
+                          className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                          rows="3"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addFollowupCheckups}
+                  className="mt-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-sm"
+                >
+                  + Add Another Checkup
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Checkup Schedules */}
+          {data?.status === "Follow-up Required" && data?.followup_checkups?.length > 0 && (
+            <div className="bg-white rounded-md shadow border border-black/10">
+              <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+                <h2 className="text-lg font-semibold">
+                  Checkup Schedules
+                </h2>
+              </div>
+              <div className="p-4">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full bg-white border border-gray-300">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="py-2 px-4 border-b text-left text-sm font-bold">Checkup Date</th>
+                        <th className="py-2 px-4 border-b text-left text-sm font-bold">Note</th>
+                        <th className="py-2 px-4 border-b text-left text-sm font-bold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data?.followup_checkups?.filter(checkup => checkup.status !== "Completed")
+                        .map((checkup, index) => (
+                          <tr
+                            key={index}
+                            className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                          >
+                            <td className="py-2 px-4 border-b text-sm">
+                              {checkup?.date ?? ""}
+                            </td>
+                            <td className="py-2 px-4 border-b text-sm">
+                              {checkup?.note ?? ""}
+                            </td>
+                            <td className="py-2 px-4 border-b text-sm">
+                              <div className="flex gap-2">
+                                <button 
+                                  onClick={() => handleMarkDone(checkup?.id)} 
+                                  className="text-sm text-blue-700 cursor-pointer">
+                                    Mark as Done
+                                </button>
+                                <button 
+                                  onClick={() => handleReschedule(checkup?.id)} 
+                                  className="text-sm text-yellow cursor-pointer">
+                                    Reschedule
+                                </button>
+                                <button 
+                                  onClick={() => handleCancel(checkup?.id)} 
+                                  className="text-sm text-red-500 cursor-pointer">
+                                    Cancel
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      }
+                      {data?.followup_checkups?.filter(c => c.status !== "Completed").length === 0 && (
+                        <tr>
+                          <td className="py-2 px-4 border-b text-sm" colSpan={3}>
+                            No upcoming checkups available.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex justify-around print:hidden">
+            <Link
+              to={`/admin/treatment-assistance/post-treatment`}
+              className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md"
             >
-              Generate
+              Back
+            </Link>
+            <button
+              onClick={handleSaveChanges}
+              className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer"
+            >
+              Save Changes
             </button>
           </div>
-          <Line />
-          <Row label="Diagnosis/Impression" value={data.diagnosis} />
-          <Row label="Procedure" value={data.procedure} />
-          <Row label="Laboratory Request" value={data.labRequest} />
-          <Row label="Laboratory Result" value={data.labResult} />
-          <Row
-            label="Schedule (dd/mm/yyyy)"
-            value={fmtDDMMYYYY(data.schedule)}
-          />
-        </div>
-
-        <div className="bg-white rounded-md shadow border border-black/10 p-6 print:hidden">
-          <h3 className="text-lg font-semibold mb-2">LOA GENERATION</h3>
-          <Line />
-          <Row label="Serial No." value={data.serialNo} />
-          <Row label="Date" value={data.date} />
-          <Row label="Service Provider/Lab Name" value={data.providerName} />
-          <Row
-            label="Service Provider/Lab Address"
-            value={data.providerAddress}
-          />
-          <Row label="Patient Name" value={data.patientName} />
-          <Row label="Patient Address" value={data.patientAddress} />
-          <Row label="Age" value={`${data.age} years old`} />
-          <Row label="Diagnosis" value={data.diagnosis} />
-          <Row label="Procedure" value={data.procedure} />
-          <Row label="Prepared by" value={data.preparedBy} />
-          <Row label="Approved by" value={data.approvedBy} />
-        </div>
-
-        <div className="flex justify-around print:hidden">
-          <button
-            onClick={openAccept}
-            className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90"
-          >
-            Accept
-          </button>
-          <button
-            onClick={openReject}
-            className="py-2 w-[30%] bg-red-500 rounded-md text-white hover:bg-red-600"
-          >
-            Reject
-          </button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

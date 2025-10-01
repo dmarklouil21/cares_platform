@@ -967,13 +967,13 @@ export default function PatinetProfileForm() {
           {/* Submit Button */}
           <div className="flex w-full justify-between gap-9">
             <Link
-              to="/NoteBeneficiary"
+              to="/beneficiary/pre-enrollment/note"
               className=" border py-3 rounded-md text-center w-full hover:bg-black/10 hover:border-white"
             >
               Cancel
             </Link>
             <Link
-              to="/beneficiary/pre-enrollment/pre-screening-form"
+              to="/beneficiary/pre-enrollment/cancer-data"
               className="bg-[#749AB6] text-center font-bold text-white py-3 w-full border-[1px] border-[#749AB6] hover:border-[#C5D7E5] hover:bg-[#C5D7E5] rounded-md cursor-pointer"
               state={{
                 formData: formData, 

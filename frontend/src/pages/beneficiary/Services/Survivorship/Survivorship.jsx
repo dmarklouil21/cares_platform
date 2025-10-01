@@ -15,7 +15,7 @@ const survivorshipOptions = [
       "Receive medical guidance, follow-ups, or support services in the comfort of your home through scheduled nurse or health worker visits.",
   },
   {
-    title: "Psychological Support",
+    title: "Psychosocial Support",
     icon: "/src/assets/images/patient/services/survivorship/utak.png",
     description:
       "Access mental health services like counseling or therapy to help manage emotional challenges during survivorship.",

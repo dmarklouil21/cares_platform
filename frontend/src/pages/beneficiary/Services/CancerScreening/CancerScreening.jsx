@@ -22,8 +22,9 @@ const CancerScreening = () => {
         "Private results with counseling",
       ],
       icon: "/src/assets/images/patient/services/cancerscreening/individualscreeningicon.png",
-      // link: "/Beneficiary/services/cancer-screening/individual-screening-req",
-      link: "/Beneficiary/services/cancer-screening/screening-requirements-note",
+      // link: "/Beneficiary/services/cancer-screening/individual-screening-req", 
+      // link: "/Beneficiary/services/cancer-screening/screening-requirements-note",
+      link: "/beneficiary/services/cancer-screening/procedure",
       // isLink: isValidated,
     },
   ];
@@ -107,7 +108,7 @@ const CancerScreening = () => {
                         </a>
                       )} */}
             <Link
-              to="/beneficiary/services/cancer-screening/requirements"
+              to="/beneficiary/services/cancer-screening/procedure"
               className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
             >
               Apply

@@ -2,10 +2,6 @@ import { Route } from "react-router-dom";
 import BeneficiaryLayout from "../layouts/Beneficiary";
 import ProtectedRoute from "../components/RoleGuard/ProtectedRoute";
 
-// Pre Enrollment
-import PreEnrollment from "../pages/beneficiary/PreEnrollment/PreEnrollment";
-import PreScreeningForm from "../pages/beneficiary/PreEnrollment/PreScreeningForm";
-
 // Sidebar Options
 import Home from "../pages/beneficiary/Home/Home/";
 import CancerAwareness from "../pages/beneficiary/CancerAwareness/CancerAwareness/";
@@ -20,6 +16,7 @@ import Survivorship from "../pages/beneficiary/Services/Survivorship/Survivorshi
 import IndividualScreening from "../pages/beneficiary/Applications/IndividualScreening/IndividualScreening";
 import CancerTreatment from "../pages/beneficiary/Applications/CancerTreatment/CancerTreatment";
 import PreCancerous from "../pages/beneficiary/Applications/PreCancerous/PreCancerous/";
+import PostTreatmentApplication from "../pages/beneficiary/Applications/PostTreatment/PostTreatment";
 
 // Cancer Screening Apply
 import Requirements from "../pages/beneficiary/Services/CancerScreening/Apply/Requirements";
@@ -41,6 +38,7 @@ import ViewScreeningStatus from "../pages/beneficiary/Applications/IndividualScr
 import UploadAttachments from "../pages/beneficiary/Applications/IndividualScreening/View/UploadAttachments";
 
 import PreCancerousView from "../pages/beneficiary/Applications/PreCancerous/View/PreCancerousView";
+import ViewPostTreatmentStatus from "../pages/beneficiary/Applications/PostTreatment/View/ViewPostTreatmentStatus";
 
 // Success Page
 import SuccessPage from "../pages/beneficiary/SuccessPage";
@@ -57,11 +55,6 @@ const BeneficiaryRoutes = () => (
     {/* Success Page */}
     <Route path="success-application" element={<SuccessPage />} />
     <Route path="profile" element={<Profile />} />
-
-    <Route path="pre-enrollment">
-      <Route index element={<PreEnrollment />} />
-      <Route path="pre-screening-form" element={<PreScreeningForm />} />
-    </Route>
 
     {/* Home & Awareness */}
     <Route index element={<Home />} />
@@ -116,6 +109,11 @@ const BeneficiaryRoutes = () => (
       <Route path="precancerous">
         <Route index element={<PreCancerous />} />
         <Route path="view/:id" element={<PreCancerousView />} />
+      </Route>
+
+      <Route path="post-treatment">
+        <Route index element={<PostTreatmentApplication />} />
+        <Route path="view/:id" element={<ViewPostTreatmentStatus />} />
       </Route>
     </Route>
   </Route>

@@ -14,6 +14,8 @@ import NoteRhu from "./pages/rhu/registration/Note";
 
 //pre enrollment - wala pay private
 import NotValidated from "./pages/beneficiary/registration/note/preenrollment/NotValidated";
+import PreEnrollment from "./pages/beneficiary/PreEnrollment/PreEnrollment";
+import PreScreeningForm from "./pages/beneficiary/PreEnrollment/PreScreeningForm";
 
 // ----------- REGISTRATION RHU SIDE ------------------
 
@@ -62,14 +64,64 @@ const App = () => {
                 </ProtectedAuthenticatedRoute>
               }
             />
-            <Route
-              path="NoteBeneficiary"
+
+            {/* <Route
+              path="beneficiary/NoteBeneficiary"
               element={
-                <ProtectedRoute>
+                <ProtectedAuthenticatedRoute>
                   <NoteBeneficiary />
-                </ProtectedRoute>
+                </ProtectedAuthenticatedRoute>
+              }
+            /> */}
+            <Route
+              path="beneficiary/pre-enrollment/note"
+              element={
+                <ProtectedAuthenticatedRoute>
+                  <NoteBeneficiary />
+                </ProtectedAuthenticatedRoute>
               }
             />
+
+            <Route 
+              path="beneficiary/pre-enrollment" 
+              element={
+                <ProtectedAuthenticatedRoute>
+                  <PreEnrollment />
+                </ProtectedAuthenticatedRoute>
+              }
+            />
+
+            <Route 
+              path="beneficiary/pre-enrollment/cancer-data" 
+              element={
+                <ProtectedAuthenticatedRoute>
+                  <PreScreeningForm />
+                </ProtectedAuthenticatedRoute>
+              } 
+            />
+              {/* <ProtectedAuthenticatedRoute>
+                <PreEnrollment />
+                <Route index element={<PreEnrollment />} />
+                <Route path="note" element={<NoteBeneficiary />} />
+                <Route path="pre-screening-form" element={<PreScreeningForm />} />
+              </ProtectedAuthenticatedRoute>
+            </Route> */}
+
+            {/* <Route path="beneficiary/pre-enrollment/note">
+              <ProtectedAuthenticatedRoute>
+                <NoteBeneficiary />
+                <Route path="note" element={<NoteBeneficiary />} />
+                <Route path="pre-screening-form" element={<PreScreeningForm />} />
+              </ProtectedAuthenticatedRoute>
+            </Route> */}
+
+            {/* <Route path="beneficiary/pre-enrollment/pre-screening-form">
+              <ProtectedAuthenticatedRoute>
+                <PreScreeningForm />
+                <Route path="note" element={<NoteBeneficiary />} />
+                <Route path="pre-screening-form" element={<PreScreeningForm />} />
+              </ProtectedAuthenticatedRoute>
+            </Route> */}
 
             <Route path="NotValidated" element={<NotValidated />} />
             <Route

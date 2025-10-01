@@ -62,6 +62,7 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       name: "Cancer Management",
       path: "/beneficiary/applications/cancer-treatment",
     },
+    { name: "Post Treatment", path: "/beneficiary/applications/post-treatment" },
     { name: "Pre Cancerous", path: "/beneficiary/applications/precancerous" },
   ];
 

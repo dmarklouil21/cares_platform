@@ -205,14 +205,14 @@ const PreCancerStatus = () => {
         </div>
       )}
 
-      <div className="w-full flex-1 py-5 flex flex-col justify-start p-5 gap-3 bg-gray overflow-auto">
-        <h2 className="text-xl font-bold text-left w-full pl-5">
+      <div className="ww-full flex-1 py-2 flex flex-col justify-around px-5 overflow-auto bg-gray">
+        <h2 className="text-xl font-bold text-left w-full pl-1">
           Pre-cancerous Meds Applications
         </h2>
 
         <div className="flex flex-col bg-white rounded-[4px] w-full shadow-md px-5 py-5 gap-3">
           <p className="text-md font-semibold text-yellow mb-3">
-            Application List
+            Track the status of your pre-cancerous meds applications here.
           </p>
 
           <div className="flex justify-between flex-wrap gap-3 mb-3">

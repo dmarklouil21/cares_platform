@@ -186,14 +186,14 @@ const CancerTreatmentApplication = () => {
           </div>
         </div>
       )} */}
-      <div className="w-full flex-1 py-2 gap-2 flex flex-col justify-start px-5 overflow-auto bg-gray">
-        <h2 className="text-xl font-bold text-left w-full pl-5">
+      <div className="w-full flex-1 py-2 flex flex-col justify-around px-5 overflow-auto bg-gray">
+        <h2 className="text-xl font-bold text-left w-full pl-1">
           Cancer Treatment
         </h2>
 
         <div className="flex flex-col bg-white rounded-[4px] w-full shadow-md px-5 py-5 gap-3">
           <p className="text-md font-semibold text-yellow mb-3">
-            Cancer Treatment Application
+            Track the status of your cancer treatment applications here.
           </p>
           {/* <h2 className="text-xl font-bold text-left w-full pl-5">
               Individual Screening
