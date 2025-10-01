@@ -11,10 +11,11 @@ class PostTreatment(models.Model):
     max_length=50,
     choices=[
       ('Pending', 'Pending'),
-      ('Approve', 'Approve'),
-      ('In Progress', 'In Progress'),
-      ('Complete', 'Complete'),
-      ('Reject', 'Reject'),
+      ('Approved', 'Approve'),
+      ('Completed', 'Complete'),
+      ('Follow-up Required', 'Follow-up Required'),
+      ('Closed', 'Close'),
+      ('Rejected', 'Reject'),
     ],
     default='Pending'
   )
@@ -37,3 +38,27 @@ class RequiredAttachment(models.Model):
 
   def __str__(self):
     return f"Attachment for {self.post_treatment}"
+  
+class FollowupCheckups(models.Model):
+  post_treatment = models.ForeignKey(PostTreatment, on_delete=models.CASCADE, related_name='followup_checkups')
+  date = models.DateField(blank=True, null=True)
+  note = models.CharField(max_length=255, blank=True, null=True)
+
+  status = models.CharField(
+    max_length=50,
+    choices=[
+      ('Pending', 'Pending'),
+      ('Completed', 'Completed'),
+    ],
+    default='Pending'
+  )
+
+  date_completed = models.DateField(blank=True, null=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  class Meta:
+    verbose_name = 'FollowupCheckup'
+    verbose_name_plural = 'FollowupCheckups'
+
+  def __str__(self):
+    return f"Checkup for {self.post_treatment.patient.full_name} on {self.date}: {self.note or 'No note'}"

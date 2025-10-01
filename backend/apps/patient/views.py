@@ -1,10 +1,15 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.views import APIView
 
 from .models import Patient, CancerDiagnosis
 from .serializers import PatientSerializer, AdminPreEnrollmentSerializer
+
+from . models import PATIENT_STATUS_CHOICES
 
 import json
 # from .pagination import BeneficiaryPagination
@@ -89,27 +94,11 @@ class PatientUpdateView(generics.UpdateAPIView):
       status=status.HTTP_200_OK,
     )
 
-  
-# To be deleted
-# class PatientCreateView(generics.CreateAPIView):
-#   queryset = Patient.objects.all()
-#   serializer_class = PatientSerializer
-
-#   permission_classes = [IsAuthenticated]
-
 class PatientDetailView(generics.RetrieveAPIView):
   queryset = Patient.objects.all()
   serializer_class = PatientSerializer
   permission_classes = [IsAuthenticated]
   lookup_field = 'patient_id'
-
-# To be deleted
-# class PatientUpdateView(generics.UpdateAPIView):
-#   queryset = Patient.objects.all()
-#   serializer_class = PatientSerializer
-#   lookup_field = 'patient_id'
-
-#   permission_classes = [IsAuthenticated, IsAdminUser]
 
 class PatientListView(generics.ListAPIView):
   serializer_class = PatientSerializer
@@ -134,13 +123,20 @@ class PatientListView(generics.ListAPIView):
 
     return queryset
 
-class PatientStatusUpdateView(generics.UpdateAPIView):
-  queryset = Patient.objects.all()
-  serializer_class = PatientSerializer
-  lookup_field = 'patient_id'
-
+class PatientStatusUpdateView(APIView):
   permission_classes = [IsAuthenticated, IsAdminUser]
 
+  def patch(self, request, patient_id):
+    patient = get_object_or_404(Patient, patient_id=patient_id)
+
+    new_status = request.data.get('status')
+    if new_status not in dict(PATIENT_STATUS_CHOICES).keys():
+      raise ValidationError("Invalid status value.")
+    patient.status = new_status
+    patient.save()
+
+    return Response({"message": "Status updated successfully."}, status=status.HTTP_200_OK)
+  
 class PatientDeleteView(generics.DestroyAPIView):
   queryset = Patient.objects.all()
   lookup_field = 'patient_id'

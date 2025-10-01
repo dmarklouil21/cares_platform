@@ -39,7 +39,10 @@ import PreEnrollPreScreeningForm from "../pages/admin/Patient/PreEnrollment/View
 // Treatment Assistance Features
 import PreCancerousDetailedView from "../pages/admin/TreatmentAssistance/PrecancerousMeds/View/DetailedView";
 import PreCancerousMedsAdd from "../pages/admin/TreatmentAssistance/PrecancerousMeds/Add/AddMeds";
+
 import PostTreatmentAdd from "../pages/admin/TreatmentAssistance/PostTreatment/Add/Addtreatment";
+import LabRequest from "../pages/admin/TreatmentAssistance/PostTreatment/View/LabRequest";
+import LabResult from "../pages/admin/TreatmentAssistance/PostTreatment/View/LabResult";
 
 // Cancer Screening Features
 import IndividualScreeningDetailedView from "../pages/admin/CancerScreening/IndividualScreening/View/DetailedView";
@@ -155,6 +158,8 @@ const AdminRoutes = () => (
       <Route path="post-treatment" element={<PostTreatment />} />
       <Route path="view/:id" element={<PreCancerousDetailedView />} />
       <Route path="postview/:id" element={<PostTreatmentView />} />
+      <Route path="postview/:id/lab-request" element={<LabRequest />} />
+      <Route path="postview/:id/lab-result" element={<LabResult />} />
       <Route path="add-pre-cancerous" element={<PreCancerousMedsAdd />} />
       <Route path="add-post-treatment" element={<PostTreatmentAdd />} />
     </Route>

@@ -244,13 +244,6 @@ class ResultAttachmentUploadView(APIView):
     individual_screening.response_description = 'Uploaded screening results.'
     individual_screening.save()
 
-    """ for file in attachments:
-      validate_attachment(file)
-      ScreeningAttachment.objects.create(
-        screening_procedure=screening_procedure,
-        file=file
-      ) """
-
     return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
   
 # -----------------------
@@ -352,7 +345,6 @@ class TreatmentResultUploadView(APIView):
 
     return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
   
-
 class CaseSummaryUploadView(APIView):
   parser_classes = [MultiPartParser, FormParser]
   permission_classes = [IsAuthenticated]
@@ -482,6 +474,28 @@ class PostTreatmentListView(generics.ListAPIView):
     patient = get_object_or_404(Patient, user=user)
     # patient_id = self.kwargs.get("patient_id")
     return PostTreatment.objects.filter(patient=patient)
+
+class PostTreatmentResultUploadView(APIView):
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+
+  def patch(self, request, id):
+    post_treatment = get_object_or_404(PostTreatment, id=id)
+
+    if post_treatment.uploaded_result and not request.user.is_superuser:
+      raise ValidationError ({'non_field_errors': ['You can only submit once. Please wait for it\'s feedback before submitting again.']})
+    
+    result_file = request.FILES.getlist('file')
+    # print('Attachments: ', attachments)
+
+    validate_attachment(result_file[0])
+
+    post_treatment.uploaded_result = result_file[0]
+    post_treatment.has_patient_response = True
+    post_treatment.response_description = 'Uploaded post-treatment lab results.'
+    post_treatment.save()
+
+    return Response({"message": "Result uploaded successfully."}, status=status.HTTP_200_OK)
 
 def validate_attachment(file):
   max_size_mb = 5

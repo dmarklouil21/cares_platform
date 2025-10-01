@@ -1,4 +1,4 @@
-const FileUploadModal = ({ open, title, recipient, onFileChange, onConfirm, onCancel }) => {
+const FileUploadModal = ({ open, title, recipient=null, onFileChange, onConfirm, onCancel }) => {
   if (!open) return null;
 
   return (

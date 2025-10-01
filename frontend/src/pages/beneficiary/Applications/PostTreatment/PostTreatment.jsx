@@ -132,10 +132,8 @@ const PostTreatmentStatus = () => {
   };
 
   const handleView = (id) => {
-    // console.log("Value Passed: ", app);
-    navigate("/beneficiary/applications/individual-screening/view", {
-      state: { id: id },
-    });
+    console.log("What the heck?");
+    navigate(`/beneficiary/applications/post-treatment/view/${id}`);
   };
 
   const filteredData = tableData.filter((record) => {
@@ -319,12 +317,12 @@ const PostTreatmentStatus = () => {
                             : "--"}
                         </td>
                         <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
-                          {app.screening_date
-                            ? app.screening_date.split("T")[0]
+                          {app.laboratory_test_date
+                            ? app.laboratory_test_date.split("T")[0]
                             : "--"}
                         </td>
                         <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
-                          <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full text-[#1976D2]">
+                          <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full text-[#1976D2]">
                             {app.status}
                           </span>
                         </td>

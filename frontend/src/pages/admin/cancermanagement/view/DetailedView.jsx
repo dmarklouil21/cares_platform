@@ -451,7 +451,7 @@ const AdminCancerManagementView = () => {
 
       <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray overflow-auto">
         {/* Header */}
-        <div className=" h-[10%] px-5 w-full flex justify-between items-center">
+        <div className="h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Cancer Management</h1>
           <div>
             <Link to={"/admin/cancer-management"}>
@@ -465,7 +465,7 @@ const AdminCancerManagementView = () => {
         </div>
 
         {/* Content */}
-        <div className="h-fit w-full  flex flex-col gap-4">
+        <div className="h-fit w-full flex flex-col gap-4">
           <div className="bg-white rounded-md shadow border border-black/10">
             <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
               <h2 className="text-lg font-semibold">Request Information</h2>

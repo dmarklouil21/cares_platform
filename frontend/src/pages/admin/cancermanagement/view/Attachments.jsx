@@ -16,17 +16,6 @@ const CheckIcon = ({ active }) => (
   />
 );
 
-// const REQUIRED_DOCS = [
-//   { key: "quotation", label: "Quotation" },
-//   { key: "letter", label: "Letter of Request" },
-//   { key: "abstract", label: "Medical Abstract" },
-//   { key: "caseStudy", label: "Case Study Report" },
-//   { key: "sketch", label: "Sketch of Address" },
-//   { key: "incomeTax", label: "Income Tax Report" },
-//   { key: "barangay", label: "Barangay Indigency" },
-//   { key: "signedCaseSummary", label: "Signed Case Summary" },
-// ];
-
 const ViewAttachments = () => {
   const location = useLocation();
   const record = location.state;
@@ -56,34 +45,6 @@ const ViewAttachments = () => {
   const [modalAction, setModalAction] = useState(null);
 
   useEffect(() => {
-    // const fromServer =
-    //   record?.attachments?.map((fileObj) => {
-    //     const fileUrl = fileObj.file || fileObj.url || "";
-    //     const fileName = (
-    //       fileObj.name ||
-    //       fileUrl.split("/").pop() ||
-    //       "file"
-    //     ).trim();
-    //     const ext = (fileName.split(".").pop() || "").toLowerCase();
-
-    //     const typeGuess =
-    //       fileObj.type ||
-    //       (ext === "pdf"
-    //         ? "pdf"
-    //         : /jpe?g|png|gif|webp/.test(ext)
-    //         ? "image/jpeg"
-    //         : ext || "file");
-
-    //     return {
-    //       id: fileObj.id ?? null,
-    //       name: fileName,
-    //       type: typeGuess,
-    //       url: fileUrl || "#",
-    //     };
-    //   }) || [];
-
-    // setFiles(fromServer.length ? fromServer : SAMPLE_FILES);
-    // setFiles(record.attachments);
     const mappedFiles = record.attachments.reduce((acc, doc) => {
       acc[doc.doc_type] = doc;
       return acc;

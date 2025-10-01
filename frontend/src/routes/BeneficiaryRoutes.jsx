@@ -2,10 +2,6 @@ import { Route } from "react-router-dom";
 import BeneficiaryLayout from "../layouts/Beneficiary";
 import ProtectedRoute from "../components/RoleGuard/ProtectedRoute";
 
-// Pre Enrollment
-import PreEnrollment from "../pages/beneficiary/PreEnrollment/PreEnrollment";
-import PreScreeningForm from "../pages/beneficiary/PreEnrollment/PreScreeningForm";
-
 // Sidebar Options
 import Home from "../pages/beneficiary/Home/Home/";
 import CancerAwareness from "../pages/beneficiary/CancerAwareness/CancerAwareness/";
@@ -42,6 +38,7 @@ import ViewScreeningStatus from "../pages/beneficiary/Applications/IndividualScr
 import UploadAttachments from "../pages/beneficiary/Applications/IndividualScreening/View/UploadAttachments";
 
 import PreCancerousView from "../pages/beneficiary/Applications/PreCancerous/View/PreCancerousView";
+import ViewPostTreatmentStatus from "../pages/beneficiary/Applications/PostTreatment/View/ViewPostTreatmentStatus";
 
 // Success Page
 import SuccessPage from "../pages/beneficiary/SuccessPage";
@@ -58,11 +55,6 @@ const BeneficiaryRoutes = () => (
     {/* Success Page */}
     <Route path="success-application" element={<SuccessPage />} />
     <Route path="profile" element={<Profile />} />
-
-    <Route path="pre-enrollment">
-      <Route index element={<PreEnrollment />} />
-      <Route path="pre-screening-form" element={<PreScreeningForm />} />
-    </Route>
 
     {/* Home & Awareness */}
     <Route index element={<Home />} />
@@ -121,7 +113,7 @@ const BeneficiaryRoutes = () => (
 
       <Route path="post-treatment">
         <Route index element={<PostTreatmentApplication />} />
-        {/* <Route path="view/:id" element={<PreCancerousView />} /> */}
+        <Route path="view/:id" element={<ViewPostTreatmentStatus />} />
       </Route>
     </Route>
   </Route>

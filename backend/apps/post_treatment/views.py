@@ -9,16 +9,17 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 
 from backend.utils.email import (
-  send_individual_screening_status_email,
+  send_post_treatment_status_email,
   send_return_remarks_email, send_loa_email,
-  send_precancerous_meds_status_email,
-  send_mass_screening_status_email,
 )
 
-from apps.patient.models import Patient
+from apps.patient.models import Patient, HistoricalUpdate
 
-from . models import PostTreatment
+from . models import PostTreatment, FollowupCheckups
 from . serializers import PostTreatmentSerializer
+
+import logging
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 class PostTreatmentListView(generics.ListAPIView):
@@ -58,3 +59,130 @@ class PostTreatmentDetailedView(generics.RetrieveAPIView):
       qs = qs.filter(patient__patient_id=patient_id)
 
     return qs 
+
+class PostTreatmentDeleteView(generics.DestroyAPIView):
+  queryset = PostTreatment.objects.all()
+  lookup_field = 'id'
+
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+class PostTreatmentApproveView(APIView):
+  permission_classes = [IsAuthenticated, IsAdminUser]
+  
+  def patch(self, request, id):
+    post_treatment = get_object_or_404(PostTreatment, id=id)
+
+    post_treatment.status = request.data.get('status')
+    post_treatment.save()
+
+    return Response({"success": f"Approved successfully."}, status=200)
+
+class PostTreatmentUpdateView(APIView):
+  # parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def patch(self, request, id):
+    post_treatment = get_object_or_404(PostTreatment, id=id)
+    serializer = PostTreatmentSerializer(post_treatment, data=request.data, partial=True)
+    if serializer.is_valid():
+      previous_status = post_treatment.status
+      serializer.save()
+
+      # If status changed to 'Approve', set date_approved to today
+      if previous_status != 'Approved' and serializer.validated_data.get('status') == 'Approved':
+        post_treatment.date_approved = timezone.now().date()
+        post_treatment.save()
+        # send_loa_email(post_treatment)
+
+      # If status changed to 'Complete', set date_completed to today
+      if previous_status != 'Completed' and serializer.validated_data.get('status') == 'Completed':
+        post_treatment.date_completed = timezone.now().date()
+        post_treatment.save()
+        # send_precancerous_meds_status_email(post_treatment)
+
+      followup_data = request.data.get('followup_checkups')
+      if followup_data:
+        for item in followup_data:
+          if 'id' in item:
+            # Update existing FollowupCheckup
+            followup = post_treatment.followup_checkups.filter(id=item['id']).first()
+            if followup:
+              for attr, value in item.items():
+                setattr(followup, attr, value)
+              followup.save()
+          else:
+            # Create new FollowupCheckup
+            post_treatment.followup_checkups.create(**item)
+      
+      email_status = send_post_treatment_status_email(
+        patient=post_treatment.patient, 
+        status=post_treatment.status, 
+        lab_test_date=post_treatment.laboratory_test_date, 
+      )
+      if email_status is not True:
+        logger.error(f"Email failed to send: {email_status}")
+
+      return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PostTreatmentCheckupUpdateView(APIView):
+  # parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def patch(self, request, id):
+    followup_checkup = get_object_or_404(FollowupCheckups, id=id)
+
+    followup_checkup.status = 'Completed'
+    followup_checkup.save()
+
+    patient = followup_checkup.post_treatment.patient
+    HistoricalUpdate.objects.create(patient=patient, date=timezone.now(), note=followup_checkup.note)
+    print('Hell Yeah!')
+    
+    return Response({"success": f"Successfully marked as done."}, status=200)
+
+class PostTreatmentRescheduleCheckupUpdateView(APIView):
+  # parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def patch(self, request, id):
+    followup_checkup = get_object_or_404(FollowupCheckups, id=id)
+
+    new_date = request.data.get('date')
+    if not new_date:
+      raise ValidationError({"date": "This field is required."})
+    followup_checkup.date = new_date
+    followup_checkup.save()
+    
+    return Response({"success": f"Successfully marked as done."}, status=200)
+
+class PostTreatmentScheduleCancelView(APIView):
+  # parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def delete(self, request, id):
+    followup_checkup = get_object_or_404(FollowupCheckups, id=id)
+
+    followup_checkup.delete()
+    
+    return Response({"success": f"Successfully deleted."}, status=204)
+
+class SendLOAView(APIView):
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def post(self, request):
+    file_obj = request.FILES.get("file")
+    email = request.data.get("email")
+    patient_name = request.data.get("patient_name")  # optional, from frontend
+
+    if not file_obj:
+      return Response({"error": "No LOA file uploaded."}, status=400)
+
+    if not email:
+      return Response({"error": "No recipient email provided."}, status=400)
+    
+    result = send_loa_email(email, file_obj, patient_name)
+
+    if result is True:
+      return Response({"message": "LOA sent successfully."}, status=200)
+    return Response({"error": f"Failed to send LOA: {result}"}, status=500)
