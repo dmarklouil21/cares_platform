@@ -162,7 +162,7 @@ const PostTreatment = () => {
           </Link>
         </div>
 
-        <div className="flex flex-col bg-white w-full rounded shadow-md px-5 py-5 gap-3">
+        <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
           <p className="text-md font-semibold text-yellow">Manage Post Treatment</p>
 
           {/* Filters */}

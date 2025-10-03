@@ -182,7 +182,7 @@ const AdminCancerManagement = () => {
           </Link>
         </div>
 
-        <div className="flex flex-col bg-white rounded-[4px] w-full shadow-md px-5 py-5 gap-3">
+        <div className="flex flex-col bg-white rounded-md w-full shadow-md px-5 py-5 gap-3">
           <p className="text-md font-semibold text-yellow">
             Service Treatment Application List
           </p>

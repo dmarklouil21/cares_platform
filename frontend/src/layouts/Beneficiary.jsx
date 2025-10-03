@@ -12,6 +12,7 @@ import BeneficiaryHeader from "../components/header/BeneficiaryHeader";
 const HEADER_PATHS = [
   "/beneficiary",
   "/beneficiary/cancer-awareness",
+  "/beneficiary/home-visit",
   "/beneficiary/services/cancer-screening",
   "/beneficiary/services/cancer-management",
   "/beneficiary/services/survivorship",
