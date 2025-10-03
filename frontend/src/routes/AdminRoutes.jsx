@@ -18,6 +18,7 @@ import EditProfile from "../pages/admin/profile/ViewProfile";
 //views
 import PostTreatmentView from "../pages/admin/TreatmentAssistance/PostTreatment/View/TreatmentView";
 import HomeVisitView from "../pages/admin/survivorship/HomeVisit/View/HomeView";
+import HomeVisitWellBeingTool from "../pages/admin/survivorship/HomeVisit/View/WellBeingTool";
 
 //add
 import HomeVisitAdd from "../pages/admin/survivorship/HomeVisit/Add/Add";
@@ -203,6 +204,7 @@ const AdminRoutes = () => (
       <Route index element={<HomeVisit />} />
       <Route path="view">
         <Route path=":id" element={<HomeVisitView />} />
+        <Route path=":id/wellbeing-form" element={<HomeVisitWellBeingTool />} />
       </Route>
 
       <Route path="add">

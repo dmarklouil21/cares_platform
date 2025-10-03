@@ -1,337 +1,501 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { jsPDF } from "jspdf";
+import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
+// import LOAPrintTemplate from "../generate/LOAPrintTemplate";
+import api from "src/api/axiosInstance";
 
-const SAMPLE_DETAILS = {
-  "HV-101": {
-    patientName: "Lara Mendoza",
-    diagnosis: "Breast CA post-op",
-    date: "2025-10-05",
-    time: "09:10 AM",
-    purpose: "Wound assessment and pain management",
-    findings: "Incision clean and dry, VAS 3/10, afebrile, no erythema",
-    recommendations:
-      "Continue dressings q48h, Paracetamol 500 mg PRN, review in 1 week",
-    preparedBy: "Nurse Alma Cruz",
-    approvedBy: "Dr. Thea Ramos",
-  },
-  "HV-102": {
-    patientName: "Rico Balagtas",
-    diagnosis: "Colon CA on chemo",
-    date: "2025-10-02",
-    time: "02:20 PM",
-    purpose: "Toxicity monitoring and hydration counseling",
-    findings: "Mild nausea, no mucositis, BP 118/76, HR 78",
-    recommendations:
-      "Small frequent meals, Ondansetron PRN, encourage fluids 2L/day",
-    preparedBy: "Nurse Joel Tan",
-    approvedBy: "Dr. Allan Sy",
-  },
-  "HV-103": {
-    patientName: "Mika Salvador",
-    diagnosis: "Thyroid nodules",
-    date: "2025-09-28",
-    time: "11:00 AM",
-    purpose: "Medication adherence check and education",
-    findings: "On Levothyroxine, no palpitations, weight stable",
-    recommendations: "Continue current dose, TSH repeat in 8 weeks",
-    preparedBy: "Nurse Ria Gomez",
-    approvedBy: "Dr. Benjie Yu",
-  },
-  "HV-104": {
-    patientName: "Jomar Uy",
-    diagnosis: "Cervical lymphadenopathy",
-    date: "2025-10-06",
-    time: "04:35 PM",
-    purpose: "Symptom review and referral coordination",
-    findings: "Tender right cervical nodes, afebrile, mild dysphagia",
-    recommendations: "Warm compress, NSAID short course, ENT consult booked",
-    preparedBy: "Nurse Kaye Lim",
-    approvedBy: "Dr. Paula Cruz",
-  },
-};
-
-const FALLBACK = {
-  patientName: "—",
-  diagnosis: "—",
-  date: "—",
-  time: "—",
-  purpose: "—",
-  findings: "—",
-  recommendations: "—",
-  preparedBy: "—",
-  approvedBy: "—",
-};
-
-const Toast = ({ message }) => {
-  if (!message) return null;
-  return (
-    <div className="fixed top-2 left-1/2 -translate-x-1/2 z-50">
-      <div className="bg-gray2 text-white px-4 py-2 rounded shadow flex items-center gap-2">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="logo"
-          className="h-[20px]"
-        />
-        <span className="text-sm">{message}</span>
-      </div>
-    </div>
-  );
-};
-
-const ConfirmModal = ({
-  open,
-  title,
-  body,
-  onCancel,
-  onConfirm,
-  confirmTone = "primary",
-}) => {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <div className="relative bg-white w-[92%] max-w-md rounded-lg shadow-lg p-6">
-        <h3 className="text-lg font-semibold mb-1">{title}</h3>
-        <p className="text-sm text-gray-700 mb-4">{body}</p>
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            className={`px-4 py-2 rounded text-white ${
-              confirmTone === "danger"
-                ? "bg-red-600 hover:bg-red-700"
-                : "bg-primary hover:bg-primary/80"
-            }`}
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const Row = ({ label, value }) => (
-  <div className="flex items-start gap-4 py-1">
-    <div className="w-40 shrink-0 text-gray-700 font-medium">{label}</div>
-    <div className="text-gray-900">{value}</div>
-  </div>
-);
-
-const SectionDivider = () => <hr className="my-4 border-gray-200" />;
+// Components
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import Notification from "src/components/Notification";
+import SystemLoader from "src/components/SystemLoader";
+import DateModal from "src/components/Modal/DateModal";
+import FileUploadModal from "src/components/Modal/FileUploadModal";
+import TextAreaModal from "src/components/Modal/TextAreaModal";
 
 const HomeVisitView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [toast, setToast] = useState("");
-  const [confirm, setConfirm] = useState({
-    open: false,
-    action: null,
-    title: "",
-    body: "",
-    tone: "primary",
-  });
-  const data = SAMPLE_DETAILS[id] || FALLBACK;
+  const location = useLocation();
+
+  // Data
+  const [data, setData] = useState({});
+  const [status, setStatus] = useState("");
+  const [visitDate, setVisitDate] = useState(null);
+  const [isNewDate, setIsNewDate] = useState(false);
+
+  // Loading & Notification
+  const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState(location.state?.type || "");
+
+  // Confirmation Modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("Confirm Action?");
+  const [modalDesc, setModalDesc] = useState("");
+  const [modalAction, setModalAction] = useState(null);
+
+  // Visit Date Modal
+  const [dateModalOpen, setDateModalOpen] = useState(false);
+  const [tempDate, setTempDate] = useState("");
+  const [dateModalTitle, setDateModalTitle] = useState("Set Laboratory Test Date");
+
+  // Send Report Modal
+  const [sendReportModalOpen, setSendReportModalOpen] = useState(false);
+  const [reportFile, setReportFile] = useState(null);
+
+  // Remark Message Modal
+  const [visitPurposeModalOpen, setVisitPurposeModalOpen] = useState(false);
+  const [visitPurpose, setVisitPurpose] = useState("");
+
+  const [findingsModalOpen, setFindingsModalOpen] = useState(false);
+  const [findings, setFindings] = useState("");
+
+  const [recommendationModalOpen, setRecommendationModalOpen] = useState(false);
+  const [recommendations, setRecommendations] = useState("");
+
+  // Fetch Data
+  const fetchData = async () => {
+    try {
+      const { data } = await api.get(`/survivorship/home-visit/view/${id}/`);
+      setData(data);
+      setStatus(data.status);
+      setVisitDate(data.visit_date || null);
+      setVisitPurpose(data.purpose_of_visit || "")
+      setFindings(data.findings || "");
+      setRecommendations(data.recommendations || "");
+    } catch (error) {
+      console.error("Error fetching record:", error);
+    }
+  };
 
   useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(""), 2500);
-    return () => clearTimeout(t);
-  }, [toast]);
+    fetchData();
+  }, []);
+  console.log("Data: ", data);
 
-  const openAccept = () =>
-    setConfirm({
-      open: true,
-      action: "accept",
-      title: "Accept this request?",
-      body: `This will mark the request for ${data.patientName} as Approved.`,
-      tone: "primary",
-    });
+  // Auto-hide notification
+  useEffect(() => {
+    if (!notification) return;
+    const timer = setTimeout(() => setNotification(""), 3000);
+    return () => clearTimeout(timer);
+  }, [notification]);
 
-  const openReject = () =>
-    setConfirm({
-      open: true,
-      action: "reject",
-      title: "Reject this request?",
-      body: `This will reject the request for ${data.patientName}.`,
-      tone: "danger",
-    });
-
-  const closeConfirm = () =>
-    setConfirm({
-      open: false,
-      action: null,
-      title: "",
-      body: "",
-      tone: "primary",
-    });
-
-  const handleConfirm = () => {
-    if (confirm.action === "accept") setToast("Request approved.");
-    if (confirm.action === "reject") setToast("Request rejected.");
-    closeConfirm();
+  // Handlers
+  const handleStatusChange = (e) => {
+    const selectedStatus = e.target.value;
+    if (selectedStatus === "Processing") {
+      setDateModalOpen(true);
+      setModalAction({ newStatus: selectedStatus });
+      setStatus(selectedStatus);
+    } else {
+      setModalAction({ newStatus: selectedStatus });
+      setStatus(selectedStatus);
+    }
   };
 
-  const generatePdf = () => {
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    const width = doc.internal.pageSize.getWidth();
-    const M = 48;
-    let y = 60;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.text("PATIENT HOME VISIT REPORT", width / 2, y, { align: "center" });
-    y += 32;
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-    const drawLabelLine = (label, value) => {
-      const text = `${label}:`;
-      doc.text(text, M, y);
-      const startX = M + doc.getTextWidth(text) + 6;
-      const endX = width - M;
-      doc.setDrawColor(180);
-      doc.line(startX, y + 3, endX, y + 3);
-      if (value && value !== "—") {
-        doc.setTextColor(20);
-        doc.text(String(value), startX + 4, y);
-        doc.setTextColor(0);
-      }
-      y += 22;
-    };
-    drawLabelLine("Name of Patient", data.patientName);
-    drawLabelLine("Current Cancer Diagnosis", data.diagnosis);
-    drawLabelLine("Date & Time of Visit", `${data.date} ${data.time}`);
-    y += 4;
-    doc.setFont("helvetica", "bold");
-    doc.text("Purpose of Visit:", M, y);
-    y += 16;
-    doc.setFont("helvetica", "normal");
-    const bullets = ["Goal setting and education", "Medication support"];
-    const maxW = width - M * 2 - 16;
-    bullets.forEach((b) => {
-      const wrapped = doc.splitTextToSize(b, maxW);
-      doc.circle(M + 3, y - 3, 1.5, "F");
-      doc.text(wrapped, M + 12, y);
-      const h = doc.getTextDimensions(wrapped).h;
-      y += h + 8;
-    });
-    doc.setDrawColor(200);
-    doc.line(M, y, width - M, y);
-    y += 12;
-    doc.setFont("helvetica", "bold");
-    doc.text("Findings/ Observations:", M, y);
-    y += 12;
-    doc.setFont("helvetica", "normal");
-    const findingsWrapped = doc.splitTextToSize(
-      data.findings || "",
-      width - M * 2
-    );
-    doc.text(findingsWrapped, M, y);
-    y += doc.getTextDimensions(findingsWrapped).h + 6;
-    const drawRuled = (count, gap = 16) => {
-      for (let i = 0; i < count; i++) {
-        doc.setDrawColor(210);
-        doc.line(M, y, width - M, y);
-        y += gap;
-      }
-    };
-    drawRuled(6);
-    y += 12;
-    doc.setFont("helvetica", "bold");
-    doc.text("Recommendations:", M, y);
-    y += 12;
-    doc.setFont("helvetica", "normal");
-    const recoWrapped = doc.splitTextToSize(
-      data.recommendations || "",
-      width - M * 2
-    );
-    doc.text(recoWrapped, M, y);
-    y += doc.getTextDimensions(recoWrapped).h + 6;
-    drawRuled(3);
-    y += 24;
-    doc.setDrawColor(220, 38, 38);
-    doc.line(M, y, M + 200, y);
-    doc.line(width - M - 200, y, width - M, y);
-    doc.setFontSize(11);
-    doc.setTextColor(0);
-    doc.text("Prepared by:", M, y + 18);
-    doc.text("Approved by:", width - M - 200, y + 18);
-    doc.setFontSize(10);
-    doc.text("EJACC Representative", M, y + 34);
-    doc.save(`PatientHomeVisit_${id}.pdf`);
+  const handleDateModalConfirm = async () => {
+    if (!visitDate) {
+      alert("Please select a date before proceeding.");
+      return;
+    }
+    // setVisitDate(tempDate);
+    setModalAction((prev) => ({ ...prev, newvisitDate: tempDate }));
+    // setIsNewDate(true);
+    setDateModalOpen(false);
   };
+
+  const handleSendReport = async () => {
+    if (!loaFile) {
+      setSendReportModalOpen(false);
+      setModalInfo({
+        type: "info",
+        title: "Note",
+        message: "Please select a file before sending.",
+      });
+      setShowModal(true);
+      return;
+    }
+
+    try {
+      setSendReportModalOpen(false);
+      setLoading(true);
+      const formData = new FormData();
+      formData.append("file", reportFile);
+      formData.append("patient_name", data.patient?.full_name);
+      formData.append("email", data.patient?.email);
+
+      await api.post(`/post-treatment/send-loa/`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setNotificationType("success");
+      setNotification("Success.");
+
+    } catch (error) {
+      setNotificationType("error");
+      setNotification("Something went wrong while submitting the changes.");
+    } finally {
+      setLoading(false);
+      setLoaFile(null);
+    }
+  };
+
+  const handleSaveChanges = () => {
+    setModalText("Save changes?");
+    setModalDesc("Confirm to save the changes.");
+    setModalOpen(true);
+    setModalAction({ newStatus: null });
+  };
+
+  const handleModalConfirm = async () => {
+    try {
+      setLoading(true);
+      setModalOpen(false);
+
+      let payload = {
+        status: modalAction.newStatus || status,
+        visit_date: modalAction.newvisitDate || visitDate,
+        purpose_of_visit: modalAction.newVisitPurpose || visitPurpose,
+        findings: modalAction.newFindings || findings,
+        recommendations: modalAction.newRecommendations || recommendations
+      };
+      console.log("Payload: ", payload);
+      await api.patch(`/survivorship/home-visit/update/${data.id}/`, payload);
+
+      setNotificationType("success");
+      setNotification("Success.");
+      fetchData();
+    } catch (error) {
+      setNotificationType("error");
+      setNotification("Something went wrong while submitting the changes.");
+    } finally {
+      setLoading(false);
+      setModalAction(null);
+    }
+  }
+
+  const loaData = {
+    patient: {
+      full_name: data.patient?.full_name,
+      city: data.patient?.city,
+      age: data.patient?.age,
+      diagnosis: [{}],
+    },
+    procedure_name: data.procedure_name,
+  };
+
+  const statusPillClasses =
+    data?.status === "Completed"
+      ? "bg-green-100 text-green-700 border border-green-200"
+      : data?.status === "Processing"
+      ? "bg-blue-100 text-blue-700 border border-blue-200"
+      : data?.status === "Closed"
+      ? "bg-gray-100 text-gray-700 border border-gray-200"
+      : data?.status === "Pending"
+      ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
+      : data?.status === "Rejected"
+      ? "bg-red-100 text-red-700 border border-red-200"
+      : "bg-yellow-100 text-yellow-700";
 
   return (
-    <div className="h-screen w-full bg-gray flex flex-col overflow-auto">
-      <Toast message={toast} />
-      <ConfirmModal
-        open={confirm.open}
-        title={confirm.title}
-        body={confirm.body}
-        confirmTone={confirm.tone}
-        onCancel={closeConfirm}
-        onConfirm={handleConfirm}
+    <>
+      {loading && <SystemLoader />}
+
+      {/* Modals */}
+      <ConfirmationModal
+        open={modalOpen}
+        title={modalText}
+        desc={modalDesc}
+        onConfirm={handleModalConfirm}
+        onCancel={() => setModalOpen(false)}
       />
-      {/* <div className="bg-white h-[64px] px-5 w-full flex items-center justify-between">
-        <h1 className="text-md font-bold">Admin</h1>
-      </div> */}
-      <div className="w-full h-fit flex flex-col gap-5 p-5 overflow-auto">
-        <div className="flex items-center justify-between px-5">
-          <h2 className="text-xl font-semibold">Patient Home Visit Report</h2>
-          <button onClick={() => navigate(-1)}>
-            <img
-              src="/images/back.png"
-              alt="Back"
-              className="h-6 cursor-pointer"
-            />
-          </button>
-        </div>
-        <div className="bg-white rounded-md shadow border border-black/10 p-6">
-          <div className="flex items-center gap-3">
-            <div className="text-sm font-medium text-gray-600">
-              Viewing ID: <span className="font-mono">{id}</span>
+      <Notification message={notification} type={notificationType} />
+      <DateModal
+        open={dateModalOpen}
+        title={dateModalTitle}
+        value={visitDate}
+        onChange={setVisitDate}
+        onConfirm={handleDateModalConfirm}
+        onCancel={() => setDateModalOpen(false)}
+      />
+      <FileUploadModal
+        open={sendReportModalOpen}
+        title="Send Report"
+        recipient={data?.patient?.email}
+        onFileChange={setReportFile}
+        onConfirm={handleSendReport}
+        onCancel={() => setSendReportModalOpen(false)}
+      />
+      {/* Visit Purpose */}
+      <TextAreaModal 
+        open={visitPurposeModalOpen}
+        title="Add Purpose of Visit"
+        value={visitPurpose}
+        onChange={setVisitPurpose}
+        onConfirm={() => setVisitPurposeModalOpen(false)}
+        onCancel={() => setVisitPurposeModalOpen(false)}
+      />
+      {/* Findings */}
+      <TextAreaModal 
+        open={findingsModalOpen}
+        title="Add Findings"
+        value={findings}
+        onChange={setFindings}
+        onConfirm={() => setFindingsModalOpen(false)}
+        onCancel={() => setFindingsModalOpen(false)}
+      />
+      {/* Recommendations */}
+      <TextAreaModal 
+        open={recommendationModalOpen}
+        title="Add Recommendations"
+        value={recommendations}
+        onChange={setRecommendations}
+        onConfirm={() => setRecommendationModalOpen(false)}
+        onCancel={() => setRecommendationModalOpen(false)}
+      />
+
+      {/* Page Content */}
+      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray overflow-auto">
+        {/* Header */}
+        {/* <div className="h-[10%] px-5 w-full flex justify-between items-center">
+          <h1 className="text-md font-bold">Treatment Info</h1>
+          <Link to={"/admin/treatment-assistance/post-treatment"}>
+            <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
+          </Link>
+        </div> */}
+
+        {/* Home Visit Info */}
+        <div className="h-fit w-full flex flex-col gap-4">
+          <div className="bg-white rounded-md shadow border border-black/10">
+            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Patient Home Visit Details</h2>
+              <span className={`text-xs px-2 py-1 rounded ${statusPillClasses}`}>
+                {data?.status}
+              </span>
+              {/* <div className="flex gap-2">
+                <h2 className="text-lg font-semibold">Post-Treatment Laboratory Request</h2>
+                <span className={`text-xs px-2 py-1 rounded ${statusPillClasses}`}>
+                  {data?.status}
+                </span>
+              </div>
+              <div>
+                <Link to={"/admin/treatment-assistance/post-treatment"}>
+                  <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
+                </Link>
+              </div> */}
             </div>
-            <button
-              onClick={generatePdf}
-              className="px-3.5 py-1 text-sm cursor-pointer text-white rounded-md bg-primary hover:opacity-90"
+            {/* Info Fields */}
+            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Patient ID</span>
+                <span className="text-gray-700">{data?.patient?.patient_id || "---"}</span>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Patient Name</span>
+                <span className="text-gray-700">{data?.patient?.full_name || "---"}</span>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Diagnosis</span>
+                <span className="text-gray-700">
+                  {data?.patient?.diagnosis?.[0]?.diagnosis || "---"}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Status</span>
+                <select
+                  className="-ml-1 outline-none focus:ring-0 text-gray-700"
+                  value={status}
+                  onChange={handleStatusChange}
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Processing">Processing</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Closed">Closed</option>
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Date Created</span>
+                <span className="text-gray-700">
+                  {data?.created_at
+                    ? new Date(data?.created_at).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "---"}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Visit Date</span>
+                <span className="text-gray-700">
+                  {visitDate
+                    ? new Date(visitDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "---"}
+                </span>
+                {status === "Processing" && visitDate && (
+                  <span
+                    className="text-sm text-blue-700 cursor-pointer"
+                    onClick={() => setDateModalOpen(true)}
+                  >
+                    Edit
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Wellbeing Tool */}
+          <div className="bg-white rounded-md shadow border border-black/10">
+            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Wellbeing Tool</h2>
+            </div>
+            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Wellbeing Form</span>
+                <Link
+                  className="text-blue-700"
+                  to={`/admin/survivorship/view/${data?.id}/wellbeing-form`}
+                  state={data}
+                >
+                  View
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Info */}
+          {data?.status !== "Pending" && (
+            <div className="bg-white rounded-md shadow border border-black/10">
+              <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+                <h2 className="text-lg font-semibold">Narrative</h2>
+              </div>
+              <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                <div className="flex items-start gap-2">
+                  <span className="font-medium w-40">Purpose of Visit</span>
+                  <span
+                    className="text-gray-700 break-words flex-1"
+                  >
+                    {visitPurpose}
+                    {!visitPurpose && 
+                      <span 
+                        className="text-blue-700 cursor-pointer"
+                        onClick={() => setVisitPurposeModalOpen(true)}
+                      >
+                        Add
+                      </span>
+                    }
+                  </span>
+                  {visitPurpose &&
+                    <span
+                      className="text-sm text-blue-700 cursor-pointer"
+                      onClick={() => setVisitPurposeModalOpen(true)}
+                    >
+                      Edit
+                    </span>
+                  }
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="font-medium w-40 shrink-0">Findings/Observation</span>
+                  <span
+                    className="text-gray-700 break-words flex-1"
+                  >
+                    {findings}
+                    {!findings && 
+                      <span 
+                        className="text-blue-700 cursor-pointer"
+                        onClick={() => setFindingsModalOpen(true)}
+                      >
+                        Add
+                      </span>
+                    }
+                  </span>
+                  {findings &&
+                    <span
+                      className="text-sm text-blue-700 cursor-pointer"
+                      onClick={() => setFindingsModalOpen(true)}
+                    >
+                      Edit
+                    </span>
+                  }
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="font-medium w-40 shrink-0">Recommendation</span>
+                  <span
+                    className="text-gray-700 break-words flex-1"
+                  >
+                    {recommendations}
+                    {!recommendations && 
+                      <span 
+                        className="text-blue-700 cursor-pointer"
+                        onClick={() => setRecommendationModalOpen(true)}
+                      >
+                        Add
+                      </span>
+                    }
+                  </span>
+                  {recommendations &&
+                    <span
+                      className="text-sm text-blue-700 cursor-pointer"
+                      onClick={() => setRecommendationModalOpen(true)}
+                    >
+                      Edit
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Report Generation */}
+          {data?.status === "Completed" && (
+            <div className="bg-white rounded-md shadow border border-black/10">
+              <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+                <h2 className="text-lg font-semibold">Report Generation</h2>
+              </div>
+              <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                <div className="flex gap-2">
+                  <span className="font-medium w-40">Generate Report</span>
+                  <span
+                    className="text-blue-700 cursor-pointer"
+                    onClick={() => window.print()}
+                  >
+                    Download
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium w-40">Send Report</span>
+                  <span
+                    className="text-blue-700 cursor-pointer"
+                    // onClick={() => setSendLOAModalOpen(true)}
+                  >
+                    Send
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex justify-around print:hidden">
+            <Link
+              to={`/admin/survivorship`}
+              className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md"
             >
-              Generate
+              Back
+            </Link>
+            <button
+              onClick={handleSaveChanges}
+              className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer"
+            >
+              Save Changes
             </button>
           </div>
-          <Row label="Patient Name" value={data.patientName} />
-          <Row label="Diagnosis" value={data.diagnosis} />
-          <Row label="Date" value={data.date} />
-          <Row label="Time" value={data.time} />
-          <SectionDivider />
-          <Row label="Purpose" value={data.purpose} />
-          <Row label="Findings/Observation" value={data.findings} />
-          <Row label="Recommendations" value={data.recommendations} />
-          <Row label="Prepared by" value={data.preparedBy} />
-          <Row label="Approved by" value={data.approvedBy} />
-        </div>
-        <div className="flex justify-around">
-          <button
-            onClick={openAccept}
-            className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90"
-          >
-            Accept
-          </button>
-          <button
-            onClick={openReject}
-            className="py-2 w-[30%] bg-red-500 rounded-md text-white hover:bg-red-600"
-          >
-            Reject
-          </button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

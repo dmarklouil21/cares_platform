@@ -1,6 +1,9 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework import generics, status, filters
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.views import APIView
 
 from .models import PatientHomeVisit
 from .serializers import HomevisitSerializer
@@ -9,7 +12,6 @@ from .serializers import HomevisitSerializer
 # List all home visits or create a new one
 class PatientHomeVisitListView(generics.ListAPIView):
     serializer_class = HomevisitSerializer
-    # queryset = PatientHomeVisit.objects.all()
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['patient__patient_id']
@@ -50,6 +52,12 @@ class PatientHomeVisitDetailView(generics.RetrieveAPIView):
       qs = qs.filter(patient__patient_id=patient_id)
 
     return qs 
+
+class PatientHomeVisitUpdateView(generics.UpdateAPIView):
+  queryset = PatientHomeVisit.objects.all()
+  serializer_class = HomevisitSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = "id"   # so you can update by /<id> in the URL
 
 # Retrieve, update, delete a specific home visit
 # class PatientHomeVisitDetailView(generics.RetrieveUpdateDestroyAPIView):

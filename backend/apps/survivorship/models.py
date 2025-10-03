@@ -8,7 +8,7 @@ from apps.cancer_management.models import WellBeingAssessment
 STATUS_CHOICES = [
   ('Pending', 'Pending'),
   ('Processing', 'Processing'),
-  ('Recommendation', 'Recommendation'),
+  ('Recommendation', 'Recommendation'), # To be change to report generation
   ('Closed', 'Close'),
 ]
 class PatientHomeVisit(models.Model):
