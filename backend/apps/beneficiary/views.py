@@ -31,6 +31,9 @@ from apps.post_treatment.serializers import PostTreatmentSerializer, RequiredAtt
 from apps.cancer_management.models import CancerTreatment, ServiceAttachment
 from apps.cancer_management.serializers import CancerTreatmentSubmissionSerializer, CancerTreatmentSerializer
 
+from apps.survivorship.models import PatientHomeVisit
+from apps.survivorship.serializers import HomevisitSerializer
+
 from .serializers import PatientSerializer, PreEnrollmentSerializer
 
 import logging, json
@@ -496,6 +499,36 @@ class PostTreatmentResultUploadView(APIView):
     post_treatment.save()
 
     return Response({"message": "Result uploaded successfully."}, status=status.HTTP_200_OK)
+
+# -----------------------
+# Home Visit Views
+# -----------------------
+class HomeVisitListView(generics.ListAPIView):
+  serializer_class = HomevisitSerializer
+  permission_classes = [IsAuthenticated]
+
+  def get_queryset(self):
+    user = self.request.user
+    patient = get_object_or_404(Patient, user=user)
+    return PatientHomeVisit.objects.filter(patient=patient)
+
+class HomeVisitDetailView(generics.RetrieveAPIView):
+  queryset = PatientHomeVisit.objects.all()
+  serializer_class = HomevisitSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+# class HomeVisitUpdateView(generics.UpdateAPIView):
+#   queryset = PatientHomeVisit.objects.all()
+#   serializer_class = HomevisitSerializer
+#   permission_classes = [IsAuthenticated]
+#   lookup_field = "id"   # so you can update by /<id> in the URL
+
+#   def perform_update(self, serializer):
+#     serializer.save(
+#       has
+#     )
+#     return super().perform_update(serializer)
 
 def validate_attachment(file):
   max_size_mb = 5

@@ -491,7 +491,7 @@ const PreCancerous = () => {
 
       <div className="h-screen w-full flex p-5 gap-3 flex-col justify-start items-center bg-gray">
         <div className="flex justify-between items-center w-full">
-          <h2 className="text-xl font-bold text-left w-full pl-5">
+          <h2 className="text-xl font-bold text-left w-full pl-1">
             Pre-Cancerous Medication Request
           </h2>
           <Link
@@ -502,7 +502,7 @@ const PreCancerous = () => {
           </Link>
         </div>
 
-        <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-5 gap-3">
+        <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
           <p className="text-md font-semibold text-yellow">Patient List</p>
 
           {/* filters */}

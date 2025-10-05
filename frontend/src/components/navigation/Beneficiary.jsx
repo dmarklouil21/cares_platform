@@ -28,6 +28,12 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       arrow: "",
     },
     {
+      name: "Home Visit",
+      icon: "/src/assets/images/navigation/admin/survivorship.svg",
+      path: "/beneficiary/home-visit",
+      arrow: "",
+    },
+    {
       name: "Services",
       icon: "/src/assets/images/navigation/patient/services.svg",
       path: "",

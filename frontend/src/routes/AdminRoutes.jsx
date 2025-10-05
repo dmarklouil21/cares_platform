@@ -18,9 +18,11 @@ import EditProfile from "../pages/admin/profile/ViewProfile";
 //views
 import PostTreatmentView from "../pages/admin/TreatmentAssistance/PostTreatment/View/TreatmentView";
 import HomeVisitView from "../pages/admin/survivorship/HomeVisit/View/HomeView";
+import HomeVisitWellBeingTool from "../pages/admin/survivorship/HomeVisit/View/WellBeingTool";
 
 //add
 import HomeVisitAdd from "../pages/admin/survivorship/HomeVisit/Add/Add";
+import HomeVisitAddWellbeingForm from "../pages/admin/survivorship/HomeVisit/Add/WellBeingForm";
 
 // Patient Features
 import PatientView from "../pages/admin/Patient/PatientMasterList/View/PatientView";
@@ -196,13 +198,18 @@ const AdminRoutes = () => (
       <Route path="view" element={<ViewUser />} />
       <Route path="edit" element={<EditUser />} />
     </Route>
+
+    {/* Home Visit */}
     <Route path="survivorship">
       <Route index element={<HomeVisit />} />
       <Route path="view">
         <Route path=":id" element={<HomeVisitView />} />
+        <Route path=":id/wellbeing-form" element={<HomeVisitWellBeingTool />} />
       </Route>
+
       <Route path="add">
         <Route index element={<HomeVisitAdd />} />
+        <Route path="well-being-form" element={<HomeVisitAddWellbeingForm />} />
       </Route>
     </Route>
   </Route>

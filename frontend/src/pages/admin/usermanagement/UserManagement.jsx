@@ -232,7 +232,7 @@ const UserManagement = () => {
       />
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
         <div className="flex justify-between items-center w-full">
-          <h2 className="text-xl font-bold text-left w-full pl-5">
+          <h2 className="text-xl font-bold text-left w-full pl-1">
             User Management
           </h2>
           <Link
@@ -242,7 +242,7 @@ const UserManagement = () => {
             Add
           </Link>
         </div>
-        <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-5 gap-3">
+        <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
           <p className="text-md font-semibold text-yellow">
             Manage all system users
           </p>

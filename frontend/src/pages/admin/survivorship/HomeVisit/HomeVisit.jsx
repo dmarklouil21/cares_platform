@@ -1,5 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+
+import api from "src/api/axiosInstance";
 
 function ConfirmationModal({ open, text, onConfirm, onCancel }) {
   if (!open) return null;
@@ -79,7 +81,7 @@ const sampleData = [
 
 const HomeVisit = () => {
   const navigate = useNavigate();
-  const [tableData, setTableData] = useState(sampleData);
+  const [tableData, setTableData] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("");
@@ -90,6 +92,21 @@ const HomeVisit = () => {
   const [pendingAction, setPendingAction] = useState(null);
   const [notification, setNotification] = useState("");
 
+  const fetchData = async () => {
+    try {
+      console.log("Am I getting executed?");
+      const response = await api.get("/survivorship/home-visit/list/");
+      setTableData(response.data);
+      console.log("Table Data: ", response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  },[])
+
   const filteredResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     const s = statusFilter;
@@ -97,12 +114,12 @@ const HomeVisit = () => {
     return tableData.filter((row) => {
       const matchesSearch =
         !q ||
-        (row.patient_id || "").toLowerCase().includes(q) ||
-        (row.patient_name || "").toLowerCase().includes(q) ||
-        (row.diagnosis || "").toLowerCase().includes(q);
+        (row.patient.patient_id || "").toLowerCase().includes(q) ||
+        (row.patient.full_name || "").toLowerCase().includes(q) ||
+        (row.patient.diagnosis[0]?.diagnosis || "").toLowerCase().includes(q);
       const matchesStatus =
         s === "all" || (row.status || "").toLowerCase() === s;
-      const matchesDate = !d || row.date === d;
+      const matchesDate = !d || row.created_at === d;
       return matchesSearch && matchesStatus && matchesDate;
     });
   }, [tableData, searchQuery, statusFilter, dateFilter]);
@@ -239,16 +256,16 @@ const HomeVisit = () => {
                   {paginated.map((p) => (
                     <tr key={p.id}>
                       <td className="text-center text-sm py-3 text-gray-800">
-                        {p.patient_id}
+                        {p.patient.patient_id}
                       </td>
                       <td className="text-center text-sm py-3 text-gray-800">
-                        {p.patient_name}
+                        {p.patient.full_name}
                       </td>
                       <td className="text-center text-sm py-3 text-gray-800">
-                        {p.diagnosis}
+                        {p.patient.diagnosis[0]?.diagnosis}
                       </td>
                       <td className="text-center text-sm py-3 text-gray-800">
-                        {new Date(p.date).toLocaleDateString("en-US", {
+                        {new Date(p.created_at).toLocaleDateString("en-US", {
                           year: "numeric",
                           month: "long",
                           day: "numeric",

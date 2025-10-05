@@ -140,12 +140,6 @@ export default function ViewPostTreatmentStatus() {
               >
                 View Checkup Schedules
               </span> {' '}
-              {/* <span
-                // onClick={() => setIsCheckupModalOpen(true)}
-                className="text-blue-500 underline cursor-pointer"
-              >
-                Upload Doctor's Prescription
-              </span> */}
             </>
           ) : (
             <> Followup Checkup is required.{" "} </>

@@ -328,12 +328,12 @@ const PostTreatmentView = () => {
       {/* Page Content */}
       <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray overflow-auto">
         {/* Header */}
-        <div className="h-[10%] px-5 w-full flex justify-between items-center">
+        {/* <div className="h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Treatment Info</h1>
           <Link to={"/admin/treatment-assistance/post-treatment"}>
             <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
           </Link>
-        </div>
+        </div> */}
 
         {/* Treatment Info */}
         <div className="h-fit w-full flex flex-col gap-4">
@@ -343,6 +343,17 @@ const PostTreatmentView = () => {
               <span className={`text-xs px-2 py-1 rounded ${statusPillClasses}`}>
                 {data?.status}
               </span>
+              {/* <div className="flex gap-2">
+                <h2 className="text-lg font-semibold">Post-Treatment Laboratory Request</h2>
+                <span className={`text-xs px-2 py-1 rounded ${statusPillClasses}`}>
+                  {data?.status}
+                </span>
+              </div>
+              <div>
+                <Link to={"/admin/treatment-assistance/post-treatment"}>
+                  <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
+                </Link>
+              </div> */}
             </div>
             {/* Info Fields */}
             <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">

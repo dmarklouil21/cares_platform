@@ -201,11 +201,11 @@ const PreEnrollmentList = () => {
         onClose={() => setNotification("")}
       />
       <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray">
-        <h2 className="text-xl font-bold text-left w-full pl-5">
+        <h2 className="text-xl font-bold text-left w-full pl-1">
           Pre-Enrollment
         </h2>
 
-        <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-5 gap-3">
+        <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
           <p className="text-md font-semibold text-yellow">
             Pre-Enrollment Requests
           </p>

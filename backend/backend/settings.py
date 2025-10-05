@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'apps.cancer_management',
     'apps.precancerous',
     'apps.post_treatment',
+    'apps.survivorship',
     'apps.rhu',
 ]
 
