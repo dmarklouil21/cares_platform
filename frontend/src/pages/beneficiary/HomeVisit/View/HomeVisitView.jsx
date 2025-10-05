@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
 import api from "src/api/axiosInstance";
 import { useAuth } from "src/context/AuthContext";
 
@@ -17,11 +17,13 @@ const getStepIndexByStatus = (status) => STATUS_TO_STEP[status] ?? 0;
 
 export default function ViewHomeVisitStatus() {
   const { user } = useAuth();
-  const location = useLocation();
+  const { id } = useParams();
+  const navigate = useNavigate();
+  // const location = useLocation();
   // const id = location?.state.id;
-  const [individualScreening, setIndividualScreening] = useState(null);
+  const [homeVisit, setHomeVisit] = useState(null);
 
-  const activeStep = getStepIndexByStatus(individualScreening?.status || "");
+  const activeStep = getStepIndexByStatus(homeVisit?.status || "");
 
   // Step definitions
   const stepList = useMemo(
@@ -31,14 +33,14 @@ export default function ViewHomeVisitStatus() {
         description:
           activeStep === 0 ? (
             <>
-              Your request for cancer screening has been submitted and is
-              currently under review. Once approved, you’ll receive instructions
-              on the next steps.
+              You’ve been selected for a home visit. Before it can be scheduled,
+              Please fill out and submit the <span onClick={() => navigate(`wellbeing-form`)} className="text-blue-700 underline cursor-pointer">Well-Being Form</span> in this page. This form helps us
+              assess your current condition and prepare for the visit.
             </>
           ) : (
             <>
-              Your request has been approved. You will be notified with your
-              screening date through email.
+              You’ve completed the Well-Being Form. The team will now review your
+              responses to determine your home visit schedule.
             </>
           ),
       },
@@ -47,41 +49,24 @@ export default function ViewHomeVisitStatus() {
         description:
           activeStep === 1 ? (
             <>
-              {/* To proceed with your application, fill out the Screening Procedure form and submit the required documents.{" "} */}
-              Your cancer screening has been scheduled for{" "}
+              Your home visit has been scheduled for{" "}
               <b>
-                {new Date(
-                  individualScreening?.screening_date
-                ).toLocaleDateString("en-US", {
+                {new Date(homeVisit?.visit_date).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
                 })}
               </b>
-              . Please make sure to arrive at least 15 minutes early and bring
-              any required identification.
-              {/* <Link
-            to="/Beneficiary/services/cancer-screening/screening-requirements-note"
-            className="text-blue-500 underline"
-          >
-            Click here to proceed!
-          </Link> */}
+              . Please make sure to be available at your residence during this
+              date.
+            </>
+          ) : activeStep < 1 ? (
+            <>
+             Your visit date will be schedule after reviewing your well being form.
             </>
           ) : (
             <>
-              {/* Fill out the Screening Procedure form and submit the required documents. */}
-              Your cancer screening has been scheduled for{" "}
-              <b>
-                {new Date(
-                  individualScreening?.screening_date
-                ).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </b>
-              . Please make sure to arrive at least 15 minutes early and bring
-              any required identification.
+              Home visit is complete, wait for the findings and recommendation to be sent to you.
             </>
           ),
       },
@@ -89,13 +74,17 @@ export default function ViewHomeVisitStatus() {
         title: "Recommendation",
         description:
           activeStep === 2 ? (
-            <>Your cancer screening is in progress.</>
+            <>
+              Your home visit has been completed. Our healthcare team is now
+              preparing a report and medical recommendation based on the visit
+              findings.
+            </>
           ) : activeStep > 2 ? (
-            <> Your cancer screening is complete. </>
+            <> Your post-visit recommendation has been finalized. </>
           ) : (
             <>
-              {" "}
-              Your screening date will be scheduled once everything is ready.{" "}
+              Your home visit schedule will be set once your Well-Being Form has
+              been reviewed.
             </>
           ),
       },
@@ -104,28 +93,27 @@ export default function ViewHomeVisitStatus() {
         description:
           activeStep === 3 ? (
             <>
-              Upload the results of your cancer screening.{" "}
-              <Link
+              Your home visit case has been completed. Thank you for your cooperation and have a smooth recovery.
+              {/* <Link
                 to="/beneficiary/applications/individual-screening/upload-attachments"
                 state={{
-                  individual_screening: individualScreening,
+                  home_visit: homeVisit,
                   purpose: "result_upload",
                 }}
                 className="text-blue-500 underline"
               >
-                Click here to upload!
-              </Link>
+                Click here to view or upload additional documents.
+              </Link> */}
             </>
           ) : (
             <>
-              {" "}
-              After completion you are required to upload the results of your
-              cancer screening.
+              Once the recommendation has been finalized and shared, your case will
+              be marked as closed.
             </>
           ),
       },
     ],
-    [activeStep, individualScreening]
+    [activeStep, homeVisit]
   );
 
   useEffect(() => {
@@ -134,7 +122,7 @@ export default function ViewHomeVisitStatus() {
         const { data } = await api.get(
           `/beneficiary/home-visit/details/${id}/`
         );
-        setIndividualScreening(data);
+        setHomeVisit(data);
       } catch (error) {
         console.error("Error fetching screening data:", error);
       }
@@ -213,7 +201,7 @@ export default function ViewHomeVisitStatus() {
         </div>
       </div>
 
-      {/* <LOAPrintTemplate loaData={individualScreening} /> */}
+      {/* <LOAPrintTemplate loaData={homeVisit} /> */}
     </div>
   );
 }

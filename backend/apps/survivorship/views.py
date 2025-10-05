@@ -8,6 +8,9 @@ from rest_framework.views import APIView
 from .models import PatientHomeVisit
 from .serializers import HomevisitSerializer
 
+from backend.utils.email import (
+  send_report_email
+)
 
 # List all home visits or create a new one
 class PatientHomeVisitListView(generics.ListAPIView):
@@ -58,6 +61,26 @@ class PatientHomeVisitUpdateView(generics.UpdateAPIView):
   serializer_class = HomevisitSerializer
   permission_classes = [IsAuthenticated]
   lookup_field = "id"   # so you can update by /<id> in the URL
+
+class SendReportView(APIView):
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def post(self, request):
+    file_obj = request.FILES.get("file")
+    email = request.data.get("email")
+    patient_name = request.data.get("patient_name") 
+
+    if not file_obj:
+      return Response({"error": "No Report file uploaded."}, status=400)
+
+    if not email:
+      return Response({"error": "No recipient email provided."}, status=400)
+    
+    result = send_report_email(email, file_obj, patient_name)
+
+    if result is True:
+      return Response({"message": "Report Document sent successfully."}, status=200)
+    return Response({"error": f"Failed to send the report file: {result}"}, status=500)
 
 # Retrieve, update, delete a specific home visit
 # class PatientHomeVisitDetailView(generics.RetrieveUpdateDestroyAPIView):

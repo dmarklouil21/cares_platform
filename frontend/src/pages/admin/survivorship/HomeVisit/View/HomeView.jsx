@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
+import { jsPDF } from "jspdf";
 // import LOAPrintTemplate from "../generate/LOAPrintTemplate";
 import api from "src/api/axiosInstance";
 
@@ -104,7 +105,7 @@ const HomeVisitView = () => {
   };
 
   const handleSendReport = async () => {
-    if (!loaFile) {
+    if (!reportFile) {
       setSendReportModalOpen(false);
       setModalInfo({
         type: "info",
@@ -123,7 +124,7 @@ const HomeVisitView = () => {
       formData.append("patient_name", data.patient?.full_name);
       formData.append("email", data.patient?.email);
 
-      await api.post(`/post-treatment/send-loa/`, formData, {
+      await api.post(`/survivorship/home-visit/send-report/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -181,6 +182,94 @@ const HomeVisitView = () => {
       diagnosis: [{}],
     },
     procedure_name: data.procedure_name,
+  };
+
+  const generatePdf = () => {
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const width = doc.internal.pageSize.getWidth();
+    const M = 48;
+    let y = 60;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text("PATIENT HOME VISIT REPORT", width / 2, y, { align: "center" });
+    y += 32;
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    const drawLabelLine = (label, value) => {
+      const text = `${label}:`;
+      doc.text(text, M, y);
+      const startX = M + doc.getTextWidth(text) + 6;
+      const endX = width - M;
+      doc.setDrawColor(180);
+      doc.line(startX, y + 3, endX, y + 3);
+      if (value && value !== "—") {
+        doc.setTextColor(20);
+        doc.text(String(value), startX + 4, y);
+        doc.setTextColor(0);
+      }
+      y += 22;
+    };
+    drawLabelLine("Name of Patient", data.patient.full_name);
+    drawLabelLine("Current Cancer Diagnosis", data.patient.diagnosis[0]?.diagnosis);
+    drawLabelLine("Date & Time of Visit", `${data.visit_date}`);
+    y += 4;
+    doc.setFont("helvetica", "bold");
+    doc.text("Purpose of Visit:", M, y);
+    y += 16;
+    doc.setFont("helvetica", "normal");
+    const bullets = ["Goal setting and education", "Medication support"];
+    const maxW = width - M * 2 - 16;
+    bullets.forEach((b) => {
+      const wrapped = doc.splitTextToSize(b, maxW);
+      doc.circle(M + 3, y - 3, 1.5, "F");
+      doc.text(wrapped, M + 12, y);
+      const h = doc.getTextDimensions(wrapped).h;
+      y += h + 8;
+    });
+    doc.setDrawColor(200);
+    doc.line(M, y, width - M, y);
+    y += 12;
+    doc.setFont("helvetica", "bold");
+    doc.text("Findings/ Observations:", M, y);
+    y += 12;
+    doc.setFont("helvetica", "normal");
+    const findingsWrapped = doc.splitTextToSize(
+      data.findings || "",
+      width - M * 2
+    );
+    doc.text(findingsWrapped, M, y);
+    y += doc.getTextDimensions(findingsWrapped).h + 6;
+    const drawRuled = (count, gap = 16) => {
+      for (let i = 0; i < count; i++) {
+        doc.setDrawColor(210);
+        doc.line(M, y, width - M, y);
+        y += gap;
+      }
+    };
+    drawRuled(6);
+    y += 12;
+    doc.setFont("helvetica", "bold");
+    doc.text("Recommendations:", M, y);
+    y += 12;
+    doc.setFont("helvetica", "normal");
+    const recoWrapped = doc.splitTextToSize(
+      data.recommendations || "",
+      width - M * 2
+    );
+    doc.text(recoWrapped, M, y);
+    y += doc.getTextDimensions(recoWrapped).h + 6;
+    drawRuled(3);
+    y += 24;
+    doc.setDrawColor(220, 38, 38);
+    doc.line(M, y, M + 200, y);
+    doc.line(width - M - 200, y, width - M, y);
+    doc.setFontSize(11);
+    doc.setTextColor(0);
+    doc.text("Prepared by:", M, y + 18);
+    doc.text("Approved by:", width - M - 200, y + 18);
+    doc.setFontSize(10);
+    doc.text("EJACC Representative", M, y + 34);
+    doc.save(`PatientHomeVisit_${id}.pdf`);
   };
 
   const statusPillClasses =
@@ -308,7 +397,7 @@ const HomeVisitView = () => {
                 >
                   <option value="Pending">Pending</option>
                   <option value="Processing">Processing</option>
-                  <option value="Completed">Completed</option>
+                  <option value="Recommendation">Recommendation</option>
                   <option value="Closed">Closed</option>
                 </select>
               </div>
@@ -367,7 +456,7 @@ const HomeVisitView = () => {
           </div>
 
           {/* Additional Info */}
-          {data?.status !== "Pending" && (
+          {/* {data?.status !== "Pending" && data?.status !== "Processing" && ( */}
             <div className="bg-white rounded-md shadow border border-black/10">
               <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Narrative</h2>
@@ -397,60 +486,65 @@ const HomeVisitView = () => {
                     </span>
                   }
                 </div>
-                <div className="flex items-start gap-2">
-                  <span className="font-medium w-40 shrink-0">Findings/Observation</span>
-                  <span
-                    className="text-gray-700 break-words flex-1"
-                  >
-                    {findings}
-                    {!findings && 
-                      <span 
-                        className="text-blue-700 cursor-pointer"
-                        onClick={() => setFindingsModalOpen(true)}
+                {data?.status !== "Pending" && data?.status !== "Processing" && (
+                  <>
+                    <div className="flex items-start gap-2">
+                      <span className="font-medium w-40 shrink-0">Findings/Observation</span>
+                      <span
+                        className="text-gray-700 break-words flex-1"
                       >
-                        Add
+                        {findings}
+                        {!findings && 
+                          <span 
+                            className="text-blue-700 cursor-pointer"
+                            onClick={() => setFindingsModalOpen(true)}
+                          >
+                            Add
+                          </span>
+                        }
                       </span>
-                    }
-                  </span>
-                  {findings &&
-                    <span
-                      className="text-sm text-blue-700 cursor-pointer"
-                      onClick={() => setFindingsModalOpen(true)}
-                    >
-                      Edit
-                    </span>
-                  }
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="font-medium w-40 shrink-0">Recommendation</span>
-                  <span
-                    className="text-gray-700 break-words flex-1"
-                  >
-                    {recommendations}
-                    {!recommendations && 
-                      <span 
-                        className="text-blue-700 cursor-pointer"
-                        onClick={() => setRecommendationModalOpen(true)}
+                      {findings &&
+                        <span
+                          className="text-sm text-blue-700 cursor-pointer"
+                          onClick={() => setFindingsModalOpen(true)}
+                        >
+                          Edit
+                        </span>
+                      }
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="font-medium w-40 shrink-0">Recommendation</span>
+                      <span
+                        className="text-gray-700 break-words flex-1"
                       >
-                        Add
+                        {recommendations}
+                        {!recommendations && 
+                          <span 
+                            className="text-blue-700 cursor-pointer"
+                            onClick={() => setRecommendationModalOpen(true)}
+                          >
+                            Add
+                          </span>
+                        }
                       </span>
-                    }
-                  </span>
-                  {recommendations &&
-                    <span
-                      className="text-sm text-blue-700 cursor-pointer"
-                      onClick={() => setRecommendationModalOpen(true)}
-                    >
-                      Edit
-                    </span>
-                  }
-                </div>
+                      {recommendations &&
+                        <span
+                          className="text-sm text-blue-700 cursor-pointer"
+                          onClick={() => setRecommendationModalOpen(true)}
+                        >
+                          Edit
+                        </span>
+                      }
+                    </div>
+                  </>
+                )}
+                
               </div>
             </div>
-          )}
+          {/* )} */}
 
           {/* Report Generation */}
-          {data?.status === "Completed" && (
+          {data?.status === "Recommendation" && (
             <div className="bg-white rounded-md shadow border border-black/10">
               <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Report Generation</h2>
@@ -460,7 +554,7 @@ const HomeVisitView = () => {
                   <span className="font-medium w-40">Generate Report</span>
                   <span
                     className="text-blue-700 cursor-pointer"
-                    onClick={() => window.print()}
+                    onClick={generatePdf}
                   >
                     Download
                   </span>
@@ -469,7 +563,7 @@ const HomeVisitView = () => {
                   <span className="font-medium w-40">Send Report</span>
                   <span
                     className="text-blue-700 cursor-pointer"
-                    // onClick={() => setSendLOAModalOpen(true)}
+                    onClick={() => setSendReportModalOpen(true)}
                   >
                     Send
                   </span>

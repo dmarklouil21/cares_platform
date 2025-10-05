@@ -10,6 +10,7 @@ import Profile from "../pages/beneficiary/profile/Profile";
 
 // HomeVisit View
 import HomeVisitView from "../pages/beneficiary/HomeVisit/View/HomeVisitView";
+import HomeVisitWellbeingForm from "../pages/beneficiary/HomeVisit/View/WellBeingForm";
 
 // Services
 import CancerScreening from "../pages/beneficiary/Services/CancerScreening/CancerScreening";
@@ -65,12 +66,10 @@ const BeneficiaryRoutes = () => (
     <Route path="cancer-awareness" element={<CancerAwareness />} />
 
     {/* Homevisit */}
-    <Route path="home-visit" element={<HomeVisit />} />
-    <Route path="home-visit/view/:id" element={<HomeVisitView />} />
-
     <Route path="home-visit">
       <Route index element={<HomeVisit />} />
       <Route path="view/:id" element={<HomeVisitView />} />
+      <Route path="view/:id/wellbeing-form" element={<HomeVisitWellbeingForm />} />
     </Route>
 
     {/* Services */}

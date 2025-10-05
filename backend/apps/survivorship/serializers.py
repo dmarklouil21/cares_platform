@@ -76,7 +76,6 @@ class HomevisitSerializer(serializers.ModelSerializer):
     home_visit = PatientHomeVisit.objects.create(
       patient=patient,
       wellbeing_assessment=assessment,
-      status="Pending",  # always default
       **validated_data
     )
 
@@ -84,13 +83,6 @@ class HomevisitSerializer(serializers.ModelSerializer):
   
   def update(self, instance, validated_data):
     well_being_data = validated_data.pop("well_being_data", None)
-    print("Validated Data: ", validated_data)
-    # patient = instance.patient
-
-    # --- Update patient if provided ---
-    # if patient_id:
-    #   patient = get_object_or_404(Patient, patient_id=patient_id)
-    #   instance.patient = patient
 
     # --- Update WellBeingAssessment if provided ---
     if well_being_data:

@@ -634,6 +634,34 @@ def send_post_treatment_status_email(patient, status, lab_test_date=None, remark
   except Exception as e:
     return str(e)
 
+def send_report_email(recipient_email, file_obj, patient_name=None):
+  try:
+    name_text = f"Dear <b>{patient_name}</b>," if patient_name else "Dear Patient,"
+
+    message = EmailMessage(
+      subject="RAFI-EJACC: Report and Recommendation from your Home Visitation",
+      body=f"""
+          {name_text}<br><br>
+          We are pleased to inform you that your request for cancer treatment - Radiation Therapy has been approved.<br><br>
+          Please find attached your <b>Case Summary and Interverntion Plan</b>. Kindly print, sign and upload the document back. For further processing.<br><br>
+          Our team will contact you through email shortly once your treatment date has been finalized.<br><br>
+          Thank you for your trust and cooperation.<br><br>
+          Best regards,<br>
+          <b>RAFI-EJACC Team</b>
+      """,
+      from_email=settings.DEFAULT_FROM_EMAIL,
+      to=[recipient_email],
+    )
+    message.content_subtype = "html"
+
+    # Attach uploaded file (works without saving to DB)
+    message.attach(file_obj.name, file_obj.read(), file_obj.content_type)
+
+    message.send(fail_silently=False)
+    return True
+  except Exception as e:
+    return str(e)
+
 # def send_individual_screening_status_email(patient, status, screening_date=None):
 #   try:
 #     status_messages = {

@@ -518,6 +518,18 @@ class HomeVisitDetailView(generics.RetrieveAPIView):
   permission_classes = [IsAuthenticated]
   lookup_field = 'id'
 
+# class HomeVisitUpdateView(generics.UpdateAPIView):
+#   queryset = PatientHomeVisit.objects.all()
+#   serializer_class = HomevisitSerializer
+#   permission_classes = [IsAuthenticated]
+#   lookup_field = "id"   # so you can update by /<id> in the URL
+
+#   def perform_update(self, serializer):
+#     serializer.save(
+#       has
+#     )
+#     return super().perform_update(serializer)
+
 def validate_attachment(file):
   max_size_mb = 5
   allowed_types = [
