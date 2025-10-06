@@ -5,6 +5,9 @@ import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
 
+import SystemLoader from "src/components/SystemLoader";
+import DateModal from "src/components/Modal/DateModal";
+
 import api from "src/api/axiosInstance";
 
 import LOAPrintTemplate from "./LOAPrintTemplate";
@@ -38,6 +41,7 @@ const DetailedView = () => {
   // Screening Date Modal
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const [tempDate, setTempDate] = useState("");
+  const [dateModalTitle, setDateModalTitle] = useState("Set Screening Date");
 
   // Remark Message Modal
   const [remarksModalOpen, setRemarksModalOpen] = useState(false);
@@ -50,38 +54,40 @@ const DetailedView = () => {
   useEffect(() => {
     if (record) {
       setStatus(record.status);
-      setScreeningDate(record.screening_date || "");
+      setScreeningDate(record.screening_date || null);
     }
   }, [record]);
 
   const handleStatusChange = (e) => {
     const selectedStatus = e.target.value;
     if (selectedStatus === "Approve") {
-      setTempDate(screeningDate || "");
+      // setTempDate(screeningDate || "");
       setDateModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
+      setStatus(selectedStatus);
     } else if (selectedStatus === "Return" || selectedStatus === "Reject") {
       setRemarksModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
     } else {
-      setModalText(`Confirm status change to "${selectedStatus}"?`);
-      setModalDesc("Make sure the necessary procedure are finished before proceeding.");
+      // setModalText(`Confirm status change to "${selectedStatus}"?`);
+      // setModalDesc("Make sure the necessary procedure are finished before proceeding.");
       setModalAction({ newStatus: selectedStatus });
-      setModalOpen(true);
-      // setStatus(selectedStatus);
+      // setModalOpen(true);
+      setStatus(selectedStatus);
     }
   };
 
   const handleDateModalConfirm = () => {
-    if (!tempDate) {
+    if (!screeningDate) {
       alert("Please select a date before proceeding.");
       return;
     }
-    setScreeningDate(tempDate);
-    setModalText(`Screening date set to ${tempDate}?`);
-    setModalDesc("Make sure the date is correct before proceeding.");
-    setIsNewDate(true);
-    setModalOpen(true);
+    setModalAction((prev) => ({ ...prev, newScreeningDate: screeningDate }));
+    // setScreeningDate(tempDate);
+    // setModalText(`Screening date set to ${tempDate}?`);
+    // setModalDesc("Make sure the date is correct before proceeding.");
+    // setIsNewDate(true);
+    // setModalOpen(true);
     setDateModalOpen(false);
   };
 
@@ -133,14 +139,24 @@ const DetailedView = () => {
     }
   };
 
+  const handleSaveChanges = () => {
+    setModalText("Save changes?");
+    setModalDesc("Please confirm before proceeding.");
+    setModalOpen(true);
+    setModalAction({ newStatus: null });
+  };
+
   const handleModalConfirm = async () => {
-    if (modalAction?.newStatus) {
-      setStatus(modalAction.newStatus);
+    // if (modalAction?.newStatus) {
+      // setStatus(modalAction.newStatus);
       setModalOpen(false);
       setLoading(true);
       try {
-        const payload = { status: modalAction.newStatus };
-        if (screeningDate) payload.screening_date = screeningDate;
+        const payload = { 
+          status: modalAction.newStatus || status,
+          screening_date: modalAction.newScreeningDate || screeningDate,
+        };
+        // if (screeningDate) payload.screening_date = screeningDate;
 
         await api.patch(
           `/cancer-screening/individual-screening/status-update/${record.id}/`,
@@ -162,7 +178,8 @@ const DetailedView = () => {
       } finally {
         setLoading(false);
       }
-    } else if (isNewDate) {
+    // } 
+    /* else if (isNewDate) {
       setModalOpen(false);
       setLoading(true);
       try {
@@ -186,7 +203,7 @@ const DetailedView = () => {
       } finally {
         setLoading(false);
       }
-    }
+    } */
 
     setModalOpen(false);
     setModalAction(null);
@@ -260,6 +277,7 @@ const DetailedView = () => {
   return (
     <>
       {/* Global Modals */}
+      {loading && <SystemLoader />}
       <ConfirmationModal
         open={modalOpen}
         title={modalText}
@@ -271,17 +289,25 @@ const DetailedView = () => {
           setModalText("");
         }}
       />
-      <NotificationModal
+      {/* <NotificationModal
         show={showModal}
         type={modalInfo.type}
         title={modalInfo.title}
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
+      /> */}
+      <DateModal
+        open={dateModalOpen}
+        title={dateModalTitle}
+        value={screeningDate}
+        onChange={setScreeningDate}
+        onConfirm={handleDateModalConfirm}
+        onCancel={() => setDateModalOpen(false)}
       />
-      <LoadingModal open={loading} text="Submitting changes..." />
+      {/* <LoadingModal open={loading} text="Submitting changes..." /> */}
 
       {/* Schedule Modal */}
-      {dateModalOpen && (
+      {/* {dateModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
             <h2 className="text-lg font-semibold mb-4 text-gray-800">Set Screening Date</h2>
@@ -307,7 +333,7 @@ const DetailedView = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Return remarks Modal */}
       {remarksModalOpen && (
@@ -377,12 +403,12 @@ const DetailedView = () => {
       {/* Screen layout */}
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
         {/* Header bar */}
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+        {/* <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Individual Screening</h1>
           <Link to={"/admin/cancer-screening"}>
             <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
           </Link>
-        </div>
+        </div> */}
 
         {/* Content */}
         <div className="h-full w-full overflow-auto p-5 flex flex-col gap-4">
@@ -397,7 +423,7 @@ const DetailedView = () => {
                     : "bg-gray-100 text-gray-700 border border-gray-200"
                 }`}
               >
-                {status}
+                {record?.status}
               </span>
             </div>
             <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
@@ -445,15 +471,32 @@ const DetailedView = () => {
                   <option value="Pending">Pending</option>
                   <option value="Approve">Approve</option>
                   {/* <option value="LOA Generation">LOA Generation</option> */}
-                  <option value="In Progress">In Progress</option>
+                  {/* <option value="In Progress">In Progress</option> */}
                   <option value="Complete">Complete</option>
                   {/* <option value="Return">Return</option> */}
-                  <option value="Reject">Reject</option>
+                  {/* <option value="Reject">Reject</option> */}
                 </select>
               </div>
               <div className="flex gap-2">
                 <span className="font-medium w-40">Screening Date</span>
-                <span className="text-gray-700">{record.screening_date ? (
+                <span className="text-gray-700">
+                  {screeningDate
+                    ? new Date(screeningDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "---"}
+                </span>
+                {status === "Approve" && screeningDate && (
+                  <span
+                    className="text-sm text-blue-700 cursor-pointer"
+                    onClick={() => setDateModalOpen(true)}
+                  >
+                    Edit
+                  </span>
+                )}
+                {/* <span className="text-gray-700">{record.screening_date ? (
                   new Date(record.screening_date).toLocaleDateString(
                     "en-US",
                     {
@@ -464,7 +507,7 @@ const DetailedView = () => {
                   )) : (
                     "---"
                   )}
-                </span>
+                </span> */}
               </div>
             </div>
           </div>
@@ -509,32 +552,34 @@ const DetailedView = () => {
           </div>
 
           {/* Action Button */}
-          <div className="bg-white rounded-md shadow border border-black/10">
-            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">LOA Actions</h2>
-            </div>
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Generate LOA</span>
-                <span 
-                  className="text-blue-700 cursor-pointer"
-                  onClick={() => window.print()}
-                >
-                  Download
-                </span>
+          {record?.status !== "Pending" && 
+            <div className="bg-white rounded-md shadow border border-black/10">
+              <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+                <h2 className="text-lg font-semibold">LOA Actions</h2>
               </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Send LOA</span>
-                <span 
-                  className="text-blue-700 cursor-pointer"
-                  onClick={() => setSendLOAModalOpen(true)}
-                  state={record}
-                >
-                  Send
-                </span>
+              <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                <div className="flex gap-2">
+                  <span className="font-medium w-40">Generate LOA</span>
+                  <span 
+                    className="text-blue-700 cursor-pointer"
+                    onClick={() => window.print()}
+                  >
+                    Download
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium w-40">Send LOA</span>
+                  <span 
+                    className="text-blue-700 cursor-pointer"
+                    onClick={() => setSendLOAModalOpen(true)}
+                    state={record}
+                  >
+                    Send
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          }
 
           {/* Navigation Links */}
           {/* <div className="w-full flex flex-col md:flex-row gap-3 justify-between">
@@ -546,6 +591,20 @@ const DetailedView = () => {
               Save Changes
             </Link>
           </div> */}
+          <div className="flex justify-around print:hidden">
+            <Link
+              to={`/admin/cancer-screening`}
+              className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md"
+            >
+              Back
+            </Link>
+            <button
+              onClick={handleSaveChanges}
+              className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer"
+            >
+              Save Changes
+            </button>
+          </div>
         </div>
         <LOAPrintTemplate loaData={record} />
       </div>

@@ -85,6 +85,16 @@ class IndividualScreeningDeleteView(generics.DestroyAPIView):
   lookup_field = 'id'
   permission_classes = [IsAuthenticated, IsAdminUser]
 
+  def perform_destroy(self, instance):
+    remarks = self.request.data.get('remarks')
+    status_value = self.request.data.get('status')
+
+    patient = instance.patient
+
+    if remarks:
+      send_individual_screening_status_email(patient=patient, status=status_value, remarks=remarks)
+    return super().perform_destroy(instance)
+
 # class PreScreeningFormUpdateView(generics.UpdateAPIView):
 #   queryset = PreScreeningForm.objects.all()
 #   serializer_class = PreScreeningFormSerializer

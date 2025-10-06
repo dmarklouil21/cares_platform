@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link, data } from "react-router-dom";
 
 import api from "src/api/axiosInstance";
 
@@ -8,6 +8,7 @@ import NotificationModal from "src/components/Modal/NotificationModal";
 
 import Notification from "src/components/Notification";
 import LoadingModal from "src/components/Modal/LoadingModal";
+import SystemLoader from "src/components/SystemLoader";
 import { Info } from "lucide-react";
 
 const IndividualScreening = () => {
@@ -42,6 +43,10 @@ const IndividualScreening = () => {
   const [modalText, setModalText] = useState("");
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
+
+  // Remark Message Modal
+  const [remarksModalOpen, setRemarksModalOpen] = useState(false);
+  const [remarks, setRemarks] = useState("");
 
   useEffect(() => {
     if (notificationType && notificationMessage) {
@@ -87,6 +92,43 @@ const IndividualScreening = () => {
     navigate(`/admin/cancer-screening/view/details`, {
       state: { record: selected },
     });
+  };
+
+  const handleReject = async () => {
+    setLoading(true);
+    setRemarksModalOpen(false);
+    try {
+      const response = await api.delete(
+        `/cancer-screening/individual-screening/delete/${modalAction.id}/`,
+        { 
+          data: {
+            status: "Reject", 
+            remarks 
+          }
+        }
+      );
+      setNotificationType("success");
+      setNotificationMessage("Request Rejected");
+      fetchData();
+      // await api.patch(
+      //   `/cancer-screening/individual-screening/status-reject/${modalAction.id}/`,
+      //   { status: modalAction.newStatus, remarks }
+      // );
+      // navigate("/admin/cancer-screening", { 
+      //   state: { 
+      //     type: "success", message: "Request Rejected." 
+      //   } 
+      // });
+    } catch {
+      setModalInfo({
+        type: "error",
+        title: "Failed",
+        message: "Something went wrong while rejecting request.",
+      });
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Modal confirm handler
@@ -143,6 +185,7 @@ const IndividualScreening = () => {
 
   return (
     <>
+      {loading && <SystemLoader />}
       <ConfirmationModal
         open={modalOpen}
         title={modalText}
@@ -162,7 +205,38 @@ const IndividualScreening = () => {
         onClose={() => setShowModal(false)}
       />
       <Notification message={notification} type={notificationType} />
-      <LoadingModal open={loading} text="Submitting changes..." />
+      {/* <LoadingModal open={loading} text="Submitting changes..." /> */}
+
+      {/* Reject remarks Modal */}
+      {remarksModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">Remarks</h2>
+            <textarea
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none mb-4 resize-none"
+              rows={4}
+              placeholder="Enter your remarks here..."
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                className="px-5 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                onClick={() => setRemarksModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors"
+                onClick={handleReject}
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="h-screen w-full flex p-5 gap-3 flex-col justify-start items-center bg-gray">
         <div className="flex justify-between items-center w-full">
           <h2 className="text-xl font-bold text-left w-full pl-1">
@@ -297,12 +371,25 @@ const IndividualScreening = () => {
                         >
                           View
                         </button>
-                        <button
-                          className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
-                          onClick={() => handleActionClick(item.id, "delete")}
-                        >
-                          Delete
-                        </button>
+                        {item.status === "Pending" ? (
+                            <button
+                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
+                              onClick={() => {
+                                setModalAction({ status: item.status, id: item.id })
+                                setRemarksModalOpen(true)
+                              }}
+                            >
+                              Reject
+                            </button>
+                          ) : (
+                            <button
+                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
+                              onClick={() => handleActionClick(item.id, "delete")}
+                            >
+                              Delete
+                            </button>
+                          )
+                        }
                       </td>
                     </tr>
                   ))}
