@@ -55,6 +55,12 @@ const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       arrow: "",
     },
     {
+      name: "Psychosocial Support ",
+      icon: "/src/assets/images/navigation/admin/PychosocialSupport.svg",
+      path: "/admin/PychosocialSupport",
+      arrow: "",
+    },
+    {
       name: "User Management",
       icon: "/src/assets/images/navigation/admin/usermanagementicon.svg",
       path: "/admin/user-management",

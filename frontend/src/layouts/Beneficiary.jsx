@@ -20,6 +20,7 @@ const HEADER_PATHS = [
   "/beneficiary/applications/cancer-treatment",
   "/beneficiary/applications/post-treatment",
   "/beneficiary/applications/precancerous",
+  "/beneficiary/PychosocialSupport",
 ];
 
 const BeneficiaryLayout = () => {

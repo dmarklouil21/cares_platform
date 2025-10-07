@@ -143,12 +143,12 @@ const PreCancerousMeds = () => {
       <Notification message={notification} />
 
       {/* Content */}
-      <div className="py-6 px-10 bg-gray">
+      <div className="py-6 p-5 md:px-10 bg-gray">
         <h2 className="text-xl font-semibold mb-6">
           Cancer Management & Treatment Assistance
         </h2>
 
-        <div className="flex flex-col gap-7 w-full bg-white rounded-2xl py-10 px-8">
+        <div className="flex flex-col gap-7 w-full bg-white rounded-2xl py-10 p-5 md:px-8">
           <h3 className="text-2xl font-bold text-secondary">
             Pre-cancerous Meds
           </h3>

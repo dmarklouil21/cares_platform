@@ -6,7 +6,7 @@ const NotePanel = ({ onAccept, onDecline }) => {
   const serviceType = location.state;
 
   return (
-    <div className="w-full h-screen bg-gray flex flex-col h-screen gap-5 px-8 py-8 ">
+    <div className="w-full h-screen bg-gray flex flex-col  gap-5 p-5 md:px-8 py-8 ">
       <div className="w-full flex justify-between">
         <h1 className="font-bold text-2xl">Cancer Treatment Registration</h1>
       </div>
@@ -28,7 +28,7 @@ const NotePanel = ({ onAccept, onDecline }) => {
           <Link
             to={"/beneficiary/services/cancer-management"} 
             id="i-accept-btn" 
-            className="border  font-bold text-center py-2 w-[45%] border-[1px] hover:border-lightblue hover:bg-lightblue rounded-md"
+            className="  font-bold text-center py-2 w-[45%] border-[1px] hover:border-lightblue hover:bg-lightblue rounded-md"
             onClick={onAccept}
           >
             I Don't Accept
