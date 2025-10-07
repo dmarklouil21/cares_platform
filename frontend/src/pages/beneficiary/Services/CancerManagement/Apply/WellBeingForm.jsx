@@ -108,11 +108,11 @@ const RadioTherapyWellBeingTool = () => {
         </div>
       </div> */}
 
-      <div className="py-6 px-10 flex flex-col flex-1 overflow-auto">
-        <div className="bg-white rounded-2xl flex p-7 flex-col gap-7">
+      <div className="py-6 px-4 md:px-10 flex flex-col flex-1 overflow-auto">
+        <div className="bg-white rounded-2xl flex p-4 md:p-7 flex-col gap-7">
           {/* Header */}
-          <div className="flex w-full justify-between gap-6 p-4  rounded-xl shadow-sm bg-gray-50">
-            <div className="flex flex-col w-[85%] gap-3">
+          <div className="flex w-full justify-between gap-6 p-4  rounded-xl shadow-sm bg-gray-50 overflow-x-auto">
+            <div className="flex flex-col w-full gap-3">
               <div className="flex w-full items-center gap-2">
                 <label className="font-medium text-gray-700 whitespace-nowrap">
                   Name:

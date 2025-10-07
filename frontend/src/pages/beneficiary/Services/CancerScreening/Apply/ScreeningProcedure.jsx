@@ -113,9 +113,13 @@ const IndividualScreening = () => {
         if (file) formData.append(`files.${key}`, file);
       });
 
-      await api.post(`/beneficiary/individual-screening/screening-request/`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await api.post(
+        `/beneficiary/individual-screening/screening-request/`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
 
       navigate("/beneficiary/success-application", {
         state: { okLink: "beneficiary/applications/individual-screening" },
@@ -147,7 +151,9 @@ const IndividualScreening = () => {
         title={confirmation.text}
         desc={confirmation.desc}
         onConfirm={handleConfirm}
-        onCancel={() => setConfirmation({ open: false, text: "", desc: "", action: null })}
+        onCancel={() =>
+          setConfirmation({ open: false, text: "", desc: "", action: null })
+        }
       />
 
       {/* Notification Modal */}
@@ -163,8 +169,10 @@ const IndividualScreening = () => {
       {loading && <SystemLoader />}
 
       <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        <div className="py-6 px-10 flex flex-col flex-1">
-          <h2 className="text-xl font-semibold mb-6">Cancer Screening Application</h2>
+        <div className="py-6 px-5 md:px-10 flex flex-col flex-1">
+          <h2 className="text-xl font-semibold mb-6">
+            Cancer Screening Application
+          </h2>
 
           <form
             onSubmit={handleSubmit}
@@ -172,7 +180,9 @@ const IndividualScreening = () => {
           >
             {/* Screening Info */}
             <div className="flex flex-col gap-6">
-              <h1 className="font-bold text-3xl text-yellow">Individual Screening</h1>
+              <h1 className="font-bold text-[24px] md:text-3xl text-yellow">
+                Individual Screening
+              </h1>
 
               <label className="flex flex-col gap-2">
                 <span>Screening Procedure</span>
@@ -180,7 +190,7 @@ const IndividualScreening = () => {
                   type="text"
                   name="procedureName"
                   placeholder="ex: Mammogram, MRI"
-                  className="w-[85%] p-3 border border-gray2 rounded-md"
+                  className="w-full :w-[85%] p-3 border border-gray2 rounded-md"
                   value={procedureName}
                   onChange={(e) => setProcedureName(e.target.value)}
                   required
@@ -193,7 +203,7 @@ const IndividualScreening = () => {
                   type="text"
                   name="procedureDetails"
                   placeholder="ex: Breast screening due to palpable mass"
-                  className="w-[85%] p-3 border border-gray2 rounded-md"
+                  className="w-full :w-[85%] p-3 border border-gray2 rounded-md"
                   value={procedureDetails}
                   onChange={(e) => setProcedureDetails(e.target.value)}
                   required
@@ -206,7 +216,7 @@ const IndividualScreening = () => {
                   type="text"
                   name="cancerSite"
                   placeholder="ex: Breast"
-                  className="w-[85%] p-3 border border-gray2 rounded-md"
+                  className="w-full :w-[85%] p-3 border border-gray2 rounded-md"
                   value={cancerSite}
                   onChange={(e) => setCancerSite(e.target.value)}
                   required
@@ -236,7 +246,9 @@ const IndividualScreening = () => {
                     >
                       <CheckIcon active={uploaded} />
                       <span
-                        className={`${isActive ? "font-bold text-gray-900" : "text-gray-800"}`}
+                        className={`${
+                          isActive ? "font-bold text-gray-900" : "text-gray-800"
+                        }`}
                       >
                         {doc.label}
                       </span>
@@ -262,12 +274,17 @@ const IndividualScreening = () => {
                     className="h-6"
                   />
                 </div>
-                <div className="text-sm text-gray-700">Choose a file to upload</div>
+                <div className="text-sm text-gray-700">
+                  Choose a file to upload
+                </div>
                 <div className="text-xs text-gray-400">Size limit: 10MB</div>
 
                 {files[activeDoc?.key] && (
                   <div className="mt-3 text-xs text-gray-700">
-                    Selected: <span className="font-medium">{files[activeDoc.key].name}</span>
+                    Selected:{" "}
+                    <span className="font-medium">
+                      {files[activeDoc.key].name}
+                    </span>
                   </div>
                 )}
               </div>
@@ -281,10 +298,10 @@ const IndividualScreening = () => {
               />
 
               {/* Actions */}
-              <div className="mt-6 flex items-center justify-between">
+              <div className="mt-6 flex items-center justify-between flex-col-reverse md:flex-row gap-5">
                 <Link
                   to="/beneficiary/services/cancer-screening"
-                  className="border border-black/15 py-3 rounded-md text-center px-6 w-[40%] hover:bg-black/10 hover:border-black"
+                  className="border border-black/15 py-3 rounded-md text-center px-6  hover:bg-black/10 hover:border-black w-full md:w-[40%]"
                 >
                   Cancel
                 </Link>
@@ -292,14 +309,14 @@ const IndividualScreening = () => {
                 {allUploaded ? (
                   <button
                     type="submit"
-                    className="bg-[#749AB6] text-white w-[40%] font-bold py-3 px-8 rounded-md border border-[#749AB6] hover:bg-[#C5D7E5] hover:border-[#C5D7E5]"
+                    className="bg-[#749AB6] text-white font-bold py-3 px-8 rounded-md border border-[#749AB6] hover:bg-[#C5D7E5] hover:border-[#C5D7E5] w-full md:w-[40%]"
                   >
                     Submit
                   </button>
                 ) : (
-                  <div className="text-sm text-gray-600">
-                    Please upload <span className="font-semibold">all</span> required files to
-                    enable submit.
+                  <div className="text-[12px] md:text-sm text-gray-600 max-w-auto">
+                    Please upload <span className="font-semibold">all</span>{" "}
+                    required files to enable submit.
                   </div>
                 )}
               </div>

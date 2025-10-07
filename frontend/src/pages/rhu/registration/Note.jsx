@@ -13,7 +13,7 @@ const NotePanel = ({ onAccept, onDecline }) => {
       </div>
 
       <div className="flex flex-col justify-between gap-5 bg-white rounded-xl shadow px-8 py-6 w-auto h-auto">
-        <h1 className="font-bold md:text-[28px]">
+        <h1 className="font-bold text-[17px]">
           NOTE: Completion of this form does not guarantee assistance from RAFI
           and Eduardo J. Aboitiz Cancer Center (EJACC). All applications are
           subject to review by the EJACC team.
