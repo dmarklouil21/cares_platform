@@ -15,6 +15,7 @@ const HEADER_PATHS = [
   "/admin/survivorship",
   "/admin/cancer-management",
   "/admin/user-management",
+  "/admin/PychosocialSupport",
 ];
 
 const Admin = () => {

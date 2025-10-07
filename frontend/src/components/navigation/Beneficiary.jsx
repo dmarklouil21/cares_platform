@@ -45,6 +45,12 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       path: "",
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
+    {
+      name: "Pychosocial Support",
+      icon: "/src/assets/images/navigation/admin/PychosocialSupport.svg",
+      path: "/beneficiary/PychosocialSupport",
+      arrow: "",
+    },
   ];
 
   const servicesSubNav = [
@@ -68,7 +74,10 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       name: "Cancer Management",
       path: "/beneficiary/applications/cancer-treatment",
     },
-    { name: "Post Treatment", path: "/beneficiary/applications/post-treatment" },
+    {
+      name: "Post Treatment",
+      path: "/beneficiary/applications/post-treatment",
+    },
     { name: "Pre Cancerous", path: "/beneficiary/applications/precancerous" },
   ];
 

@@ -47,6 +47,12 @@ const RhuSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       path: "/rhu/application",
       arrow: "",
     },
+    {
+      name: "Pychosocial Activities",
+      icon: "/src/assets/images/navigation/admin/PychosocialSupport.svg",
+      path: "/rhu/PychosocialSupport",
+      arrow: "",
+    },
   ];
 
   const servicesSubNav = [
