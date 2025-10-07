@@ -68,12 +68,12 @@ const NavigationGuide = () => {
         </div>
       </div> */}
 
-      <div className="py-6 overflow-auto px-10">
+      <div className="py-6 overflow-auto md:px-10 px-5">
         <h1 className="text-[16px] md:text-lg font-bold mb-6 uppercase">
           CANCER PATIENT NAVIGATION GUIDE
         </h1>
 
-        <div className="bg-white rounded-lg p-10 mb-8 shadow-sm">
+        <div className="bg-white rounded-lg p-7 md:p-10 mb-8 shadow-sm">
           <h2 className="text-[18px] md:text-2xl font-bold text-yellow mb-4">
             WHO IS THIS GUIDE FOR? 🤔
           </h2>

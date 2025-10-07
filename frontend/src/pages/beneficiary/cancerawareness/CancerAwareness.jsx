@@ -49,7 +49,7 @@ const CancerAwareness = () => {
       </div> */}
 
       <div className="h-full flex flex-col justify-between overflow-auto ">
-        <div className="py-6 px-10">
+        <div className="py-6 p-5 md:px-10">
           <h1 className="text-lg font-bold mb-6">Cancer Awareness</h1>
           <div className="bg-white rounded-lg p-5 md:p-10 mb-8 shadow-sm">
             <h2 className="text-2xl font-bold text-yellow mb-4">
@@ -63,13 +63,15 @@ const CancerAwareness = () => {
               {activities.length > 0 ? (
                 activities.map((activity) => {
                   return (
-                    <div className="flex justify-start gap-8 p-5 border-b-[1.5px] border-primary">
-                      <img
-                        src={activity.photo || ""}
-                        alt="sample pic"
-                        className="h-40 w-72 rounded-md"
-                      />
-                      <div className="flex flex-col justify-between py-2 w-[50%]">
+                    <div className="flex flex-col  md:flex-row gap-8 p-5 border-b-[1.5px] border-primary">
+                      <div className="flex items-center justify-center">
+                        <img
+                          src={activity.photo || ""}
+                          alt="sample pic"
+                          className="h-40 w-72 rounded-md border"
+                        />
+                      </div>
+                      <div className="flex flex-col   justify-between py-2 w-full md:w-[50%]">
                         <h1 className="font-bold text-primary text-xl">
                           {activity.title}
                         </h1>

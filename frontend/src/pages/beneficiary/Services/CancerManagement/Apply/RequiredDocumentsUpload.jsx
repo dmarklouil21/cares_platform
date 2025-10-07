@@ -175,7 +175,7 @@ const RadioactiveDocument = () => {
           </div>
         </div> */}
 
-        <div className="py-6 px-10 flex flex-col flex-1 overflow-auto">
+        <div className="py-6 px-5 md:px-10 flex flex-col flex-1 overflow-auto">
           <h2 className="text-xl font-semibold mb-6">
             Cancer Treatment Application
           </h2>
@@ -258,10 +258,10 @@ const RadioactiveDocument = () => {
               className="hidden"
             />
 
-            <div className="mt-6 flex items-center justify-between">
+            <div className="mt-6 flex items-center justify-between flex-col-reverse md:flex-row gap-5">
               <Link
                 to="/beneficiary/services/cancer-management/apply/well-being-tool"
-                className="border border-black/15 py-3 rounded-md text-center px-6 w-[40%] hover:bg-black/10 hover:border-black"
+                className="border border-black/15 py-3 rounded-md text-center px-6  hover:bg-black/10 hover:border-black w-full md:w-[40%]"
                 state={serviceType}
               >
                 Back
@@ -271,12 +271,12 @@ const RadioactiveDocument = () => {
                 <button
                   type="button"
                   onClick={submit}
-                  className="bg-[#749AB6] text-white w-[40%] font-bold py-3 px-8 rounded-md border border-[#749AB6] hover:bg-[#C5D7E5] hover:border-[#C5D7E5]"
+                  className="bg-[#749AB6] text-white font-bold py-3 px-8 rounded-md border border-[#749AB6] hover:bg-[#C5D7E5] hover:border-[#C5D7E5] w-full md:w-[40%]"
                 >
                   Submit
                 </button>
               ) : (
-                <div className="text-sm text-gray-600">
+                <div className="text-[12px] md:text-sm text-gray-600 max-w-auto">
                   Please upload <span className="font-semibold">all</span>{" "}
                   required files to enable submit.
                 </div>
