@@ -7,6 +7,7 @@ import Home from "../pages/beneficiary/Home/Home/";
 import CancerAwareness from "../pages/beneficiary/CancerAwareness/CancerAwareness/";
 import HomeVisit from "../pages/beneficiary/HomeVisit/HomeVisit";
 import Profile from "../pages/beneficiary/profile/Profile";
+import PychosocialSupport from "../pages/beneficiary/pychosocialSupport/pychosocialSupport";
 
 // HomeVisit View
 import HomeVisitView from "../pages/beneficiary/HomeVisit/View/HomeVisitView";
@@ -69,7 +70,10 @@ const BeneficiaryRoutes = () => (
     <Route path="home-visit">
       <Route index element={<HomeVisit />} />
       <Route path="view/:id" element={<HomeVisitView />} />
-      <Route path="view/:id/wellbeing-form" element={<HomeVisitWellbeingForm />} />
+      <Route
+        path="view/:id/wellbeing-form"
+        element={<HomeVisitWellbeingForm />}
+      />
     </Route>
 
     {/* Services */}
@@ -128,6 +132,7 @@ const BeneficiaryRoutes = () => (
         <Route path="view/:id" element={<ViewPostTreatmentStatus />} />
       </Route>
     </Route>
+    <Route path="PychosocialSupport" element={<PychosocialSupport />} />
   </Route>
 );
 

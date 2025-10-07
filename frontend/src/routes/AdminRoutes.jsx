@@ -14,6 +14,10 @@ import UserManagement from "../pages/admin/UserManagement/UserManagement";
 import MassScreening from "../pages/admin/CancerScreening/MassScreening/MassScreening";
 import HomeVisit from "../pages/admin/survivorship/HomeVisit/HomeVisit";
 import EditProfile from "../pages/admin/profile/ViewProfile";
+import PychosocialSupport from "../pages/admin/psychosocialSupport/PsychosocialSupport";
+
+//pyschosocialSupport add
+import PsychosocialSupportAdd from "../pages/admin/psychosocialSupport/add/add";
 
 //views
 import PostTreatmentView from "../pages/admin/TreatmentAssistance/PostTreatment/View/TreatmentView";
@@ -211,6 +215,10 @@ const AdminRoutes = () => (
         <Route index element={<HomeVisitAdd />} />
         <Route path="well-being-form" element={<HomeVisitAddWellbeingForm />} />
       </Route>
+    </Route>
+    <Route path="PychosocialSupport">
+      <Route index element={<PychosocialSupport />} />
+      <Route path="add" element={<PsychosocialSupportAdd />} />
     </Route>
   </Route>
 );

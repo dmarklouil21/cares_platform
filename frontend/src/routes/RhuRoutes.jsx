@@ -9,6 +9,7 @@ import PatientList from "../pages/rhu/Patient/PatientList";
 import CancerScreening from "../pages/rhu/Services/CancerScreening/CancerScreening";
 import ApplicationStatus from "../pages/rhu/applicationStatus/applicationStatus";
 import ViewProfile from "../pages/rhu/Profile/ViewProfile";
+import PychosocialSupport from "../pages/rhu/pychosocialSupport/pychosocialSupport";
 
 // sub list
 import MassScreening from "../pages/rhu/Patient/MassScreening";
@@ -82,6 +83,7 @@ const RhuRoutes = () => (
         />
       </Route>
     </Route>
+    <Route path="PychosocialSupport" element={<PychosocialSupport />} />
   </Route>
 );
 

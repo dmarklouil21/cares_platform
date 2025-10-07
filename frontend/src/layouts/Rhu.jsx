@@ -18,6 +18,7 @@ const HEADER_PATHS = [
   "/rhu/patients/mass-screening",
   "/rhu/services/cancer-screening",
   "/rhu/application",
+  "/rhu/PychosocialSupport",
 ];
 
 const Rhulayout = () => {
