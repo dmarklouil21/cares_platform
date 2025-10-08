@@ -1,23 +1,11 @@
 // @ts-nocheck
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
-
-const SAMPLE_PATIENTS = [
-  "Juan Dela Cruz",
-  "Maria Santos",
-  "Pedro Reyes",
-  "Ana Dizon",
-  "Liza Velasquez",
-  "Mark Bautista",
-  "Kimberly Ytac",
-  "James Lee",
-  "Carlos Ortega",
-  "Sophia Cruz",
-];
+import { adminCreatePsychosocialActivity, adminPatientSuggestions } from "src/api/psychosocialSupport";
 
 const add = () => {
   // Local-only UI state
@@ -45,16 +33,34 @@ const add = () => {
   // Patients input state
   const [patientQuery, setPatientQuery] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
 
-  const patientSuggestions = useMemo(() => {
-    if (!inputFocused) return [];
-    const pool = SAMPLE_PATIENTS.filter(
-      (name) =>
-        !form.patients.some((p) => p.toLowerCase() === name.toLowerCase())
-    );
-    const q = patientQuery.trim().toLowerCase();
-    if (!q) return pool.slice(0, 6);
-    return pool.filter((n) => n.toLowerCase().includes(q)).slice(0, 6);
+  // Today's date (local) as YYYY-MM-DD for input[min]
+  const todayStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T")[0];
+
+  // Fetch dynamic suggestions from backend
+  useEffect(() => {
+    let alive = true;
+    const run = async () => {
+      if (!inputFocused) return setSuggestions([]);
+      try {
+        const data = await adminPatientSuggestions(patientQuery);
+        if (!alive) return;
+        const filtered = (data || []).filter(
+          (name) => !form.patients.some((p) => p.toLowerCase() === String(name).toLowerCase())
+        );
+        setSuggestions(filtered);
+      } catch (e) {
+        if (alive) setSuggestions([]);
+      }
+    };
+    const id = setTimeout(run, 200);
+    return () => {
+      alive = false;
+      clearTimeout(id);
+    };
   }, [inputFocused, patientQuery, form.patients]);
 
   const addPatient = (name) => {
@@ -85,7 +91,34 @@ const add = () => {
 
   const filePreviewUrl = (f) => {
     if (!f) return "";
-    return f instanceof File ? URL.createObjectURL(f) : f;
+    if (f instanceof File) return URL.createObjectURL(f);
+    // If backend returned relative media URL, prefix host
+    if (typeof f === "string" && f.startsWith("/")) return `http://localhost:8000${f}`;
+    return f;
+  };
+
+  // Format DRF-style error objects into readable text
+  const formatApiError = (e) => {
+    const d = e?.response?.data;
+    if (!d) return "Failed to add activity.";
+    if (typeof d === "string") return d;
+    if (typeof d === "object" && d !== null) {
+      if (typeof d.detail === "string") return d.detail;
+      const labelize = (k) =>
+        k === "non_field_errors"
+          ? "Error"
+          : k
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (c) => c.toUpperCase());
+      const lines = Object.entries(d).map(([key, val]) => {
+        const text = Array.isArray(val) ? val.join(" ") : String(val);
+        // For date field, show message only without the "Date: " prefix
+        if (key === "date") return text;
+        return `${labelize(key)}: ${text}`;
+      });
+      return lines.join("\n");
+    }
+    return "Failed to add activity.";
   };
 
   // Handlers for Add Activity flow (UI-only)
@@ -101,9 +134,17 @@ const add = () => {
     setConfirmOpen(false);
     setLoading(true);
 
-    // Simulate a save (UI only)
     try {
-      await new Promise((r) => setTimeout(r, 1200));
+      const fd = new FormData();
+      fd.append("title", form.title.trim());
+      if (form.description) fd.append("description", form.description);
+      fd.append("date", form.date);
+      if (form.photo) fd.append("photo", form.photo);
+      if (form.attachment) fd.append("attachment", form.attachment);
+      fd.append("patients", JSON.stringify(form.patients || []));
+
+      await adminCreatePsychosocialActivity(fd);
+
       setLoading(false);
       setNotifyInfo({
         type: "success",
@@ -123,11 +164,8 @@ const add = () => {
       setPatientQuery("");
     } catch (e) {
       setLoading(false);
-      setNotifyInfo({
-        type: "error",
-        title: "Failed",
-        message: "Failed to add activity.",
-      });
+      const msg = formatApiError(e);
+      setNotifyInfo({ type: "error", title: "Validation Error", message: msg });
       setNotifyOpen(true);
     }
   };
@@ -202,6 +240,7 @@ const add = () => {
                 type="date"
                 value={form.date}
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
+                min={todayStr}
                 className="border w-full p-1 rounded"
               />
             </div>
@@ -278,9 +317,9 @@ const add = () => {
               />
 
               {/* Suggestions dropdown */}
-              {patientSuggestions.length > 0 && (
+              {suggestions.length > 0 && (
                 <div className="absolute  left-0 right-0 mt-1 border rounded bg-white shadow max-h-40 overflow-auto z-10">
-                  {patientSuggestions.map((name) => (
+                  {suggestions.map((name) => (
                     <button
                       key={name}
                       type="button"
