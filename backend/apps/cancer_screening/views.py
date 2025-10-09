@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 
 from backend.utils.email import (
   send_individual_screening_status_email,
@@ -59,6 +59,16 @@ def validate_attachment(file):
     raise ValidationError(f"File {file.name} exceeds {max_size_mb}MB limit.")
   if file.content_type not in allowed_types:
     raise ValidationError(f"Unsupported file type: {file.content_type} for file {file.name}.")
+
+# ---------------------------
+# Helper: RHU fetch with clearer error
+# ---------------------------
+def get_rhu_for_user_or_error(user):
+  try:
+    return RHU.objects.get(user=user)
+  except RHU.DoesNotExist:
+    # Return a clearer 403 instead of generic 404
+    raise PermissionDenied("Your account has no RHU profile, please contact admin")
 
 # ---------------------------
 # Views
@@ -300,7 +310,7 @@ class MassScreeningRequestCreateView(APIView):
     if not getattr(user, 'is_rhu', False):
       return Response({"detail": "Only RHU users can create mass screening requests."}, status=status.HTTP_403_FORBIDDEN)
 
-    rhu = get_object_or_404(RHU, user=user)
+    rhu = get_rhu_for_user_or_error(user)
 
     serializer = MassScreeningRequestSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -319,7 +329,7 @@ class MyMassScreeningRequestListView(generics.ListAPIView):
   permission_classes = [IsAuthenticated]
 
   def get_queryset(self):
-    rhu = get_object_or_404(RHU, user=self.request.user)
+    rhu = get_rhu_for_user_or_error(self.request.user)
     qs = MassScreeningRequest.objects.filter(rhu=rhu).order_by('-created_at')
     status_filter = self.request.query_params.get('status')
     if status_filter:
@@ -332,7 +342,7 @@ class MyMassScreeningRequestDetailView(generics.RetrieveAPIView):
   lookup_field = 'id'
 
   def get_queryset(self):
-    rhu = get_object_or_404(RHU, user=self.request.user)
+    rhu = get_rhu_for_user_or_error(self.request.user)
     return MassScreeningRequest.objects.filter(rhu=rhu)
 
 class MyMassScreeningRequestUpdateView(generics.UpdateAPIView):
@@ -341,7 +351,7 @@ class MyMassScreeningRequestUpdateView(generics.UpdateAPIView):
   lookup_field = 'id'
 
   def get_queryset(self):
-    rhu = get_object_or_404(RHU, user=self.request.user)
+    rhu = get_rhu_for_user_or_error(self.request.user)
     return MassScreeningRequest.objects.filter(rhu=rhu)
 
 class MyMassScreeningRequestDeleteView(generics.DestroyAPIView):
@@ -350,21 +360,20 @@ class MyMassScreeningRequestDeleteView(generics.DestroyAPIView):
   lookup_field = 'id'
 
   def get_queryset(self):
-    rhu = get_object_or_404(RHU, user=self.request.user)
+    rhu = get_rhu_for_user_or_error(self.request.user)
     return MassScreeningRequest.objects.filter(rhu=rhu)
 
 class MassScreeningAttendanceView(APIView):
   permission_classes = [IsAuthenticated]
-
   def get(self, request, request_id):
-    rhu = get_object_or_404(RHU, user=request.user)
+    rhu = get_rhu_for_user_or_error(request.user)
     ms = get_object_or_404(MassScreeningRequest, id=request_id, rhu=rhu)
     entries = ms.attendance_entries.all().order_by('id')
     data = MassScreeningAttendanceEntrySerializer(entries, many=True).data
     return Response(data, status=status.HTTP_200_OK)
 
   def put(self, request, request_id):
-    rhu = get_object_or_404(RHU, user=request.user)
+    rhu = get_rhu_for_user_or_error(request.user)
     ms = get_object_or_404(MassScreeningRequest, id=request_id, rhu=rhu)
 
     bulk_serializer = MassScreeningAttendanceBulkSerializer(data=request.data)
@@ -388,7 +397,7 @@ class MyMassScreeningAttachmentAddView(APIView):
   permission_classes = [IsAuthenticated]
 
   def post(self, request, id):
-    rhu = get_object_or_404(RHU, user=request.user)
+    rhu = get_rhu_for_user_or_error(request.user)
     ms = get_object_or_404(MassScreeningRequest, id=id, rhu=rhu)
     files = request.FILES.getlist('attachments')
     created = []
@@ -405,7 +414,7 @@ class MyMassScreeningAttachmentDeleteView(generics.DestroyAPIView):
   lookup_field = 'id'
 
   def get_queryset(self):
-    rhu = get_object_or_404(RHU, user=self.request.user)
+    rhu = get_rhu_for_user_or_error(self.request.user)
     # Only allow deleting attachments for requests owned by this RHU
     return MassScreeningAttachment.objects.filter(request__rhu=rhu)
 

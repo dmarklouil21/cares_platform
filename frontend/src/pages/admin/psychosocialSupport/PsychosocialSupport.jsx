@@ -1,59 +1,23 @@
 // @ts-nocheck
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
+import {
+  adminListPsychosocialActivities,
+  adminUpdatePsychosocialActivity,
+  adminDeletePsychosocialActivity,
+  adminPatientSuggestions,
+} from "src/api/psychosocialSupport";
 
-const SAMPLE_PATIENTS = [
-  "Juan Dela Cruz",
-  "Maria Santos",
-  "Pedro Reyes",
-  "Ana Dizon",
-  "Liza Velasquez",
-  "Mark Bautista",
-  "Kimberly Ytac",
-  "James Lee",
-  "Carlos Ortega",
-  "Sophia Cruz",
-];
 
-/* Preloaded UI-only activities so you can test Edit/Delete */
-const SAMPLE_ACTIVITIES = [
-  {
-    id: "act-001",
-    title: "Group Sharing Session",
-    description: "Weekly check-in and stress management sharing circle.",
-    date: "2025-10-01",
-    patients: ["Maria Santos", "Liza Velasquez", "Mark Bautista"],
-    attachment:
-      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    photo: null,
-  },
-  {
-    id: "act-002",
-    title: "Mindfulness Workshop",
-    description: "Breathing exercises and grounding techniques.",
-    date: "2025-10-03",
-    patients: ["Juan Dela Cruz", "Pedro Reyes", "Ana Dizon", "sfds", "fsdf"],
-    attachment: null,
-    photo: null,
-  },
-  {
-    id: "act-003",
-    title: "Peer Support Hour",
-    description: "Open space for peer conversations.",
-    date: "2025-10-05",
-    patients: ["Kimberly Ytac", "James Lee"],
-    attachment: null,
-    photo: null,
-  },
-];
+/* Data loads from backend; no UI-only seed needed */
 
 const PschosocialSupport = () => {
-  // List (UI only)
-  const [activities, setActivities] = useState(SAMPLE_ACTIVITIES);
+  // List from backend
+  const [activities, setActivities] = useState([]);
 
   // Global modals
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -68,6 +32,42 @@ const PschosocialSupport = () => {
   });
 
   const [loading, setLoading] = useState(false);
+
+  // Today's date (local) as YYYY-MM-DD for input[min]
+  const todayStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T")[0];
+
+  // Fetch list on mount
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const data = await adminListPsychosocialActivities();
+        const normalized = (Array.isArray(data) ? data : []).map((a) => ({
+          ...a,
+          // Prefer absolute URLs from backend if available
+          photo: a.photo_url || a.photo,
+          attachment: a.attachment_url || a.attachment,
+          patients:
+            typeof a.patients === "string"
+              ? a.patients
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : Array.isArray(a.patients)
+              ? a.patients
+              : [],
+        }));
+        setActivities(normalized);
+      } catch (e) {
+        // optionally notify
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   // Edit modal
   const [showModal, setShowModal] = useState(false);
@@ -86,16 +86,29 @@ const PschosocialSupport = () => {
   // Patients input (options + free text)
   const [patientQuery, setPatientQuery] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
 
-  const patientSuggestions = useMemo(() => {
-    if (!inputFocused) return [];
-    const pool = SAMPLE_PATIENTS.filter(
-      (name) =>
-        !form.patients.some((p) => p.toLowerCase() === name.toLowerCase())
-    );
-    const q = patientQuery.trim().toLowerCase();
-    if (!q) return pool.slice(0, 6);
-    return pool.filter((n) => n.toLowerCase().includes(q)).slice(0, 6);
+  // Dynamic suggestions from backend
+  useEffect(() => {
+    let alive = true;
+    const run = async () => {
+      if (!inputFocused) return setSuggestions([]);
+      try {
+        const data = await adminPatientSuggestions(patientQuery);
+        if (!alive) return;
+        const filtered = (data || []).filter(
+          (name) => !form.patients.some((p) => p.toLowerCase() === String(name).toLowerCase())
+        );
+        setSuggestions(filtered);
+      } catch (e) {
+        if (alive) setSuggestions([]);
+      }
+    };
+    const id = setTimeout(run, 200);
+    return () => {
+      alive = false;
+      clearTimeout(id);
+    };
   }, [inputFocused, patientQuery, form.patients]);
 
   const resetForm = () => {
@@ -165,39 +178,60 @@ const PschosocialSupport = () => {
     setConfirmOpen(true);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!confirmAction) return;
     setConfirmOpen(false);
     setLoading(true);
-    setTimeout(() => {
-      if (confirmAction.type === "submit") {
-        if (editing) {
-          setActivities((prev) =>
-            prev.map((a) =>
-              a.id === editing.id ? { ...editing, ...form, id: editing.id } : a
-            )
-          );
-          setNotifyInfo({
-            type: "success",
-            title: "Updated",
-            message: "Activity updated.",
-          });
-        }
-        resetForm();
+    try {
+      if (confirmAction.type === "submit" && editing) {
+        const fd = new FormData();
+        fd.append("title", form.title.trim());
+        if (form.description) fd.append("description", form.description);
+        fd.append("date", form.date);
+        if (form.photo instanceof File) fd.append("photo", form.photo);
+        if (form.attachment instanceof File) fd.append("attachment", form.attachment);
+        fd.append("patients", JSON.stringify(form.patients || []));
+
+        await adminUpdatePsychosocialActivity(editing.id, fd);
+
+        // Refresh list
+        const data = await adminListPsychosocialActivities();
+        const normalized = (Array.isArray(data) ? data : []).map((a) => ({
+          ...a,
+          patients:
+            typeof a.patients === "string"
+              ? a.patients
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : Array.isArray(a.patients)
+              ? a.patients
+              : [],
+        }));
+        setActivities(normalized);
+
+        setNotifyInfo({ type: "success", title: "Updated", message: "Activity updated." });
         setNotifyOpen(true);
-      } else if (confirmAction.type === "delete") {
+        resetForm();
+      } else if (confirmAction.type === "delete" && confirmAction.id) {
+        await adminDeletePsychosocialActivity(confirmAction.id);
         setActivities((prev) => prev.filter((a) => a.id !== confirmAction.id));
-        setNotifyInfo({
-          type: "success",
-          title: "Deleted",
-          message: "Activity deleted.",
-        });
+        setNotifyInfo({ type: "success", title: "Deleted", message: "Activity deleted." });
         setNotifyOpen(true);
       }
+    } catch (e) {
+      const msg = e?.response?.data
+        ? typeof e.response.data === "string"
+          ? e.response.data
+          : JSON.stringify(e.response.data)
+        : "Request failed.";
+      setNotifyInfo({ type: "error", title: "Error", message: msg });
+      setNotifyOpen(true);
+    } finally {
       setLoading(false);
       setConfirmAction(null);
       setConfirmText("");
-    }, 350);
+    }
   };
 
   const canSubmit =
@@ -205,7 +239,9 @@ const PschosocialSupport = () => {
 
   const filePreviewUrl = (f) => {
     if (!f) return "";
-    return f instanceof File ? URL.createObjectURL(f) : f;
+    if (f instanceof File) return URL.createObjectURL(f);
+    if (typeof f === "string" && f.startsWith("/")) return `http://localhost:8000${f}`;
+    return f;
   };
 
   const confirmTitle = useMemo(() => {
@@ -272,6 +308,15 @@ const PschosocialSupport = () => {
                       <p className="text-primary text-xs">{a.date}</p>
                       {a.description && (
                         <p className="text-sm">{a.description}</p>
+                      )}
+                      {a.photo && (
+                        <div className="mt-2">
+                          <img
+                            src={filePreviewUrl(a.photo)}
+                            alt={a.title}
+                            className="w-full max-w-sm h-32 object-cover rounded"
+                          />
+                        </div>
                       )}
                       {a.patients?.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-1">
@@ -371,6 +416,7 @@ const PschosocialSupport = () => {
                       onChange={(e) =>
                         setForm({ ...form, date: e.target.value })
                       }
+                      min={todayStr}
                       className="border w-full p-2 rounded"
                     />
                   </div>
@@ -393,8 +439,8 @@ const PschosocialSupport = () => {
                         <img
                           src={filePreviewUrl(form.photo)}
                           alt="Preview"
-                          className="w-full h-32 object-cover rounded"
-                        />
+className="w-full h-32 object-cover rounded"
+                          />
                         <p className="text-xs text-gray-600 mt-1">
                           {form.photo instanceof File
                             ? `Selected image: ${form.photo.name}`
@@ -452,9 +498,9 @@ const PschosocialSupport = () => {
                     />
 
                     {/* Suggestions dropdown */}
-                    {patientSuggestions.length > 0 && (
+                    {suggestions.length > 0 && (
                       <div className="absolute left-0 right-0 mt-1 border rounded bg-white shadow max-h-40 overflow-auto z-10">
-                        {patientSuggestions.map((name) => (
+                        {suggestions.map((name) => (
                           <button
                             key={name}
                             type="button"
