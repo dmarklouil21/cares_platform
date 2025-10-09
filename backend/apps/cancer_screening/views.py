@@ -1,5 +1,7 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+
 from rest_framework import generics, status, filters
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -25,6 +27,7 @@ from .models import IndividualScreening, MassScreeningRequest, MassScreeningAtta
 
 from .serializers import (
   IndividualScreeningSerializer,
+  IndividualScreeningAdminCreateSerializer,
   ScreeningAttachmentSerializer,
   PreCancerousMedsRequestSerializer,
   PreCancerousMedsReleaseDateSerializer,
@@ -60,6 +63,51 @@ def validate_attachment(file):
 # ---------------------------
 # Views
 # ---------------------------
+class IndividualScreeningCreateView(generics.CreateAPIView):
+  queryset = IndividualScreening.objects.all()
+  serializer_class = IndividualScreeningAdminCreateSerializer
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+
+  def perform_create(self, serializer):
+    try:
+      with transaction.atomic():
+        patient = get_object_or_404(Patient, patient_id=self.request.data.get('patient_id'))
+        existing_record = IndividualScreening.objects.filter(
+          patient=patient,
+          status__in=['Pending', 'Approve']
+        ).first()
+
+        if existing_record:
+          raise ValidationError({
+            'non_field_errors': [
+              'There\'s an ongoing screening application for this patient.'
+            ]
+          })
+    
+        instance = serializer.save(
+          patient=patient
+        )
+
+        files_dict = {}
+        for key, value in self.request.FILES.items():
+          if key.startswith("files."):
+            field_name = key.split("files.")[1] 
+            files_dict[field_name] = value
+
+        for key, file in files_dict.items():
+          ScreeningAttachment.objects.create(
+            individual_screening=instance,
+            file=file,
+            doc_type=key 
+          )
+    except ValidationError:
+      raise
+    
+    except Exception as e:
+      logger.error(f"Error creating screening procedure: {str(e)}")
+      raise e
+    
 class IndividualScreeningListView(generics.ListAPIView):
   serializer_class = IndividualScreeningSerializer
   permission_classes = [IsAuthenticated]
