@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'apps.post_treatment',
     'apps.survivorship',
     'apps.rhu',
+    'apps.psychosocial_support',
 ]
 
 MIDDLEWARE = [

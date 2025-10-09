@@ -1,39 +1,38 @@
-import { useState } from "react";
-
-// UI-only mock data (replace or extend as you like)
-const MOCK_ACTIVITIES = [
-  {
-    id: 1,
-    title: "Group Sharing Session",
-    date: "2025-10-05",
-    description:
-      "A safe space for beneficiaries to share feelings and coping strategies.",
-    photo: "https://picsum.photos/seed/ps1/720/400",
-    attachment: "#",
-  },
-  {
-    id: 2,
-    title: "Stress Management Workshop",
-    date: "2025-10-12",
-    description:
-      "Breathing exercises, journaling prompts, and grounding techniques.",
-    photo: "https://picsum.photos/seed/ps2/720/400",
-    attachment: "#",
-  },
-  {
-    id: 3,
-    title: "Family Support Counseling",
-    date: "2025-10-20",
-    description:
-      "Guided conversations to help families support each other at home.",
-    photo: "https://picsum.photos/seed/ps3/720/400",
-    attachment: "",
-  },
-];
+import { useEffect, useState } from "react";
+import { publicListPsychosocialActivities } from "src/api/psychosocialSupport";
 
 const PychosocialSupport = () => {
-  const [activities] = useState(MOCK_ACTIVITIES);
+  const [activities, setActivities] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // kept for parity with your other page
+
+  // Pretty print date like "October 9, 2025"
+  const formatDate = (s) => {
+    if (!s) return "";
+    const d = new Date(s);
+    if (Number.isNaN(d.getTime())) return s;
+    return d.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await publicListPsychosocialActivities();
+        const normalized = (Array.isArray(data) ? data : []).map((a) => ({
+          ...a,
+          photo: a.photo_url || a.photo,
+          attachment: a.attachment_url || a.attachment,
+        }));
+        setActivities(normalized);
+      } catch (e) {
+        setActivities([]);
+      }
+    };
+    load();
+  }, []);
 
   return (
     <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
@@ -88,7 +87,7 @@ const PychosocialSupport = () => {
                       <h1 className="font-bold text-primary text-xl">
                         {activity.title}
                       </h1>
-                      <p className="text-[12px] text-yellow">{activity.date}</p>
+                      <p className="text-[12px] text-yellow">{formatDate(activity.date)}</p>
                       <p className="font-medium whitespace-pre-wrap">
                         {activity.description}
                       </p>
@@ -96,7 +95,8 @@ const PychosocialSupport = () => {
                       {activity.attachment ? (
                         <a
                           href={activity.attachment}
-                          onClick={(e) => e.preventDefault()} // UI only; no real download
+                          target="_blank"
+                          rel="noreferrer"
                           className="flex items-center justify-start gap-2 text-[12px] text-blue-600 underline"
                         >
                           <img
