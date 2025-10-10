@@ -71,7 +71,8 @@ import CancerManagementPreScreeningForm from "../pages/admin/CancerManagement/Vi
 import CancerManagementResults from "../pages/admin/CancerManagement/View/Results";
 import CancerManagementWellBeingForm from "../pages/admin/CancerManagement/View/WellBeingTool";
 import CaseSummary from "../pages/admin/CancerManagement/View/CaseSummary";
-import CancerManagementAdd from "../pages/admin/cancermanagement/Add/AddCancer";
+import CancerManagementAdd from "../pages/admin/cancermanagement/Add/AddCancer/";
+import CancerManagementAddWellbeingForm from "../pages/admin/cancermanagement/Add/WellBeingForm/";
 
 // User Management Features
 import ViewUser from "../pages/admin/UserManagement/View/ViewUser";
@@ -192,6 +193,7 @@ const AdminRoutes = () => (
       </Route>
       <Route path="add">
         <Route index element={<CancerManagementAdd />} />
+        <Route path="well-being-form" element={<CancerManagementAddWellbeingForm />} />
       </Route>
     </Route>
 
