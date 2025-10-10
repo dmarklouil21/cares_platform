@@ -1,7 +1,11 @@
+// src/pages/survivorship/HomeVisit.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 import api from "src/api/axiosInstance";
+
+// ⬇️ PRINT TEMPLATE
+import HomeVisitPrint from "./generate/generate";
 
 function ConfirmationModal({ open, text, onConfirm, onCancel }) {
   if (!open) return null;
@@ -44,41 +48,6 @@ function Notification({ message }) {
   );
 }
 
-const sampleData = [
-  {
-    id: "HV-101",
-    patient_id: "S-10231",
-    patient_name: "Lara Mendoza",
-    diagnosis: "Breast CA post-op",
-    date: "2025-10-05",
-    status: "Pending",
-  },
-  {
-    id: "HV-102",
-    patient_id: "S-08977",
-    patient_name: "Rico Balagtas",
-    diagnosis: "Colon CA on chemo",
-    date: "2025-10-02",
-    status: "Approved",
-  },
-  {
-    id: "HV-103",
-    patient_id: "S-04566",
-    patient_name: "Mika Salvador",
-    diagnosis: "Thyroid nodules",
-    date: "2025-09-28",
-    status: "Completed",
-  },
-  {
-    id: "HV-104",
-    patient_id: "S-11002",
-    patient_name: "Jomar Uy",
-    diagnosis: "Cervical lymphadenopathy",
-    date: "2025-10-06",
-    status: "Pending",
-  },
-];
-
 const HomeVisit = () => {
   const navigate = useNavigate();
   const [tableData, setTableData] = useState([]);
@@ -94,10 +63,8 @@ const HomeVisit = () => {
 
   const fetchData = async () => {
     try {
-      console.log("Am I getting executed?");
       const response = await api.get("/survivorship/home-visit/list/");
-      setTableData(response.data);
-      console.log("Table Data: ", response.data);
+      setTableData(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error(error);
     }
@@ -105,7 +72,7 @@ const HomeVisit = () => {
 
   useEffect(() => {
     fetchData();
-  },[])
+  }, []);
 
   const filteredResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -114,9 +81,11 @@ const HomeVisit = () => {
     return tableData.filter((row) => {
       const matchesSearch =
         !q ||
-        (row.patient.patient_id || "").toLowerCase().includes(q) ||
-        (row.patient.full_name || "").toLowerCase().includes(q) ||
-        (row.patient.diagnosis[0]?.diagnosis || "").toLowerCase().includes(q);
+        (row.patient?.patient_id || "").toLowerCase().includes(q) ||
+        (row.patient?.full_name || "").toLowerCase().includes(q) ||
+        (row.patient?.diagnosis?.[0]?.diagnosis || "")
+          .toLowerCase()
+          .includes(q);
       const matchesStatus =
         s === "all" || (row.status || "").toLowerCase() === s;
       const matchesDate = !d || row.created_at === d;
@@ -167,206 +136,255 @@ const HomeVisit = () => {
 
   return (
     <>
-      <ConfirmationModal
-        open={modalOpen}
-        text={modalText}
-        onConfirm={doAction}
-        onCancel={cancelAction}
-      />
-      <Notification message={notification} />
-      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center  bg-gray">
-        <div className="flex justify-between items-center w-full">
-          <h2 className="text-xl font-bold text-left w-full pl-5">
-            Home visit requests
-          </h2>
-          <Link
-            to="/admin/survivorship/add"
-            className="bg-yellow px-5 py-1 rounded-sm text-white"
-          >
-            Add
-          </Link>
-        </div>
+      {/* --- Print rules: only show the print template during print --- */}
+      <style>{`
+        :root { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-        <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-3 gap-3">
-          <p className="text-md font-semibold text-yellow">Request List</p>
-          <div className="flex justify-between flex-wrap gap-3">
-            <input
-              type="text"
-              placeholder="Search by patient no, patient name, or diagnosis..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
-            />
-            <select
-              className="border border-gray-200 rounded-md p-2 bg-white"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
+        @media print {
+          #homevisit-root { display: none !important; }
+          #print-root { display: block !important; }
+          @page { size: Letter; margin: 0 !important; }
+          html, body { margin: 0 !important; }
+        }
+        @media screen {
+          #print-root { display: none !important; }
+        }
+
+        /* Screen table tweak to avoid double borders in the scrollable body */
+        .master-table { border-collapse: collapse; }
+        .master-table, .master-table th, .master-table td, .master-table tr { border: 0 !important; }
+      `}</style>
+
+      {/* --- PRINT-ONLY CONTENT (all filtered rows, not paginated) --- */}
+      <div id="print-root">
+        <HomeVisitPrint rows={filteredResults} />
+      </div>
+
+      {/* --- SCREEN CONTENT --- */}
+      <div id="homevisit-root">
+        <ConfirmationModal
+          open={modalOpen}
+          text={modalText}
+          onConfirm={doAction}
+          onCancel={cancelAction}
+        />
+        <Notification message={notification} />
+
+        <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray">
+          <div className="flex justify-between items-center w-full">
+            <h2 className="text-xl font-bold text-left w-full pl-5">
+              Home visit requests
+            </h2>
+            <Link
+              to="/admin/survivorship/add"
+              className="bg-yellow px-5 py-1 rounded-sm text-white"
             >
-              <option value="all">All</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="completed">Completed</option>
-            </select>
-            <input
-              type="date"
-              className="border border-gray-200 py-2 px-5 rounded-md"
-              value={dateFilter}
-              onChange={(e) => {
-                setDateFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
+              Add
+            </Link>
           </div>
-          <div className="bg-white shadow">
-            <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
-              <thead>
-                <tr className="bg-lightblue">
-                  <th className="w-[15%] text-center text-sm py-3 !bg-lightblue">
-                    Patient no
-                  </th>
-                  <th className="w-[20%] text-center text-sm py-3">
-                    Patient Name
-                  </th>
-                  <th className="w-[20%] text-center text-sm py-3">
-                    Diagnosis
-                  </th>
-                  <th className="w-[15%] text-center text-sm py-3">Date</th>
-                  <th className="w-[10%] text-center text-sm py-3">Status</th>
-                  <th className="w-[20%] text-center text-sm py-3">Action</th>
-                </tr>
-              </thead>
-            </table>
-            <div className="max-h-[240px] min-h-[240px] overflow-auto">
-              <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
-                <colgroup>
-                  <col className="w-[15%]" />
-                  <col className="w-[20%]" />
-                  <col className="w-[20%]" />
-                  <col className="w-[15%]" />
-                  <col className="w-[10%]" />
-                  <col className="w-[20%]" />
-                </colgroup>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paginated.map((p) => (
-                    <tr key={p.id}>
-                      <td className="text-center text-sm py-3 text-gray-800">
-                        {p.patient.patient_id}
-                      </td>
-                      <td className="text-center text-sm py-3 text-gray-800">
-                        {p.patient.full_name}
-                      </td>
-                      <td className="text-center text-sm py-3 text-gray-800">
-                        {p.patient.diagnosis[0]?.diagnosis}
-                      </td>
-                      <td className="text-center text-sm py-3 text-gray-800">
-                        {new Date(p.created_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </td>
-                      <td className="text-center text-sm py-3">
-                        <span
-                          className={`px-3 py-1 inline-flex text-xs font-semibold rounded-md ${
-                            p.status === "Approved"
-                              ? "bg-green-50 text-green-600"
-                              : p.status === "Completed"
-                              ? "bg-blue-50 text-blue-600"
-                              : "bg-amber-50 text-amber-600"
-                          }`}
-                        >
-                          {p.status}
-                        </span>
-                      </td>
-                      <td className="text-center text-sm py-3">
-                        <div className="flex gap-2 justify-center">
-                          <button
-                            onClick={() => handleView(p.id)}
-                            className="text-white py-1 px-2 rounded-[5px] shadow bg-primary"
-                          >
-                            View
-                          </button>
-                          {p.status === "Pending" && (
-                            <>
-                              <button
-                                onClick={() => openConfirm(p.id, "accept")}
-                                className="text-white py-1 px-2 rounded-[5px] shadow bg-green-500"
-                              >
-                                Accept
-                              </button>
-                              <button
-                                onClick={() => openConfirm(p.id, "reject")}
-                                className="text-white py-1 px-2 rounded-[5px] shadow bg-red-500"
-                              >
-                                Reject
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {paginated.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="text-center py-4 text-gray-500"
-                      >
-                        No records found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div className="flex justify-end items-center py-2 gap-5">
-            <div className="flex items-center gap-2">
-              <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
-                Records per page:
-              </label>
-              <select
-                id="recordsPerPage"
-                className="w-16 rounded-md shadow-sm"
-                value={recordsPerPage}
+
+          <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-3 gap-3">
+            <p className="text-md font-semibold text-yellow">Request List</p>
+
+            {/* Filters + Generate */}
+            <div className="flex justify-between flex-wrap gap-3">
+              <input
+                type="text"
+                placeholder="Search by patient no, patient name, or diagnosis..."
+                value={searchQuery}
                 onChange={(e) => {
-                  setRecordsPerPage(Number(e.target.value));
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+              />
+              <select
+                className="border border-gray-200 rounded-md p-2 bg-white"
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
                   setCurrentPage(1);
                 }}
               >
-                <option>10</option>
-                <option>20</option>
-                <option>50</option>
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="completed">Completed</option>
               </select>
+              <input
+                type="date"
+                className="border border-gray-200 py-2 px-5 rounded-md"
+                value={dateFilter}
+                onChange={(e) => {
+                  setDateFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
+              {/* ⬇️ Generate button with cursor-pointer */}
+              <button
+                onClick={() => window.print()}
+                className="px-7 font-bold rounded-md text-sm text-white bg-primary cursor-pointer"
+                title="Print current list"
+              >
+                Generate
+              </button>
             </div>
-            <div className="flex gap-3 items-center">
-              <span className="text-sm text-gray-700">
-                {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
-                – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                {totalRecords}
-              </span>
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="text-gray-600"
-              >
-                ←
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="text-gray-600"
-              >
-                →
-              </button>
+
+            {/* Table */}
+            <div className="bg-white shadow">
+              <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
+                <thead>
+                  <tr className="bg-lightblue">
+                    <th className="w-[15%] text-center text-sm py-3 !bg-lightblue">
+                      Patient no
+                    </th>
+                    <th className="w-[20%] text-center text-sm py-3">
+                      Patient Name
+                    </th>
+                    <th className="w-[20%] text-center text-sm py-3">
+                      Diagnosis
+                    </th>
+                    <th className="w-[15%] text-center text-sm py-3">Date</th>
+                    <th className="w-[10%] text-center text-sm py-3">Status</th>
+                    <th className="w-[20%] text-center text-sm py-3">Action</th>
+                  </tr>
+                </thead>
+              </table>
+
+              <div className="max-h-[240px] min-h-[240px] overflow-auto">
+                <table className="min-w-full divide-y divide-gray-200 master-table border-separate border-spacing-0">
+                  <colgroup>
+                    <col className="w-[15%]" />
+                    <col className="w-[20%]" />
+                    <col className="w-[20%]" />
+                    <col className="w-[15%]" />
+                    <col className="w-[10%]" />
+                    <col className="w-[20%]" />
+                  </colgroup>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paginated.map((p) => (
+                      <tr key={p.id}>
+                        <td className="text-center text-sm py-3 text-gray-800">
+                          {p.patient?.patient_id}
+                        </td>
+                        <td className="text-center text-sm py-3 text-gray-800">
+                          {p.patient?.full_name}
+                        </td>
+                        <td className="text-center text-sm py-3 text-gray-800">
+                          {p.patient?.diagnosis?.[0]?.diagnosis || "N/A"}
+                        </td>
+                        <td className="text-center text-sm py-3 text-gray-800">
+                          {new Date(p.created_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </td>
+                        <td className="text-center text-sm py-3">
+                          <span
+                            className={`px-3 py-1 inline-flex text-xs font-semibold rounded-md ${
+                              p.status === "Approved"
+                                ? "bg-green-50 text-green-600"
+                                : p.status === "Completed"
+                                ? "bg-blue-50 text-blue-600"
+                                : "bg-amber-50 text-amber-600"
+                            }`}
+                          >
+                            {p.status}
+                          </span>
+                        </td>
+                        <td className="text-center text-sm py-3">
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              onClick={() => handleView(p.id)}
+                              className="text-white py-1 px-2 rounded-[5px] shadow bg-primary"
+                            >
+                              View
+                            </button>
+                            {p.status === "Pending" && (
+                              <>
+                                <button
+                                  onClick={() => openConfirm(p.id, "accept")}
+                                  className="text-white py-1 px-2 rounded-[5px] shadow bg-green-500"
+                                >
+                                  Accept
+                                </button>
+                                <button
+                                  onClick={() => openConfirm(p.id, "reject")}
+                                  className="text-white py-1 px-2 rounded-[5px] shadow bg-red-500"
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {paginated.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="text-center py-4 text-gray-500"
+                        >
+                          No records found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex justify-end items-center py-2 gap-5">
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="recordsPerPage"
+                  className="text-sm text-gray-700"
+                >
+                  Records per page:
+                </label>
+                <select
+                  id="recordsPerPage"
+                  className="w-16 rounded-md shadow-sm"
+                  value={recordsPerPage}
+                  onChange={(e) => {
+                    setRecordsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option>10</option>
+                  <option>20</option>
+                  <option>50</option>
+                </select>
+              </div>
+              <div className="flex gap-3 items-center">
+                <span className="text-sm text-gray-700">
+                  {Math.min(
+                    (currentPage - 1) * recordsPerPage + 1,
+                    totalRecords
+                  )}{" "}
+                  – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
+                  {totalRecords}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="text-gray-600"
+                >
+                  ←
+                </button>
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="text-gray-600"
+                >
+                  →
+                </button>
+              </div>
             </div>
           </div>
         </div>

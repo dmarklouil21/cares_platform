@@ -8,6 +8,9 @@ import {
   adminDonePreCancerousMeds,
 } from "src/api/precancerous";
 
+// ⬇️ PRINT TEMPLATE
+import PreCancerousPrint from "./generate/generate";
+
 // ----- ui bits -----
 function ConfirmationModal({ open, text, onConfirm, onCancel }) {
   if (!open) return null;
@@ -153,7 +156,13 @@ function MiniCalendar({ selected, min, onSelect }) {
       </div>
       <div className="grid grid-cols-7 gap-[2px]">
         {weeks.flat().map((cell, idx) => {
-          const isToday = fmt(today) === cell.dateStr;
+          const fmt2 = (d) => {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            const dd = String(d.getDate()).padStart(2, "0");
+            return `${yyyy}-${mm}-${dd}`;
+          };
+          const isToday = fmt2(new Date()) === cell.dateStr;
           const isSelected = selected && selected === cell.dateStr;
           const base =
             "text-[11px] rounded w-7 h-7 flex items-center justify-center";
@@ -320,6 +329,7 @@ const PreCancerous = () => {
   };
 
   useEffect(() => {
+    // Initial load → ALL (no status param)
     loadList();
   }, []);
 
@@ -331,13 +341,11 @@ const PreCancerous = () => {
       setNotification(flash);
       // clear the route state so message doesn't reappear on refresh/back
       navigate(location.pathname, { replace: true, state: {} });
-      // auto-hide
       const t = setTimeout(() => setNotification(""), 3000);
       return () => clearTimeout(t);
     }
   }, [location.state, location.pathname, navigate]);
 
-  // generic auto-hide (also covers action notifications below)
   useEffect(() => {
     if (!notification) return;
     const t = setTimeout(() => setNotification(""), 3000);
@@ -362,18 +370,48 @@ const PreCancerous = () => {
   const [verifyId, setVerifyId] = useState(null);
   const [verifyLoading, setVerifyLoading] = useState(false);
 
+  // ⬇️ Normalize DOB for filtering; include stable sort
   const filteredResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     const dob = dobFilter || null;
-    return tableData.filter((p) => {
+
+    const normDOB = (v) => {
+      if (!v) return null;
+      try {
+        // normalize to YYYY-MM-DD to match <input type="date" />
+        return new Date(v).toISOString().split("T")[0];
+      } catch {
+        return v; // fallback
+      }
+    };
+
+    const rows = tableData.filter((p) => {
       const matchesSearch =
         !q ||
-        (p.patient_id || "").toLowerCase().includes(q) ||
+        String(p.patient_id || "")
+          .toLowerCase()
+          .includes(q) ||
         (p.first_name || "").toLowerCase().includes(q) ||
         (p.last_name || "").toLowerCase().includes(q);
+
       const matchesStatus = statusFilter === "all" || p.status === statusFilter;
-      const matchesDob = !dob || p.date_of_birth === dob;
+
+      const matchesDob = !dob || normDOB(p.date_of_birth) === dob;
+
       return matchesSearch && matchesStatus && matchesDob;
+    });
+
+    // stable, predictable output: Last name, First name, Patient no
+    return rows.sort((a, b) => {
+      const la = (a.last_name || "").toLowerCase();
+      const lb = (b.last_name || "").toLowerCase();
+      if (la !== lb) return la.localeCompare(lb);
+      const fa = (a.first_name || "").toLowerCase();
+      const fb = (b.first_name || "").toLowerCase();
+      if (fa !== fb) return fa.localeCompare(fb);
+      return String(a.patient_id || "").localeCompare(
+        String(b.patient_id || "")
+      );
     });
   }, [tableData, searchQuery, statusFilter, dobFilter]);
 
@@ -467,250 +505,297 @@ const PreCancerous = () => {
 
   return (
     <>
-      <ConfirmationModal
-        open={modalOpen}
-        text={modalText}
-        onConfirm={doAction}
-        onCancel={cancelAction}
-      />
-      <VerifyModal
-        open={verifyOpen}
-        onClose={() => {
-          if (!verifyLoading) {
-            setVerifyOpen(false);
-            setVerifyId(null);
-            setVerifyDate("");
-          }
-        }}
-        onConfirm={confirmVerify}
-        value={verifyDate}
-        onChange={setVerifyDate}
-        loading={verifyLoading}
-      />
-      <Notification message={notification} />
+      {/* --- Print rules: only show the print template during print --- */}
+      <style>{`
+        :root { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        @media print {
+          #precancerous-root { display: none !important; }
+          #print-root { display: block !important; }
+          @page { size: Letter; margin: 0 !important; }
+          html, body { margin: 0 !important; }
+        }
+        @media screen {
+          #print-root { display: none !important; }
+        }
+        .master-table { border-collapse: collapse; }
+        .master-table, .master-table th, .master-table td, .master-table tr { border: 0 !important; }
+      `}</style>
 
-      <div className="h-screen w-full flex p-5 gap-3 flex-col justify-start items-center bg-gray">
-        <div className="flex justify-between items-center w-full">
-          <h2 className="text-xl font-bold text-left w-full pl-1">
-            Pre-Cancerous Medication Request
-          </h2>
-          <Link
-            to="/admin/treatment-assistance/add-pre-cancerous"
-            className="bg-yellow px-5 py-1 rounded-sm text-white"
-          >
-            Add
-          </Link>
-        </div>
+      {/* --- PRINT-ONLY CONTENT --- */}
+      <div id="print-root">
+        {/* Pass ALL filtered rows (not paginated) */}
+        <PreCancerousPrint rows={filteredResults} />
+      </div>
 
-        <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
-          <p className="text-md font-semibold text-yellow">Patient List</p>
+      {/* --- SCREEN CONTENT --- */}
+      <div id="precancerous-root">
+        <ConfirmationModal
+          open={modalOpen}
+          text={modalText}
+          onConfirm={doAction}
+          onCancel={cancelAction}
+        />
+        <VerifyModal
+          open={verifyOpen}
+          onClose={() => {
+            if (!verifyLoading) {
+              setVerifyOpen(false);
+              setVerifyId(null);
+              setVerifyDate("");
+            }
+          }}
+          onConfirm={confirmVerify}
+          value={verifyDate}
+          onChange={setVerifyDate}
+          loading={verifyLoading}
+        />
+        <Notification message={notification} />
 
-          {/* filters */}
-          <div className="flex justify-between flex-wrap gap-3">
-            <input
-              type="text"
-              placeholder="Search by patient no, first name, or last name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
-            />
+        <div className="h-screen w-full flex p-5 gap-3 flex-col justify-start items-center bg-gray">
+          <div className="flex justify-between items-center w-full">
+            <h2 className="text-xl font-bold text-left w-full pl-1">
+              Pre-Cancerous Medication Request
+            </h2>
 
-            <select
-              className="border border-gray-200 rounded-md p-2 bg-white"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="Pending">Pending</option>
-              <option value="Verified">Verified</option>
-              <option value="Rejected">Rejected</option>
-              <option value="Done">Done</option>
-            </select>
-
-            <input
-              type="date"
-              className="border border-gray-200 py-2 px-5 rounded-md"
-              value={dobFilter}
-              onChange={(e) => setDobFilter(e.target.value)}
-            />
-
-            <button
-              className="px-7 rounded-md text-sm bg-[#C5D7E5]"
-              onClick={() => loadList(statusFilter)}
-            >
-              Filter
-            </button>
+            <div className="flex gap-2">
+              <Link
+                to="/admin/treatment-assistance/add-pre-cancerous"
+                className="bg-yellow px-5 py-1 rounded-sm text-white"
+              >
+                Add
+              </Link>
+            </div>
           </div>
 
-          {/* table header */}
-          <div className="bg-white shadow">
-            <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
-              <thead>
-                <tr className="bg-lightblue">
-                  <th className="w-[15%] text-center text-sm py-3 !bg-lightblue">
-                    Patient no
-                  </th>
-                  <th className="w-[20%] text-center text-sm py-3">
-                    First name
-                  </th>
-                  <th className="w-[20%] text-center text-sm py-3">
-                    Last name
-                  </th>
-                  <th className="w-[15%] text-center text-sm py-3">
-                    Date of birth
-                  </th>
-                  <th className="w-[10%] text-center text-sm py-3">Status</th>
-                  <th className="w-[20%] text-center text-sm py-3">Action</th>
-                </tr>
-              </thead>
-            </table>
+          <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
+            <p className="text-md font-semibold text-yellow">Patient List</p>
 
-            {/* table body */}
-            <div className="max-h-[240px] min-h-[240px] overflow-auto">
+            {/* filters */}
+            <div className="flex justify-between flex-wrap gap-3">
+              <input
+                type="text"
+                placeholder="Search by patient no, first name, or last name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+              />
+
+              <select
+                className="border border-gray-200 rounded-md p-2 bg-white"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All</option>
+                <option value="Pending">Pending</option>
+                <option value="Verified">Verified</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Done">Done</option>
+              </select>
+
+              <input
+                type="date"
+                className="border border-gray-200 py-2 px-5 rounded-md"
+                value={dobFilter}
+                onChange={(e) => setDobFilter(e.target.value)}
+              />
+
+              {/* <button
+                className="px-7 rounded-md text-sm bg-[#C5D7E5]"
+                onClick={() => loadList(statusFilter)}
+                title="Fetch from server using selected status"
+              >
+                Filter
+              </button> */}
+              <button
+                onClick={() => window.print()}
+                disabled={loading}
+                className={`px-7 font-bold rounded-md text-sm text-white cursor-pointer ${
+                  loading ? "bg-primary/60 cursor-not-allowed" : "bg-primary"
+                }`}
+                title={loading ? "Loading data..." : "Print current list"}
+              >
+                Generate
+              </button>
+            </div>
+
+            {/* table header */}
+            <div className="bg-white shadow">
               <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
-                <colgroup>
-                  <col className="w-[15%]" />
-                  <col className="w-[20%]" />
-                  <col className="w-[20%]" />
-                  <col className="w-[15%]" />
-                  <col className="w-[10%]" />
-                  <col className="w-[20%]" />
-                </colgroup>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {loading && (
-                    <tr>
-                      <td colSpan="6" className="text-center py-4">
-                        Loading...
-                      </td>
-                    </tr>
-                  )}
-                  {!loading &&
-                    paginated.map((p) => (
-                      <tr key={p.id}>
-                        <td className="text-center text-sm py-3 text-gray-800">
-                          {p.patient_id}
-                        </td>
-                        <td className="text-center text-sm py-3 text-gray-800">
-                          {p.first_name}
-                        </td>
-                        <td className="text-center text-sm py-3 text-gray-800">
-                          {p.last_name}
-                        </td>
-                        <td className="text-center text-sm py-3 text-gray-800">
-                          {new Date(p.date_of_birth).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            }
-                          )}
-                        </td>
-                        <td className="text-center text-sm py-3">
-                          <span
-                            className={`px-3 py-1 inline-flex text-xs font-semibold rounded-md ${
-                              p.status === "Verified"
-                                ? "bg-green-50 text-green-600"
-                                : p.status === "Done"
-                                ? "bg-blue-50 text-blue-600"
-                                : p.status === "Rejected"
-                                ? "bg-rose-50 text-rose-600"
-                                : "bg-amber-50 text-amber-600"
-                            }`}
-                          >
-                            {p.status}
-                          </span>
-                        </td>
-                        <td className="text-center text-sm py-3">
-                          <div className="flex gap-2 justify-center">
-                            <button
-                              onClick={() => handleView(p.id)}
-                              className="text-white py-1 px-3 rounded-[5px] shadow bg-primary"
-                            >
-                              View
-                            </button>
-                            {p.status === "Pending" && (
-                              <>
-                                <button
-                                  onClick={() => openConfirm(p.id, "verify")}
-                                  className="text-white py-1 px-3 rounded-[5px] shadow bg-green-500"
-                                >
-                                  Verify
-                                </button>
-                                <button
-                                  onClick={() => openConfirm(p.id, "reject")}
-                                  className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            )}
-                            {p.status === "Verified" && (
-                              <button
-                                onClick={() => openConfirm(p.id, "done")}
-                                className="text-white py-1 px-3 rounded-[5px] shadow bg-blue-600"
-                              >
-                                Mark done
-                              </button>
-                            )}
-                          </div>
+                <thead>
+                  <tr className="bg-lightblue">
+                    <th className="w-[14%] text-center text-sm py-3 !bg-lightblue">
+                      Patient no
+                    </th>
+                    <th className="w-[18%] text-center text-sm py-3">
+                      First name
+                    </th>
+                    <th className="w-[18%] text-center text-sm py-3">
+                      Last name
+                    </th>
+                    <th className="w-[15%] text-center text-sm py-3">
+                      Date of birth
+                    </th>
+                    <th className="w-[11%] text-center text-sm py-3">Status</th>
+                    <th className="w-[24%] text-center text-sm py-3">Action</th>
+                  </tr>
+                </thead>
+              </table>
+
+              {/* table body */}
+              <div className="max-h-[240px] min-h-[240px] overflow-auto">
+                <table className="min-w-full divide-y divide-gray-200 master-table border-separate border-spacing-0">
+                  <colgroup>
+                    <col className="w-[14%]" />
+                    <col className="w-[18%]" />
+                    <col className="w-[18%]" />
+                    <col className="w-[15%]" />
+                    <col className="w-[11%]" />
+                    <col className="w-[24%]" />
+                  </colgroup>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {loading && (
+                      <tr>
+                        <td colSpan="6" className="text-center py-4">
+                          Loading...
                         </td>
                       </tr>
-                    ))}
-                  {!loading && paginated.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan="6"
-                        className="text-center py-4 text-gray-500"
-                      >
-                        No records found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    )}
+                    {!loading &&
+                      paginated.map((p) => (
+                        <tr key={p.id}>
+                          <td className="text-center text-sm py-3 text-gray-800">
+                            {p.patient_id}
+                          </td>
+                          <td className="text-center text-sm py-3 text-gray-800">
+                            {p.first_name}
+                          </td>
+                          <td className="text-center text-sm py-3 text-gray-800">
+                            {p.last_name}
+                          </td>
+                          <td className="text-center text-sm py-3 text-gray-800">
+                            {p.date_of_birth
+                              ? new Date(p.date_of_birth).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                  }
+                                )
+                              : ""}
+                          </td>
+                          <td className="text-center text-sm py-3">
+                            <span
+                              className={`px-3 py-1 inline-flex text-xs font-semibold rounded-md ${
+                                p.status === "Verified"
+                                  ? "bg-green-50 text-green-600"
+                                  : p.status === "Done"
+                                  ? "bg-blue-50 text-blue-600"
+                                  : p.status === "Rejected"
+                                  ? "bg-rose-50 text-rose-600"
+                                  : "bg-amber-50 text-amber-600"
+                              }`}
+                            >
+                              {p.status}
+                            </span>
+                          </td>
+                          <td className="text-center text-sm py-3">
+                            <div className="flex gap-2 justify-center">
+                              <button
+                                onClick={() => handleView(p.id)}
+                                className="text-white py-1 px-3 rounded-[5px] shadow bg-primary"
+                              >
+                                View
+                              </button>
+                              {p.status === "Pending" && (
+                                <>
+                                  <button
+                                    onClick={() => openConfirm(p.id, "verify")}
+                                    className="text-white py-1 px-3 rounded-[5px] shadow bg-green-500"
+                                  >
+                                    Verify
+                                  </button>
+                                  <button
+                                    onClick={() => openConfirm(p.id, "reject")}
+                                    className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
+                                  >
+                                    Reject
+                                  </button>
+                                </>
+                              )}
+                              {p.status === "Verified" && (
+                                <button
+                                  onClick={() => openConfirm(p.id, "done")}
+                                  className="text-white py-1 px-3 rounded-[5px] shadow bg-blue-600"
+                                >
+                                  Mark done
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    {!loading && paginated.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan="6"
+                          className="text-center py-4 text-gray-500"
+                        >
+                          No records found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
 
-          {/* pagination */}
-          <div className="flex justify-end items-center py-2 gap-5">
-            <div className="flex items-center gap-2">
-              <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
-                Records per page:
-              </label>
-              <select
-                id="recordsPerPage"
-                className="w-16 rounded-md shadow-sm"
-                value={recordsPerPage}
-                onChange={(e) => setRecordsPerPage(Number(e.target.value))}
-              >
-                <option>10</option>
-                <option>20</option>
-                <option>50</option>
-              </select>
-            </div>
-            <div className="flex gap-3 items-center">
-              <span className="text-sm text-gray-700">
-                {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
-                – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                {totalRecords}
-              </span>
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="text-gray-600"
-              >
-                ←
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="text-gray-600"
-              >
-                →
-              </button>
+            {/* pagination */}
+            <div className="flex justify-end items-center py-2 gap-5">
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="recordsPerPage"
+                  className="text-sm text-gray-700"
+                >
+                  Records per page:
+                </label>
+                <select
+                  id="recordsPerPage"
+                  className="w-16 rounded-md shadow-sm"
+                  value={recordsPerPage}
+                  onChange={(e) => setRecordsPerPage(Number(e.target.value))}
+                >
+                  <option>10</option>
+                  <option>20</option>
+                  <option>50</option>
+                </select>
+              </div>
+              <div className="flex gap-3 items-center">
+                <span className="text-sm text-gray-700">
+                  {Math.min(
+                    (currentPage - 1) * recordsPerPage + 1,
+                    totalRecords
+                  )}{" "}
+                  – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
+                  {totalRecords}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="text-gray-600"
+                >
+                  ←
+                </button>
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="text-gray-600"
+                >
+                  →
+                </button>
+              </div>
             </div>
           </div>
         </div>
