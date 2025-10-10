@@ -1,11 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
+
+// ⬇️ NEW: print template
+import GenerateMasterPrintTemplate from "./generate/generate";
 
 // Notification component for showing popup messages
 function Notification({ message, onClose }) {
@@ -25,14 +28,6 @@ function Notification({ message, onClose }) {
 }
 
 const PatientMasterList = () => {
-  const [tableData, setTableData] = useState([]);
-  // const [statusFilter, setStatusFilter] = useState("pending");
-  // const [searchQuery, setSearchQuery] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
-  // const [recordsPerPage, setRecordsPerPage] = useState(10);
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const [notification, setNotification] = useState("");
-
   const [patients, setPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [notification, setNotification] = useState("");
@@ -58,7 +53,6 @@ const PatientMasterList = () => {
 
   const fetchData = async () => {
     try {
-      // const response = await api.get("/patient/list/?status=validated");
       const response = await api.get("/patient/list/");
       setPatients(response.data);
       console.log("Responses: ", response.data);
@@ -72,10 +66,6 @@ const PatientMasterList = () => {
     // eslint-disable-next-line
   }, []);
 
-  /* useEffect(() => {
-    setCurrentPage(1);
-  }, [tableData]); */
-
   const filteredResults = patients.filter((patient) => {
     const query = searchQuery.trim().toLowerCase();
     const fullName = `${patient.first_name || ""} ${patient.last_name || ""} ${
@@ -83,27 +73,25 @@ const PatientMasterList = () => {
     }`
       .trim()
       .toLowerCase();
+
     const matchesSearch =
       !query ||
       patient.patient_id?.toString().toLowerCase().includes(query) ||
       fullName.includes(query) ||
       (patient.city || "").toLowerCase().includes(query);
+
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "active" && patient.status === "active");
-    // (statusFilter === "inactive" && !patient.is_active);
+      (statusFilter === "active" && (patient.status || "active") === "active");
+
     return matchesSearch && matchesStatus;
   });
 
-  const handleViewClick = (patient_id) => {
+  const handleViewClick = (patient_id) =>
     navigate(`/admin/patient/view/${patient_id}`);
-  };
-
   const handleEditClick = (id) => {
     const patient = patients.find((p) => p.patient_id === id);
-    if (patient) {
-      navigate(`/admin/patient/edit/${id}`);
-    }
+    if (patient) navigate(`/admin/patient/edit/${id}`);
   };
 
   const totalRecords = filteredResults.length;
@@ -117,21 +105,16 @@ const PatientMasterList = () => {
     setRecordsPerPage(Number(e.target.value));
     setCurrentPage(1);
   };
-
-  const handlePrev = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleNext = () => {
+  const handlePrev = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const handleNext = () =>
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  };
 
   const handleModalConfirm = async () => {
     if (modalAction && modalAction.action === "delete" && modalAction.id) {
       try {
         setModalOpen(false);
         setLoading(true);
-        const response = await api.delete(`/patient/delete/${modalAction.id}/`);
+        await api.delete(`/patient/delete/${modalAction.id}/`);
         setModalInfo({
           type: "success",
           title: "Success!",
@@ -139,7 +122,6 @@ const PatientMasterList = () => {
         });
         setShowModal(true);
       } catch (error) {
-        // setNotification("Failed to delete patient");
         setModalInfo({
           type: "error",
           title: "Failed to delete this object",
@@ -151,7 +133,6 @@ const PatientMasterList = () => {
         fetchData();
         setLoading(false);
       }
-      // setTimeout(() => setNotification(""), 3500);
     }
 
     setModalOpen(false);
@@ -170,6 +151,27 @@ const PatientMasterList = () => {
 
   return (
     <>
+      {/* --- Print rules: only show GenerateMasterPrintTemplate during print --- */}
+      <style>{`
+        @media print {
+          #masterlist-root { display: none !important; }
+          #print-root { display: block !important; }
+        }
+        @media screen {
+          #print-root { display: none !important; }
+        }
+        /* optional: remove borders like the pre-enroll list */
+        .master-table { border-collapse: collapse; }
+        .master-table, .master-table th, .master-table td, .master-table tr { border: 0 !important; }
+      `}</style>
+
+      {/* --- PRINT-ONLY CONTENT --- */}
+      <div id="print-root">
+        {/* pass ALL filtered rows (not paginated) */}
+        <GenerateMasterPrintTemplate rows={filteredResults} />
+      </div>
+
+      {/* --- SCREEN CONTENT --- */}
       <ConfirmationModal
         open={modalOpen}
         title={modalText}
@@ -189,22 +191,30 @@ const PatientMasterList = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting changes..." />
-      <div className="h-screen w-full flex flex-col justify-start gap-3 p-5 items-center bg-gray">
+
+      <div
+        id="masterlist-root"
+        className="h-screen w-full flex flex-col justify-start gap-3 p-5 items-center bg-gray"
+      >
         <div className="flex justify-between items-center w-full">
           <h2 className="text-xl font-bold text-left w-full pl-1">
             Patient Master List
           </h2>
-          <Link
-            to="/admin/patient/add/general-data"
-            className="bg-yellow px-5 py-1 rounded-sm text-white"
-          >
-            Add
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/admin/patient/add/general-data"
+              className="bg-yellow px-5 py-1 rounded-sm text-white"
+            >
+              Add
+            </Link>
+          </div>
         </div>
+
         <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
           <p className="text-md font-semibold text-yellow">
             Manage All Patients
           </p>
+
           <div className="flex justify-between flex-wrap gap-3">
             <input
               type="text"
@@ -228,10 +238,15 @@ const PatientMasterList = () => {
               type="date"
               className="border border-gray-200 py-2 px-5 rounded-md"
             />
-            <button className="px-7 rounded-md text-sm bg-lightblue">
-              Filter
+            {/* ⬇️ NEW: Generate button mirrors the Pre-Enrollment page */}
+            <button
+              onClick={() => window.print()}
+              className="bg-primary px-5 py-1 rounded-sm text-white cursor-pointer"
+            >
+              Generate
             </button>
           </div>
+
           <div className="bg-white shadow overflow-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead>
@@ -248,23 +263,20 @@ const PatientMasterList = () => {
                   <th className="w-[15%] text-center text-sm py-3">
                     Middle Name
                   </th>
-                  {/* <th className="w-[12%] text-center text-sm py-3">
-                      Birthdate
-                    </th> */}
                   <th className="w-[13%] text-center text-sm py-3">LGU</th>
                   <th className="w-[21%] text-center text-sm py-3 ">Actions</th>
                 </tr>
               </thead>
             </table>
+
             <div className="max-h-[200px] min-h-[200px] overflow-auto">
-              <table className="min-w-full divide-y divide-gray-200 border-spacing-0">
+              <table className="min-w-full divide-y divide-gray-200 border-spacing-0 master-table">
                 <colgroup>
                   <col className="w-[13%]" />
                   <col className="w-[15%]" />
                   <col className="w-[15%]" />
                   <col className="w-[15%]" />
                   <col className="w-[13%]" />
-                  {/* <col className="w-[13%]" /> */}
                   <col className="w-[21%]" />
                 </colgroup>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -282,9 +294,6 @@ const PatientMasterList = () => {
                       <td className="text-center text-sm py-4 text-gray-800">
                         {patient.middle_name}
                       </td>
-                      {/* <td className="text-center text-sm py-4 text-gray-800">
-                          {patient.date_of_birth}
-                        </td> */}
                       <td className="text-center text-sm py-4 text-gray-800">
                         {patient.city}
                       </td>
@@ -326,6 +335,7 @@ const PatientMasterList = () => {
               </table>
             </div>
           </div>
+
           {/* Footer Pagination */}
           <div className="flex justify-end items-center py-2 gap-5">
             <div className="flex items-center gap-2">
