@@ -10,6 +10,9 @@ import Notification from "src/components/Notification";
 import LoadingModal from "src/components/Modal/LoadingModal";
 import { Info } from "lucide-react";
 
+// ⬇️ NEW (print component)
+import GeneratePrintTemplate from "./generate/generate";
+
 const IndividualScreening = () => {
   const location = useLocation();
   // Filters and Table Data
@@ -46,9 +49,7 @@ const IndividualScreening = () => {
   useEffect(() => {
     if (notificationType && notificationMessage) {
       setNotification(notificationMessage);
-
       navigate(location.pathname, { replace: true, state: {} });
-
       setTimeout(() => setNotification(""), 2000);
     }
   }, [notificationType, notificationMessage, navigate, location.pathname]);
@@ -78,7 +79,6 @@ const IndividualScreening = () => {
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
     const dateMatch = !dateFilter || record.created_at === dateFilter;
-
     return statusMatch && searchMatch && dateMatch;
   });
 
@@ -95,10 +95,9 @@ const IndividualScreening = () => {
       try {
         setModalOpen(false);
         setLoading(true);
-        const response = await api.delete(
+        await api.delete(
           `/cancer-screening/individual-screening/delete/${modalAction.id}/`
         );
-
         setNotificationMessage("Deleted Successfully.");
         setNotificationType("success");
         setNotification(notificationMessage);
@@ -116,7 +115,6 @@ const IndividualScreening = () => {
         setLoading(false);
       }
     }
-
     setModalOpen(false);
     setModalAction(null);
     setModalText("");
@@ -143,6 +141,26 @@ const IndividualScreening = () => {
 
   return (
     <>
+      {/* --- Print rules: only show GeneratePrintTemplate during print --- */}
+      <style>{`
+        @media print {
+          #individual-root { display: none !important; }
+          #print-root { display: block !important; }
+        }
+        @media screen {
+          #print-root { display: none !important; }
+        }
+        .indiv-table { border-collapse: collapse; }
+        .indiv-table, .indiv-table th, .indiv-table td, .indiv-table tr { border: 0 !important; }
+      `}</style>
+
+      {/* --- PRINT-ONLY CONTENT --- */}
+      <div id="print-root">
+        {/* print ALL filtered rows (not paginated) */}
+        <GeneratePrintTemplate rows={filteredData} />
+      </div>
+
+      {/* --- SCREEN CONTENT --- */}
       <ConfirmationModal
         open={modalOpen}
         title={modalText}
@@ -163,17 +181,23 @@ const IndividualScreening = () => {
       />
       <Notification message={notification} type={notificationType} />
       <LoadingModal open={loading} text="Submitting changes..." />
-      <div className="h-screen w-full flex p-5 gap-3 flex-col justify-start items-center bg-gray">
+
+      <div
+        id="individual-root"
+        className="h-screen w-full flex p-5 gap-3 flex-col justify-start items-center bg-gray"
+      >
         <div className="flex justify-between items-center w-full">
           <h2 className="text-xl font-bold text-left w-full pl-1">
             Individual Screening
           </h2>
-          <Link
-            to="/admin/cancer-screening/add/individual"
-            className="bg-yellow px-5 py-1 rounded-sm text-white"
-          >
-            Add
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/admin/cancer-screening/add/individual"
+              className="bg-yellow px-5 py-1 rounded-sm text-white"
+            >
+              Add
+            </Link>
+          </div>
         </div>
 
         <div className="flex flex-col bg-white rounded-md w-full shadow-md px-5 py-5 gap-3">
@@ -210,8 +234,12 @@ const IndividualScreening = () => {
               onChange={(e) => setDateFilter(e.target.value)}
             />
 
-            <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
-              Filter
+            {/* ⬇️ NEW: Generate button */}
+            <button
+              onClick={() => window.print()}
+              className="bg-primary px-5 py-1 rounded-sm text-white cursor-pointer"
+            >
+              Generate
             </button>
           </div>
 
@@ -236,7 +264,7 @@ const IndividualScreening = () => {
               </thead>
             </table>
             <div className="max-h-[200px] min-h-[200px] overflow-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-gray-200 indiv-table">
                 <colgroup>
                   <col className="w-[13%]" />
                   <col className="w-[20%] " />
@@ -321,7 +349,7 @@ const IndividualScreening = () => {
             </div>
           </div>
 
-          {/* Footer Pagination */}
+          {/* Footer Pagination (static numbers for now since you don't paginate here) */}
           <div className="flex justify-end items-center py-2 gap-5">
             <div className="flex items-center gap-2">
               <label htmlFor="recordsPerPage" className="text-sm text-gray-700">

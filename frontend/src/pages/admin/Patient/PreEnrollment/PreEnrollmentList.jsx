@@ -1,5 +1,8 @@
+// pages/admin/Patient/PreEnrollment/PreEnrollmentList.jsx
 import { useState, useEffect, act, useRef } from "react";
-// Simple Modal component
+// at the top with your other imports
+import GeneratePrintTemplate from "./generate/generate";
+
 function ConfirmationModal({ open, text, onConfirm, onCancel }) {
   if (!open) return null;
   return (
@@ -24,6 +27,7 @@ function ConfirmationModal({ open, text, onConfirm, onCancel }) {
     </div>
   );
 }
+
 // Notification component for showing popup messages
 function Notification({ message, onClose }) {
   if (!message) return null;
@@ -40,6 +44,7 @@ function Notification({ message, onClose }) {
     </div>
   );
 }
+
 import { useNavigate } from "react-router-dom";
 import api from "src/api/axiosInstance";
 
@@ -150,9 +155,7 @@ const PreEnrollmentList = () => {
       let actionWord =
         action === "validate"
           ? "Validated"
-          : // : action === "reject"
-            // ? "Rejected"
-            action.charAt(0).toUpperCase() + action.slice(1);
+          : action.charAt(0).toUpperCase() + action.slice(1);
       setNotification(`${actionWord} Successfully`);
       fetchData();
       setTimeout(() => setNotification(""), 3500);
@@ -189,18 +192,46 @@ const PreEnrollmentList = () => {
 
   return (
     <>
-      {/* Confirmation Modal */}
-      <ConfirmationModal
-        open={modalOpen}
-        text={modalText}
-        onConfirm={handleModalConfirm}
-        onCancel={handleModalCancel}
-      />
-      <Notification
-        message={notification}
-        onClose={() => setNotification("")}
-      />
-      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray">
+      {/* --- Print rules: only show GeneratePrintTemplate during print --- */}
+      <style>{`
+        @media print {
+          #preenrollment-root { display: none !important; }
+          #print-root { display: block !important; }
+        }
+        @media screen {
+          #print-root { display: none !important; }
+        }
+          /* inside a <style> tag in the component */
+.preenroll-table { border-collapse: collapse; }
+.preenroll-table, .preenroll-table th, .preenroll-table td, .preenroll-table tr {
+  border: 0 !important;
+}
+
+      `}</style>
+
+      {/* --- PRINT-ONLY CONTENT --- */}
+      <div id="print-root">
+        <GeneratePrintTemplate rows={filteredResults} />
+      </div>
+
+      {/* --- SCREEN CONTENT --- */}
+      <div
+        id="preenrollment-root"
+        className="h-full overflow-auto w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray"
+      >
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          open={modalOpen}
+          text={modalText}
+          onConfirm={handleModalConfirm}
+          onCancel={handleModalCancel}
+        />
+
+        <Notification
+          message={notification}
+          onClose={() => setNotification("")}
+        />
+
         <h2 className="text-xl font-bold text-left w-full pl-1">
           Pre-Enrollment
         </h2>
@@ -237,121 +268,119 @@ const PreEnrollmentList = () => {
               onChange={(e) => setDateFilter(e.target.value)}
             />
 
-            <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
-              Filter
+            <button
+              onClick={() => window.print()}
+              className="px-7 font-bold cursor-pointer rounded-md text-sm text-white bg-primary"
+            >
+              Generate
             </button>
           </div>
 
-          <div className="bg-white shadow">
-            <div className="bg-white shadow">
-              <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
-                <thead>
-                  <tr className="bg-lightblue">
-                    <th className="w-[15%] text-center text-sm py-3 !bg-lightblue">
-                      Beneficiary ID
-                    </th>
-                    <th className="w-[20%] text-center text-sm py-3 ">Name</th>
-                    <th className="w-[15%] text-center text-sm py-3 ">
-                      Submission Date
-                    </th>
-                    <th className="w-[15%] text-center text-sm py-3 ">LGU</th>
-                    <th className="w-[8.4%] text-center text-sm py-3 ">
-                      Status
-                    </th>
-                    <th className="w-[25%] text-center text-sm py-3 ">
-                      Actions
-                    </th>
-                    {paginatedData.length >= 4 && (
-                      <th className="!bg-lightblue w-[1.6%] p-0 m-0"></th>
-                    )}
-                  </tr>
-                </thead>
-              </table>
-              <div className="max-h-[200px] min-h-[200px] overflow-auto">
-                <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
-                  <colgroup>
-                    <col className="w-[15%]" />
-                    <col className="w-[20%] " />
-                    <col className="w-[15%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[8.4%]" />
-                    <col className="w-[25%]" />
-                  </colgroup>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {paginatedData?.map((item) => (
-                      <tr key={item.patient_id}>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {item.patient_id}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {item.full_name}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {new Date(item.created_at).toLocaleDateString(
-                            "en-US",
-                            { year: "numeric", month: "long", day: "numeric" }
-                          )}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {item.city}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          <span className="px-3 py-1 inline-flex text-xs font-semibold rounded-md bg-amber-50 text-amber-600">
-                            {item.status}
-                          </span>
-                        </td>
-                        <td className="text-center text-sm py-4 flex gap-2 justify-center">
-                          <button
-                            onClick={() => handleViewClick(item.patient_id)}
-                            className="text-white py-1 px-3 rounded-[5px] shadow bg-primary"
-                          >
-                            View
-                          </button>
-                          {item.status === "pending" && (
-                            <button
-                              onClick={() =>
-                                handleActionClick(item.patient_id, "validate")
-                              }
-                              className="text-white py-1 px-3 rounded-[5px] shadow bg-green-500"
-                            >
-                              Validate
-                            </button>
-                          )}
-                          {item.status === "pending" ? (
-                            <button
-                              onClick={() =>
-                                handleActionClick(item.patient_id, "reject")
-                              }
-                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
-                            >
-                              Reject
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() =>
-                                handleActionClick(item.patient_id, "delete")
-                              }
-                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                    {paginatedData?.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan="6"
-                          className="text-center py-4 text-gray-500"
+          <div className="bg-white shadow overflow-auto">
+            <table className="min-w-full divide-y preenroll-table divide-gray-200 border-separate border-spacing-0">
+              <thead>
+                <tr className="bg-lightblue">
+                  <th className="w-[15%] text-center text-sm py-3 !bg-lightblue">
+                    Beneficiary ID
+                  </th>
+                  <th className="w-[20%] text-center text-sm py-3 ">Name</th>
+                  <th className="w-[15%] text-center text-sm py-3 ">
+                    Submission Date
+                  </th>
+                  <th className="w-[15%] text-center text-sm py-3 ">LGU</th>
+                  <th className="w-[8.4%] text-center text-sm py-3 ">Status</th>
+                  <th className="w-[25%] text-center text-sm py-3 ">Actions</th>
+                  {paginatedData.length >= 4 && (
+                    <th className="!bg-lightblue w-[1.6%] p-0 m-0"></th>
+                  )}
+                </tr>
+              </thead>
+            </table>
+            <div className="max-h-[200px] min-h-[200px] overflow-auto">
+              <table className="min-w-full divide-y preenroll-table divide-gray-200 border-separate border-spacing-0">
+                <colgroup>
+                  <col className="w-[15%]" />
+                  <col className="w-[20%] " />
+                  <col className="w-[15%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[8.4%]" />
+                  <col className="w-[25%]" />
+                </colgroup>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {paginatedData?.map((item) => (
+                    <tr key={item.patient_id}>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {item.patient_id}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {item.full_name}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {new Date(item.created_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        {item.city}
+                      </td>
+                      <td className="text-center text-sm py-4 text-gray-800">
+                        <span className="px-3 py-1 inline-flex text-xs font-semibold rounded-md bg-amber-50 text-amber-600">
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="text-center text-sm py-4 flex gap-2 justify-center">
+                        <button
+                          onClick={() => handleViewClick(item.patient_id)}
+                          className="text-white py-1 px-3 rounded-[5px] shadow bg-primary"
                         >
-                          No records found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                          View
+                        </button>
+                        {item.status === "pending" && (
+                          <button
+                            onClick={() =>
+                              handleActionClick(item.patient_id, "validate")
+                            }
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-green-500"
+                          >
+                            Validate
+                          </button>
+                        )}
+                        {item.status === "pending" ? (
+                          <button
+                            onClick={() =>
+                              handleActionClick(item.patient_id, "reject")
+                            }
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
+                          >
+                            Reject
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              handleActionClick(item.patient_id, "delete")
+                            }
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {paginatedData?.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="text-center py-4 text-gray-500"
+                      >
+                        No records found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -374,11 +403,7 @@ const PreEnrollmentList = () => {
             </div>
             <div className="flex gap-3 items-center">
               <span className="text-sm text-gray-700">
-                {/* 1 – 10 of {filteredData.length} */}
-                {Math.min(
-                  (currentPage - 1) * recordsPerPage + 1,
-                  totalRecords
-                )}{" "}
+                {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
                 – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
                 {totalRecords}
               </span>

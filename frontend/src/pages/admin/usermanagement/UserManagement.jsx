@@ -1,3 +1,15 @@
+// src/pages/user-management/UserManagement.jsx
+import { useState, useEffect, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  fetchUsers,
+  deleteUser,
+  updateUser,
+} from "../../../services/userManagementService";
+
+// ⬇️ PRINT TEMPLATE
+import UserManagementPrint from "./generate/generate";
+
 // Modal component for confirmation
 function ConfirmationModal({ open, text, onConfirm, onCancel }) {
   if (!open) return null;
@@ -23,13 +35,7 @@ function ConfirmationModal({ open, text, onConfirm, onCancel }) {
     </div>
   );
 }
-import { useState, useEffect, useCallback } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
-import {
-  fetchUsers,
-  deleteUser,
-  updateUser,
-} from "../../../services/userManagementService";
+
 // Notification component for showing popup messages
 function Notification({ message, onClose }) {
   if (!message) return null;
@@ -60,6 +66,28 @@ const UserManagement = () => {
 
   // Status filter state
   const [statusFilter, setStatusFilter] = useState("all");
+
+  // Print-only: style rules
+  // (Hide the screen UI while printing, show print template; plus table border tweaks)
+  const printStyles = (
+    <style>{`
+      :root { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+      @media print {
+        #um-root { display: none !important; }
+        #print-root { display: block !important; }
+        @page { size: Letter; margin: 0 !important; }
+        html, body { margin: 0 !important; }
+      }
+      @media screen {
+        #print-root { display: none !important; }
+      }
+
+      /* Screen table tweak to avoid double borders in the scrollable body */
+      .master-table { border-collapse: collapse; }
+      .master-table, .master-table th, .master-table td, .master-table tr { border: 0 !important; }
+    `}</style>
+  );
 
   // Fix: Use first_name + last_name for display and search
   const filteredResults = users.filter((user) => {
@@ -116,7 +144,6 @@ const UserManagement = () => {
 
   // Modal confirm handler
   const handleModalConfirm = async () => {
-    console.log("Modal Confirm:", modalAction); // Debug log
     if (modalAction && modalAction.action === "delete" && modalAction.id) {
       try {
         await deleteUser(modalAction.id);
@@ -147,9 +174,8 @@ const UserManagement = () => {
     setModalText("");
   };
 
-  // Show modal for delete
+  // Show modal for delete/reject
   const handleActionClick = (id, action) => {
-    console.log("handleActionClick:", { id, action }); // Debug log
     if (action === "delete") {
       setModalText("Are you sure you want to delete this user?");
       setModalAction({ id, action });
@@ -220,190 +246,229 @@ const UserManagement = () => {
 
   return (
     <>
-      <ConfirmationModal
-        open={modalOpen}
-        text={modalText}
-        onConfirm={handleModalConfirm}
-        onCancel={handleModalCancel}
-      />
-      <Notification
-        message={notification}
-        onClose={() => setNotification("")}
-      />
-      <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
-        <div className="flex justify-between items-center w-full">
-          <h2 className="text-xl font-bold text-left w-full pl-1">
-            User Management
-          </h2>
-          <Link
-            to="/admin/user-management/add"
-            className="bg-yellow px-5 py-1 rounded-sm text-white"
-          >
-            Add
-          </Link>
-        </div>
-        <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
-          <p className="text-md font-semibold text-yellow">
-            Manage all system users
-          </p>
-          <div className="flex justify-between flex-wrap gap-3">
-            <input
-              type="text"
-              placeholder="Search by name, email, or ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
-            />
+      {printStyles}
 
-            <select
-              className="border border-gray-200 rounded-md p-2 bg-white"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+      {/* --- PRINT-ONLY CONTENT (all filtered rows, not paginated) --- */}
+      <div id="print-root">
+        <UserManagementPrint rows={filteredResults} />
+      </div>
+
+      {/* --- SCREEN CONTENT --- */}
+      <div id="um-root">
+        <ConfirmationModal
+          open={modalOpen}
+          text={modalText}
+          onConfirm={handleModalConfirm}
+          onCancel={handleModalCancel}
+        />
+        <Notification
+          message={notification}
+          onClose={() => setNotification("")}
+        />
+
+        <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
+          <div className="flex justify-between items-center w-full">
+            <h2 className="text-xl font-bold text-left w-full pl-1">
+              User Management
+            </h2>
+            <Link
+              to="/admin/user-management/add"
+              className="bg-yellow px-5 py-1 rounded-sm text-white"
             >
-              <option value="all">All</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+              Add
+            </Link>
+          </div>
 
-            <input
-              type="date"
-              className="border border-gray-200 py-2 px-5 rounded-md"
-            />
-            <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
-              Filter
-            </button>
-          </div>
-          <div className="bg-white shadow overflow-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr className="bg-lightblue">
-                  <th className="w-[25%] text-center text-sm py-3 !bg-lightblue">
-                    Name
-                  </th>
-                  <th className="w-[25%] text-center text-sm py-3">Email</th>
-                  <th className="w-[12%] text-center text-sm py-3">Role</th>
-                  <th className="w-[13.4%] text-center text-sm py-3">Status</th>
-                  <th className="w-[23%] text-center text-sm py-3 ">Actions</th>
-                  {paginatedData.length >= 4 && (
-                    <th className="!bg-lightblue w-[1.6%] p-0 m-0"></th>
-                  )}
-                </tr>
-              </thead>
-            </table>
-            <div className="max-h-[200px] min-h-[200px] overflow-auto">
-              <table className="min-w-full divide-y divide-gray-200 border-spacing-0">
-                <colgroup>
-                  <col className="w-[25%]" />
-                  <col className="w-[25%] " />
-                  <col className="w-[12%]" />
-                  <col className="w-[13.4%]" />
-                  <col className="w-[23%]" />
-                </colgroup>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedData.map((user) => (
-                    <tr key={user.id}>
-                      <td className="text-center text-sm py-4 text-gray-800">
-                        {/* Fix: Use first_name + last_name for display */}
-                        {`${user.first_name || ""} ${
-                          user.last_name || ""
-                        }`.trim()}
-                      </td>
-                      <td className="text-center text-sm py-4 text-gray-800">
-                        {user.email}
-                      </td>
-                      <td className="text-center text-sm py-4 text-gray-800">
-                        {user.role}
-                      </td>
-                      <td className="text-center text-sm py-4 text-gray-800">
-                        <span
-                          className={`px-3 py-1 inline-flex text-xs font-semibold rounded-md ${
-                            user.is_active
-                              ? "bg-green-100 text-green-600"
-                              : "bg-red-100 text-red-600"
-                          }`}
-                        >
-                          {user.is_active ? "Active" : "Inactive"}
-                        </span>
-                      </td>
-                      <td className="text-center text-sm py-4 flex gap-2 justify-center">
-                        <button
-                          onClick={() => handleViewClick(user.id)}
-                          className="text-white py-1 px-3 rounded-[5px] shadow bg-primary"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleEditClick(user.id)}
-                          className="text-white py-1 px-3 rounded-[5px] shadow bg-yellow-500"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            console.log(
-                              "Delete button clicked for user:",
-                              user
-                            ); // Debug log
-                            handleActionClick(user.id, "delete");
-                          }}
-                          className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {paginatedData.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan="5"
-                        className="text-center py-4 text-gray-500"
-                      >
-                        No records found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          {/* Footer Pagination */}
-          <div className="flex justify-end items-center py-2 gap-5">
-            <div className="flex items-center gap-2">
-              <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
-                Record per page:
-              </label>
+          <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
+            <p className="text-md font-semibold text-yellow">
+              Manage all system users
+            </p>
+
+            {/* Filters + Generate */}
+            <div className="flex justify-between flex-wrap gap-3">
+              <input
+                type="text"
+                placeholder="Search by name, email, or ID..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+              />
+
               <select
-                id="recordsPerPage"
-                className="w-16 rounded-md shadow-sm"
-                value={recordsPerPage}
-                onChange={handleRecordsPerPageChange}
+                className="border border-gray-200 rounded-md p-2 bg-white"
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
               >
-                <option>10</option>
-                <option>20</option>
-                <option>50</option>
+                <option value="all">All</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
               </select>
+
+              <input
+                type="date"
+                className="border border-gray-200 py-2 px-5 rounded-md"
+                // (date filter not used in this table—left here for parity)
+              />
+
+              {/*  
+              <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
+                Filter
+              </button>
+              */}
+
+              {/* ⬇️ Generate button with cursor-pointer */}
+              <button
+                onClick={() => window.print()}
+                className="px-7 font-bold rounded-md text-sm text-white bg-primary cursor-pointer"
+                title="Print current list"
+              >
+                Generate
+              </button>
             </div>
-            <div className="flex gap-3 items-center">
-              <span className="text-sm text-gray-700">
-                {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
-                – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                {totalRecords}
-              </span>
-              <button
-                onClick={handlePrev}
-                disabled={currentPage === 1}
-                className="text-gray-600"
-              >
-                ←
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={currentPage === totalPages}
-                className="text-gray-600"
-              >
-                →
-              </button>
+
+            <div className="bg-white shadow overflow-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr className="bg-lightblue">
+                    <th className="w-[25%] text-center text-sm py-3 !bg-lightblue">
+                      Name
+                    </th>
+                    <th className="w-[25%] text-center text-sm py-3">Email</th>
+                    <th className="w-[12%] text-center text-sm py-3">Role</th>
+                    <th className="w-[13.4%] text-center text-sm py-3">
+                      Status
+                    </th>
+                    <th className="w-[23%] text-center text-sm py-3 ">
+                      Actions
+                    </th>
+                    {paginatedData.length >= 4 && (
+                      <th className="!bg-lightblue w-[1.6%] p-0 m-0"></th>
+                    )}
+                  </tr>
+                </thead>
+              </table>
+
+              <div className="max-h-[200px] min-h-[200px] overflow-auto">
+                <table className="min-w-full divide-y divide-gray-200 border-spacing-0 master-table">
+                  <colgroup>
+                    <col className="w-[25%]" />
+                    <col className="w-[25%]" />
+                    <col className="w-[12%]" />
+                    <col className="w-[13.4%]" />
+                    <col className="w-[23%]" />
+                  </colgroup>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paginatedData.map((user) => (
+                      <tr key={user.id}>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          {`${user.first_name || ""} ${
+                            user.last_name || ""
+                          }`.trim()}
+                        </td>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          {user.email}
+                        </td>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          {user.role}
+                        </td>
+                        <td className="text-center text-sm py-4 text-gray-800">
+                          <span
+                            className={`px-3 py-1 inline-flex text-xs font-semibold rounded-md ${
+                              user.is_active
+                                ? "bg-green-100 text-green-600"
+                                : "bg-red-100 text-red-600"
+                            }`}
+                          >
+                            {user.is_active ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                        <td className="text-center text-sm py-4 flex gap-2 justify-center">
+                          <button
+                            onClick={() => handleViewClick(user.id)}
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-primary cursor-pointer"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleEditClick(user.id)}
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-yellow-500 cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleActionClick(user.id, "delete")}
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {paginatedData.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan="5"
+                          className="text-center py-4 text-gray-500"
+                        >
+                          No records found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Footer Pagination */}
+            <div className="flex justify-end items-center py-2 gap-5">
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="recordsPerPage"
+                  className="text-sm text-gray-700"
+                >
+                  Record per page:
+                </label>
+                <select
+                  id="recordsPerPage"
+                  className="w-16 rounded-md shadow-sm"
+                  value={recordsPerPage}
+                  onChange={handleRecordsPerPageChange}
+                >
+                  <option>10</option>
+                  <option>20</option>
+                  <option>50</option>
+                </select>
+              </div>
+              <div className="flex gap-3 items-center">
+                <span className="text-sm text-gray-700">
+                  {Math.min(
+                    (currentPage - 1) * recordsPerPage + 1,
+                    totalRecords
+                  )}{" "}
+                  – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
+                  {totalRecords}
+                </span>
+                <button
+                  onClick={handlePrev}
+                  disabled={currentPage === 1}
+                  className="text-gray-600"
+                >
+                  ←
+                </button>
+                <button
+                  onClick={handleNext}
+                  disabled={currentPage === totalPages}
+                  className="text-gray-600"
+                >
+                  →
+                </button>
+              </div>
             </div>
           </div>
         </div>
