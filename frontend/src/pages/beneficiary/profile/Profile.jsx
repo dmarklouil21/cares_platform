@@ -1,8 +1,9 @@
 // src/pages/beneficiary/Profile.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
+import api from "src/api/axiosInstance";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -10,24 +11,28 @@ const Profile = () => {
   // View-only by default
   const [readOnly, setReadOnly] = useState(true);
 
-  // Seed with sample values for demo; wire these to real data when available
+  // Profile form state (mapped to backend fields)
   const [formData, setFormData] = useState({
-    firstName: "Juan",
-    lastName: "Dela Cruz",
-    birthDate: "1990-01-01",
-    age: "35",
-    email: "juan.delacruz@example.com",
-    phone: "09171234567",
-    isResident: "yes",
-    lgu: "Cebu City",
-    address: "123 Example St, Cebu",
+    firstName: "",
+    lastName: "",
+    birthDate: "",
+    age: "",
+    email: "",
+    phone: "",
+    isResident: "",
+    lgu: "",
+    address: "",
+    profilePic: "",
+    profileFile: null,
     agreed: true,
   });
 
   // Snapshot for Cancel
   const [beforeEdit, setBeforeEdit] = useState(formData);
 
-  // Modals
+  // Async/UI state + Modals
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [notify, setNotify] = useState({
     show: false,
@@ -74,16 +79,22 @@ const Profile = () => {
   const handleSave = () => setConfirmOpen(true);
 
   const validate = () => {
-    // Mirror registration strictness: all fields required and agreed must be true
-    const requiredOk = Object.entries(formData).every(([k, v]) =>
-      typeof v === "boolean" ? v === true : String(v ?? "").trim() !== ""
-    );
-    if (!requiredOk) {
+    const requiredFields = [
+      "firstName",
+      "lastName",
+      "birthDate",
+      "email",
+      "phone",
+      "lgu",
+      "address",
+    ];
+    const allFilled = requiredFields.every((k) => String(formData[k] ?? "").trim() !== "");
+    if (!allFilled) {
       setNotify({
         show: true,
         type: "info",
         title: "Incomplete",
-        message: "Please fill in all fields and agree to the privacy notice.",
+        message: "Please fill in all required fields.",
       });
       return false;
     }
@@ -108,19 +119,94 @@ const Profile = () => {
     return true;
   };
 
-  const confirmSave = () => {
+  const confirmSave = async () => {
     setConfirmOpen(false);
     if (!validate()) return;
+    setSaving(true);
+    try {
+      const payload = new FormData();
+      payload.append("first_name", formData.firstName);
+      payload.append("last_name", formData.lastName);
+      payload.append("date_of_birth", formData.birthDate);
+      if (String(formData.age ?? "").trim() !== "") payload.append("age", formData.age);
+      payload.append("phone_number", formData.phone);
+      if (formData.isResident !== "") {
+        payload.append(
+          "is_resident_of_cebu",
+          formData.isResident === "yes" ? "true" : "false"
+        );
+      }
+      payload.append("lgu", formData.lgu);
+      payload.append("address", formData.address);
+      if (formData.profileFile) payload.append("avatar", formData.profileFile);
 
-    // UI-only "save"
-    setReadOnly(true);
-    setNotify({
-      show: true,
-      type: "success",
-      title: "Saved",
-      message: "Your profile has been updated",
-    });
+      const res = await api.put("/user/profile/", payload, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const d = res.data;
+      const mapped = {
+        firstName: d.first_name || "",
+        lastName: d.last_name || "",
+        birthDate: d.date_of_birth || "",
+        age: d.age != null ? String(d.age) : "",
+        email: d.email || "",
+        phone: d.phone_number || "",
+        isResident: d.is_resident_of_cebu ? "yes" : "no",
+        lgu: d.lgu || "",
+        address: d.address || "",
+        profilePic: d.avatar ? `http://localhost:8000${d.avatar}` : formData.profilePic,
+        profileFile: null,
+        agreed: true,
+      };
+      setFormData(mapped);
+      setBeforeEdit(mapped);
+      setReadOnly(true);
+      setNotify({
+        show: true,
+        type: "success",
+        title: "Saved",
+        message: "Your profile has been updated.",
+      });
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to save profile.";
+      setNotify({ show: true, type: "info", title: "Error", message: msg });
+    } finally {
+      setSaving(false);
+    }
   };
+
+  // Fetch initial profile
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const res = await api.get("/user/profile/");
+        const d = res.data;
+        const mapped = {
+          firstName: d.first_name || "",
+          lastName: d.last_name || "",
+          birthDate: d.date_of_birth || "",
+          age: d.age != null ? String(d.age) : "",
+          email: d.email || "",
+          phone: d.phone_number || "",
+          isResident: d.is_resident_of_cebu ? "yes" : "no",
+          lgu: d.lgu || "",
+          address: d.address || "",
+          profilePic: d.avatar ? `http://localhost:8000${d.avatar}` : "",
+          profileFile: null,
+          agreed: true,
+        };
+        setFormData(mapped);
+        setBeforeEdit(mapped);
+      } catch (err) {
+        const msg = err?.response?.data?.message || "Failed to load profile.";
+        setNotify({ show: true, type: "info", title: "Error", message: msg });
+      } finally {
+        setLoading(false);
+      }
+    };
+    run();
+  }, []);
 
   // Styles for inputs (different look when readOnly)
   const fieldBase = "rounded-md p-2";
@@ -138,7 +224,7 @@ const Profile = () => {
       <ConfirmationModal
         open={confirmOpen}
         title="Save changes to your profile?"
-        desc="This is a UI-only action. No data will be stored."
+        desc="This will update your profile in the system."
         onConfirm={confirmSave}
         onCancel={() => setConfirmOpen(false)}
       />
@@ -250,7 +336,7 @@ const Profile = () => {
                 name="firstName"
                 value={formData.firstName}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="text"
               />
@@ -262,7 +348,7 @@ const Profile = () => {
                 name="lastName"
                 value={formData.lastName}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="text"
               />
@@ -274,7 +360,7 @@ const Profile = () => {
                 name="birthDate"
                 value={formData.birthDate}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="date"
               />
@@ -286,7 +372,7 @@ const Profile = () => {
                 name="age"
                 value={formData.age}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="text"
               />
@@ -298,7 +384,7 @@ const Profile = () => {
                 name="email"
                 value={formData.email}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={true}
                 className={fieldCls}
                 type="email"
                 placeholder="ejacc@gmail.com"
@@ -311,7 +397,7 @@ const Profile = () => {
                 name="phone"
                 value={formData.phone}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="tel"
                 placeholder="0917XXXXXXX"
@@ -334,7 +420,7 @@ const Profile = () => {
                 name="isResident"
                 value={formData.isResident}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
               >
                 <option value="">Select</option>
@@ -353,7 +439,7 @@ const Profile = () => {
                 name="lgu"
                 value={formData.lgu}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="text"
               />
@@ -365,7 +451,7 @@ const Profile = () => {
                 name="address"
                 value={formData.address}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="text"
               />

@@ -12,6 +12,7 @@ class RHU(models.Model):
   representative_first_name = models.CharField(max_length=150)
   representative_last_name = models.CharField(max_length=150)
   official_representative_name = models.CharField(max_length=255)
+  avatar = models.ImageField(upload_to='rhu/avatar/', null=True, blank=True)
 
   created_at = models.DateTimeField(auto_now_add=True)
 

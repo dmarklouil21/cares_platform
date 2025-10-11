@@ -4,8 +4,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from apps.user.serializers import LoginSerializer
+from apps.user.serializers import UserProfileSerializer
 
 # Create your views here.
 
@@ -32,3 +34,21 @@ class ResetPasswordApiView(APIView):
     user.is_first_login = False
     user.save()
     return Response({'message': 'Password reset successful.'}, status=status.HTTP_200_OK)
+
+
+class UserProfileAPIView(APIView):
+  permission_classes = [IsAuthenticated]
+  parser_classes = [MultiPartParser, FormParser]
+
+  def get(self, request):
+    serializer = UserProfileSerializer(request.user)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+  def put(self, request):
+    serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+  def patch(self, request):
+    return self.put(request)

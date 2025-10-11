@@ -77,15 +77,11 @@ const BeneficiaryLayout = () => {
     );
   }
 
-  // Show header only for the listed paths and their sub-routes
-  const pathname = location.pathname;
-  const showHeader = HEADER_PATHS.includes(pathname);
-
   return (
     <div className="flex w-full h-screen items-center justify-start bg-gray1">
       <BeneficiarySidebar />
       <div className="w-full h-full flex flex-col overflow-y-auto">
-        {showHeader && <BeneficiaryHeader />}
+        <BeneficiaryHeader />
         <Outlet />
       </div>
     </div>

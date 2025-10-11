@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import { useNavigate } from "react-router-dom";
+import api from "src/api/axiosInstance";
 
 const ViewProfile = () => {
   const navigate = useNavigate();
@@ -9,24 +10,26 @@ const ViewProfile = () => {
   // start in view-only mode
   const [readOnly, setReadOnly] = useState(true);
 
-  // seed with sample values; adjust as you like
+  // profile state (mapped to backend fields)
   const [formData, setFormData] = useState({
-    firstName: "Juan",
-    lastName: "Dela Cruz",
-    birthDate: "1990-01-01",
-    age: "35",
-    email: "juan.delacruz@example.com",
-    phone: "09171234567",
-    isResident: "yes",
-    lgu: "Cebu City",
-    address: "123 Example St, Cebu",
+    firstName: "",
+    lastName: "",
+    birthDate: "",
+    age: "",
+    email: "",
+    phone: "",
+    isResident: "",
+    lgu: "",
+    address: "",
+    profilePic: "",
+    profileFile: null,
     agreed: true,
   });
 
   // keep a snapshot for cancel
   const [beforeEdit, setBeforeEdit] = useState(formData);
 
-  // confirm + notification modals
+  // async & modals
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [notify, setNotify] = useState({
     show: false,
@@ -34,9 +37,24 @@ const ViewProfile = () => {
     title: "",
     message: "",
   });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  const phoneOk = (v) => /^\d{11}$/.test(v);
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
+    if (name === "phone") {
+      const digits = value.replace(/\D/g, "").slice(0, 11);
+      setFormData((p) => ({ ...p, phone: digits }));
+      return;
+    }
+    if (name === "age") {
+      const digits = value.replace(/\D/g, "").slice(0, 3);
+      setFormData((p) => ({ ...p, age: digits }));
+      return;
+    }
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -53,40 +71,114 @@ const ViewProfile = () => {
     setReadOnly(true);
   };
 
-  const handleSave = () => {
-    setConfirmOpen(true);
-  };
+  const handleSave = () => setConfirmOpen(true);
 
   const validate = () => {
-    const essential = { ...formData };
-    delete essential.agreed; // not required for editing
-    return Object.entries(essential).every(
-      ([, v]) => String(v ?? "").trim() !== ""
-    );
-  };
-
-  const confirmSave = () => {
-    setConfirmOpen(false);
-
-    if (!validate()) {
+    const requiredFields = [
+      "firstName",
+      "lastName",
+      "birthDate",
+      "email",
+      "phone",
+      "lgu",
+      "address",
+    ];
+    const allFilled = requiredFields.every((k) => String(formData[k] ?? "").trim() !== "");
+    if (!allFilled) {
       setNotify({
         show: true,
         type: "info",
         title: "Incomplete",
-        message: "Please fill in all fields before saving.",
+        message: "Please fill in all required fields.",
       });
-      return;
+      return false;
     }
-
-    // UI-only "save"
-    setReadOnly(true);
-    setNotify({
-      show: true,
-      type: "success",
-      title: "Saved",
-      message: "Your profile has been updated (UI only).",
-    });
+    if (!emailOk(formData.email)) {
+      setNotify({ show: true, type: "info", title: "Invalid Email", message: "Please enter a valid email." });
+      return false;
+    }
+    if (!phoneOk(formData.phone)) {
+      setNotify({ show: true, type: "info", title: "Invalid Phone Number", message: "Phone number must be exactly 11 digits." });
+      return false;
+    }
+    return true;
   };
+
+  const confirmSave = async () => {
+    setConfirmOpen(false);
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      const payload = new FormData();
+      payload.append("first_name", formData.firstName);
+      payload.append("last_name", formData.lastName);
+      payload.append("date_of_birth", formData.birthDate);
+      if (String(formData.age ?? "").trim() !== "") payload.append("age", formData.age);
+      payload.append("phone_number", formData.phone);
+      if (formData.isResident !== "") payload.append("is_resident_of_cebu", formData.isResident === "yes" ? "true" : "false");
+      payload.append("lgu", formData.lgu);
+      payload.append("address", formData.address);
+      if (formData.profileFile) payload.append("avatar", formData.profileFile);
+
+      const res = await api.put("/user/profile/", payload, { headers: { "Content-Type": "multipart/form-data" } });
+      const d = res.data;
+      const mapped = {
+        firstName: d.first_name || "",
+        lastName: d.last_name || "",
+        birthDate: d.date_of_birth || "",
+        age: d.age != null ? String(d.age) : "",
+        email: d.email || "",
+        phone: d.phone_number || "",
+        isResident: d.is_resident_of_cebu ? "yes" : "no",
+        lgu: d.lgu || "",
+        address: d.address || "",
+        profilePic: d.avatar ? `http://localhost:8000${d.avatar}` : formData.profilePic,
+        profileFile: null,
+        agreed: true,
+      };
+      setFormData(mapped);
+      setBeforeEdit(mapped);
+      setReadOnly(true);
+      setNotify({ show: true, type: "success", title: "Saved", message: "Your profile has been updated." });
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to save profile.";
+      setNotify({ show: true, type: "info", title: "Error", message: msg });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Fetch initial profile
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const res = await api.get("/user/profile/");
+        const d = res.data;
+        const mapped = {
+          firstName: d.first_name || "",
+          lastName: d.last_name || "",
+          birthDate: d.date_of_birth || "",
+          age: d.age != null ? String(d.age) : "",
+          email: d.email || "",
+          phone: d.phone_number || "",
+          isResident: d.is_resident_of_cebu ? "yes" : "no",
+          lgu: d.lgu || "",
+          address: d.address || "",
+          profilePic: d.avatar ? `http://localhost:8000${d.avatar}` : "",
+          profileFile: null,
+          agreed: true,
+        };
+        setFormData(mapped);
+        setBeforeEdit(mapped);
+      } catch (err) {
+        const msg = err?.response?.data?.message || "Failed to load profile.";
+        setNotify({ show: true, type: "info", title: "Error", message: msg });
+      } finally {
+        setLoading(false);
+      }
+    };
+    run();
+  }, []);
 
   // Shared field classes: border only when editing
   const fieldBase = "rounded-md p-2";
@@ -105,7 +197,7 @@ const ViewProfile = () => {
       <ConfirmationModal
         open={confirmOpen}
         title="Save changes to your profile?"
-        desc="This is a UI-only action. No data will be stored."
+        desc="This will update your profile in the system."
         onConfirm={confirmSave}
         onCancel={() => setConfirmOpen(false)}
       />
@@ -218,7 +310,7 @@ const ViewProfile = () => {
                 name="firstName"
                 value={formData.firstName}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="text"
               />
@@ -230,7 +322,7 @@ const ViewProfile = () => {
                 name="lastName"
                 value={formData.lastName}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="text"
               />
@@ -242,7 +334,7 @@ const ViewProfile = () => {
                 name="birthDate"
                 value={formData.birthDate}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="date"
               />
@@ -254,7 +346,7 @@ const ViewProfile = () => {
                 name="age"
                 value={formData.age}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="text"
               />
@@ -266,7 +358,7 @@ const ViewProfile = () => {
                 name="email"
                 value={formData.email}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={true}
                 className={fieldCls}
                 type="email"
               />
@@ -278,7 +370,7 @@ const ViewProfile = () => {
                 name="phone"
                 value={formData.phone}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="tel"
               />
@@ -290,7 +382,7 @@ const ViewProfile = () => {
                 name="isResident"
                 value={formData.isResident}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
               >
                 <option value="">Select</option>
@@ -309,7 +401,7 @@ const ViewProfile = () => {
                 name="lgu"
                 value={formData.lgu}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="text"
               />
@@ -321,7 +413,7 @@ const ViewProfile = () => {
                 name="address"
                 value={formData.address}
                 onChange={onChange}
-                disabled={readOnly}
+                disabled={readOnly || saving || loading}
                 className={fieldCls}
                 type="text"
               />

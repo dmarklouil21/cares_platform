@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { logout } from "src/services/authService";
 import RhuSidebar from "../navigation/Rhu";
+import api from "src/api/axiosInstance";
 
 const AdminHeader = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -13,6 +14,10 @@ const AdminHeader = () => {
   const menuRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // RHU profile display (avatar + name)
+  const [profileName, setProfileName] = useState("RHU");
+  const [profileAvatar, setProfileAvatar] = useState("/images/Avatar.png");
 
   // Sample notifications
   const [notifications, setNotifications] = useState([
@@ -38,6 +43,25 @@ const AdminHeader = () => {
   }, []);
 
   useEffect(() => setOpen(false), [location.pathname]);
+
+  useEffect(() => {
+    const fetchRhuProfile = async () => {
+      try {
+        const res = await api.get("/rhu/profile/");
+        const d = res.data;
+        const name =
+          d.official_representative_name && d.official_representative_name.trim()
+            ? d.official_representative_name
+            : `${d.representative_first_name || ""} ${d.representative_last_name || ""}`.trim() || "RHU";
+        const avatar = d.avatar ? `http://localhost:8000${d.avatar}` : "/images/Avatar.png";
+        setProfileName(name);
+        setProfileAvatar(avatar);
+      } catch (e) {
+        // Keep defaults on error
+      }
+    };
+    fetchRhuProfile();
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -116,12 +140,12 @@ const AdminHeader = () => {
         >
           <div className="w-6 h-6 rounded-full overflow-hidden">
             <img
-              src="/images/Avatar.png"
+              src={profileAvatar}
               alt="User Profile"
               className="w-6 h-6 object-cover"
             />
           </div>
-          <p className="text-primary text-sm">John Doe</p>
+          <p className="text-primary text-sm">{profileName}</p>
           <img
             src="/src/assets/images/navigation/admin/arrow.svg"
             alt="arrow"
