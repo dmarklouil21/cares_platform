@@ -30,15 +30,18 @@ const Rhulayout = () => {
   const [isValidated, setIsValidated] = useState(false);
 
   useEffect(() => {
-    const fetchPreEnrollmentStatus = async () => {
+    const fetchStatus = async () => {
+      // RHU layout: skip beneficiary pre-enrollment endpoint to avoid 404
+      if (!user || user.is_rhu) {
+        setIsValidated(true);
+        setLoading(false);
+        return;
+      }
+
       try {
         const response = await api.get("/beneficiary/details/");
         const status = response.data.status;
-        if (status === "validated") {
-          setIsValidated(true);
-        } else if (status === "pending") {
-          setIsValidated(false);
-        }
+        setIsValidated(status === "validated");
       } catch (error) {
         console.error("Error fetching pre-enrollment data:", error);
         setIsValidated(false);
@@ -47,8 +50,8 @@ const Rhulayout = () => {
       }
     };
 
-    fetchPreEnrollmentStatus();
-  }, []);
+    fetchStatus();
+  }, [user]);
 
   if (loading) {
     return (
@@ -67,23 +70,11 @@ const Rhulayout = () => {
     );
   }
 
-  // If you re-enable validation gating, keep it here.
-  // if (!isValidated) {
-  //   return (
-  //     <NotValidated
-  //       fullName={user.first_name}
-  //       submittedDate={user.date_of_birth}
-  //     />
-  //   );
-  // }
-
-  const showHeader = HEADER_PATHS.includes(location.pathname);
-
   return (
     <div className="flex w-full h-screen items-center justify-start bg-gray1">
       <RhuSidebar />
       <div className="w-full h-full flex flex-col overflow-y-auto">
-        {showHeader && <RhuHeader />}
+        <RhuHeader />
         <Outlet />
       </div>
     </div>

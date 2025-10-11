@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { logout } from "src/services/authService";
 import AdminSidebar from "../navigation/admin";
+import api from "src/api/axiosInstance";
 
 const AdminHeader = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -12,6 +13,10 @@ const AdminHeader = () => {
   const menuRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Admin profile display (avatar + name)
+  const [profileName, setProfileName] = useState("Admin");
+  const [profileAvatar, setProfileAvatar] = useState("/images/Avatar.png");
 
   // Sample notifications
   const [notifications, setNotifications] = useState([
@@ -37,6 +42,22 @@ const AdminHeader = () => {
   }, []);
 
   useEffect(() => setOpen(false), [location.pathname]);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/user/profile/");
+        const d = res.data;
+        const name = `${d.first_name || ""} ${d.last_name || ""}`.trim() || "Admin";
+        const avatar = d.avatar ? `http://localhost:8000${d.avatar}` : "/images/Avatar.png";
+        setProfileName(name);
+        setProfileAvatar(avatar);
+      } catch (e) {
+        // keep defaults
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -115,12 +136,12 @@ const AdminHeader = () => {
         >
           <div className="w-6 h-6 rounded-full overflow-hidden">
             <img
-              src="/images/Avatar.png"
+              src={profileAvatar}
               alt="User Profile"
               className="w-6 h-6 object-cover"
             />
           </div>
-          <p className="text-primary text-sm">John Doe</p>
+          <p className="text-primary text-sm">{profileName}</p>
           <img
             src="/src/assets/images/navigation/admin/arrow.svg"
             alt="arrow"
