@@ -13,7 +13,6 @@ import CheckupScheduleModal from "src/components/Modal/CheckupScheduleModal";
 
 const PostTreatmentView = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const location = useLocation();
 
   // Data

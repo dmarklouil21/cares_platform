@@ -99,7 +99,7 @@ const WellBeingForm = () => {
       answers,
     };
 
-    navigate("/admin/survivorship/add", {
+    navigate("/admin/cancer-management/add", {
       state: { wellBeingData, patient },
     });
   };

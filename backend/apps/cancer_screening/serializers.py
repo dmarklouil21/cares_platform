@@ -61,7 +61,6 @@ class IndividualScreeningAdminCreateSerializer(serializers.ModelSerializer):
       'status', 'screening_date', 'uploaded_result',
     ]
 
-
 class MassScreeningAttachmentSerializer(serializers.ModelSerializer):
   class Meta:
     model = MassScreeningAttachment

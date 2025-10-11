@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useMemo, useRef, useState, useEffect } from "react";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
@@ -110,12 +110,16 @@ const CheckIcon = ({ active }) => (
 
 const AdminCancerManagementAdd = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // const record = location?.state;
+
+  const { wellBeingData } = location.state || {};
 
   /* ----------------------- Request Information ----------------------- */
   const [patientTable, setPatientTable] = useState([]);
   const [patient, setPatient] = useState(null); // from SearchableSelect
   const [serviceType, setServiceType] = useState("");
-  const [status] = useState("Pending"); // UI-only
+  const [status] = useState("Interview Process"); // UI-only
 
   // Optional dates
   const [treatmentDate, setTreatmentDate] = useState("");
@@ -139,6 +143,7 @@ const AdminCancerManagementAdd = () => {
     () => requiredDocs.every((doc) => !!files[doc.key]),
     [files, requiredDocs]
   );
+  const inputRef = useRef(null);
 
   const [preScreeningForm, setPreScreeningForm] = useState(null);
   const [wellBeingForm, setWellBeingForm] = useState(null);
@@ -154,10 +159,13 @@ const AdminCancerManagementAdd = () => {
     "This will create a new cancer management record (UI only)."
   );
 
+  const [loading, setLoading] = useState(false);
+
   // Add Lab Result File Modal
   const [addResultFileModal, setAddResultFileModal] =
     useState(false);
   const [labResultFile, setLabResultFile] = useState(null);
+  // const [wellBeingData, setWellBeingData] = useState({});
 
   const [notifyOpen, setNotifyOpen] = useState(false);
   const [notifyInfo, setNotifyInfo] = useState({
@@ -202,6 +210,24 @@ const AdminCancerManagementAdd = () => {
     fetchData();
   }, []);
 
+  // useEffect(() => {
+  //   if (record) {
+  //     setWellBeingData(record.wellBeningData);
+  //     setPatient(record.patient);
+  //     // setForm((prev) => {
+  //     //   return {
+  //     //     ...prev,
+  //     //     well_being_data: record.wellBeingData
+  //     //   }
+  //     // })
+  //   }
+  //   // if (record?.patient) {
+  //   //   setPatient(record.patient);
+  //   // }
+  // }, [record]);
+  console.log("Wellbeing Data: ", wellBeingData);
+  // console.log("Record: ", record);
+
   const asDateString = (d) => {
     if (!d) return "---";
     try {
@@ -236,27 +262,64 @@ const AdminCancerManagementAdd = () => {
   };
 
   /* ----------------------- Submit (UI ONLY) ----------------------- */
-  const handleSubmit = () => {
-    if (!validate()) return;
-    setConfirmText("Create this record?");
-    setConfirmDesc(
-      "No data will be saved. We'll just show a success toast on the list."
-    );
+  const handleSave = () => {
+    // if (!validate()) return;
+    // setConfirmText("Create this record?");
+    // setConfirmDesc(
+    //   "No data will be saved. We'll just show a success toast on the list."
+    // );
     setConfirmOpen(true);
+
   };
 
-  const onConfirmCreate = () => {
+  const onConfirmCreate = async () => {
     setConfirmOpen(false);
 
-    // 🚫 No API calls, no uploads. Just navigate with success state.
-    navigate("/admin/cancer-management", {
-      state: {
-        type: "success",
-        title: "Added",
-        message: "Cancer management record created (UI only).",
-      },
-    });
+    const formData = new FormData();
+    // append well-being data as JSON
+    formData.append("patient_id", patient.patient_id);
+    formData.append("well_being_data", JSON.stringify(wellBeingData));
+    formData.append("service_type", serviceType);
+    formData.append("interview_date", interviewDate);
+    // append files
+    for (const key in files) {
+      if (files[key]) {
+        formData.append(`files.${key}`, files[key]);
+      }
+    }
+
+    setLoading(true);
+
+    try {
+      await api.post("/cancer-management/cancer-treatment/create/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      // alert("Submitted successfully");
+      navigate("/admin/cancer-management", {
+        state: {
+          type: "success",
+          message: "Submitted Successfully.",
+        },
+      });
+    } catch (error) {
+      alert(error);
+      console.error();
+    } finally {
+      setLoading(false);
+    }
+
+    setActiveIdx(0); // go back to Quotation
+    if (inputRef.current) inputRef.current.value = ""; // clear hidden input
   };
+
+   // 2) show success notification
+    // setNotif("Documents submitted successfully!");
+    // setTimeout(() => setNotif(""), 4000);
+
+    // 3) CLEAR everything
+    // setFiles(makeEmptyFiles()); // reset all uploaded files
 
   /* ----------------------- Date pickers ----------------------- */
   const onPickTreatmentDate = () => {
@@ -278,16 +341,17 @@ const AdminCancerManagementAdd = () => {
 
   const handleAddWellbeingForm = () => {
     navigate("/admin/cancer-management/add/well-being-form", { 
-      state: {
+      state: { wellBeingData,
         patient
-        }
-      }
+      }}
     )
   };
 
   /* ----------------------- Render ----------------------- */
   return (
     <>
+      {loading && <SystemLoader />}
+      
       <ConfirmationModal
         open={confirmOpen}
         title={confirmText}
@@ -399,34 +463,67 @@ const AdminCancerManagementAdd = () => {
               </div>
 
               <div className="flex gap-2 items-center">
-                <span className="font-medium w-40">Treatment Date</span>
-                <div className="flex-1 flex items-center gap-3">
-                  <span className="text-gray-700">
-                    {treatmentDate ? asDateString(treatmentDate) : "---"}
-                  </span>
-                  <button
-                    className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
-                    onClick={onPickTreatmentDate}
-                  >
-                    Pick date
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex gap-2 items-center">
                 <span className="font-medium w-40">Interview Schedule</span>
                 <div className="flex-1 flex items-center gap-3">
                   <span className="text-gray-700">
-                    {interviewDate ? asDateString(interviewDate) : "---"}
+                    {interviewDate && asDateString(interviewDate)}
                   </span>
-                  <button
+                  {/* <button
                     className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
                     onClick={onPickInterviewDate}
                   >
                     Pick date
-                  </button>
+                  </button> */}
+                  {interviewDate ? ( 
+                    <span 
+                      // to={"/admin/survivorship/add/well-being-form"}
+                      // state={patient}
+                      // onClick={handleAddWellbeingForm}
+                      onClick={() => setDateModalOpen(true)}
+                      className="text-sm text-blue-700 cursor-pointer"
+                    >
+                      Edit
+                    </span>
+                    ): (
+                      <span
+                        className="text-blue-700 cursor-pointer"
+                        onClick={onPickInterviewDate}
+                      >
+                        Add
+                      </span>
+                    ) 
+                  }
                 </div>
               </div>
+
+              {/* <div className="flex gap-2 items-center">
+                <span className="font-medium w-40">Treatment Date</span>
+                <div className="flex-1 flex items-center gap-3">
+                  <span className="text-gray-700">
+                    {treatmentDate && asDateString(treatmentDate)}
+                  </span>
+                  {treatmentDate ? (
+                    <span 
+                      // to={"/admin/survivorship/add/well-being-form"}
+                      // state={patient}
+                      // onClick={handleAddWellbeingForm}
+                      onClick={() => setDateModalOpen(true)}
+                      className="text-sm text-blue-700 cursor-pointer"
+                    >
+                      Edit
+                    </span>
+                  ) : (
+                    <span
+                        className="text-blue-700 cursor-pointer"
+                        onClick={onPickTreatmentDate}
+                      >
+                        Add
+                      </span>
+                    ) 
+                  }
+                </div>
+              </div> */}
+
             </div>
           </div>
 
@@ -463,7 +560,7 @@ const AdminCancerManagementAdd = () => {
                     // to={"/admin/survivorship/add/well-being-form"}
                     // state={patient}
                     onClick={handleAddWellbeingForm}
-                    className="text-blue-700"
+                    className="text-blue-700 cursor-pointer"
                   >
                     Add
                   </button>
@@ -506,7 +603,7 @@ const AdminCancerManagementAdd = () => {
                 )}
               </div> */}
 
-              <div className="flex flex-col gap-1">
+              {/* <div className="flex flex-col gap-1">
                 <div className="flex gap-2">
                   <span className="font-medium w-40">Lab Result</span>
                   <button 
@@ -517,31 +614,11 @@ const AdminCancerManagementAdd = () => {
                   >
                     Add
                   </button>
-                  {/* <span className="font-medium w-40">Lab Result</span> */}
                   { labResultFile && 
                     <span className="font-medium w-40 text-gray-700">{labResultFile}</span>
                   }
                 </div>
-                {/* <label className="text-sm font-medium">
-                  Lab Results (multiple)
-                </label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*,application/pdf"
-                  onChange={(e) => handleMultiFiles(e, setLabResults)}
-                  className="border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-                {labResults.length > 0 && (
-                  <ul className="mt-1 space-y-1 text-xs text-gray-600">
-                    {labResults.map((f, i) => (
-                      <li key={i} className="truncate">
-                        • {f.name}
-                      </li>
-                    ))}
-                  </ul>
-                )} */}
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -606,7 +683,7 @@ const AdminCancerManagementAdd = () => {
             </div>
 
             <input
-              // ref={inputRef}
+              ref={inputRef}
               type="file"
               accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.odt,.ods"
               onChange={handleFileSelect}
@@ -668,7 +745,7 @@ const AdminCancerManagementAdd = () => {
             {allUploaded ? (
               <button
                 type="button"
-                onClick={() => setConfirmOpen(true)}
+                onClick={handleSave}
                 className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
               >
                 Save

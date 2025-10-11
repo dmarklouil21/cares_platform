@@ -69,6 +69,8 @@ const AdminCancerManagementView = () => {
         console.log("Response Data: ", data);
         setRecord(data);
         setStatus(data.status);
+        setInterviewDate(data.interview_date);
+        setTreatmentDate(data.treatment_date);
       } catch (error) {
         console.error("Error fetching screening data:", error);
       }
@@ -80,24 +82,26 @@ const AdminCancerManagementView = () => {
   const handleStatusChange = (e) => {
     const selectedStatus = e.target.value;
     if (selectedStatus === "Approved") {
-      setTempDate(treatmentDate || "");
+      // setTempDate(treatmentDate || "");
       setDateModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
+      setStatus(selectedStatus);
     } else if (selectedStatus === "Interview Process") {
-      setInterviewDate(record?.interview_date || "");
+      // setInterviewDate(record?.interview_date || "");
       setInterviewModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
+      setStatus(selectedStatus);
     } else if (selectedStatus === "Return" || selectedStatus === "Rejected") {
       setRemarksModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
     } else {
-      setModalText(`Mark this request as '${selectedStatus}'?`);
-      setModalDesc(
-        "Marking this as complete means that the treatment is done."
-      );
+      // setModalText(`Mark this request as '${selectedStatus}'?`);
+      // setModalDesc(
+      //   "Marking this as complete means that the treatment is done."
+      // );
       setModalAction({ newStatus: selectedStatus });
-      setModalOpen(true);
-      // setStatus(selectedStatus);
+      // setModalOpen(true);
+      setStatus(selectedStatus);
     }
   };
 
@@ -106,21 +110,23 @@ const AdminCancerManagementView = () => {
       alert("Please select an interview date before proceeding.");
       return;
     }
-    setModalText(`Confirm Interview Date to ${interviewDate}?`);
-    setIsNewDate(true);
-    setModalOpen(true);
+    setModalAction((prev) => ({ ...prev, interviewDate: interviewDate }));
+    // setModalText(`Confirm Interview Date to ${interviewDate}?`);
+    // setIsNewDate(true);
+    // setModalOpen(true);
     setInterviewModalOpen(false);
   };
 
   const handleDateModalConfirm = () => {
-    if (!tempDate) {
+    if (!treatmentDate) {
       alert("Please select a date before proceeding.");
       return;
     }
-    setTreatmentDate(tempDate);
-    setModalText(`Confirm Treatment Date to ${tempDate}?`);
-    setIsNewDate(true);
-    setModalOpen(true);
+    setModalAction((prev) => ({ ...prev, treatmentDate: treatmentDate }));
+    // setTreatmentDate(tempDate);
+    // setModalText(`Confirm Treatment Date to ${tempDate}?`);
+    // setIsNewDate(true);
+    // setModalOpen(true);
     setDateModalOpen(false);
   };
 
@@ -214,15 +220,28 @@ const AdminCancerManagementView = () => {
     }
   };
 
+  const handleSaveChanges = () => {
+    setModalText("Save changes?");
+    setModalDesc("Please confirm before proceeding.");
+    setModalOpen(true);
+    setModalAction({ newStatus: null });
+  };
+
   const handleModalConfirm = async () => {
-    if (modalAction?.newStatus) {
-      setStatus(modalAction.newStatus);
+    // if (modalAction?.newStatus) {
+      // setStatus(modalAction.newStatus);
       setModalOpen(false);
       setLoading(true);
       try {
-        const payload = { status: modalAction.newStatus };
-        if (treatmentDate) payload.treatment_date = treatmentDate;
-        if (interviewDate) payload.interview_date = interviewDate;
+        const payload = { 
+          status: modalAction.newStatus || status,
+          interview_date: modalAction.interviewDate || interviewDate,
+          treatment_date: modalAction.treatment_date || treatmentDate
+        };
+
+        // const payload = { status: modalAction.newStatus };
+        // if (treatmentDate) payload.treatment_date = treatmentDate;
+        // if (interviewDate) payload.interview_date = interviewDate;
 
         await api.patch(
           `/cancer-management/cancer-treatment/status-update/${record.id}/`,
@@ -245,32 +264,32 @@ const AdminCancerManagementView = () => {
       } finally {
         setLoading(false);
       }
-    } else if (isNewDate) {
-      setModalOpen(false);
-      setLoading(true);
-      try {
-        await api.patch(
-          `/cancer-management/cancer-treatment/status-update/${record.id}/`,
-          { treatment_date: treatmentDate }
-        );
+      // } else if (isNewDate) {
+      // setModalOpen(false);
+      // setLoading(true);
+      // try {
+      //   await api.patch(
+      //     `/cancer-management/cancer-treatment/status-update/${record.id}/`,
+      //     { treatment_date: treatmentDate }
+      //   );
 
-        navigate("/admin/cancer-management", {
-          state: {
-            type: "success",
-            message: "Treatment date updated Successfully.",
-          },
-        });
-      } catch (error) {
-        setModalInfo({
-          type: "error",
-          title: "Failed",
-          message: "Something went wrong while updating screening date.",
-        });
-        setShowModal(true);
-      } finally {
-        setLoading(false);
-      }
-    }
+      //   navigate("/admin/cancer-management", {
+      //     state: {
+      //       type: "success",
+      //       message: "Treatment date updated Successfully.",
+      //     },
+      //   });
+      // } catch (error) {
+      //   setModalInfo({
+      //     type: "error",
+      //     title: "Failed",
+      //     message: "Something went wrong while updating screening date.",
+      //   });
+      //   setShowModal(true);
+      // } finally {
+      //   setLoading(false);
+      // }
+    // }
 
     setModalOpen(false);
     setModalAction(null);
@@ -383,8 +402,8 @@ const AdminCancerManagementView = () => {
       <DateModal
         open={dateModalOpen}
         title="Set Treatment Date"
-        value={tempDate}
-        onChange={setTempDate}
+        value={treatmentDate}
+        onChange={setTreatmentDate}
         onConfirm={handleDateModalConfirm}
         onCancel={() => setDateModalOpen(false)}
       />
@@ -451,7 +470,7 @@ const AdminCancerManagementView = () => {
 
       <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray overflow-auto">
         {/* Header */}
-        <div className="h-[10%] px-5 w-full flex justify-between items-center">
+        {/* <div className="h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Cancer Management</h1>
           <div>
             <Link to={"/admin/cancer-management"}>
@@ -462,7 +481,7 @@ const AdminCancerManagementView = () => {
               />
             </Link>
           </div>
-        </div>
+        </div> */}
 
         {/* Content */}
         <div className="h-fit w-full flex flex-col gap-4">
@@ -535,8 +554,8 @@ const AdminCancerManagementView = () => {
               <div className="flex gap-2">
                 <span className="font-medium w-40">Treatment Date</span>
                 <span className="text-gray-700">
-                  {record?.treatment_date
-                    ? new Date(record?.treatment_date).toLocaleDateString(
+                  {treatmentDate
+                    ? new Date(treatmentDate).toLocaleDateString(
                         "en-US",
                         {
                           year: "numeric",
@@ -546,13 +565,21 @@ const AdminCancerManagementView = () => {
                       )
                     : "---"}
                 </span>
+                {status === "Approved" && treatmentDate && (
+                  <span
+                    className="text-sm text-blue-700 cursor-pointer"
+                    onClick={() => setDateModalOpen(true)}
+                  >
+                    Edit
+                  </span>
+                )}
               </div>
 
               <div className="flex gap-2">
                 <span className="font-medium w-40">Interview Schedule</span>
                 <span className="text-gray-700">
-                  {record?.interview_date
-                    ? new Date(record?.interview_date).toLocaleDateString(
+                  {interviewDate
+                    ? new Date(interviewDate).toLocaleDateString(
                         "en-US",
                         {
                           year: "numeric",
@@ -562,6 +589,14 @@ const AdminCancerManagementView = () => {
                       )
                     : "---"}
                 </span>
+                {status === "Interview Process" && interviewDate && (
+                  <span
+                    className="text-sm text-blue-700 cursor-pointer"
+                    onClick={() => setInterviewModalOpen(true)}
+                  >
+                    Edit
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -676,6 +711,20 @@ const AdminCancerManagementView = () => {
               </div>
             </div>
           </div>
+          <div className="flex justify-around print:hidden">
+              <Link
+                to={`/admin/cancer-management`}
+                className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md"
+              >
+                Back
+              </Link>
+              <button
+                onClick={handleSaveChanges}
+                className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer"
+              >
+                Save Changes
+              </button>
+            </div>
         </div>
         <LOAPrintTemplate loaData={record} />
       </div>
