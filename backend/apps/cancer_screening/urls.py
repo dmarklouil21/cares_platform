@@ -4,6 +4,7 @@ from apps.precancerous import views as precancerous_views
 
 urlpatterns = [
   path('individual-screening-list/', views.IndividualScreeningListView.as_view(), name='individual_screening_list'),
+  path('individual-screening/create/', views.IndividualScreeningCreateView.as_view(), name='individual_screening_create'),
   path('individual-screening/approve/<str:patient_id>/', views.IndividualScreeningStatusUpdateView.as_view(), name='individual_screening_status_update'),
   path('individual-screening/status-update/<int:id>/', views.IndividualScreeningStatusUpdateView.as_view(), name='individual_screening_status_update'),
   path('individual-screening/status-reject/<int:id>/', views.IndividualScreeningStatusRejectView.as_view(), name='individual_screening_status_reject'),

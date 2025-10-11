@@ -53,6 +53,14 @@ class IndividualScreeningSerializer(serializers.ModelSerializer):
       'response_description', 'date_approved', 'screening_date', 'uploaded_result',
     ]
 
+class IndividualScreeningAdminCreateSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = IndividualScreening
+    fields = [
+      'procedure_name', 'procedure_details', 'cancer_site',
+      'status', 'screening_date', 'uploaded_result',
+    ]
+
 class MassScreeningAttachmentSerializer(serializers.ModelSerializer):
   class Meta:
     model = MassScreeningAttachment

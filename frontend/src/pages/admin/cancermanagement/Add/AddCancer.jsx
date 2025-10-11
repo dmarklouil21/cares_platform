@@ -1,42 +1,16 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useMemo, useRef, useState, useEffect } from "react";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import DateModal from "src/components/Modal/DateModal";
+import FileUploadModal from "src/components/Modal/FileUploadModal"
 
-/* =========================
-   Sample Patients (FAKE)
-   ========================= */
-const SAMPLE_PATIENTS = [
-  {
-    id: "PT-001",
-    full_name: "Alice Santos",
-    email: "alice.santos@example.com",
-  },
-  {
-    id: "PT-002",
-    full_name: "Bea Dela Cruz",
-    email: "bea.delacruz@example.com",
-  },
-  {
-    id: "PT-003",
-    full_name: "Carlo Ramirez",
-    email: "carlo.ramirez@example.com",
-  },
-  {
-    id: "PT-004",
-    full_name: "Diane Flores",
-    email: "diane.flores@example.com",
-  },
-  { id: "PT-005", full_name: "Evan Lim", email: "evan.lim@example.com" },
-  { id: "PT-006", full_name: "Faye Tan", email: "faye.tan@example.com" },
-  {
-    id: "PT-007",
-    full_name: "Gio Hernandez",
-    email: "gio.hernandez@example.com",
-  },
-];
+import SystemLoader from "src/components/SystemLoader";
+
+import { REQUIRED_DOCS } from "src/constants/requiredDocs";
+
+import api from "src/api/axiosInstance";
 
 /* =========================
    Searchable Select (inline)
@@ -126,13 +100,26 @@ const SearchableSelect = ({
   );
 };
 
+const CheckIcon = ({ active }) => (
+  <img
+    src="/images/check.svg"
+    alt=""
+    className={`h-5 w-5 transition ${active ? "" : "grayscale opacity-50"}`}
+  />
+);
+
 const AdminCancerManagementAdd = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // const record = location?.state;
+
+  const { wellBeingData } = location.state || {};
 
   /* ----------------------- Request Information ----------------------- */
+  const [patientTable, setPatientTable] = useState([]);
   const [patient, setPatient] = useState(null); // from SearchableSelect
   const [serviceType, setServiceType] = useState("");
-  const [status] = useState("Pending"); // UI-only
+  const [status] = useState("Interview Process"); // UI-only
 
   // Optional dates
   const [treatmentDate, setTreatmentDate] = useState("");
@@ -142,6 +129,22 @@ const AdminCancerManagementAdd = () => {
   const [tempDate, setTempDate] = useState("");
 
   /* ----------------------- Files (UI only) ----------------------- */
+  const requiredDocs = REQUIRED_DOCS[serviceType] || [];
+
+  const [activeIdx, setActiveIdx] = useState(0);
+  const activeDoc = requiredDocs[activeIdx];
+
+  // helper to build a cleared files map
+  const makeEmptyFiles = () =>
+    requiredDocs.reduce((acc, d) => ({ ...acc, [d.key]: null }), {});
+  const [files, setFiles] = useState(makeEmptyFiles);
+
+  const allUploaded = useMemo(
+    () => requiredDocs.every((doc) => !!files[doc.key]),
+    [files, requiredDocs]
+  );
+  const inputRef = useRef(null);
+
   const [preScreeningForm, setPreScreeningForm] = useState(null);
   const [wellBeingForm, setWellBeingForm] = useState(null);
   const [requiredDocuments, setRequiredDocuments] = useState([]);
@@ -156,6 +159,14 @@ const AdminCancerManagementAdd = () => {
     "This will create a new cancer management record (UI only)."
   );
 
+  const [loading, setLoading] = useState(false);
+
+  // Add Lab Result File Modal
+  const [addResultFileModal, setAddResultFileModal] =
+    useState(false);
+  const [labResultFile, setLabResultFile] = useState(null);
+  // const [wellBeingData, setWellBeingData] = useState({});
+
   const [notifyOpen, setNotifyOpen] = useState(false);
   const [notifyInfo, setNotifyInfo] = useState({
     type: "info",
@@ -164,10 +175,58 @@ const AdminCancerManagementAdd = () => {
   });
 
   /* ----------------------- Helpers ----------------------- */
+  const handleChooseFile = () => inputRef.current?.click();
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file && activeDoc) {
+      setFiles((prev) => ({ ...prev, [activeDoc.key]: file }));
+    }
+    e.target.value = ""; // allow reselecting the same file
+  };
+
+  const onFilePicked = (f) => {
+    if (!f) return;
+    const docKey = activeDoc.key;
+    setFiles((prev) => ({ ...prev, [docKey]: f }));
+  };
+
   const handleMultiFiles = (e, setter) => {
     const files = Array.from(e.target.files || []);
     setter(files);
   };
+
+  const fetchData = async () => {
+    try {
+      const response = await api.get("/patient/list/");
+      setPatientTable(response.data);
+      console.log("Responses: ", response.data);
+    } catch (error) {
+      console.error("Error fetching patient data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // useEffect(() => {
+  //   if (record) {
+  //     setWellBeingData(record.wellBeningData);
+  //     setPatient(record.patient);
+  //     // setForm((prev) => {
+  //     //   return {
+  //     //     ...prev,
+  //     //     well_being_data: record.wellBeingData
+  //     //   }
+  //     // })
+  //   }
+  //   // if (record?.patient) {
+  //   //   setPatient(record.patient);
+  //   // }
+  // }, [record]);
+  console.log("Wellbeing Data: ", wellBeingData);
+  // console.log("Record: ", record);
 
   const asDateString = (d) => {
     if (!d) return "---";
@@ -203,27 +262,64 @@ const AdminCancerManagementAdd = () => {
   };
 
   /* ----------------------- Submit (UI ONLY) ----------------------- */
-  const handleSubmit = () => {
-    if (!validate()) return;
-    setConfirmText("Create this record?");
-    setConfirmDesc(
-      "No data will be saved. We'll just show a success toast on the list."
-    );
+  const handleSave = () => {
+    // if (!validate()) return;
+    // setConfirmText("Create this record?");
+    // setConfirmDesc(
+    //   "No data will be saved. We'll just show a success toast on the list."
+    // );
     setConfirmOpen(true);
+
   };
 
-  const onConfirmCreate = () => {
+  const onConfirmCreate = async () => {
     setConfirmOpen(false);
 
-    // 🚫 No API calls, no uploads. Just navigate with success state.
-    navigate("/admin/cancer-management", {
-      state: {
-        type: "success",
-        title: "Added",
-        message: "Cancer management record created (UI only).",
-      },
-    });
+    const formData = new FormData();
+    // append well-being data as JSON
+    formData.append("patient_id", patient.patient_id);
+    formData.append("well_being_data", JSON.stringify(wellBeingData));
+    formData.append("service_type", serviceType);
+    formData.append("interview_date", interviewDate);
+    // append files
+    for (const key in files) {
+      if (files[key]) {
+        formData.append(`files.${key}`, files[key]);
+      }
+    }
+
+    setLoading(true);
+
+    try {
+      await api.post("/cancer-management/cancer-treatment/create/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      // alert("Submitted successfully");
+      navigate("/admin/cancer-management", {
+        state: {
+          type: "success",
+          message: "Submitted Successfully.",
+        },
+      });
+    } catch (error) {
+      alert(error);
+      console.error();
+    } finally {
+      setLoading(false);
+    }
+
+    setActiveIdx(0); // go back to Quotation
+    if (inputRef.current) inputRef.current.value = ""; // clear hidden input
   };
+
+   // 2) show success notification
+    // setNotif("Documents submitted successfully!");
+    // setTimeout(() => setNotif(""), 4000);
+
+    // 3) CLEAR everything
+    // setFiles(makeEmptyFiles()); // reset all uploaded files
 
   /* ----------------------- Date pickers ----------------------- */
   const onPickTreatmentDate = () => {
@@ -243,9 +339,19 @@ const AdminCancerManagementAdd = () => {
     setOpenInterviewModal(false);
   };
 
+  const handleAddWellbeingForm = () => {
+    navigate("/admin/cancer-management/add/well-being-form", { 
+      state: { wellBeingData,
+        patient
+      }}
+    )
+  };
+
   /* ----------------------- Render ----------------------- */
   return (
     <>
+      {loading && <SystemLoader />}
+      
       <ConfirmationModal
         open={confirmOpen}
         title={confirmText}
@@ -280,9 +386,18 @@ const AdminCancerManagementAdd = () => {
         onCancel={() => setOpenInterviewModal(false)}
       />
 
+      <FileUploadModal
+        open={addResultFileModal}
+        title="Add Lab Result"
+        // recipient={recorpatient?.email}
+        onFileChange={setLabResultFile}
+        // onConfirm={handleSendCaseSummary}
+        onCancel={() => setAddResultFileModal(false)}
+      />
+
       <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray overflow-auto">
         {/* Header */}
-        <div className="h-[10%] px-5 w-full flex justify-between items-center">
+        {/* <div className="h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Cancer Management — Add</h1>
           <div>
             <Link to={"/admin/cancer-management"}>
@@ -293,14 +408,14 @@ const AdminCancerManagementAdd = () => {
               />
             </Link>
           </div>
-        </div>
+        </div> */}
 
         {/* Content */}
         <div className="h-fit w-full flex flex-col gap-4">
           {/* Request Information */}
           <div className="bg-white rounded-md shadow border border-black/10">
             <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Request Information</h2>
+              <h2 className="text-lg font-semibold">Cancer Management</h2>
               <span className="text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-700 border border-yellow-200">
                 {status}
               </span>
@@ -310,7 +425,7 @@ const AdminCancerManagementAdd = () => {
               {/* 🔍 Searchable Patient */}
               <SearchableSelect
                 label="Patient Name"
-                options={SAMPLE_PATIENTS}
+                options={patientTable}
                 value={patient}
                 onChange={setPatient}
               />
@@ -339,42 +454,76 @@ const AdminCancerManagementAdd = () => {
                   onChange={(e) => setServiceType(e.target.value)}
                 >
                   <option value="">Select service</option>
+                  <option value="Radiotherapy">Radiation Therapy</option>
+                  <option value="Radioactive Therapy">Radioactive Iodine Therapy</option>
+                  <option value="Brachytherapy">Brachytherapy</option>
                   <option value="Chemotherapy">Chemotherapy</option>
-                  <option value="Radiation Therapy">Radiation Therapy</option>
                   <option value="Surgery">Surgery</option>
-                  <option value="Consultation">Consultation</option>
                 </select>
-              </div>
-
-              <div className="flex gap-2 items-center">
-                <span className="font-medium w-40">Treatment Date</span>
-                <div className="flex-1 flex items-center gap-3">
-                  <span className="text-gray-700">
-                    {treatmentDate ? asDateString(treatmentDate) : "---"}
-                  </span>
-                  <button
-                    className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
-                    onClick={onPickTreatmentDate}
-                  >
-                    Pick date
-                  </button>
-                </div>
               </div>
 
               <div className="flex gap-2 items-center">
                 <span className="font-medium w-40">Interview Schedule</span>
                 <div className="flex-1 flex items-center gap-3">
                   <span className="text-gray-700">
-                    {interviewDate ? asDateString(interviewDate) : "---"}
+                    {interviewDate && asDateString(interviewDate)}
                   </span>
-                  <button
+                  {/* <button
                     className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
                     onClick={onPickInterviewDate}
                   >
                     Pick date
-                  </button>
+                  </button> */}
+                  {interviewDate ? ( 
+                    <span 
+                      // to={"/admin/survivorship/add/well-being-form"}
+                      // state={patient}
+                      // onClick={handleAddWellbeingForm}
+                      onClick={() => setDateModalOpen(true)}
+                      className="text-sm text-blue-700 cursor-pointer"
+                    >
+                      Edit
+                    </span>
+                    ): (
+                      <span
+                        className="text-blue-700 cursor-pointer"
+                        onClick={onPickInterviewDate}
+                      >
+                        Add
+                      </span>
+                    ) 
+                  }
                 </div>
               </div>
+
+              {/* <div className="flex gap-2 items-center">
+                <span className="font-medium w-40">Treatment Date</span>
+                <div className="flex-1 flex items-center gap-3">
+                  <span className="text-gray-700">
+                    {treatmentDate && asDateString(treatmentDate)}
+                  </span>
+                  {treatmentDate ? (
+                    <span 
+                      // to={"/admin/survivorship/add/well-being-form"}
+                      // state={patient}
+                      // onClick={handleAddWellbeingForm}
+                      onClick={() => setDateModalOpen(true)}
+                      className="text-sm text-blue-700 cursor-pointer"
+                    >
+                      Edit
+                    </span>
+                  ) : (
+                    <span
+                        className="text-blue-700 cursor-pointer"
+                        onClick={onPickTreatmentDate}
+                      >
+                        Add
+                      </span>
+                    ) 
+                  }
+                </div>
+              </div> */}
+
             </div>
           </div>
 
@@ -385,7 +534,7 @@ const AdminCancerManagementAdd = () => {
             </div>
 
             <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-              <div className="flex flex-col gap-1">
+              {/* <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium">
                   Pre-Screening Form
                 </label>
@@ -402,10 +551,21 @@ const AdminCancerManagementAdd = () => {
                     Selected: {preScreeningForm.name}
                   </p>
                 )}
-              </div>
+              </div> */}
 
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Well Being Form</label>
+                <div className="flex gap-2">
+                  <span className="font-medium w-40">Wellbeing Form</span>
+                  <button 
+                    // to={"/admin/survivorship/add/well-being-form"}
+                    // state={patient}
+                    onClick={handleAddWellbeingForm}
+                    className="text-blue-700 cursor-pointer"
+                  >
+                    Add
+                  </button>
+                </div>
+                {/* <label className="text-sm font-medium">Well Being Form</label>
                 <input
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png"
@@ -418,10 +578,10 @@ const AdminCancerManagementAdd = () => {
                   <p className="text-xs text-gray-600">
                     Selected: {wellBeingForm.name}
                   </p>
-                )}
+                )} */}
               </div>
 
-              <div className="flex flex-col gap-1">
+              {/* <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium">
                   Required Documents (multiple)
                 </label>
@@ -441,34 +601,98 @@ const AdminCancerManagementAdd = () => {
                     ))}
                   </ul>
                 )}
-              </div>
+              </div> */}
 
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">
-                  Lab Results (multiple)
-                </label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*,application/pdf"
-                  onChange={(e) => handleMultiFiles(e, setLabResults)}
-                  className="border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-                {labResults.length > 0 && (
-                  <ul className="mt-1 space-y-1 text-xs text-gray-600">
-                    {labResults.map((f, i) => (
-                      <li key={i} className="truncate">
-                        • {f.name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+              {/* <div className="flex flex-col gap-1">
+                <div className="flex gap-2">
+                  <span className="font-medium w-40">Lab Result</span>
+                  <button 
+                    // to={"/admin/survivorship/add/well-being-form"}
+                    // state={patient}
+                    onClick={() => setAddResultFileModal(true)}
+                    className="text-blue-700 cursor-pointer"
+                  >
+                    Add
+                  </button>
+                  { labResultFile && 
+                    <span className="font-medium w-40 text-gray-700">{labResultFile}</span>
+                  }
+                </div>
+              </div> */}
             </div>
           </div>
 
-          {/* LOA Actions (UI only) */}
           <div className="bg-white rounded-md shadow border border-black/10">
+            <div className="border-b border-black/10 px-5 py-3">
+              <h2 className="text-lg font-semibold">Requirements</h2>
+            </div>
+
+            <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-6">
+              {requiredDocs.map((d, idx) => {
+                const uploaded = !!files[d.key];
+                const isActive = idx === activeIdx;
+                return (
+                  <button
+                    key={d.key}
+                    type="button"
+                    onClick={() => setActiveIdx(idx)}
+                    className="flex items-center gap-3 text-left group"
+                  >
+                    <CheckIcon active={uploaded} />
+                    <span
+                      className={`${
+                        isActive ? "text-sm font-bold" : "text-sm"
+                      }`}
+                    >
+                      {d.label}
+                    </span>
+                    {isActive && (
+                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                        Current
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div
+              onClick={handleChooseFile}
+              className="m-5 border border-gray-200 rounded-xl bg-primary/20 hover:bg-gray-100 transition cursor-pointer flex flex-col items-center justify-center h-36"
+            >
+              <div className="px-1.5 py-1 bg-primary rounded-4xl">
+                <img
+                  src="/src/assets/images/services/cancerscreening/upload_icon.svg"
+                  alt="Upload"
+                  className="h-6"
+                />
+              </div>
+              <div className="text-sm text-gray-700">
+                Choose a file to upload
+              </div>
+              <div className="text-xs text-gray-400">Size limit: 10MB</div>
+
+              {files[activeDoc?.key] && (
+                <div className="mt-3 text-xs text-gray-700">
+                  Selected:{" "}
+                  <span className="font-medium">
+                    {files[activeDoc.key].name}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <input
+              ref={inputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.odt,.ods"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+          </div>
+
+          {/* LOA Actions (UI only) */}
+          {/* <div className="bg-white rounded-md shadow border border-black/10">
             <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
               <h2 className="text-lg font-semibold">LOA Actions</h2>
             </div>
@@ -508,10 +732,32 @@ const AdminCancerManagementAdd = () => {
                 )}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Actions */}
-          <div className="bg-white rounded-md shadow border border-black/10 px-5 py-4 flex items-center justify-end gap-3">
+          <div className="w-full flex justify-around pb-6">
+            <Link
+              className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
+              to={"/admin/cancer-management"}
+            >
+              Cancel
+            </Link>
+            {allUploaded ? (
+              <button
+                type="button"
+                onClick={handleSave}
+                className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+              >
+                Save
+              </button>
+              ) : (
+                <div className="text-[12px] md:text-sm text-gray-600 max-w-auto">
+                  Please upload <span className="font-semibold">all</span>{" "}
+                  required files to enable submit.
+                </div>
+            )}
+          </div>
+          {/* <div className="bg-white rounded-md shadow border border-black/10 px-5 py-4 flex items-center justify-end gap-3">
             <Link
               to="/admin/cancer-management"
               className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
@@ -524,7 +770,7 @@ const AdminCancerManagementAdd = () => {
             >
               Save Record
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
     </>

@@ -161,7 +161,7 @@ const ViewAttachments = () => {
       <LoadingModal open={loading} text="Submitting your data..." />
 
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 overflow-auto items-center bg-gray">
-        <div className=" h-[10%] px-5 w-full flex justify-between items-center">
+        {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Cancer Management</h1>
           <Link to={`/admin/cancer-management/view/${id}`}>
             <img
@@ -170,7 +170,7 @@ const ViewAttachments = () => {
               className="h-6"
             />
           </Link>
-        </div>
+        </div> */}
 
         <div className="h-full w-full flex flex-col gap-5 justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
@@ -202,16 +202,23 @@ const ViewAttachments = () => {
                         </span>
                       </div>
                       {uploaded ? (
-                        <a
-                          href={uploaded.file}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 text-sm hover:text-blue-800"
-                        >
-                          View
-                        </a>
+                        <div className="flex gap-3">
+                          <a
+                            href={uploaded.file}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 text-sm hover:text-blue-800"
+                          >
+                            View
+                          </a>
+                          <span className="text-yellow text-sm hover:text-yellow-600 cursor-pointer">Edit</span>
+                          <span className="text-red-500 text-sm hover:text-red-700 cursor-pointer">Remove</span>
+                        </div>
                       ) : (
-                        <span className="text-red-500 text-sm">Missing</span>
+                        <div className="flex gap-3">
+                          <span className="text-blue-600 text-sm hover:text-blue-800 cursor-pointer">Add</span>
+                          {/* <span className="text-red-500 text-sm">Missing</span> */}
+                        </div>
                       )}
                     </div>
                   );

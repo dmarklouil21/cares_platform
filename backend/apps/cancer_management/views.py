@@ -8,10 +8,10 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 
-from apps.patient.models import ServiceReceived
+from apps.patient.models import ServiceReceived, Patient
 
 from .models import WellBeingQuestion, CancerTreatment
-from .serializers import WellBeingQuestionSerializer, CancerTreatmentSubmissionSerializer, CancerTreatmentSerializer
+from .serializers import WellBeingQuestionSerializer, CancerTreatmentCreationSerializer, CancerTreatmentSerializer
 
 from backend.utils.email import (
   send_individual_screening_status_email,
@@ -21,6 +21,8 @@ from backend.utils.email import (
   send_precancerous_meds_status_email,
 )
 
+import json
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -29,6 +31,46 @@ logger = logging.getLogger(__name__)
 class WellBeingQuestionListView(generics.ListAPIView):
   queryset = WellBeingQuestion.objects.all()
   serializer_class = WellBeingQuestionSerializer
+
+class CancerTreatmentCreateView(generics.CreateAPIView):
+  queryset = CancerTreatment.objects.all()
+  serializer_class = CancerTreatmentCreationSerializer
+
+  def create(self, request, *args, **kwargs):
+    patient = get_object_or_404(Patient, patient_id=request.data.get("patient_id"))
+
+    existing_record = CancerTreatment.objects.filter(patient=patient).first()
+    if existing_record and existing_record.status != 'Completed':
+      raise ValidationError({
+        'non_field_errors': [
+          "You can only create one active service at a time. Please wait for its completion before creating another."
+        ]
+      })
+
+    # Parse JSON safely
+    well_being_data = json.loads(request.data.get("well_being_data", "{}"))
+
+    files_dict = {
+      key.split("files.")[1]: value
+      for key, value in request.FILES.items()
+      if key.startswith("files.")
+    }
+
+    serializer = self.get_serializer(
+      data={
+        "patient_id": request.data.get("patient_id"),
+        "service_type": request.data.get("service_type"),
+        "interview_date": request.data.get("interview_date"),  # safe even if missing
+        "well_being_data": well_being_data,
+        "files": files_dict
+      },
+      context={"request": request}
+    )
+    serializer.is_valid(raise_exception=True)
+    cancer_treatment = serializer.save()
+
+    response_data = CancerTreatmentSerializer(cancer_treatment, context={"request": request}).data
+    return Response({"message": "Success", "data": response_data}, status=status.HTTP_201_CREATED)
 
 class CancerManagementListView(generics.ListAPIView):
   serializer_class = CancerTreatmentSerializer

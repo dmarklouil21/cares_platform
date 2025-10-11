@@ -452,13 +452,13 @@ const HomeVisitAdd = () => {
               className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
               to="/admin/survivorship"
             >
-              CANCEL
+              Cancel
             </Link>
             <button
               type="submit"
               className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
             >
-              ADD
+              Save
             </button>
           </div>
         </form>

@@ -96,7 +96,7 @@ def send_individual_screening_status_email(patient, status, screening_date=None,
     status_messages = {
       "Approve": (
         "Great news! Your screening request has been <b>approved</b>. "
-        f"Your cancer screening has been scheduled for <b>{screening_date.strftime('%B %d, %Y')}</b>. "
+        f"Your cancer screening has been scheduled for <b>{screening_date.strftime('%B %d, %Y')}</b>" if screening_date else ""
         "Please make sure to arrive at least 15 minutes early and bring any required identification."
         # "Please fill out the <b>Screening Procedure Form</b> and upload the required documents to proceed with your application."
       ),
@@ -115,7 +115,7 @@ def send_individual_screening_status_email(patient, status, screening_date=None,
         "Your screening process has been <b>successfully completed</b>. "
         "Thank you for your cooperation and commitment to your health."
       ),
-      "Rejected": (
+      "Reject": (
         "Unfortunately, your screening request has been <b>rejected</b>. "
         "If you believe this decision was made in error or wish to reapply, please contact our support team."
         f"<br><br><b>Remarks:</b> {remarks}" if remarks else ""
@@ -138,7 +138,7 @@ def send_individual_screening_status_email(patient, status, screening_date=None,
       subject="RAFI-EJACC: Screening Status Update",
       message="",  # Plain text fallback if needed
       from_email=settings.DEFAULT_FROM_EMAIL,
-      recipient_list=[patient.user.email],
+      recipient_list=[patient.email],
       fail_silently=False,
       html_message=f"""
         <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">

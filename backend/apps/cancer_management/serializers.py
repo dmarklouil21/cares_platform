@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework import serializers
 from .models import (
   # ServiceType,
@@ -8,6 +10,7 @@ from .models import (
   ServiceAttachment,
 )
 from apps.patient.serializers import PatientSerializer
+from apps.patient.models import Patient
 
 class WellBeingQuestionSerializer(serializers.ModelSerializer):
   class Meta:
@@ -103,6 +106,67 @@ class CancerTreatmentSubmissionSerializer(serializers.Serializer):
       service_type=well_being_data.get('serviceType'), 
       wellbeing_assessment=assessment,
       status="Pending"
+    )
+
+    # 4. Save ServiceAttachments
+    for key, file in files.items():
+      ServiceAttachment.objects.create(
+        cancer_treatment=cancer_treatment,
+        file=file,
+        doc_type=key 
+      )
+    return cancer_treatment
+  
+class CancerTreatmentCreationSerializer(serializers.Serializer):
+  patient_id = serializers.CharField()
+  service_type = serializers.CharField()
+  interview_date = serializers.DateField()
+
+  files = serializers.DictField(
+    child=serializers.FileField(),
+    required=False
+  )
+  well_being_data = serializers.DictField(write_only=True)
+
+  def create(self, validated_data):
+    files = validated_data.pop("files", {})
+    well_being_data = validated_data.pop("well_being_data", {})
+
+    patient = get_object_or_404(Patient, patient_id=validated_data["patient_id"])
+
+    # 1. Create WellBeingAssessment
+    assessment = WellBeingAssessment.objects.create(
+      general_status=well_being_data.get("generalStatus"),
+      improve=well_being_data.get("improve"),
+    )
+
+    # 2. Create WellBeingAnswers
+    for q_id, value in well_being_data.get("answers", {}).items():
+      if WellBeingQuestion.objects.filter(id=q_id).exists():
+          WellBeingAnswer.objects.create(
+            assessment=assessment,
+            question_id=q_id,
+            value=value,
+          )
+    # answers = well_being_data.get("answers", {})
+    # for q_id, value in answers.items():
+    #   try:
+    #     q = WellBeingQuestion.objects.get(id=q_id)
+    #     WellBeingAnswer.objects.create(
+    #       assessment=assessment,
+    #       question=q,
+    #       value=value,
+    #     )
+    #   except WellBeingQuestion.DoesNotExist:
+    #     continue
+
+    # 3. Create CancerTreatment
+    cancer_treatment = CancerTreatment.objects.create(
+      patient=patient,  # pass patient from view
+      service_type=validated_data['service_type'], 
+      wellbeing_assessment=assessment,
+      interview_date=validated_data["interview_date"],
+      status="Interview Process"
     )
 
     # 4. Save ServiceAttachments
