@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import BeneficiarySidebar from "src/components/navigation/Beneficiary";
 
 const survivorshipOptions = [
@@ -7,19 +8,22 @@ const survivorshipOptions = [
     icon: "/src/assets/images/patient/services/survivorship/hormonalicon.png",
     description:
       "Support your recovery with prescribed hormonal medications to manage the effects of cancer treatment and hormone imbalances.",
+    link: "/beneficiary/services/survivorship/hormonal-replacement",
   },
-  {
-    title: "Patient Home Visit",
-    icon: "/src/assets/images/patient/services/survivorship/patienthouseicon.png",
-    description:
-      "Receive medical guidance, follow-ups, or support services in the comfort of your home through scheduled nurse or health worker visits.",
-  },
+  // {
+  //   title: "Patient Home Visit",
+  //   icon: "/src/assets/images/patient/services/survivorship/patienthouseicon.png",
+  //   description:
+  //     "Receive medical guidance, follow-ups, or support services in the comfort of your home through scheduled nurse or health worker visits.",
+  //   link: "/beneficiary/services/survivorship/hormonal-replacement",
+  // },
   {
     title: "Psychosocial Support",
     icon: "/src/assets/images/patient/services/survivorship/utak.png",
     description:
       "Access mental health services like counseling or therapy to help manage emotional challenges during survivorship.",
-  },
+    link: "/beneficiary/services/survivorship/hormonal-replacement",
+ },
 ];
 
 const SurvivorshipPage = () => {
@@ -51,9 +55,16 @@ const SurvivorshipPage = () => {
             <p className="text-gray2 text-center text-sm">
               {option.description}
             </p>
-            <button className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition">
-              Apply
-            </button>
+            <Link 
+              className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+              to={option.link}
+            >
+              {option.title === "Psychosocial Support" ? (
+                "Explore"
+              ) : (
+                "Apply"
+              )}
+            </Link>
           </div>
         ))}
       </div>

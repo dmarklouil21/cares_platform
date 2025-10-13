@@ -174,7 +174,6 @@ const AdminCancerManagementAdd = () => {
     message: "",
   });
 
-  /* ----------------------- Helpers ----------------------- */
   const handleChooseFile = () => inputRef.current?.click();
 
   const handleFileSelect = (e) => {
@@ -691,49 +690,6 @@ const AdminCancerManagementAdd = () => {
             />
           </div>
 
-          {/* LOA Actions (UI only) */}
-          {/* <div className="bg-white rounded-md shadow border border-black/10">
-            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">LOA Actions</h2>
-            </div>
-
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">
-                  Letter of Authority
-                </label>
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => setLoaFile(e.target.files?.[0] || null)}
-                  className="border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-                {loaFile && (
-                  <p className="text-xs text-gray-600">
-                    Selected: {loaFile.name}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Case Summary</label>
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) =>
-                    setCaseSummaryFile(e.target.files?.[0] || null)
-                  }
-                  className="border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-                {caseSummaryFile && (
-                  <p className="text-xs text-gray-600">
-                    Selected: {caseSummaryFile.name}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div> */}
-
           {/* Actions */}
           <div className="w-full flex justify-around pb-6">
             <Link
@@ -757,20 +713,6 @@ const AdminCancerManagementAdd = () => {
                 </div>
             )}
           </div>
-          {/* <div className="bg-white rounded-md shadow border border-black/10 px-5 py-4 flex items-center justify-end gap-3">
-            <Link
-              to="/admin/cancer-management"
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-            >
-              Cancel
-            </Link>
-            <button
-              onClick={handleSubmit}
-              className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/80"
-            >
-              Save Record
-            </button>
-          </div> */}
         </div>
       </div>
     </>

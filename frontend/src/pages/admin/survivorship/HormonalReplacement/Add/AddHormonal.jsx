@@ -100,7 +100,7 @@ const SearchableSelect = ({
   );
 };
 
-const LIST_PATH = "/admin/treatment-assistance/post-treatment";
+const LIST_PATH = "/admin/survivorship/hormonal-replacement";
 
 const CheckIcon = ({ active }) => (
   <img
@@ -110,7 +110,7 @@ const CheckIcon = ({ active }) => (
   />
 );
 
-const AdminPostTreatmentAdd = () => {
+const AdminHormonalReplacementAdd = () => {
   const navigate = useNavigate();
 
   // ===== LOA GENERATION (shown first) =====
@@ -119,7 +119,7 @@ const AdminPostTreatmentAdd = () => {
   const [age, setAge] = useState("");
   const [patientAddress, setPatientAddress] = useState("");
   const [date, setDate] = useState("");
-  const [providerName, setProviderName] = useState("Chong Hua Hospital Mandaue");
+  const [medicines, setMedicines] = useState();
   const [providerAddress, setProviderAddress] = useState("");
   const [diagnosis, setDiagnosis] = useState("");
   const [procedure, setProcedure] = useState("");
@@ -128,7 +128,7 @@ const AdminPostTreatmentAdd = () => {
   const [status, setStatus] = useState("Approved");
   // const [serviceProvider, setServiceProvider] = useState("Chong Hua Hospital Mandaue")
 
-  const requiredDocs = REQUIRED_DOCS["Post Treatment"];
+  const requiredDocs = REQUIRED_DOCS["Hormonal Replacement"];
 
   const [activeIdx, setActiveIdx] = useState(0);
   const activeDoc = requiredDocs[activeIdx];
@@ -208,22 +208,13 @@ const AdminPostTreatmentAdd = () => {
     return (
       patient &&
       date &&
-      providerName.trim() &&
-      procedure.trim()
-      // schedule &&
-      // preparedBy.trim() &&
-      // approvedBy.trim()
+      medicines.trim()
     );
   }, [
     patient,
     // age,
     date,
-    providerName,
-    // diagnosis,
-    procedure
-    // schedule,
-    // preparedBy,
-    // approvedBy,
+    medicines,
   ]);
 
   const validateOrNotify = () => {
@@ -231,20 +222,12 @@ const AdminPostTreatmentAdd = () => {
 
     const msg = !patient
       ? "Please select a patient."
-      : !providerName.trim()
+      : !medicines.trim()
       ? "Please enter Service Provider/Lab Name."
       : !diagnosis.trim()
       ? "Please enter Diagnosis."
-      : !procedure.trim()
-      ? "Please enter Procedure."
-      : !preparedBy.trim()
-      ? "Please enter Prepared by."
-      : !approvedBy.trim()
-      ? "Please enter Approved by."
       : !date
       ? "Please set Date."
-      : !schedule
-      ? "Please set Schedule."
       : !inputRef
       ? "Please upload the laboratory request."
       : "Please complete all required fields.";
@@ -264,27 +247,22 @@ const AdminPostTreatmentAdd = () => {
       const formData = new FormData();
       formData.append("patient_id", patient.patient_id);
       formData.append("status", status);
-      formData.append("procedure_name", procedure);
-      formData.append("laboratory_test_date", date);
-      formData.append("service_provider", providerName);
-      console.log("Status: ", status)
-      console.log("Procedure: ", procedure)
-      console.log("Date: ", date)
-      console.log("Service Provider: ", providerName)
+      formData.append("medicines_requested", medicines);
+      formData.append("released_date", date);
 
       Object.entries(files).forEach(([key, file]) => {
         if (file) formData.append(`files.${key}`, file);
       });
 
       await api.post(
-        `/post-treatment/create/`,
+        `/survivorship/hormonal-replacement/create/`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
-      navigate("/admin/treatment-assistance/post-treatment", {
+      navigate("/admin/survivorship/hormonal-replacement", {
         state: { type: "success", message: "Created Successfully." },
       });
     } catch (error) {
@@ -378,7 +356,7 @@ const AdminPostTreatmentAdd = () => {
         {/* LOA GENERATION FIRST */}
         <div className="bg-white w-full rounded-md shadow border border-black/10">
           <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-            <h2 className="text-lg font-semibold">Post Treatment</h2>
+            <h2 className="text-lg font-semibold">Hormonal Replacement Medication</h2>
           </div>
 
           <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
@@ -409,14 +387,14 @@ const AdminPostTreatmentAdd = () => {
 
             <div className="w-full">
               <label className="text-sm font-medium block mb-1">
-                Procedure <span className="text-red-500">*</span>
+                Medicines <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={procedure}
-                onChange={(e) => setProcedure(e.target.value)}
-                placeholder="e.g., Basic Metabolic Panel"
+                value={medicines}
+                onChange={(e) => setMedicines(e.target.value)}
+                placeholder="e.g., Biogesic, Neozep"
               />
             </div>
 
@@ -437,7 +415,7 @@ const AdminPostTreatmentAdd = () => {
 
             <div className="w-full">
               <label className="text-sm font-medium block mb-1">
-                Lab Test Date <span className="text-red-500">*</span>
+                Release Date <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
@@ -447,16 +425,16 @@ const AdminPostTreatmentAdd = () => {
               />
             </div>
 
-            <div className="w-full">
+            {/* <div className="w-full">
               <label className="text-sm font-medium block mb-1">Service Provider</label>
               <select
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
                 value={status}
-                onChange={(e) => setProviderName(e.target.value)}
+                onChange={(e) => setMedicines(e.target.value)}
               >
                 <option value="Chong Hua Hospital Mandaue">Chong Hua Hospital Mandaue</option>
               </select>
-            </div>
+            </div> */}
 
             {/* <div className="w-full">
               <label className="text-sm font-medium block mb-1">
@@ -635,4 +613,4 @@ const AdminPostTreatmentAdd = () => {
   );
 };
 
-export default AdminPostTreatmentAdd;
+export default AdminHormonalReplacementAdd;

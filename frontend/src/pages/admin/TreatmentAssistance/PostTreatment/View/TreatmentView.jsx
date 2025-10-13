@@ -5,6 +5,7 @@ import api from "src/api/axiosInstance";
 
 // Components
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
 import Notification from "src/components/Notification";
 import SystemLoader from "src/components/SystemLoader";
 import DateModal from "src/components/Modal/DateModal";
@@ -31,6 +32,14 @@ const PostTreatmentView = () => {
   const [modalText, setModalText] = useState("Confirm Action?");
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
+
+  // Notification Modal
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({
+    type: "info",
+    title: "Info",
+    message: "The form has been submitted successfully.",
+  });
 
   // Treatment Date Modal
   const [dateModalOpen, setDateModalOpen] = useState(false);
@@ -245,7 +254,19 @@ const PostTreatmentView = () => {
       try {
         setLoading(true);
         setModalOpen(false);
+        const today = new Date().toISOString().split('T')[0];
+        console.log(today);
 
+        if (labTestDate < today) {
+          console.log("Am")
+          setModalInfo({
+            type: "info",
+            title: "Invalid Date",
+            message: "Date cannot be set into the past.",
+          });
+          setShowModal(true);
+          return;
+        }
         let payload = {
           status: modalAction.newStatus || status,
           laboratory_test_date: modalAction.newLabTestDate || labTestDate,
@@ -305,6 +326,15 @@ const PostTreatmentView = () => {
         onCancel={() => setModalOpen(false)}
       />
       <Notification message={notification} type={notificationType} />
+
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
+      />
+
       <DateModal
         open={dateModalOpen}
         title={dateModalTitle}

@@ -91,6 +91,7 @@ const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
   const survivorshipSubNav = [
     { name: "Home visit", path: "/admin/survivorship" },
+    { name: "Hormonal Replacement", path: "/admin/survivorship/hormonal-replacement" },
   ];
 
   const sampleSubNav = [

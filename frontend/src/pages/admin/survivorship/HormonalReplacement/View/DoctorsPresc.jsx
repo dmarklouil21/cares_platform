@@ -20,7 +20,7 @@ const LabRequest = () => {
   const record = location.state;
 
   const { id } = useParams();
-  const requiredDocs = REQUIRED_DOCS["Post Treatment"] || [];
+  const requiredDocs = REQUIRED_DOCS["Hormonal Replacement"] || [];
 
   const [files, setFiles] = useState({}); // ✅ initialize as empty object
   const [description, setDescription] = useState(
@@ -47,6 +47,7 @@ const LabRequest = () => {
     }, {});
     setFiles(mappedFiles);
   }, [record]);
+  console.log("Required Attachements: ", record);
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -142,7 +143,7 @@ const LabRequest = () => {
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
               <h2 className="text-3xl text-yellow font-bold">
-                Laboratory Request File
+                Doctors Prescription
               </h2>
               <p className="font-bold italic">
                 View the uploaded document of the patient.
@@ -184,7 +185,7 @@ const LabRequest = () => {
           {/* Actions */}
           <div className="w-full flex justify-around">
             <Link
-              to={`/admin/treatment-assistance/postview/${id}`}
+              to={`/admin/survivorship/hormonal-replacement/view/${record.id}`}
               className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
             >
               Back

@@ -55,4 +55,7 @@ export const REQUIRED_DOCS = {
   "Post Treatment": [
     { key: "labRequest", label: "Laboratory Request" },
   ],
+  "Hormonal Replacement": [
+    { key: "docPrisc", label: "Doctor's Prescription" },
+  ],
 };

@@ -37,7 +37,7 @@ const HomeVisitView = () => {
   // Visit Date Modal
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const [tempDate, setTempDate] = useState("");
-  const [dateModalTitle, setDateModalTitle] = useState("Set Laboratory Test Date");
+  const [dateModalTitle, setDateModalTitle] = useState("Set Visitation Date");
 
   // Send Report Modal
   const [sendReportModalOpen, setSendReportModalOpen] = useState(false);
@@ -217,7 +217,7 @@ const HomeVisitView = () => {
     doc.text("Purpose of Visit:", M, y);
     y += 16;
     doc.setFont("helvetica", "normal");
-    const bullets = ["Goal setting and education", "Medication support"];
+    const bullets = [`${data.purpose_of_visit}`];
     const maxW = width - M * 2 - 16;
     bullets.forEach((b) => {
       const wrapped = doc.splitTextToSize(b, maxW);
