@@ -3,6 +3,7 @@ from . import views
 from apps.precancerous import views as precancerous_views
 
 urlpatterns = [
+  path('create/', views.PostTreatmentCreateView.as_view(), name='post_treatment_create'),
   path('list/', views.PostTreatmentListView.as_view(), name='post_treatment_list'),
   path('view/<int:id>/', views.PostTreatmentDetailedView.as_view(), name='post_treatment_view'),
   path('approve/<int:id>/', views.PostTreatmentApproveView.as_view(), name='post_treatment_approve'),

@@ -8,8 +8,12 @@ from apps.cancer_management.models import (
     WellBeingAssessment, WellBeingQuestion, WellBeingAnswer
 )
 from apps.cancer_management.serializers import WellBeingAssessmentSerializer
-from .models import PatientHomeVisit
+from .models import PatientHomeVisit, HormonalReplacement, HormonalReplacementRequiredAttachment
 
+class HormonalReplacementRequiredAttachmentSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = HormonalReplacementRequiredAttachment
+    fields = ['id', 'file', 'uploaded_at', 'doc_type']
 
 class HomevisitSerializer(serializers.ModelSerializer):
   patient_id = serializers.CharField(write_only=True)
@@ -131,3 +135,21 @@ class HomevisitSerializer(serializers.ModelSerializer):
     instance.save()
     return instance
 
+class HormonalReplacementSerializer(serializers.ModelSerializer):
+  patient = PatientSerializer(read_only=True)
+  required_attachments = HormonalReplacementRequiredAttachmentSerializer(many=True, read_only=True)
+
+  class Meta:
+    model = HormonalReplacement
+    fields = [
+        'id',
+        'patient',
+        'status',
+        'released_date',
+        'date_approved',
+        'required_attachments',
+        'service_completed',
+        'date_submitted',
+        'medicines_requested',
+    ]
+    read_only_fields = ['id', 'date_submitted', 'service_completed']

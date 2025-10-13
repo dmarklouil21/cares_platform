@@ -31,8 +31,8 @@ from apps.post_treatment.serializers import PostTreatmentSerializer, RequiredAtt
 from apps.cancer_management.models import CancerTreatment, ServiceAttachment
 from apps.cancer_management.serializers import CancerTreatmentSubmissionSerializer, CancerTreatmentSerializer
 
-from apps.survivorship.models import PatientHomeVisit
-from apps.survivorship.serializers import HomevisitSerializer
+from apps.survivorship.models import PatientHomeVisit, HormonalReplacement, HormonalReplacementRequiredAttachment
+from apps.survivorship.serializers import HomevisitSerializer, HormonalReplacementSerializer
 
 from .serializers import PatientSerializer, PreEnrollmentSerializer
 
@@ -499,6 +499,71 @@ class PostTreatmentResultUploadView(APIView):
     post_treatment.save()
 
     return Response({"message": "Result uploaded successfully."}, status=status.HTTP_200_OK)
+
+# -----------------------
+# Hormonal Replacement Views
+# -----------------------
+class HormonalReplacementRequestView(generics.CreateAPIView):
+  queryset = HormonalReplacement.objects.all()
+  serializer_class = HormonalReplacementSerializer
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+
+  def perform_create(self, serializer):
+    try:
+      with transaction.atomic():
+        patient = self.request.user.patient # Stop here
+        cancer_treatment = get_object_or_404(CancerTreatment, patient=patient)
+        service_completed = cancer_treatment.service_type
+        existing_request = HormonalReplacement.objects.filter(
+          patient=patient,
+          status__in=['Pending', 'Approved']
+        ).first()
+
+        if existing_request:
+          raise ValidationError({
+            'non_field_errors': [
+              "You already have an ongoing request. Please wait for its feedback before submitting another."
+            ]
+          })
+    
+        instance = serializer.save(
+          patient=self.request.user.patient,  # ensure patient is set
+          service_completed=service_completed
+        )
+
+        files_dict = {}
+        for key, value in self.request.FILES.items():
+          if key.startswith("files."):
+            field_name = key.split("files.")[1] 
+            files_dict[field_name] = value
+
+        for key, file in files_dict.items():
+          HormonalReplacementRequiredAttachment.objects.create(
+            hormonal_replacement=instance,
+            file=file,
+            doc_type=key 
+          )
+
+    except Exception as e:
+      logger.error(f"Error creating hormonal replacement request: {str(e)}")
+      raise e
+    
+class HormonalReplacementDetailView(generics.RetrieveAPIView):
+  queryset = HormonalReplacement.objects.all()
+  serializer_class = HormonalReplacementSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+class HormonalReplacementListView(generics.ListAPIView):
+  serializer_class = HormonalReplacementSerializer
+  permission_classes = [IsAuthenticated]
+
+  def get_queryset(self):
+    user = self.request.user
+    patient = get_object_or_404(Patient, user=user)
+    # patient_id = self.kwargs.get("patient_id")
+    return HormonalReplacement.objects.filter(patient=patient)
 
 # -----------------------
 # Home Visit Views

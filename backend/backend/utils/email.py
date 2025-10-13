@@ -413,12 +413,13 @@ def send_loa_email(recipient_email, file_obj, patient_name=None):
     name_text = f"Dear <b>{patient_name}</b>," if patient_name else "Dear Patient,"
 
     message = EmailMessage(
-      subject="RAFI-EJACC: Letter of Authorization (LOA) for Your Cancer Screening",
+      subject="RAFI-EJACC: Letter of Authorization (LOA) for Your Application",
+      # Our team will contact you through email shortly once your screening date has been finalized.<br><br>
       body=f"""
           {name_text}<br><br>
-          We are pleased to inform you that your request for individual cancer screening has been approved.<br><br>
+          We are pleased to inform you that your application has been approved.<br><br>
           Please find attached your <b>Letter of Authorization (LOA)</b>. Kindly print and sign the document to proceed with your screening.<br><br>
-          Our team will contact you through email shortly once your screening date has been finalized.<br><br>
+          
           Thank you for your trust and cooperation.<br><br>
           Best regards,<br>
           <b>RAFI-EJACC Team</b>
@@ -437,18 +438,10 @@ def send_loa_email(recipient_email, file_obj, patient_name=None):
     return str(e)
   
 def send_case_summary_email(recipient_email, file_obj, patient_name=None):
-  """
-  Sends a Letter of Authorization (LOA) email with an attached file.
-
-  :param recipient_email: str - The email address of the patient.
-  :param file_obj: UploadedFile - The LOA file (from request.FILES).
-  :param patient_name: str - Optional, patient full name for personalization.
-  :return: True if success, or error string if failed.
-  """
   try:
     name_text = f"Dear <b>{patient_name}</b>," if patient_name else "Dear Patient,"
 
-    message = EmailMessage(
+    message = EmailMessage( # RAFI-EJACC: Successful Home Visitation and Follow-Up Report
       subject="RAFI-EJACC: Case Summary and Intervention Plan for Your Cancer Treatment",
       body=f"""
           {name_text}<br><br>
@@ -600,7 +593,7 @@ def send_post_treatment_status_email(patient, status, lab_test_date=None, remark
                 <!-- Header -->
                 <div style="background: #005baa; padding: 20px; text-align: center;">
                     <img src="https://rafi.org.ph/wp-content/uploads/2021/03/RAFI-LOGO-1.png" alt="RAFI Logo" style="height: 50px; display: block; margin: 0 auto 10px;">
-                    <h2 style="color: #fff; margin: 0; font-weight: normal;">Screening Status Update</h2>
+                    <h2 style="color: #fff; margin: 0; font-weight: normal;">Post Treatment Status Update</h2>
                 </div>
                 
                 <!-- Content -->
@@ -616,9 +609,6 @@ def send_post_treatment_status_email(patient, status, lab_test_date=None, remark
                     <p style="font-size: 15px; line-height: 1.6; color: #333;">{message_body}</p>
 
                     <!-- CTA Button --> <!-- settings.FRONTEND_URL -->
-                    <a href="/login" style="display: inline-block; margin-top: 20px; padding: 12px 20px; background: #005baa; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                        View Your Screening Details
-                    </a>
                 </div>
 
                 <!-- Footer -->
@@ -639,14 +629,17 @@ def send_report_email(recipient_email, file_obj, patient_name=None):
     name_text = f"Dear <b>{patient_name}</b>," if patient_name else "Dear Patient,"
 
     message = EmailMessage(
-      subject="RAFI-EJACC: Report and Recommendation from your Home Visitation",
+      # subject="RAFI-EJACC: Report and Recommendation from your Home Visitation",
+      subject="RAFI-EJACC: Successful Home Visitation and Follow-Up Report",
       body=f"""
           {name_text}<br><br>
-          We are pleased to inform you that your request for cancer treatment - Radiation Therapy has been approved.<br><br>
-          Please find attached your <b>Case Summary and Interverntion Plan</b>. Kindly print, sign and upload the document back. For further processing.<br><br>
-          Our team will contact you through email shortly once your treatment date has been finalized.<br><br>
-          Thank you for your trust and cooperation.<br><br>
-          Best regards,<br>
+          We are pleased to inform you that your recent <b>home visitation</b> has been successfully completed.<br><br>
+          Attached is your <b>Home Visitation Report and Recommendation</b> prepared by our medical team. 
+          Please review the details carefully for your reference and next steps.<br><br>
+          If you have any questions or would like to discuss the recommendations further, 
+          please don’t hesitate to reach out to us via email or phone.<br><br>
+          Thank you for your continued trust and cooperation in your care journey.<br><br>
+          Warm regards,<br>
           <b>RAFI-EJACC Team</b>
       """,
       from_email=settings.DEFAULT_FROM_EMAIL,
