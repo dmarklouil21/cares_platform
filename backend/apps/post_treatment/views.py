@@ -1,5 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.db import transaction
+
 from rest_framework import generics, status, filters
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -15,13 +17,59 @@ from backend.utils.email import (
 
 from apps.patient.models import Patient, HistoricalUpdate
 
-from . models import PostTreatment, FollowupCheckups
-from . serializers import PostTreatmentSerializer
+from . models import PostTreatment, FollowupCheckups, RequiredAttachment
+from . serializers import PostTreatmentSerializer, PostTreatmentAdminCreateSerializer
 
 import logging
 logger = logging.getLogger(__name__)
 
 # Create your views here.
+class PostTreatmentCreateView(generics.CreateAPIView):
+  queryset = PostTreatment.objects.all()
+  serializer_class = PostTreatmentAdminCreateSerializer
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+
+  def perform_create(self, serializer):
+    try:
+      print("Data: ", self.request.data)
+      with transaction.atomic():
+        patient = get_object_or_404(Patient, patient_id=self.request.data.get('patient_id'))
+        existing_record = PostTreatment.objects.filter(
+          patient=patient,
+          status__in=['Pending', 'Approved']
+        ).first()
+
+        if existing_record:
+          raise ValidationError({
+            'non_field_errors': [
+              'There\'s an ongoing screening application for this patient.'
+            ]
+          })
+    
+        instance = serializer.save(
+          patient=patient
+        )
+
+        files_dict = {}
+        for key, value in self.request.FILES.items():
+          if key.startswith("files."):
+            field_name = key.split("files.")[1] 
+            files_dict[field_name] = value
+
+        for key, file in files_dict.items():
+          RequiredAttachment.objects.create(
+            post_treatment=instance,
+            file=file,
+            doc_type=key 
+          )
+    except ValidationError:
+      raise
+
+    except Exception as e:
+      logger.error(f"Error creating post treatment request: {str(e)}")
+      raise e
+
 class PostTreatmentListView(generics.ListAPIView):
   serializer_class = PostTreatmentSerializer
   permission_classes = [IsAuthenticated]

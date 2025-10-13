@@ -94,12 +94,12 @@ const RadioTherapyWellBeingTool = () => {
 
   return (
     <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
-      <div className=" h-[10%] px-5 w-full flex justify-between items-center">
+      {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">Cancer Management</h1>
         <Link to={`/admin/survivorship/view/${id}`}>
           <img src="/images/back.png" alt="Back button icon" className="h-6" />
         </Link>
-      </div>
+      </div> */}
 
       <div className="h-full w-full flex flex-col justify-between">
         <div className="border border-black/15 p-3 bg-white rounded-sm">

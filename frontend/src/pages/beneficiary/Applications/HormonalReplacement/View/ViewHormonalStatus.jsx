@@ -18,16 +18,16 @@ const STATUS_TO_STEP = {
   Approved: 1,
   Completed: 2,
   // "Follow-up Required": 3,
-  Closed: 3,
+  // Closed: 3,
 };
 
 const getStepIndexByStatus = (status) => STATUS_TO_STEP[status] ?? 0;
 
-export default function ViewPostTreatmentStatus() {
+export default function ViewhormonalReplacementStatus() {
   const { user } = useAuth();
   // const location = useLocation();
   const { id } = useParams();
-  const [postTreatment, setPostTreatment] = useState(null);
+  const [hormonalReplacement, setHormonalReplacement] = useState(null);
 
   const [uploadResultModalOpen, setUploadResultModalOpen] = useState(false);
   const [resultFile, setResultFile] = useState(null);
@@ -50,7 +50,7 @@ export default function ViewPostTreatmentStatus() {
 
   const [loading, setLoading] = useState(false);
 
-  const activeStep = getStepIndexByStatus(postTreatment?.status || "");
+  const activeStep = getStepIndexByStatus(hormonalReplacement?.status || "");
 
   // Step definitions
   const stepList = useMemo(() => {
@@ -59,14 +59,14 @@ export default function ViewPostTreatmentStatus() {
         title: "Pending", 
         description: activeStep === 0 ? (
           <>
-            Your request for cancer screening has been submitted and is
+            Your request for hormonal replacement medication has been submitted and is
             currently under review. Once approved, you’ll receive instructions
             on the next steps.
           </>
         ) : (
           <>
             Your request has been approved. You will be notified with your
-            laboratory test date through email.
+            medicines release date through email.
           </>
         ),
       },
@@ -74,10 +74,10 @@ export default function ViewPostTreatmentStatus() {
         title: "Approved", 
         description: activeStep === 1 ? (
           <>
-            Your post treatment laboratory test request has been approved{" "}
+            Your hormonal replacement medication request has been approved{" "}
             <b>
               {new Date(
-                postTreatment?.laboratory_test_date
+                hormonalReplacement?.released_date
               ).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
@@ -89,10 +89,10 @@ export default function ViewPostTreatmentStatus() {
           </>
         ) : (
           <>
-            Your laboratory test has been scheduled for{" "}
+            Your medicines release date has been scheduled for{" "}
             <b>
               {new Date(
-                postTreatment?.laboratory_test_date
+                hormonalReplacement?.released_date
               ).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
@@ -108,74 +108,29 @@ export default function ViewPostTreatmentStatus() {
         title: "Completed", 
         description: activeStep === 2 ? (
           <>
-            Your post treatment laboratory test has been successfully completed, please upload back the result of your test.
-            <span
-              className="text-blue-500 underline cursor-pointer"
-              onClick={() => setUploadResultModalOpen(true)}
-            >
-              Click here to upload results.
-            </span>
+            Your hormonal replacement medication request test has been successfully claimed.
           </>
         ) : activeStep > 2 ? (
-          <> Your post treatment laboratory test is complete. </>
+          <> Your hormonal replacement is complete. </>
         ) : (
           <>
             {" "}
-            Your follow checkup may require base on the results.{" "}
+            You will be notified through email if the medicine is available for claiming.{" "}
           </>
         ),
       },
     ];
 
-    if (postTreatment?.status === "Follow-up Required") {
-      baseSteps.push({
-        title: "Follow-up Required",
-        description:
-          activeStep === 3 ? (
-            <>
-              Followup Checkup is required.{" "}
-              <span
-                onClick={() => setIsCheckupModalOpen(true)}
-                className="text-blue-500 underline cursor-pointer"
-              >
-                View Checkup Schedules
-              </span> {' '}
-            </>
-          ) : (
-            <> Followup Checkup is required.{" "} </>
-          ),
-      });
-      baseSteps.push({
-        title: "Closed",
-        description:
-          activeStep === 4 ? (
-            <> Case is closed, thank you for your cooperation. </>
-          ) : (
-            <> After completion you are required to upload the results. </>
-          ),
-      });
-    } else {
-      baseSteps.push({
-        title: "Closed",
-        description:
-          activeStep === 3 ? (
-            <> Case is closed, thank you for your cooperation. </>
-          ) : (
-            <> After completion you are required to upload the results. </>
-          ),
-      });
-    }
-
     return baseSteps;
-  }, [activeStep, postTreatment]);
+  }, [activeStep, hormonalReplacement]);
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
+      try { 
         const { data } = await api.get(
-          `/post-treatment/view/${id}/`
+          `/beneficiary/hormonal-replacement/details/${id}/`
         );
-        setPostTreatment(data);
+        setHormonalReplacement(data);
 
         if (data?.status === "Follow-up Required") {
           STATUS_TO_STEP["Follow-up Required"] = 3;
@@ -209,7 +164,7 @@ export default function ViewPostTreatmentStatus() {
         const formData = new FormData();
         formData.append("file", resultFile);
 
-        await api.patch(`/beneficiary/post-treatment/result/upload/${postTreatment.id}/`, formData, {
+        await api.patch(`/beneficiary/post-treatment/result/upload/${hormonalReplacement.id}/`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -263,7 +218,7 @@ export default function ViewPostTreatmentStatus() {
       <CheckupScheduleModal
         open={isCheckupModalOpen}
         onClose={() => setIsCheckupModalOpen(false)}
-        data={postTreatment}
+        data={hormonalReplacement}
       />
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
         {/* <div className=" px-5 w-full flex justify-between items-center">
@@ -282,7 +237,7 @@ export default function ViewPostTreatmentStatus() {
           {/* <div className="bg-white flex flex-col gap-7 rounded-[4px] shadow-md p-6 w-full max-w-3xl"> */}
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="w-full bg-white rounded-[4px] p-4 ">
-              <h2 className="text-md font-bold mb-3">Post Treatment Progress</h2>
+              <h2 className="text-md font-bold mb-3">Hormonal Replacement Medication Request</h2>
               {/* <div className="flex justify-between items-center">
                 <h2 className="text-md font-bold mb-3">Screening Progress</h2>
               </div> */}

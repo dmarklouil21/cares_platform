@@ -23,6 +23,7 @@ import IndividualScreening from "../pages/beneficiary/Applications/IndividualScr
 import CancerTreatment from "../pages/beneficiary/Applications/CancerTreatment/CancerTreatment";
 import PreCancerous from "../pages/beneficiary/Applications/PreCancerous/PreCancerous/";
 import PostTreatmentApplication from "../pages/beneficiary/Applications/PostTreatment/PostTreatment";
+import HormonalReplacementApplication from "../pages/beneficiary/Applications/HormonalReplacement/HormonalReplacement";
 
 // Cancer Screening Apply
 import Requirements from "../pages/beneficiary/Services/CancerScreening/Apply/Requirements";
@@ -36,6 +37,9 @@ import PostTreatment from "../pages/beneficiary/Services/CancerManagement/Apply/
 
 import PreCancerousMeds from "../pages/beneficiary/Services/CancerManagement/Apply/PreCancerous/PreCancerousMeds";
 
+// Survivorship Apply 
+import HormonalReplacement from "../pages/beneficiary/Services/Survivorship/Apply/Hormonal/HormonalReplacement";
+
 import ViewTreatmentRequestStatus from "../pages/beneficiary/Applications/CancerTreatment/View/ViewRequestStatus";
 import CaseSummaryUpload from "../pages/beneficiary/Applications/CancerTreatment/View/UploadAttachments";
 
@@ -45,6 +49,7 @@ import UploadAttachments from "../pages/beneficiary/Applications/IndividualScree
 
 import PreCancerousView from "../pages/beneficiary/Applications/PreCancerous/View/PreCancerousView";
 import ViewPostTreatmentStatus from "../pages/beneficiary/Applications/PostTreatment/View/ViewPostTreatmentStatus";
+import HormonalReplacementView from "../pages/beneficiary/Applications/HormonalReplacement/View/ViewHormonalStatus";
 
 // Success Page
 import SuccessPage from "../pages/beneficiary/SuccessPage";
@@ -105,7 +110,11 @@ const BeneficiaryRoutes = () => (
       </Route>
 
       {/* Survivorship */}
-      <Route path="survivorship" element={<Survivorship />} />
+      {/* <Route path="survivorship" element={<Survivorship />} /> */}
+      <Route path="survivorship">
+        <Route index element={<Survivorship />} />
+        <Route path="hormonal-replacement" element={<HormonalReplacement />} />
+      </Route>
     </Route>
 
     {/* Applications */}
@@ -131,6 +140,12 @@ const BeneficiaryRoutes = () => (
         <Route index element={<PostTreatmentApplication />} />
         <Route path="view/:id" element={<ViewPostTreatmentStatus />} />
       </Route>
+
+      <Route path="hormonal-replacement">
+        <Route index element={<HormonalReplacementApplication />} />
+        <Route path="view/:id" element={<HormonalReplacementView />} />
+      </Route>
+
     </Route>
     <Route path="PychosocialSupport" element={<PychosocialSupport />} />
   </Route>

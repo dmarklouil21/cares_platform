@@ -35,5 +35,13 @@ class PostTreatmentSerializer(serializers.ModelSerializer):
     fields = [
       'id', 'patient', 'procedure_name', 'status', 'created_at', 'has_patient_response', 
       'required_attachments', 'response_description', 'date_approved', 'laboratory_test_date', 
-      'uploaded_result', 'followup_checkups'
+      'uploaded_result', 'followup_checkups', 'service_provider'
+    ]
+
+class PostTreatmentAdminCreateSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = PostTreatment
+    fields = [
+      'procedure_name', 'service_provider',
+      'status', 'laboratory_test_date'
     ]

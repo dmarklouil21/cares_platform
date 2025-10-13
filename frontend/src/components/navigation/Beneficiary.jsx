@@ -79,6 +79,7 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       path: "/beneficiary/applications/post-treatment",
     },
     { name: "Pre Cancerous", path: "/beneficiary/applications/precancerous" },
+    { name: "Hormonal Replacement", path: "/beneficiary/applications/hormonal-replacement" },
   ];
 
   const debounce = (func, delay) => {

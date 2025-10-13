@@ -13,6 +13,7 @@ import CancerManagement from "../pages/admin/CancerManagement/CancerManagement";
 import UserManagement from "../pages/admin/UserManagement/UserManagement";
 import MassScreening from "../pages/admin/CancerScreening/MassScreening/MassScreening";
 import HomeVisit from "../pages/admin/survivorship/HomeVisit/HomeVisit";
+import HormonalReplacement from "../pages/admin/survivorship/HormonalReplacement/HormonalReplacement";
 import EditProfile from "../pages/admin/profile/ViewProfile";
 import PychosocialSupport from "../pages/admin/psychosocialSupport/PsychosocialSupport";
 
@@ -22,11 +23,14 @@ import PsychosocialSupportAdd from "../pages/admin/psychosocialSupport/add/add";
 //views
 import PostTreatmentView from "../pages/admin/TreatmentAssistance/PostTreatment/View/TreatmentView";
 import HomeVisitView from "../pages/admin/survivorship/HomeVisit/View/HomeView";
-import HomeVisitWellBeingTool from "../pages/admin/survivorship/HomeVisit/View/WellBeingTool";
+import HomeVisitWellBeingTool from "../pages/admin/survivorship/HomeVisit/View/WellBeingTool"; 
+import HormonalView from "../pages/admin/survivorship/HormonalReplacement/View/HormonalView";
+import HormonalViewPrescription from "../pages/admin/survivorship/HormonalReplacement/View/DoctorsPresc";
 
-//add
+// Survivorship
 import HomeVisitAdd from "../pages/admin/survivorship/HomeVisit/Add/Add";
 import HomeVisitAddWellbeingForm from "../pages/admin/survivorship/HomeVisit/Add/WellBeingForm";
+import AddHormonal from "../pages/admin/survivorship/HormonalReplacement/Add/AddHormonal";
 
 // Patient Features
 import PatientView from "../pages/admin/Patient/PatientMasterList/View/PatientView";
@@ -205,9 +209,18 @@ const AdminRoutes = () => (
       <Route path="edit" element={<EditUser />} />
     </Route>
 
-    {/* Home Visit */}
+    {/* Survivorship */}
     <Route path="survivorship">
       <Route index element={<HomeVisit />} />
+
+      <Route path="hormonal-replacement" >
+        <Route index element={<HormonalReplacement />} />
+        <Route path="view/:id" element={<HormonalView />} />
+        <Route path="view/:id/doctors-prescription" element={<HormonalViewPrescription />} />
+
+        <Route path="add" element={<AddHormonal />} />
+      </Route>
+
       <Route path="view">
         <Route path=":id" element={<HomeVisitView />} />
         <Route path=":id/wellbeing-form" element={<HomeVisitWellBeingTool />} />
@@ -218,6 +231,7 @@ const AdminRoutes = () => (
         <Route path="well-being-form" element={<HomeVisitAddWellbeingForm />} />
       </Route>
     </Route>
+
     <Route path="PychosocialSupport">
       <Route index element={<PychosocialSupport />} />
       <Route path="add" element={<PsychosocialSupportAdd />} />

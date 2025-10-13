@@ -241,7 +241,7 @@ const LabResult = () => {
       />
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
-        <div className=" h-[10%] px-5 w-full flex justify-between items-center">
+        {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Post Treatment</h1>
           <Link to={`/admin/treatment-assistance/postview/${id}`}>
             <img
@@ -250,7 +250,7 @@ const LabResult = () => {
               className="h-6"
             />
           </Link>
-        </div>
+        </div> */}
 
         <div className="h-full w-full flex flex-col justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
@@ -286,14 +286,14 @@ const LabResult = () => {
               </div>
 
               {/* ADD NOTE BUTTON */}
-              {!showDescriptionField && (
+              {/* {!showDescriptionField && (
                 <button
                   onClick={() => setShowDescriptionField(true)}
                   className="self-start bg-yellow-500 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm hover:bg-yellow-600"
                 >
                   + Add Note
                 </button>
-              )}
+              )} */}
 
               {/* NEW DESCRIPTION FIELD */}
               {showDescriptionField && (

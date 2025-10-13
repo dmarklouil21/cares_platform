@@ -26,7 +26,7 @@ class PostTreatment(models.Model):
   has_patient_response = models.BooleanField(default=False)
   response_description = models.CharField(max_length=255, blank=True, null=True)
   laboratory_test_date = models.DateField(blank=True, null=True)
-  
+  service_provider = models.CharField(max_length=255, blank=True, null=True)
   created_at = models.DateTimeField(auto_now_add=True)
 
 class RequiredAttachment(models.Model):

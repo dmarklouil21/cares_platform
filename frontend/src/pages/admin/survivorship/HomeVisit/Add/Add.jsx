@@ -1,34 +1,36 @@
 import React, { useState, useRef, useMemo, useEffect, use } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+
 import api from "src/api/axiosInstance";
 
 import SystemLoader from "src/components/SystemLoader";
 
-function ConfirmationModal({ open, text, onConfirm, onCancel }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
-        <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
-        <div className="flex gap-4">
-          <button
-            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-          <button
-            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+// function ConfirmationModal({ open, text, onConfirm, onCancel }) {
+//   if (!open) return null;
+//   return (
+//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
+//       <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
+//         <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
+//         <div className="flex gap-4">
+//           <button
+//             className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
+//             onClick={onConfirm}
+//           >
+//             Confirm
+//           </button>
+//           <button
+//             className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
+//             onClick={onCancel}
+//           >
+//             Cancel
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 /* =========================
    Searchable Select (inline)
@@ -287,13 +289,23 @@ const HomeVisitAdd = () => {
   return (
     <>
      {loading && <SystemLoader />}
-
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc="Please confirm before proceeding."
         onConfirm={handleModalConfirm}
         onCancel={handleModalCancel}
+        // onCancel={() =>
+        //   setConfirmation({ open: false, text: "", desc: "", action: null })
+        // }
       />
+      {/* <ConfirmationModal
+        open={modalOpen}
+        text={modalText}
+        
+        onConfirm={handleModalConfirm}
+        onCancel={handleModalCancel}
+      /> */}
       <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center bg-gray overflow-auto">
         {notification && (
           <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">

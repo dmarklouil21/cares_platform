@@ -42,4 +42,9 @@ urlpatterns = [
   path('home-visit/list/', views.HomeVisitListView.as_view(), name='home_visit_list_view'),
   path('home-visit/details/<int:id>/', views.HomeVisitDetailView.as_view(), name='home_visit_detail_view'),
   # path('post-treatment/result/upload/<str:id>/', views.PostTreatmentResultUploadView.as_view(), name='post_treatment_result_upload_view'),
+
+  # Hormonal Replacement 
+  path('hormonal-replacement/request/', views.HormonalReplacementRequestView.as_view(), name='hormonal_replacement_request'),
+  path('hormonal-replacement/details/<int:id>/', views.HormonalReplacementDetailView.as_view(), name='hormonal_replacement_request_view'),
+  path('hormonal-replacement/list/', views.HormonalReplacementListView.as_view(), name='hormonal_replacement_request_list_view'),
 ]

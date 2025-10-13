@@ -172,8 +172,8 @@ const HomeVisit = () => {
 
         <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray">
           <div className="flex justify-between items-center w-full">
-            <h2 className="text-xl font-bold text-left w-full pl-5">
-              Home visit requests
+            <h2 className="text-xl font-bold text-left w-full pl-1">
+              Patient Home Visit
             </h2>
             <Link
               to="/admin/survivorship/add"
@@ -184,7 +184,7 @@ const HomeVisit = () => {
           </div>
 
           <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-3 gap-3">
-            <p className="text-md font-semibold text-yellow">Request List</p>
+            <p className="text-md font-semibold text-yellow">Manage patients that are in need of home visit</p>
 
             {/* Filters + Generate */}
             <div className="flex justify-between flex-wrap gap-3">
@@ -303,17 +303,17 @@ const HomeVisit = () => {
                             </button>
                             {p.status === "Pending" && (
                               <>
-                                <button
+                                {/* <button
                                   onClick={() => openConfirm(p.id, "accept")}
                                   className="text-white py-1 px-2 rounded-[5px] shadow bg-green-500"
                                 >
                                   Accept
-                                </button>
+                                </button> */}
                                 <button
                                   onClick={() => openConfirm(p.id, "reject")}
                                   className="text-white py-1 px-2 rounded-[5px] shadow bg-red-500"
                                 >
-                                  Reject
+                                  Cancel
                                 </button>
                               </>
                             )}
