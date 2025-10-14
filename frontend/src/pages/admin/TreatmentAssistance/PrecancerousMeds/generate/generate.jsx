@@ -87,11 +87,11 @@ export default function PreCancerousPrint({ rows = [] }) {
           <tbody>
             {rows.length ? (
               rows.map((p) => (
-                <tr key={p.id ?? p.patient_id}>
-                  <td className="text-center">{p.patient_id ?? ""}</td>
-                  <td className="text-left">{p.first_name ?? ""}</td>
-                  <td className="text-left">{p.last_name ?? ""}</td>
-                  <td className="text-center">{fmtDate(p.date_of_birth)}</td>
+                <tr key={p.id ?? p.patient.patient_id}>
+                  <td className="text-center">{p.patient.patient_id ?? ""}</td>
+                  <td className="text-left">{p.patient.first_name ?? ""}</td>
+                  <td className="text-left">{p.patient.last_name ?? ""}</td>
+                  <td className="text-center">{fmtDate(p.patient.date_of_birth)}</td>
                   <td className="text-center">{p.status ?? ""}</td>
                 </tr>
               ))
