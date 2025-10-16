@@ -9,6 +9,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError, PermissionDenied
+import json
 
 from backend.utils.email import (
   send_individual_screening_status_email,
@@ -421,6 +422,52 @@ class MyMassScreeningAttachmentDeleteView(generics.DestroyAPIView):
 # ---------------------------------------------
 # Admin: Mass Screening Management
 # ---------------------------------------------
+class AdminMassScreeningCreateView(APIView):
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def post(self, request):
+    """Create a MassScreeningRequest on behalf of a specific RHU.
+    Expects multipart form-data with fields:
+    - rhu_id (int)
+    - title, venue, date (YYYY-MM-DD), beneficiaries, description, support_need
+    - attachments (multiple files)
+    - attendance (optional JSON array: [{"name": str, "result": str}] )
+    """
+    rhu_id = request.data.get('rhu_id')
+    if not rhu_id:
+      return Response({ 'detail': 'rhu_id is required.' }, status=status.HTTP_400_BAD_REQUEST)
+
+    rhu = get_object_or_404(RHU, id=rhu_id)
+
+    serializer = MassScreeningRequestSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    obj = serializer.save(rhu=rhu)
+
+    # Attachments
+    files = request.FILES.getlist('attachments')
+    for f in files:
+      validate_attachment(f)
+      MassScreeningAttachment.objects.create(request=obj, file=f)
+
+    # Optional attendance provided at creation time
+    attendance_raw = request.data.get('attendance')
+    if attendance_raw:
+      try:
+        attendance = json.loads(attendance_raw) if isinstance(attendance_raw, str) else attendance_raw
+        if isinstance(attendance, list):
+          rows = [
+            MassScreeningAttendanceEntry(request=obj, name=e.get('name', ''), result=e.get('result', ''))
+            for e in attendance
+            if isinstance(e, dict) and e.get('name')
+          ]
+          if rows:
+            MassScreeningAttendanceEntry.objects.bulk_create(rows)
+      except Exception:
+        pass
+
+    return Response(MassScreeningRequestSerializer(obj, context={'request': request}).data, status=status.HTTP_201_CREATED)
+
 class AdminMassScreeningListView(generics.ListAPIView):
   serializer_class = MassScreeningRequestSerializer
   permission_classes = [IsAuthenticated, IsAdminUser]

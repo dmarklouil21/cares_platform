@@ -1,12 +1,12 @@
+from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.core.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser
 
 from .models import RHU
-from .serializers import RHUProfileSerializer
+from .serializers import RHUProfileSerializer, RHUListSerializer
 
 
 class RHUProfileAPIView(APIView):
@@ -41,3 +41,11 @@ class RHUProfileAPIView(APIView):
 
   def patch(self, request):
     return self.put(request)
+
+
+class AdminRHUListAPIView(generics.ListAPIView):
+  permission_classes = [IsAuthenticated, IsAdminUser]
+  serializer_class = RHUListSerializer
+
+  def get_queryset(self):
+    return RHU.objects.all().order_by('lgu')
