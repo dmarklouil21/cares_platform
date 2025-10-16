@@ -17,3 +17,8 @@ class RHUProfileSerializer(serializers.ModelSerializer):
       setattr(instance, attr, value)
     instance.save()
     return instance
+
+class RHUListSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = RHU
+    fields = ['id', 'lgu', 'official_representative_name']

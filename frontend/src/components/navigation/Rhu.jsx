@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ScanLine, ClipboardCheck } from "lucide-react";
 import { logout } from "src/services/authService";
 
-const RhuSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
+const RhuSidebar = ({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isServicesOpen, setIsServicesOpen] = useState(false);

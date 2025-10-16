@@ -28,6 +28,7 @@ urlpatterns = [
   path('mass-screening/rhu/attachments/delete/<int:id>/', views.MyMassScreeningAttachmentDeleteView.as_view(), name='rhu_mass_screening_attachment_delete'),
 
   # Admin: Mass Screening Management
+  path('mass-screening/admin/create/', views.AdminMassScreeningCreateView.as_view(), name='admin_mass_screening_create'),
   path('mass-screening/admin/list/', views.AdminMassScreeningListView.as_view(), name='admin_mass_screening_list'),
   path('mass-screening/admin/detail/<int:id>/', views.AdminMassScreeningDetailView.as_view(), name='admin_mass_screening_detail'),
   path('mass-screening/admin/status/<int:id>/<str:action>/', views.AdminMassScreeningStatusView.as_view(), name='admin_mass_screening_status'),
