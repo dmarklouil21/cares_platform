@@ -1,10 +1,11 @@
 // pages/admin/Services/CancerScreening/MassScreeningAdd.jsx
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
+import { adminCreateMassScreening, listAdminRHUs } from "src/api/massScreening";
 
 export default function MassScreeningAdd() {
   const navigate = useNavigate();
@@ -17,6 +18,9 @@ export default function MassScreeningAdd() {
   const [date, setDate] = useState(""); // yyyy-mm-dd
   const [supportNeed, setSupportNeed] = useState("");
   const [status, setStatus] = useState("Pending"); // Pending | Verified | Rejected | Done
+
+  const [rhuList, setRhuList] = useState([]);
+  const [rhuId, setRhuId] = useState("");
 
   // ----- Attachments -----
   const [attachments, setAttachments] = useState([]); // File[]
@@ -54,6 +58,15 @@ export default function MassScreeningAdd() {
 
   // Simple validation (UI)
   const validate = () => {
+    if (!rhuId) {
+      setNote({
+        type: "info",
+        title: "Missing RHU",
+        message: "Please select an RHU.",
+      });
+      setShowNote(true);
+      return false;
+    }
     if (!title.trim()) {
       setNote({
         type: "info",
@@ -76,15 +89,40 @@ export default function MassScreeningAdd() {
   };
 
   // UI-only submit: navigate with state (destination shows the top toast)
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!validate()) return;
     setConfirmOpen(false);
+    setLoading(true);
 
-    // Do NOT open NotificationModal here (avoids centered popup before navigation)
-    // Just pass success state to the destination route:
-    navigate("/admin/cancer-screening/mass-screening", {
-      state: { type: "success", message: "Created Successfully." },
-    });
+    try {
+      const fd = new FormData();
+      fd.append("rhu_id", String(rhuId));
+      fd.append("title", title);
+      fd.append("venue", venue);
+      fd.append("date", date);
+      if (beneficiaries) fd.append("beneficiaries", String(beneficiaries));
+      if (description) fd.append("description", description);
+      if (supportNeed) fd.append("support_need", supportNeed);
+      attachments.forEach((f) => fd.append("attachments", f));
+
+      const attendance = attendees
+        .filter((a) => (a.name || "").trim())
+        .map((a) => ({ name: a.name.trim(), result: (a.result || "").trim() }));
+      if (attendance.length > 0) {
+        fd.append("attendance", JSON.stringify(attendance));
+      }
+
+      await adminCreateMassScreening(fd);
+      navigate("/admin/cancer-screening/mass-screening", {
+        state: { type: "success", message: "Created Successfully." },
+      });
+    } catch (e) {
+      const msg = e?.response?.data?.detail || e?.message || "Failed to create mass screening.";
+      setNote({ type: "error", title: "Create Failed", message: String(msg) });
+      setShowNote(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Pretty file size for preview list
@@ -107,6 +145,18 @@ export default function MassScreeningAdd() {
         return "bg-yellow-100 text-yellow-700";
     }
   }, [status]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await listAdminRHUs();
+        setRhuList(Array.isArray(data) ? data : []);
+      } catch (e) {
+        setRhuList([]);
+      }
+    };
+    load();
+  }, []);
 
   return (
     <>
@@ -158,6 +208,21 @@ export default function MassScreeningAdd() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-14 gap-y-5">
+            <div className="flex flex-col">
+              <label className=" text-sm font-semibold">RHU</label>
+              <select
+                className="mt-1 border border-gray-300 rounded px-3 py-2 bg-white"
+                value={rhuId}
+                onChange={(e) => setRhuId(e.target.value)}
+              >
+                <option value="">Select RHU</option>
+                {rhuList.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {(r.lgu || "")} - {(r.official_representative_name || "").trim()}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="flex flex-col">
               <label className=" text-sm font-semibold">Title</label>
               <input

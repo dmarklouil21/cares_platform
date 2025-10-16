@@ -90,3 +90,18 @@ export const getAdminMassScreeningAttendance = async (requestId) => {
   const res = await api.get(`/cancer-screening/mass-screening/admin/${requestId}/attendance/`);
   return res.data; // [{ id, name, result, created_at }]
 };
+
+// Create a Mass Screening Request as Admin (on behalf of an RHU)
+// Expects FormData: rhu_id, title, venue, date, beneficiaries, description, support_need, attachments[], optional attendance (JSON string)
+export const adminCreateMassScreening = async (formData) => {
+  const res = await api.post('/cancer-screening/mass-screening/admin/create/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data;
+};
+
+// List RHUs for admin selection
+export const listAdminRHUs = async () => {
+  const res = await api.get('/rhu/admin/list/');
+  return res.data;
+};
