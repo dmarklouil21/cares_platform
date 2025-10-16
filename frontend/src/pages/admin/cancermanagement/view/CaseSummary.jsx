@@ -37,14 +37,14 @@ const CaseSummaryPlan = () => {
   return (
     <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
       {/* Header */}
-      <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+      {/* <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">Case Summary & Intervention Plan</h1>
         <div className="p-3">
           <Link to={`/admin/cancer-management/view/${id}`}>
             <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
           </Link>
         </div>
-      </div>
+      </div> */}
 
       {/* Card Container */}
       <div className="h-full w-full p-5 flex flex-col gap-5">

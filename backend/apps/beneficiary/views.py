@@ -263,7 +263,7 @@ class CancerTreatmentSubmissionView(generics.CreateAPIView):
         patient=self.request.user.patient, 
       ).first()
 
-      if existing_request.status != 'Completed':
+      if existing_request and existing_request.status != 'Completed':
         raise ValidationError({
           'non_field_errors': [
             "You can only request for a treatment service one at a time. Please wait for its feedback before submitting another."

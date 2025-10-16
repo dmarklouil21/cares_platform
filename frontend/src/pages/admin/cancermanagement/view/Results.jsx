@@ -241,7 +241,7 @@ const ViewResults = () => {
       />
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
-        <div className=" h-[10%] px-5 w-full flex justify-between items-center">
+        {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Cancer Management</h1>
           <Link to={`/admin/cancer-management/view/${id}`}>
             <img
@@ -250,7 +250,7 @@ const ViewResults = () => {
               className="h-6"
             />
           </Link>
-        </div>
+        </div> */}
 
         <div className="h-full w-full flex flex-col justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
@@ -286,7 +286,7 @@ const ViewResults = () => {
               </div>
 
               {/* ADD NOTE BUTTON */}
-              {!showDescriptionField && (
+              {/* {!showDescriptionField && (
                 <button
                   onClick={() => setShowDescriptionField(true)}
                   className="self-start bg-yellow-500 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm hover:bg-yellow-600"
@@ -295,7 +295,7 @@ const ViewResults = () => {
                 </button>
               )}
 
-              {/* NEW DESCRIPTION FIELD */}
+              {/* NEW DESCRIPTION FIELD *s/}
               {showDescriptionField && (
                 <div className="flex flex-col gap-2">
                   <label className="text-gray-900 font-medium">
@@ -309,7 +309,7 @@ const ViewResults = () => {
                     rows={4}
                   />
                 </div>
-              )}
+              )} */}
             </div>
           </div>
           <div className="w-full flex justify-around">

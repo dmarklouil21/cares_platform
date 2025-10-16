@@ -177,7 +177,7 @@ const UploadAttachments = () => {
       />
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-[#F8F9FA]">
-        <div className=" px-5 w-full flex justify-between items-center">
+        {/* <div className=" px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Cancer Treatment</h1>
           <Link to={`/beneficiary/applications/cancer-treatment/view/${id}`}>
             <img
@@ -186,7 +186,7 @@ const UploadAttachments = () => {
               className="h-6 cursor-pointer"
             />
           </Link>
-        </div>
+        </div> */}
         <div className="h-full w-full flex flex-col justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="w-full bg-white rounded-[4px] p-4 ">

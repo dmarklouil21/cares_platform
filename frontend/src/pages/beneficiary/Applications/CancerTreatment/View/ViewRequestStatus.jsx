@@ -174,7 +174,7 @@ export default function ViewIndividualStatus() {
   return (
     // <div className="h-screen w-full flex flex-col bg-[#F8F9FA]">
     <div className="h-screen w-full flex flex-col justify-start items-center p-5 gap-3 bg-gray overflow-auto">
-      <div className=" px-5 w-full flex justify-between items-center">
+      {/* <div className=" px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">Cancer Treatment</h1>
         <Link to="/beneficiary/applications/cancer-treatment">
           <img
@@ -183,7 +183,7 @@ export default function ViewIndividualStatus() {
             className="h-6 cursor-pointer"
           />
         </Link>
-      </div>
+      </div> */}
 
       {/* <div className="flex-1 w-full py-5 px-5 flex justify-center items-start"> */}
       <div className="h-full w-full flex flex-col justify-between">
