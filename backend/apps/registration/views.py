@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
-from .serializers import RegistrationSerializer, RHURegistrationSerializer
+from .serializers import RegistrationSerializer, RHURegistrationSerializer, PrivateRegistrationSerializer
 import random
 import string
 from rest_framework.permissions import AllowAny
@@ -13,7 +13,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from backend.utils.email import send_registration_email
 
-from apps.rhu.models import RHU
+from apps.rhu.models import RHU, Rhuv2, Representative
+from apps.partners.models import Private, PrivateRepresentative
 
 class RegistrationAPIView(APIView):
   permission_classes = [AllowAny]
@@ -104,16 +105,29 @@ class RHURegistrationAPIView(APIView):
       user.save()
 
       # Create RHU profile with aligned fields
-      RHU.objects.create(
-        user=user,
-        lgu=serializer.validated_data['lgu'],
-        address=serializer.validated_data['address'],
-        phone_number=serializer.validated_data['phone_number'],
+      rhu, created = Rhuv2.objects.get_or_create(
+        lgu=serializer.validated_data['lgu'], 
+        defaults={'address': serializer.validated_data['address'],}
+      )
+      representative = Representative.objects.create(
+        rhu=rhu, 
+        user=user, 
+        first_name=serializer.validated_data['first_name'],
+        last_name=serializer.validated_data['last_name'],
         email=serializer.validated_data['email'],
-        representative_first_name=serializer.validated_data['representative_first_name'],
-        representative_last_name=serializer.validated_data['representative_last_name'],
+        phone_number=serializer.validated_data['phone_number'],
         official_representative_name=serializer.validated_data['official_representative_name'],
       )
+      # RHU.objects.create(
+      #   user=user,
+      #   lgu=serializer.validated_data['lgu'],
+      #   address=serializer.validated_data['address'],
+      #   phone_number=serializer.validated_data['phone_number'],
+      #   email=serializer.validated_data['email'],
+      #   representative_first_name=serializer.validated_data['representative_first_name'],
+      #   representative_last_name=serializer.validated_data['representative_last_name'],
+      #   official_representative_name=serializer.validated_data['official_representative_name'],
+      # )
     except IntegrityError:
       return Response(
         {"message": "A user with this email or phone number already exists."},
@@ -131,43 +145,51 @@ class RHURegistrationAPIView(APIView):
       {"message": "RHU registered successfully. Please check your email."},
       status=status.HTTP_201_CREATED
     )
+
+class PrivateRegistrationAPIView(APIView):
+  permission_classes = [AllowAny]
+
+  def post(self, request):
+    serializer = PrivateRegistrationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
     
-    # if serializer.is_valid():
-    #   password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-    #   try:
-    #     # Create inactive RHU user
-    #     user = serializer.save()
-    #     user.username = user.email
-    #     user.set_password(password)
-    #     user.save()
+    try:
+      user = serializer.save()
+      # user.username = user.email
+      user.set_password(password)
+      user.save()
 
-    #     # Create RHU profile with aligned fields
-    #     RHU.objects.create(
-    #       user=user,
-    #       lgu=serializer.validated_data['lgu'],
-    #       address=serializer.validated_data['address'],
-    #       phone_number=serializer.validated_data['phone_number'],
-    #       email=serializer.validated_data['email'],
-    #       representative_first_name=serializer.validated_data['representative_first_name'],
-    #       representative_last_name=serializer.validated_data['representative_last_name'],
-    #       official_representative_name=serializer.validated_data['official_representative_name'],
-    #     )
-    #   except IntegrityError:
-    #     return Response(
-    #       {"message": "A user with this email or phone number already exists."},
-    #       status=status.HTTP_400_BAD_REQUEST
-    #     )
+      # Create RHU profile with aligned fields
+      private, created = Private.objects.get_or_create(
+        institution_name=serializer.validated_data['institution_name'], 
+        defaults={'address': serializer.validated_data['address'],}
+      )
+      private_representative = PrivateRepresentative.objects.create(
+        private=private, 
+        user=user, 
+        first_name=serializer.validated_data['first_name'],
+        last_name=serializer.validated_data['last_name'],
+        email=serializer.validated_data['email'],
+        phone_number=serializer.validated_data['phone_number'],
+        address=serializer.validated_data['address']
+      )
 
-    #   email_status = send_registration_email(user, password)
-    #   if email_status is not True:
-    #     return Response(
-    #       {"message": f"Failed to send email: {email_status}"},
-    #       status=status.HTTP_400_BAD_REQUEST
-    #     )
-
-    #   return Response(
-    #     {"message": "RHU registered successfully. Please check your email."},
-    #     status=status.HTTP_201_CREATED
-    #   )
-
-    # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except IntegrityError:
+      return Response(
+        {"message": "A user with this email or phone number already exists."},
+        status=status.HTTP_400_BAD_REQUEST
+      )
+    
+    email_status = send_registration_email(user, password)
+    if email_status is not True:
+      return Response(
+        {"message": f"Failed to send email: {email_status}"},
+        status=status.HTTP_400_BAD_REQUEST
+      )
+    
+    return Response(
+      {"message": "RHU registered successfully. Please check your email."},
+      status=status.HTTP_201_CREATED
+    )

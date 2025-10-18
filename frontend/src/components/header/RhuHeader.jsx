@@ -70,7 +70,7 @@ const AdminHeader = () => {
   };
 
   return (
-    <div className="bg-white h-[10%] px-5 w-full flex justify-between items-center shadow-sm">
+    <div className="bg-white h-[10%] py-3.5 px-5 w-full flex justify-between items-center shadow-sm">
       <div className="md:hidden">
         <RhuSidebar
           isSidebarOpen={isSidebarOpen}

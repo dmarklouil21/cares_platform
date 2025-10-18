@@ -7,10 +7,12 @@ import SelectUserType from "./pages/SelectUserType";
 // details - wala pay rhu and private
 import UserRegistration from "./pages/beneficiary/registration/details/Beneficiary";
 import DetailsRhu from "./pages/rhu/registration/Registration";
+import PrivateRegistration from "./pages/private/registration/Registration"
 
 // note - wala pay rhu private
 import NoteBeneficiary from "./pages/beneficiary/registration/note/registration/Beneficiary";
 import NoteRhu from "./pages/rhu/registration/Note";
+import NotePrivate from "./pages/private/registration/Note";
 
 //pre enrollment - wala pay private
 import NotValidated from "./pages/beneficiary/registration/note/preenrollment/NotValidated";
@@ -22,6 +24,7 @@ import PreScreeningForm from "./pages/beneficiary/PreEnrollment/PreScreeningForm
 // ----------- LOGIN SIDE ------------------
 import BeneficiaryLogin from "./pages/beneficiary/login/Login";
 import RHULogin from "./pages/rhu/login/Login";
+import PrivateLogin from "./pages/private/login/Login";
 import AdminLogin from "./pages/admin/login/Login";
 import ResetPassword from "./pages/beneficiary/login/resetpassword";
 
@@ -38,6 +41,7 @@ import AdminRegistration from "./pages/admin/registration/Registration";
 import AdminRoutes from "./routes/AdminRoutes";
 import BeneficiaryRoutes from "./routes/BeneficiaryRoutes";
 import RhuRoutes from "./routes/RhuRoutes";
+import PrivateRoutes from "./routes/PrivateRoutes";
 
 const App = () => {
   return (
@@ -49,13 +53,16 @@ const App = () => {
             <Route index element={<SelectUserType />} />
             <Route path="beneficiary-login" element={<BeneficiaryLogin />} />
             <Route path="rhu-login" element={<RHULogin />} />
+            <Route path="private-login" element={<PrivateLogin />} />
             <Route path="admin-login" element={<AdminLogin />} />
             <Route
               path="beneficiary-registration"
               element={<UserRegistration />}
             />
             <Route path="rhu-registration" element={<DetailsRhu />} />
+            <Route path="private-registration" element={<PrivateRegistration />} />
             <Route path="NoteRhu" element={<NoteRhu />} />
+            <Route path="private-registration/note" element={<NotePrivate />} />
             <Route
               path="ResetPassword"
               element={
@@ -139,6 +146,9 @@ const App = () => {
 
           {/* RHU Route Group */}
           {RhuRoutes()}
+
+          {/* Private/Partner Route Group */}
+          {PrivateRoutes()}
         </Routes>
       </BrowserRouter>
     </AuthProvider>

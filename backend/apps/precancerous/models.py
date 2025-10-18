@@ -33,6 +33,8 @@ class PreCancerousMedsRequest(models.Model):
       ('Approved', 'Approve'),
       ('Completed', 'Complete'),
     ], default='Pending')
+  request_destination = models.CharField(max_length=200)
+  destination_name = models.CharField(max_length=255)
   date_approved = models.DateField(blank=True, null=True)
   release_date_of_meds = models.DateField(null=True, blank=True)
   created_at = models.DateTimeField(auto_now_add=True)

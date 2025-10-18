@@ -15,5 +15,5 @@ class PreCancerousMedsRequestSerializer(serializers.ModelSerializer):
     model = PreCancerousMedsRequest
     fields = [
       'id', 'patient', 'interpretation_of_result', 'status', 'created_at', 'prepared_by', 
-      'approved_by', 'date_approved', 'release_date_of_meds', 
+      'approved_by', 'date_approved', 'release_date_of_meds', 'request_destination', 'destination_name'
     ]

@@ -32,12 +32,8 @@ const PreCancerousMeds = () => {
   // Loading
   const [loading, setLoading] = useState(false);
 
-  const rhuList = [
-    "RHU Talamban",
-    "RHU Mandaue",
-    "RHU Talisay",
-    "RHU Lapu-Lapu",
-  ];
+  const [rhuList, setRhuList] = useState([])
+  const [privateList, setPrivateList] = useState([]);
 
   const privatePartners = [
     "Chong Hua Hospital",
@@ -45,6 +41,22 @@ const PreCancerousMeds = () => {
     "UCMed",
     "Cebu Doctors Hospital",
   ];
+
+  const fetchRhu = async () => {
+    const { data } = await api.get("/rhu/list/")
+    console.log("RHU List: ", data);
+    setRhuList(data);
+  };
+
+  const fetchPrivate = async () => {
+    const { data } = await api.get("/partners/private/list/")
+    setPrivateList(data);
+  };
+
+  useEffect(() => {
+    fetchRhu();
+    fetchPrivate();
+  }, []);
 
   // Submit Handlers
   const handleSubmit = (e) => {
@@ -64,17 +76,24 @@ const PreCancerousMeds = () => {
     setLoading(true);
 
     try {
-      console.log("Interpretation of Result: ", interpretationOfResult);
       const formData = new FormData();
       formData.append("interpretation_of_result", interpretationOfResult);
+      formData.append("request_destination", requestDestination);
+      const payload = {
+        interpretation_of_result: interpretationOfResult,
+        request_destination: requestDestination,
+        destination_name: selectedPartner || selectedRHU || 'Rafi-EJACC'
+      }
 
-      await api.post(
-        `/beneficiary/precancerous-meds/submit/`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      // await api.post(
+      //   `/beneficiary/precancerous-meds/submit/`,
+      //   formData,
+      //   {
+      //     headers: { "Content-Type": "multipart/form-data" },
+      //   }
+      // );
+      console.log("Payload: ", payload);
+      await api.post(`/beneficiary/precancerous-meds/submit/`, payload);
 
       navigate("/beneficiary/success-application", {
         state: { okLink: "beneficiary/applications/individual-screening" },
@@ -97,6 +116,8 @@ const PreCancerousMeds = () => {
       setLoading(false);
     }
   };
+
+  console.log("RHUv2: ", rhuList);
 
   return (
     <>
@@ -195,8 +216,8 @@ const PreCancerousMeds = () => {
                     >
                       <option value="">Select RHU</option>
                       {rhuList.map((rhu) => (
-                        <option key={rhu} value={rhu}>
-                          {rhu}
+                        <option key={rhu.id} value={rhu.lgu}>
+                          {rhu.lgu}
                         </option>
                       ))}
                     </select>
@@ -212,9 +233,9 @@ const PreCancerousMeds = () => {
                       className="w-full p-3 border border-gray-300 rounded-md"
                     >
                       <option value="">Select Partner</option>
-                      {privatePartners.map((partner) => (
-                        <option key={partner} value={partner}>
-                          {partner}
+                      {privateList.map((partner) => (
+                        <option key={partner.id} value={partner.institution_name}>
+                          {partner.institution_name}
                         </option>
                       ))}
                     </select>

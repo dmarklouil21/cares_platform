@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -38,6 +39,19 @@ class AdminPreCancerousMedsDetailView(generics.RetrieveAPIView):
   permission_classes = [IsAuthenticated, IsAdminUser]
   lookup_field = 'id'
 
+class AdminPreCancerousMedsUpdateView(generics.UpdateAPIView):
+  queryset = PreCancerousMedsRequest.objects.all()
+  serializer_class = PreCancerousMedsRequestSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = "id"   # so you can update by /<id> in the URL
+
+  def perform_update(self, serializer):
+    instance = serializer.save()
+
+    if instance.status == 'Approved':
+      instance.date_approved = timezone.now().date()
+      instance.save(update_fields=['date_approved'])
+    # return super().perform_update(serializer)
 
 # class AdminPreCancerousMedsSetReleaseDateView(generics.UpdateAPIView):
 #   queryset = PreCancerousMedsRequest.objects.all()

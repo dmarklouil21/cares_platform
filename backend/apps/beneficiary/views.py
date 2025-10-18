@@ -386,7 +386,8 @@ class PreCancerousMedsCreateView(generics.CreateAPIView):
     try:
       with transaction.atomic():
         existing_request = PreCancerousMedsRequest.objects.filter(
-          patient=self.request.user.patient
+          patient=self.request.user.patient,
+          status__in=['Pending', 'Approved']
         ).first()
 
         if existing_request:

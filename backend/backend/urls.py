@@ -28,6 +28,7 @@ urlpatterns = [
     path('rhu/', include('apps.rhu.urls')),
     path('cancer-screening/', include('apps.cancer_screening.urls')),
     path('cancer-management/', include('apps.cancer_management.urls')),
+    path('precancerous/', include('apps.precancerous.urls')),
     path('post-treatment/', include('apps.post_treatment.urls')),
     path('survivorship/', include('apps.survivorship.urls')),
     path('psychosocial-support/', include('apps.psychosocial_support.urls')),

@@ -624,16 +624,16 @@ const PreCancerous = () => {
                 <thead>
                   <tr className="bg-lightblue">
                     <th className="w-[14%] text-center text-sm py-3 !bg-lightblue">
-                      Patient no
+                      Patient ID
                     </th>
                     <th className="w-[18%] text-center text-sm py-3">
-                      First name
+                      Patient Name
                     </th>
                     <th className="w-[18%] text-center text-sm py-3">
-                      Last name
+                      Requested To
                     </th>
                     <th className="w-[15%] text-center text-sm py-3">
-                      Date of birth
+                      Date Submitted
                     </th>
                     <th className="w-[11%] text-center text-sm py-3">Status</th>
                     <th className="w-[24%] text-center text-sm py-3">Action</th>
@@ -667,10 +667,13 @@ const PreCancerous = () => {
                             {p.patient.patient_id}
                           </td>
                           <td className="text-center text-sm py-3 text-gray-800">
-                            {p.patient.first_name}
+                            {p.patient.full_name}
                           </td>
                           <td className="text-center text-sm py-3 text-gray-800">
-                            {p.patient.last_name}
+                            {p.request_destination === "Rural Health Unit" ? 
+                            ("RHU - ") : 
+                            ("")}
+                            {p.destination_name}
                           </td>
                           <td className="text-center text-sm py-3 text-gray-800">
                             {p.patient.date_of_birth
@@ -713,7 +716,7 @@ const PreCancerous = () => {
                                     onClick={() => openConfirm(p.id, "verify")}
                                     className="text-white py-1 px-3 rounded-[5px] shadow bg-green-500"
                                   >
-                                    Verify
+                                    Approve
                                   </button>
                                   <button
                                     onClick={() => openConfirm(p.id, "reject")}

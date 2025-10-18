@@ -41,14 +41,17 @@ const SelectUserType = () => {
             />
             RHU
           </Link>
-          <button className="flex gap-5 w-full text-black hover:text-[#636c72] font-bold text-xl px-4 py-3 rounded-lg hover:bg-lightblue focus:outline-none">
+          <Link 
+            to="/private-login"
+            className="flex gap-5 w-full text-black hover:text-[#636c72] font-bold text-xl px-4 py-3 rounded-lg hover:bg-lightblue focus:outline-none"
+          >
             <img
               src="/src/assets/images/registration/privatelogo.svg"
               alt="RAFFI LOGO"
               className="h-6 w-6"
             />
             Private/Partner
-          </button>
+          </Link>
         </div>
         <div className="flex items-center my-4">
           <hr className="flex-grow border-gray-200" />

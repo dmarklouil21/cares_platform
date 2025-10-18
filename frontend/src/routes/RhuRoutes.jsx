@@ -13,6 +13,10 @@ import PychosocialSupport from "../pages/rhu/pychosocialSupport/pychosocialSuppo
 
 // sub list
 import MassScreening from "../pages/rhu/Patient/MassScreening";
+import Precancerous from "../pages/rhu/TreatmentAssistance/PrecancerousMeds/Precancerous"
+
+// Views 
+import PrecancerousView from "../pages/rhu/TreatmentAssistance/PrecancerousMeds/View/DetailedView"
 
 // Patient Features
 import PatientView from "../pages/rhu/Patient/View/PatientView";
@@ -44,6 +48,11 @@ const RhuRoutes = () => (
     {/* Awareness */}
     <Route path="cancer-awareness" element={<CancerAwareness />} />
 
+    <Route path="treatment-assistance">
+      <Route path="pre-cancerous" element={<Precancerous />} />
+      <Route path="pre-cancerous/view/:id" element={<PrecancerousView />} />
+    </Route>
+
     {/* Services */}
     <Route path="services">
       <Route path="cancer-screening" element={<CancerScreening />} />
@@ -73,6 +82,7 @@ const RhuRoutes = () => (
         />
       </Route>
     </Route>
+
     <Route path="application">
       <Route index element={<ApplicationStatus />} />
       <Route path="view">

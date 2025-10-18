@@ -74,8 +74,8 @@ const Registration = () => {
         address: formData.address,
         phone_number: formData.phone_number,
         email: formData.email,
-        representative_first_name: formData.representative_first_name,
-        representative_last_name: formData.representative_last_name,
+        first_name: formData.representative_first_name,
+        last_name: formData.representative_last_name,
         official_representative_name: formData.official_representative_name,
       };
       await api.post("/api/registration/rhu-register/", payload);

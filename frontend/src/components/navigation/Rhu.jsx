@@ -6,6 +6,7 @@ import { logout } from "src/services/authService";
 const RhuSidebar = ({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [isTreatmentOpen, setIsTreatmentOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isAwarenessOpen, setIsAwarenessOpen] = useState(false);
   const [isRhuOpen, setIsRhuOpen] = useState(false);
@@ -36,6 +37,12 @@ const RhuSidebar = ({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) => {
       arrow: "/src/assets/images/navigation/admin/arrow.svg",
     },
     {
+      name: "Treatment Assistance",
+      icon: "/src/assets/images/navigation/admin/treatment.svg",
+      path: "",
+      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+    },
+    {
       name: "Services",
       icon: "/src/assets/images/navigation/patient/services.svg",
       path: "",
@@ -53,6 +60,17 @@ const RhuSidebar = ({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) => {
       path: "/rhu/PychosocialSupport",
       arrow: "",
     },
+  ];
+
+  const treatmentSubNav = [
+    {
+      name: "Pre Cancerous",
+      path: "/rhu/treatment-assistance/pre-cancerous",
+    },
+    // {
+    //   name: "Post Treatment",
+    //   path: "/admin/treatment-assistance/post-treatment",
+    // },
   ];
 
   const servicesSubNav = [
@@ -81,6 +99,19 @@ const RhuSidebar = ({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) => {
     // If on /rhu/profile, clear any active states and keep groups closed
     if (isProfileRoute) {
       setActiveNav("");
+      setIsServicesOpen(false);
+      setIsAwarenessOpen(false);
+      setIsPatientOpen(false);
+      setIsTreatmentOpen(false);
+      return;
+    }
+
+    const activeTreatment = treatmentSubNav.find((item) =>
+      path.startsWith(item.path)
+    );
+    if (activeTreatment) {
+      setActiveNav("Treatment Assistance");
+      setIsTreatmentOpen(true);
       setIsServicesOpen(false);
       setIsAwarenessOpen(false);
       setIsPatientOpen(false);
@@ -115,6 +146,7 @@ const RhuSidebar = ({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) => {
     const activeMainNav = nav.find((item) => item.path && path === item.path);
     if (activeMainNav) {
       setActiveNav(activeMainNav.name);
+      setIsTreatmentOpen(false);
       setIsServicesOpen(false);
       setIsAwarenessOpen(false);
       setIsPatientOpen(false);
@@ -128,9 +160,19 @@ const RhuSidebar = ({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) => {
     setIsSidebarOpen(false);
   }, 300);
 
+  const toggleTreatment = () => {
+    if (isTransitioning) return;
+    setIsTreatmentOpen((prev) => !prev);
+    setIsServicesOpen(false);
+    setIsPatientOpen(false);
+    setIsAwarenessOpen(false);
+    if (!isProfileRoute) setActiveNav("Treatment Assistance");
+  };
+
   const toggleServices = () => {
     if (isTransitioning) return;
     setIsServicesOpen((prev) => !prev);
+    setIsTreatmentOpen(false);
     setIsAwarenessOpen(false);
     setIsPatientOpen(false);
     // Don't mark active while on /rhu/profile
@@ -142,6 +184,7 @@ const RhuSidebar = ({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) => {
     setIsPatientOpen((prev) => !prev);
     setIsServicesOpen(false);
     setIsAwarenessOpen(false);
+    setIsTreatmentOpen(false);
     // Don't mark active while on /rhu/profile
     if (!isProfileRoute) setActiveNav("Patient");
   };
@@ -153,10 +196,13 @@ const RhuSidebar = ({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) => {
       toggleServices();
     } else if (name === "Patient") {
       togglePatient();
+    } else if (name === "Treatment Assistance") {
+      toggleTreatment();
     } else {
       // Only set active if not on /rhu/profile
       if (!isProfileRoute) {
         setActiveNav(name);
+        setIsTreatmentOpen(false);
         setIsServicesOpen(false);
         setIsAwarenessOpen(false);
         setIsPatientOpen(false);
@@ -202,13 +248,15 @@ const RhuSidebar = ({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) => {
             const isActive = !isProfileRoute && activeNav === item.name;
 
             const isExpandable =
-              item.name === "Services" || item.name === "Patient";
+              item.name === "Services" || item.name === "Patient" || item.name === "Treatment Assistance";
 
             const isOpen =
               item.name === "Services"
                 ? isServicesOpen
                 : item.name === "Patient"
                 ? isPatientOpen
+                : item.name === "Treatment Assistance"
+                ? isTreatmentOpen
                 : false;
 
             const subNav =
@@ -216,6 +264,8 @@ const RhuSidebar = ({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) => {
                 ? servicesSubNav
                 : item.name === "Patient"
                 ? patientSubNav
+                : item.name === "Treatment Assistance"
+                ? treatmentSubNav
                 : [];
 
             return (
