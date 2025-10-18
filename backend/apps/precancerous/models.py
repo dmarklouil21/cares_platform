@@ -9,15 +9,15 @@ class PreCancerousMedsRequest(models.Model):
     on_delete=models.CASCADE,
     related_name='precancerous_meds_requests'
   )
-  lgu_name = models.CharField(max_length=255)
-  date = models.DateField()
-  contact_number = models.CharField(max_length=50, blank=True)
-  prepared_by = models.CharField(max_length=255)
-  approved_by = models.CharField(max_length=255)
-  last_name = models.CharField(max_length=100)
-  first_name = models.CharField(max_length=100)
-  middle_initial = models.CharField(max_length=2, blank=True)
-  date_of_birth = models.DateField()
+  # lgu_name = models.CharField(max_length=255)
+  # date = models.DateField()
+  # contact_number = models.CharField(max_length=50, blank=True)
+  prepared_by = models.CharField(max_length=255, blank=True, null=True)
+  approved_by = models.CharField(max_length=255, blank=True, null=True)
+  # last_name = models.CharField(max_length=100)
+  # first_name = models.CharField(max_length=100)
+  # middle_initial = models.CharField(max_length=2, blank=True)
+  # date_of_birth = models.DateField()
   interpretation_of_result = models.CharField(
     max_length=50,
     choices=[
@@ -28,13 +28,20 @@ class PreCancerousMedsRequest(models.Model):
       ('Other', 'Other'),
     ]
   )
-  status = models.CharField(max_length=20, default='Pending')
+  status = models.CharField(max_length=20, choices=[
+      ('Pending', 'Pending'),
+      ('Approved', 'Approve'),
+      ('Completed', 'Complete'),
+    ], default='Pending')
+  request_destination = models.CharField(max_length=200)
+  destination_name = models.CharField(max_length=255)
+  date_approved = models.DateField(blank=True, null=True)
   release_date_of_meds = models.DateField(null=True, blank=True)
   created_at = models.DateTimeField(auto_now_add=True)
 
-  class Meta:
-    db_table = 'cancer_screening_precancerousmedsrequest'
-    managed = False  # use existing table, avoid migrations for now
+  # class Meta:
+    # db_table = 'cancer_screening_precancerousmedsrequest'
+    # managed = False  # use existing table, avoid migrations for now
 
   def __str__(self):
     try:

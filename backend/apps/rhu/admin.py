@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import RHU
+from .models import RHU, Rhuv2, Representative
 
 @admin.register(RHU)
 class RHUAdmin(admin.ModelAdmin):
@@ -18,3 +18,6 @@ class RHUAdmin(admin.ModelAdmin):
     )
     list_filter = ('lgu',)
     readonly_fields = ('created_at',)
+
+admin.site.register(Rhuv2)
+admin.site.register(Representative)

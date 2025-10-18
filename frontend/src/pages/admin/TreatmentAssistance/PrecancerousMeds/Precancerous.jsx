@@ -388,29 +388,29 @@ const PreCancerous = () => {
     const rows = tableData.filter((p) => {
       const matchesSearch =
         !q ||
-        String(p.patient_id || "")
+        String(p.patient.patient_id || "")
           .toLowerCase()
           .includes(q) ||
-        (p.first_name || "").toLowerCase().includes(q) ||
-        (p.last_name || "").toLowerCase().includes(q);
+        (p.patient.first_name || "").toLowerCase().includes(q) ||
+        (p.patient.last_name || "").toLowerCase().includes(q);
 
       const matchesStatus = statusFilter === "all" || p.status === statusFilter;
 
-      const matchesDob = !dob || normDOB(p.date_of_birth) === dob;
+      const matchesDob = !dob || normDOB(p.patient.date_of_birth) === dob;
 
       return matchesSearch && matchesStatus && matchesDob;
     });
 
     // stable, predictable output: Last name, First name, Patient no
     return rows.sort((a, b) => {
-      const la = (a.last_name || "").toLowerCase();
-      const lb = (b.last_name || "").toLowerCase();
+      const la = (a.patient.last_name || "").toLowerCase();
+      const lb = (b.patient.last_name || "").toLowerCase();
       if (la !== lb) return la.localeCompare(lb);
-      const fa = (a.first_name || "").toLowerCase();
-      const fb = (b.first_name || "").toLowerCase();
+      const fa = (a.patient.first_name || "").toLowerCase();
+      const fb = (b.patient.first_name || "").toLowerCase();
       if (fa !== fb) return fa.localeCompare(fb);
-      return String(a.patient_id || "").localeCompare(
-        String(b.patient_id || "")
+      return String(a.patient.patient_id || "").localeCompare(
+        String(b.patient.patient_id || "")
       );
     });
   }, [tableData, searchQuery, statusFilter, dobFilter]);
@@ -568,7 +568,7 @@ const PreCancerous = () => {
           </div>
 
           <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
-            <p className="text-md font-semibold text-yellow">Patient List</p>
+            <p className="text-md font-semibold text-yellow">Manage Pre-Cancerous Medication Request</p>
 
             {/* filters */}
             <div className="flex justify-between flex-wrap gap-3">
@@ -624,16 +624,16 @@ const PreCancerous = () => {
                 <thead>
                   <tr className="bg-lightblue">
                     <th className="w-[14%] text-center text-sm py-3 !bg-lightblue">
-                      Patient no
+                      Patient ID
                     </th>
                     <th className="w-[18%] text-center text-sm py-3">
-                      First name
+                      Patient Name
                     </th>
                     <th className="w-[18%] text-center text-sm py-3">
-                      Last name
+                      Requested To
                     </th>
                     <th className="w-[15%] text-center text-sm py-3">
-                      Date of birth
+                      Date Submitted
                     </th>
                     <th className="w-[11%] text-center text-sm py-3">Status</th>
                     <th className="w-[24%] text-center text-sm py-3">Action</th>
@@ -664,17 +664,20 @@ const PreCancerous = () => {
                       paginated.map((p) => (
                         <tr key={p.id}>
                           <td className="text-center text-sm py-3 text-gray-800">
-                            {p.patient_id}
+                            {p.patient.patient_id}
                           </td>
                           <td className="text-center text-sm py-3 text-gray-800">
-                            {p.first_name}
+                            {p.patient.full_name}
                           </td>
                           <td className="text-center text-sm py-3 text-gray-800">
-                            {p.last_name}
+                            {p.request_destination === "Rural Health Unit" ? 
+                            ("RHU - ") : 
+                            ("")}
+                            {p.destination_name}
                           </td>
                           <td className="text-center text-sm py-3 text-gray-800">
-                            {p.date_of_birth
-                              ? new Date(p.date_of_birth).toLocaleDateString(
+                            {p.patient.date_of_birth
+                              ? new Date(p.patient.date_of_birth).toLocaleDateString(
                                   "en-US",
                                   {
                                     year: "numeric",
@@ -713,7 +716,7 @@ const PreCancerous = () => {
                                     onClick={() => openConfirm(p.id, "verify")}
                                     className="text-white py-1 px-3 rounded-[5px] shadow bg-green-500"
                                   >
-                                    Verify
+                                    Approve
                                   </button>
                                   <button
                                     onClick={() => openConfirm(p.id, "reject")}

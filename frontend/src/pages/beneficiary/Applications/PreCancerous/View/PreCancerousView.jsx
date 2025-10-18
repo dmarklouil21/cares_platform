@@ -1,172 +1,295 @@
-// src/pages/treatment/AdminprecancerousView.jsx
-import React, { useEffect, useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { getPreCancerousMedsDetail } from "src/api/precancerous";
+import api from "src/api/axiosInstance";
+import { useAuth } from "src/context/AuthContext";
 
-// No inline samples; detail view will use navigation state if present, otherwise fetch from API
+import {
+  getPreCancerousMedsDetail,
+} from "src/api/precancerous";
 
-const formatLongDate = (d) => {
-  if (!d) return "—";
-  const dt = new Date(d);
-  return isNaN(dt.getTime())
-    ? "—"
-    : dt.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
+import FileUploadModal from "src/components/Modal/FileUploadModal";
+import CheckupScheduleModal from "src/components/Modal/CheckupScheduleModal";
+
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
+import SystemLoader from "src/components/SystemLoader";
+
+// import LOAPrintTemplate from "../download/LOAPrintTemplate";
+
+// Map status to step index
+const STATUS_TO_STEP = {
+  Pending: 0,
+  Approved: 1,
+  Completed: 2,
+  // "Follow-up Required": 3,
+  // Closed: 3,
 };
 
-const PreCancerousView = () => {
-  const { id } = useParams();
-  const location = useLocation();
+const getStepIndexByStatus = (status) => STATUS_TO_STEP[status] ?? 0;
 
-  const [patient, setPatient] = useState(location.state?.patient || null);
-  const [loading, setLoading] = useState(!location.state?.patient);
-  const [error, setError] = useState("");
+export default function PreCancerousView() {
+  const { user } = useAuth();
+  // const location = useLocation();
+  const { id } = useParams();
+  const [preCancerousMeds, setPreCancerousMeds] = useState(null);
+
+  const [uploadResultModalOpen, setUploadResultModalOpen] = useState(false);
+  const [resultFile, setResultFile] = useState(null);
+
+  const [isCheckupModalOpen, setIsCheckupModalOpen] = useState(false);
+  
+  // Confirmation Modal State
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("Confirm Status Change?");
+  const [modalDesc, setModalDesc] = useState("");
+  const [modalAction, setModalAction] = useState(null);
+
+  // Notification Modal
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({
+    type: "success",
+    title: "Success!",
+    message: "The form has been submitted successfully.",
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const activeStep = getStepIndexByStatus(preCancerousMeds?.status || "");
+
+  // Step definitions
+  const stepList = useMemo(() => {
+    const baseSteps = [
+      { 
+        title: "Pending", 
+        description: activeStep === 0 ? (
+          <>
+            Your request for hormonal replacement medication has been submitted and is
+            currently under review. Once approved, you’ll receive instructions
+            on the next steps.
+          </>
+        ) : (
+          <>
+            Your request has been approved. You will be notified with your
+            medicines release date through email.
+          </>
+        ),
+      },
+      { 
+        title: "Approved", 
+        description: activeStep === 1 ? (
+          <>
+            Your hormonal replacement medication request has been approved{" "}
+            <b>
+              {new Date(
+                preCancerousMeds?.release_date_of_meds
+              ).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </b>
+            . Please make sure to arrive at least 15 minutes early and bring
+            any required identification.
+          </>
+        ) : (
+          <>
+            Your medicines release date has been scheduled for{" "}
+            <b>
+              {new Date(
+                preCancerousMeds?.release_date_of_meds
+              ).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </b>
+            . Please make sure to arrive at least 15 minutes early and bring
+            any required identification.
+          </>
+        ),
+      },
+      { 
+        title: "Completed", 
+        description: activeStep === 2 ? (
+          <>
+            Your hormonal replacement medication request test has been successfully claimed.
+          </>
+        ) : activeStep > 2 ? (
+          <> Your hormonal replacement is complete. </>
+        ) : (
+          <>
+            {" "}
+            You will be notified through email if the medicine is available for claiming.{" "}
+          </>
+        ),
+      },
+    ];
+
+    return baseSteps;
+  }, [activeStep, preCancerousMeds]);
 
   useEffect(() => {
-    let active = true;
-    const load = async () => {
-      if (patient) return; // already provided via navigation state
-      try {
-        setLoading(true);
-        const data = await getPreCancerousMedsDetail(id);
-        if (!active) return;
-        setPatient(data || null);
-      } catch (e) {
-        if (!active) return;
-        setError("Unable to load request details.");
-      } finally {
-        if (active) setLoading(false);
+    const fetchData = async () => {
+      try { 
+        const { data } = await api.get(
+          `/beneficiary/precancerous-meds/${id}/`
+        );
+        setPreCancerousMeds(data);
+
+      } catch (error) {
+        console.error("Error fetching record data:", error);
       }
     };
-    load();
-    return () => {
-      active = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
 
-  if (loading) {
-    return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-[#F8F9FA]">
-        <div className="bg-white p-6 rounded shadow">
-          <p className="font-semibold">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+    fetchData();
+  }, [user, id]);
 
-  if (error || !patient) {
-    return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-[#F8F9FA]">
-        <div className="bg-white p-6 rounded shadow">
-          <p className="font-semibold">{error || "Request not found."}</p>
-        </div>
-      </div>
-    );
-  }
+  const handleUpload = async () => {
+    try {
+      if (!resultFile) {
+        setUploadResultModalOpen(false);
+        setModalInfo({
+          type: "info",
+          title: "Note",
+          message: "Please select a file before uploading.",
+        });
+        setShowModal(true);
+        return;
+      }
+      setUploadResultModalOpen(false);
+      setResultFile(null);
 
-  // Safely read new field
-  const medsReleaseDate =
-    patient.release_date_of_meds || patient.meds_release_date || null;
+      setLoading(true);
+      try {
+        const formData = new FormData();
+        formData.append("file", resultFile);
+
+        await api.patch(`/beneficiary/post-treatment/result/upload/${preCancerousMeds.id}/`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        setModalInfo({
+          type: "success",
+          title: "Result Uploaded",
+          message: "The result has been uploaded successfully.",
+        });
+        setShowModal(true);
+      } catch (error) {
+        setModalInfo({
+          type: "error",
+          title: "Failed",
+          message: "Something went wrong while uploading the result.",
+        });
+        setShowModal(true);
+      } finally {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      // Stop here
+    }
+  };
 
   return (
-    <div className="h-full w-full overflow-auto p-5 flex flex-col bg-gray gap-4">
-      <div className="bg-white rounded-md shadow border border-black/10">
-        <div className="border-b border-black/10 px-5 py-3">
-          <h2 className="text-lg font-semibold">Request Pre-Cancerous Meds</h2>
+    // <div className="h-screen w-full flex flex-col bg-[#F8F9FA]">
+    <>
+      {loading && <SystemLoader />}
+      
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
+      />
+      {/* Upload Result Modal */}
+      <FileUploadModal
+        open={uploadResultModalOpen}
+        title="Upload Result"
+        // recipient={data?.patient?.email}
+        onFileChange={setResultFile}
+        onConfirm={handleUpload}
+        onCancel={() => setUploadResultModalOpen(false)}
+      />
+
+      <CheckupScheduleModal
+        open={isCheckupModalOpen}
+        onClose={() => setIsCheckupModalOpen(false)}
+        data={preCancerousMeds}
+      />
+      <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
+        {/* <div className=" px-5 w-full flex justify-between items-center">
+          <h1 className="text-md font-bold">Post Treatment</h1>
+          <Link to="/beneficiary/applications/post-treatment">
+            <img
+              src="/images/back.png"
+              alt="Back"
+              className="h-6 cursor-pointer"
+            />
+          </Link>
+        </div> */}
+
+        {/* <div className="flex-1 w-full py-5 px-5 flex justify-center items-start"> */}
+        <div className="h-full w-full flex flex-col justify-between">
+          {/* <div className="bg-white flex flex-col gap-7 rounded-[4px] shadow-md p-6 w-full max-w-3xl"> */}
+          <div className="border border-black/15 p-3 bg-white rounded-sm">
+            <div className="w-full bg-white rounded-[4px] p-4 ">
+              <h2 className="text-md font-bold mb-3">Pre Cancerous Medication Request</h2>
+              {/* <div className="flex justify-between items-center">
+                <h2 className="text-md font-bold mb-3">Screening Progress</h2>
+              </div> */}
+
+              {/* Stepper */}
+              <div className="flex flex-col gap-0">
+                {stepList.map((step, idx) => {
+                  const isActive = idx === activeStep;
+                  const isLast = idx === stepList.length - 1;
+                  return (
+                    <div key={idx} className="flex gap-5 relative">
+                      {/* Step circle + connector */}
+                      <div className="flex flex-col items-center relative">
+                        <div
+                          className={`w-10 h-10 flex justify-center items-center rounded-full z-10 ${
+                            idx <= activeStep
+                              ? "bg-yellow text-white"
+                              : "bg-gray-200 text-gray-400"
+                          }`}
+                        >
+                          <p className="font-bold text-lg">{idx + 1}</p>
+                        </div>
+
+                        {/* Connector line */}
+                        {!isLast && (
+                          <div
+                            className={`absolute top-10 left-1/2 -translate-x-1/2 w-[2px] h-full ${
+                              idx < activeStep ? "bg-yellow" : "bg-gray-200"
+                            }`}
+                          />
+                        )}
+                      </div>
+
+                      {/* Step text */}
+                      <div className="flex flex-col gap-1 pb-8">
+                        <h3 className="font-semibold text-md text-gray-800">
+                          {step?.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          {step?.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-          <div className="flex gap-2">
-            <span className="font-medium w-40">LGU Name</span>
-            <span className="text-gray-700">{patient.lgu_name || "—"}</span>
-          </div>
-          <div className="flex gap-2">
-            <span className="font-medium w-40">Date</span>
-            <span className="text-gray-700">{patient.date || "—"}</span>
-          </div>
-          <div className="flex gap-2">
-            <span className="font-medium w-40">Contact Number</span>
-            <span className="text-gray-700">
-              {patient.contact_number || "—"}
-            </span>
-          </div>
-          <div className="flex gap-2">
-            <span className="font-medium w-40">Prepared by</span>
-            <span className="text-gray-700">{patient.prepared_by || "—"}</span>
-          </div>
-          <div className="flex gap-2">
-            <span className="font-medium w-40">Approved by</span>
-            <span className="text-gray-700">{patient.approved_by || "—"}</span>
-          </div>
 
-          {/* NEW: Release Date of Meds */}
-          <div className="flex gap-2">
-            <span className="font-medium w-40">Release Date of Meds</span>
-            <span className="text-gray-700">
-              {formatLongDate(medsReleaseDate)}
-            </span>
-          </div>
-        </div>
+        {/* <LOAPrintTemplate loaData={individualScreening} /> */}
       </div>
-
-      <div className="bg-white rounded-md shadow border border-black/10">
-        <table className="min-w-full border-separate border-spacing-0">
-          <thead>
-            <tr className="bg-gray/30">
-              <th className="text-left text-sm font-semibold px-4 py-3">No.</th>
-              <th className="text-left text-sm font-semibold px-4 py-3">
-                Patient No.
-              </th>
-              <th className="text-left text-sm font-semibold px-4 py-3">
-                Last Name
-              </th>
-              <th className="text-left text-sm font-semibold px-4 py-3">
-                First Name
-              </th>
-              <th className="text-left text-sm font-semibold px-4 py-3">
-                Middle Initial
-              </th>
-              <th className="text-left text-sm font-semibold px-4 py-3">
-                Date of Birth
-              </th>
-              <th className="text-left text-sm font-semibold px-4 py-3">
-                Interpretation of Result
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-t">
-              <td className="px-4 py-3 text-sm">1</td>
-              <td className="px-4 py-3 text-sm">{patient.patient_id}</td>
-              <td className="px-4 py-3 text-sm">{patient.last_name}</td>
-              <td className="px-4 py-3 text-sm">{patient.first_name}</td>
-              <td className="px-4 py-3 text-sm">
-                {patient.middle_initial || "—"}
-              </td>
-              <td className="px-4 py-3 text-sm">
-                {formatLongDate(patient.date_of_birth)}
-              </td>
-              <td className="px-4 py-3 text-sm">
-                {patient.interpretation_of_result}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div className="w-full flex justify-end">
-        <Link
-          className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
-          to="/beneficiary/applications/precancerous"
-        >
-          BACK
-        </Link>
-      </div>
-    </div>
+    </>
   );
-};
-
-export default PreCancerousView;
+}

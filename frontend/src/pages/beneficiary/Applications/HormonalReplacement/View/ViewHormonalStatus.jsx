@@ -74,7 +74,8 @@ export default function ViewhormonalReplacementStatus() {
         title: "Approved", 
         description: activeStep === 1 ? (
           <>
-            Your hormonal replacement medication request has been approved{" "}
+            Your hormonal replacement medication request has been approved.{" "}
+            Your medicines release date has been scheduled for{" "}
             <b>
               {new Date(
                 hormonalReplacement?.released_date
@@ -108,7 +109,7 @@ export default function ViewhormonalReplacementStatus() {
         title: "Completed", 
         description: activeStep === 2 ? (
           <>
-            Your hormonal replacement medication request test has been successfully claimed.
+            Your hormonal replacement medication request has been successfully claimed.
           </>
         ) : activeStep > 2 ? (
           <> Your hormonal replacement is complete. </>

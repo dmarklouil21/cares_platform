@@ -319,7 +319,7 @@ def send_cancer_treatment_status_email(patient, status, treatment_date=None, int
                 <!-- Header -->
                 <div style="background: #005baa; padding: 20px; text-align: center;">
                     <img src="https://rafi.org.ph/wp-content/uploads/2021/03/RAFI-LOGO-1.png" alt="RAFI Logo" style="height: 50px; display: block; margin: 0 auto 10px;">
-                    <h2 style="color: #fff; margin: 0; font-weight: normal;">Screening Status Update</h2>
+                    <h2 style="color: #fff; margin: 0; font-weight: normal;">Cancer Treatment Application Status Update</h2>
                 </div>
                 
                 <!-- Content -->
@@ -336,7 +336,7 @@ def send_cancer_treatment_status_email(patient, status, treatment_date=None, int
 
                     <!-- CTA Button --> <!-- settings.FRONTEND_URL -->
                     <a href="/login" style="display: inline-block; margin-top: 20px; padding: 12px 20px; background: #005baa; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                        View Your Screening Details
+                        View Your Application Details
                     </a>
                 </div>
 

@@ -81,11 +81,11 @@ const PreCancerStatus = () => {
       const data = await listPreCancerousMeds();
       const mapped = (Array.isArray(data) ? data : []).map((item) => ({
         id: item.id,
-        patientNo: item.patient_id,
-        lastName: item.last_name,
-        firstName: item.first_name,
-        middleInitial: item.middle_initial || "",
-        dateOfBirth: item.date_of_birth,
+        patientNo: item.patient.patient_id,
+        lastName: item.patient.last_name,
+        firstName: item.patient.first_name,
+        middleInitial: item.patient.middle_name || "",
+        dateOfBirth: item.patient.date_of_birth,
         interpretationOfResult: item.interpretation_of_result,
         status: item.status,
         created_at: item.created_at,

@@ -119,7 +119,7 @@ const RadioactiveDocument = () => {
     setConfirmOpen(false);
 
     const formData = new FormData();
-    // append well-being data as JSON
+    // append well-being data as JSON 
     formData.append("well_being_data", JSON.stringify(wellBeningData));
     // append files
     for (const key in files) {
@@ -127,7 +127,8 @@ const RadioactiveDocument = () => {
         formData.append(`files.${key}`, files[key]);
       }
     }
-
+    console.log("Well Being Data: ", wellBeningData)
+    console.log("Files: ", files);
     setLoading(true);
 
     try {

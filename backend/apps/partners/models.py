@@ -18,3 +18,25 @@ class CancerAwarenessActivity(models.Model):
   def __str__(self):
     return f"{self.title} ({self.date.date()})"
 
+class Private (models.Model):
+  institution_name = models.CharField(max_length=100, unique=True)
+  address = models.CharField(max_length=255)
+  created_at = models.DateField(auto_now_add=True)
+
+  def __str__(self):
+    return self.institution_name
+
+class PrivateRepresentative (models.Model):
+  private = models.ForeignKey(Private, on_delete=models.CASCADE, related_name='private_representatives')
+  user = models.OneToOneField(User, on_delete=models.CASCADE)
+  first_name = models.CharField(max_length=255)
+  last_name = models.CharField(max_length=255)
+  email = models.EmailField()
+  address = models.CharField(max_length=255)
+  phone_number = models.CharField(max_length=15)
+  avatar = models.ImageField(upload_to='rhu/avatar/', null=True, blank=True)
+
+  created_at = models.DateField(auto_now_add=True)
+
+  def __str__(self):
+    return f'{self.first_name} {self.last_name}'

@@ -20,10 +20,11 @@ from apps.cancer_screening.models import ScreeningAttachment, IndividualScreenin
 from apps.cancer_screening.serializers import (
   IndividualScreeningSerializer, 
   ScreeningAttachmentSerializer,
-  PreCancerousMedsRequestSerializer
+  # PreCancerousMedsRequestSerializer
 )
 
 from apps.precancerous.models import PreCancerousMedsRequest
+from apps.precancerous.serializers import PreCancerousMedsRequestSerializer
 
 from apps.post_treatment.models import PostTreatment, RequiredAttachment
 from apps.post_treatment.serializers import PostTreatmentSerializer, RequiredAttachmentSerializer
@@ -262,7 +263,7 @@ class CancerTreatmentSubmissionView(generics.CreateAPIView):
         patient=self.request.user.patient, 
       ).first()
 
-      if existing_request.status != 'Completed':
+      if existing_request and existing_request.status != 'Completed':
         raise ValidationError({
           'non_field_errors': [
             "You can only request for a treatment service one at a time. Please wait for its feedback before submitting another."
@@ -380,6 +381,31 @@ class PreCancerousMedsCreateView(generics.CreateAPIView):
   queryset = PreCancerousMedsRequest.objects.all()
   serializer_class = PreCancerousMedsRequestSerializer
   permission_classes = [IsAuthenticated]
+
+  def perform_create(self, serializer):
+    try:
+      with transaction.atomic():
+        existing_request = PreCancerousMedsRequest.objects.filter(
+          patient=self.request.user.patient,
+          status__in=['Pending', 'Approved']
+        ).first()
+
+        if existing_request:
+          raise ValidationError({
+            'non_field_errors': [
+              "You already have an ongoing request. Please wait for its feedback before submitting another."
+            ]
+          })
+    
+        instance = serializer.save(
+          patient=self.request.user.patient,  # ensure patient is set
+          # has_patient_response=True,
+          # response_description='Submitted post treatment laboratory test request'
+        )
+
+    except Exception as e:
+      logger.error(f"Error creating pre-cancerous meds request: {str(e)}")
+      raise e
 
 class PreCancerousMedsListView(generics.ListAPIView):
   serializer_class = PreCancerousMedsRequestSerializer
@@ -582,18 +608,6 @@ class HomeVisitDetailView(generics.RetrieveAPIView):
   serializer_class = HomevisitSerializer
   permission_classes = [IsAuthenticated]
   lookup_field = 'id'
-
-# class HomeVisitUpdateView(generics.UpdateAPIView):
-#   queryset = PatientHomeVisit.objects.all()
-#   serializer_class = HomevisitSerializer
-#   permission_classes = [IsAuthenticated]
-#   lookup_field = "id"   # so you can update by /<id> in the URL
-
-#   def perform_update(self, serializer):
-#     serializer.save(
-#       has
-#     )
-#     return super().perform_update(serializer)
 
 def validate_attachment(file):
   max_size_mb = 5
