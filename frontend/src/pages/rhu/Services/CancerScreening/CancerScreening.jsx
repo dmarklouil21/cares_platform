@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const screeningOptions = [
   // {
@@ -65,7 +66,14 @@ const CancerScreening = () => {
               </ul>
             </div>
 
-            {option.isLink ? (
+            <Link 
+              className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
+              to={"/rhu/services/cancer-screening/apply"}
+            >
+              Apply
+            </Link>
+
+            {/* {option.isLink ? (
               <a
                 href={option.link}
                 className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
@@ -76,7 +84,7 @@ const CancerScreening = () => {
               <button className="px-10 py-2 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition">
                 Apply
               </button>
-            )}
+            )} */}
           </div>
         ))}
       </div>

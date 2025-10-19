@@ -82,7 +82,7 @@ const Login = () => {
       >
         <div className="flex flex-col gap-2 items-center justify-center mt-36 md:mt-0">
           <h2 className="text-3xl md:text-5xl font-bold text-primary text-center">
-            Login as Private Representative
+            Login as Private Personnel
           </h2>
           <p className="text-center text-base text-black">
             Welcome back — continue delivering quality <br />

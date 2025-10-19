@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   getMassScreeningAttendance,
   saveMassScreeningAttendance,
-} from "../../../../api/massScreening";
+} from "../../../../../api/massScreening";
 
 /* Notification (no close button) */
 function Notification({ message }) {

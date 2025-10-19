@@ -23,30 +23,30 @@ from apps.precancerous.serializers import (
 import logging
 logger = logging.getLogger(__name__)
 
-class RHUProfileAPIView(APIView):
+class RHURepresentativeProfileAPIView(APIView):
   permission_classes = [IsAuthenticated]
   parser_classes = [MultiPartParser, FormParser]
 
   def _get_rhu(self, user):
     try:
-      return RHU.objects.get(user=user)
-    except RHU.DoesNotExist:
-      raise PermissionDenied("Your account has no RHU profile, please contact admin")
+      return Representative.objects.get(user=user)
+    except Representative.DoesNotExist:
+      raise PermissionDenied("Your account has no Representative profile, please contact admin")
 
   def get(self, request):
-    rhu = self._get_rhu(request.user)
-    serializer = RHUProfileSerializer(rhu)
+    representative = self._get_rhu(request.user)
+    serializer = RepresentativeSerializer(representative)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
   def put(self, request):
-    rhu = self._get_rhu(request.user)
-    serializer = RHUProfileSerializer(rhu, data=request.data, partial=True)
+    representative = self._get_rhu(request.user)
+    serializer = RepresentativeSerializer(representative, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
     serializer.save()
     # Sync RHU avatar to User avatar so it's available globally
     try:
-      if rhu.avatar and getattr(request.user, 'avatar', None) != rhu.avatar:
-        request.user.avatar = rhu.avatar
+      if representative.avatar and getattr(request.user, 'avatar', None) != representative.avatar:
+        request.user.avatar = representative.avatar
         request.user.save(update_fields=['avatar'])
     except Exception:
       # Non-fatal: proceed even if sync fails

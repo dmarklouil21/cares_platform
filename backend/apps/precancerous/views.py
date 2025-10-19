@@ -1,5 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.db import transaction
+
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -8,6 +10,7 @@ from rest_framework.exceptions import ValidationError
 
 from backend.utils.email import send_precancerous_meds_status_email
 
+from apps.patient.models import Patient
 from apps.precancerous.models import PreCancerousMedsRequest
 # Use local re-export to avoid cross-app dependency/cycles
 from apps.precancerous.serializers import (
@@ -19,6 +22,35 @@ from apps.precancerous.serializers import (
 import logging
 logger = logging.getLogger(__name__)
 
+class PreCancerousMedsCreateView(generics.CreateAPIView):
+  queryset = PreCancerousMedsRequest.objects.all()
+  serializer_class = PreCancerousMedsRequestSerializer
+  permission_classes = [IsAuthenticated]
+
+  def perform_create(self, serializer):
+    try:
+      with transaction.atomic():
+        patient = get_object_or_404(Patient, patient_id=self.request.data.get('patient_id'))
+        existing_record = PreCancerousMedsRequest.objects.filter(
+          patient=patient,
+          status__in=['Pending', 'Approved']
+        ).first()
+
+        if existing_record:
+          raise ValidationError({
+            'non_field_errors': [
+              "You already have an ongoing request. Please wait for its feedback before submitting another."
+            ]
+          })
+    
+        instance = serializer.save(
+          patient=patient
+        )
+
+    except Exception as e:
+      logger.error(f"Error creating pre-cancerous meds request: {str(e)}")
+      raise e
+    
 class AdminPreCancerousMedsListView(generics.ListAPIView):
   serializer_class = PreCancerousMedsRequestSerializer
   permission_classes = [IsAuthenticated, IsAdminUser]
@@ -52,6 +84,12 @@ class AdminPreCancerousMedsUpdateView(generics.UpdateAPIView):
       instance.date_approved = timezone.now().date()
       instance.save(update_fields=['date_approved'])
     # return super().perform_update(serializer)
+
+class PreCancerousMedsDeleteView(generics.DestroyAPIView):
+  queryset = PreCancerousMedsRequest.objects.all()
+  lookup_field = 'id'
+
+  permission_classes = [IsAuthenticated, IsAdminUser]
 
 # class AdminPreCancerousMedsSetReleaseDateView(generics.UpdateAPIView):
 #   queryset = PreCancerousMedsRequest.objects.all()

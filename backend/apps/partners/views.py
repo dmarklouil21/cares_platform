@@ -12,7 +12,13 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError
 
 from apps.patient.models import Patient, CancerDiagnosis
-from apps.cancer_screening.models import ScreeningAttachment
+from apps.cancer_screening.models import ScreeningAttachment, MassScreeningAttachment, MassScreeningRequest, MassScreeningAttendanceEntry
+from apps.cancer_screening.serializers import (
+  MassScreeningRequestSerializer, 
+  MassScreeningAttendanceEntrySerializer, 
+  MassScreeningAttendanceBulkSerializer, 
+  MassScreeningAttachmentSerializer
+)
 
 from apps.precancerous.models import PreCancerousMedsRequest
 from apps.precancerous.serializers import (
@@ -28,6 +34,31 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def validate_attachment(file):
+  max_size_mb = 10
+  allowed_types = {
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  }
+  if file.size > max_size_mb * 1024 * 1024:
+    raise ValidationError(f"File {file.name} exceeds {max_size_mb}MB limit.")
+  if file.content_type not in allowed_types:
+    raise ValidationError(f"Unsupported file type: {file.content_type} for file {file.name}.")
+  
+def get_private_for_user_or_error(user):
+  try:
+    representative = get_object_or_404(PrivateRepresentative, user=user)
+    private = representative.private
+    return Private.objects.get(institution_name=private.institution_name)
+  except PrivateRepresentative.DoesNotExist:
+    # Return a clearer 403 instead of generic 404
+    raise PermissionDenied("Your account has no Private profile, please contact admin")
+  
 # Create your views here.
 class CancerAwarenessActivityCreateView(generics.CreateAPIView):
   queryset = CancerAwarenessActivity.objects.all()
@@ -145,6 +176,124 @@ class RepresentativeDetailView(generics.RetrieveAPIView):
   queryset = PrivateRepresentative.objects.select_related('rhu', 'user').all()
   serializer_class = PrivateRepresentativeSerializer
   permission_classes = [IsAuthenticated]
+
+# Mass Screening Views 
+class MassScreeningRequestCreateView(APIView):
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+
+  def post(self, request):
+    user = request.user
+    if not getattr(user, 'is_private', False):
+      return Response({"detail": "Only Private Personnel users can create mass screening requests."}, status=status.HTTP_403_FORBIDDEN)
+
+    private = get_private_for_user_or_error(user)
+
+    serializer = MassScreeningRequestSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    obj = serializer.save(private=private)
+
+    # Handle attachments 
+    files = request.FILES.getlist('attachments')
+    for f in files:
+      validate_attachment(f)
+      MassScreeningAttachment.objects.create(request=obj, file=f)
+
+    return Response(MassScreeningRequestSerializer(obj, context={'request': request}).data, status=status.HTTP_201_CREATED)
+
+class MyMassScreeningRequestDetailView(generics.RetrieveAPIView):
+  serializer_class = MassScreeningRequestSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def get_queryset(self):
+    private = get_private_for_user_or_error(self.request.user)
+    return MassScreeningRequest.objects.filter(private=private)
+  
+class MyMassScreeningRequestListView(generics.ListAPIView):
+  serializer_class = MassScreeningRequestSerializer
+  permission_classes = [IsAuthenticated]
+
+  def get_queryset(self):
+    private = get_private_for_user_or_error(self.request.user)
+    qs = MassScreeningRequest.objects.filter(private=private).order_by('-created_at')
+    status_filter = self.request.query_params.get('status')
+    if status_filter:
+      qs = qs.filter(status=status_filter)
+    return qs
+
+class MyMassScreeningRequestUpdateView(generics.UpdateAPIView):
+  serializer_class = MassScreeningRequestSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def get_queryset(self):
+    private = get_private_for_user_or_error(self.request.user)
+    return MassScreeningRequest.objects.filter(private=private)
+
+class MassScreeningAttendanceView(APIView):
+  permission_classes = [IsAuthenticated]
+  def get(self, request, request_id):
+    private = get_private_for_user_or_error(request.user)
+    ms = get_object_or_404(MassScreeningRequest, id=request_id, private=private)
+    entries = ms.attendance_entries.all().order_by('id')
+    data = MassScreeningAttendanceEntrySerializer(entries, many=True).data
+    return Response(data, status=status.HTTP_200_OK)
+
+  def put(self, request, request_id):
+    private = get_private_for_user_or_error(request.user)
+    ms = get_object_or_404(MassScreeningRequest, id=request_id, private=private)
+
+    bulk_serializer = MassScreeningAttendanceBulkSerializer(data=request.data)
+    bulk_serializer.is_valid(raise_exception=True)
+    entries_data = bulk_serializer.validated_data.get('entries', [])
+
+    # Replace strategy: clear then insert
+    ms.attendance_entries.all().delete()
+    objs = [
+      MassScreeningAttendanceEntry(request=ms, name=e.get('name', ''), result=e.get('result', ''))
+      for e in entries_data
+      if e.get('name')
+    ]
+    if objs:
+      MassScreeningAttendanceEntry.objects.bulk_create(objs)
+
+    saved = ms.attendance_entries.all().order_by('id')
+    return Response(MassScreeningAttendanceEntrySerializer(saved, many=True).data, status=status.HTTP_200_OK)
+
+class MyMassScreeningRequestDeleteView(generics.DestroyAPIView):
+  serializer_class = MassScreeningRequestSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def get_queryset(self):
+    private = get_private_for_user_or_error(self.request.user)
+    return MassScreeningRequest.objects.filter(private=private)
+
+class MyMassScreeningAttachmentAddView(APIView):
+  permission_classes = [IsAuthenticated]
+
+  def post(self, request, id):
+    private = get_private_for_user_or_error(request.user)
+    ms = get_object_or_404(MassScreeningRequest, id=id, private=private)
+    files = request.FILES.getlist('attachments')
+    created = []
+    for f in files:
+      validate_attachment(f)
+      att = MassScreeningAttachment.objects.create(request=ms, file=f)
+      created.append(att)
+    data = MassScreeningAttachmentSerializer(created, many=True, context={'request': request}).data
+    return Response({ 'attachments': data }, status=status.HTTP_201_CREATED)
+
+class MyMassScreeningAttachmentDeleteView(generics.DestroyAPIView):
+  serializer_class = MassScreeningAttachmentSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def get_queryset(self):
+    private = get_private_for_user_or_error(self.request.user)
+    # Only allow deleting attachments for requests owned by this RHU
+    return MassScreeningAttachment.objects.filter(request__private=private)
 
 # Pre Cancerous Views 
 class PreCancerousMedsListView(generics.ListAPIView):

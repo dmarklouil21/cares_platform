@@ -11,4 +11,14 @@ urlpatterns = [
   path('pre-cancerous/list/', views.PreCancerousMedsListView.as_view(), name='pre_cancerous_meds_list'),
   path('pre-cancerous/view/<int:id>/', views.PreCancerousMedsDetailView.as_view(), name='pre_cancerous_meds_details'),
   path('pre-cancerous/update/<int:id>/', views.PreCancerousMedsUpdateView.as_view(), name='pre_cancerous_meds_update'),
+
+  # Mass Screening 
+  path('cancer-screening/mass-screening/create/', views.MassScreeningRequestCreateView.as_view(), name='private_mass_screening_create'),
+  path('cancer-screening/mass-screening/request-list/', views.MyMassScreeningRequestListView.as_view(), name='private_mass_screening_request_list'),
+  path('cancer-screening/mass-screening/detail/<int:id>/', views.MyMassScreeningRequestDetailView.as_view(), name='private_mass_screening_request_detail'),
+  path('cancer-screening/mass-screening/update/<int:id>/', views.MyMassScreeningRequestUpdateView.as_view(), name='private_mass_screening_request_update'),
+  path('cancer-screening/mass-screening/attendance/<int:request_id>/', views.MassScreeningAttendanceView.as_view(), name='private_mass_screening_request'),
+  path('cancer-screening/mass-screening/delete/<int:id>/', views.MyMassScreeningRequestDeleteView.as_view(), name='private_mass_screening_request_delete'),
+  path('cancer-screening/mass-screening/<int:id>/attachments/add/', views.MyMassScreeningAttachmentAddView.as_view(), name='private_mass_screening_attachment_add'),
+  path('cancer-screening/mass-screening/attachments/delete/<int:id>/', views.MyMassScreeningAttachmentDeleteView.as_view(), name='private_mass_screening_attachment_delete'),
 ]

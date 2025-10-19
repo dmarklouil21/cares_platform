@@ -11,6 +11,8 @@ import {
 // ⬇️ PRINT TEMPLATE
 import PreCancerousPrint from "./generate/generate";
 
+import api from "src/api/axiosInstance";
+
 // ----- ui bits -----
 function ConfirmationModal({ open, text, onConfirm, onCancel }) {
   if (!open) return null;
@@ -442,6 +444,7 @@ const PreCancerous = () => {
     }
     let text = "Confirm this action?";
     if (action === "reject") text = "Reject this patient?";
+    if (action === "delete") text = "Delete this record?";
     if (action === "done") text = "Mark this request as Done?";
     setModalText(text);
     setPendingAction({ id, action });
@@ -456,6 +459,8 @@ const PreCancerous = () => {
         await adminRejectPreCancerousMeds(id);
       } else if (action === "done") {
         await adminDonePreCancerousMeds(id);
+      } else if (action === "delete") {
+        await api.delete(`/precancerous/delete/${id}/`);
       }
       await loadList(statusFilter);
       const msg =
@@ -726,14 +731,22 @@ const PreCancerous = () => {
                                   </button>
                                 </>
                               )}
-                              {p.status === "Verified" && (
+                              {p.status !== "Pending" && (
+                                <button
+                                  onClick={() => openConfirm(p.id, "delete")}
+                                  className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
+                                >
+                                  Delete
+                                </button>
+                              )}
+                              {/* {p.status === "Verified" && (
                                 <button
                                   onClick={() => openConfirm(p.id, "done")}
                                   className="text-white py-1 px-3 rounded-[5px] shadow bg-blue-600"
                                 >
                                   Mark done
                                 </button>
-                              )}
+                              )} */}
                             </div>
                           </td>
                         </tr>

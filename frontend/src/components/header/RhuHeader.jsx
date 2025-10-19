@@ -49,10 +49,10 @@ const AdminHeader = () => {
       try {
         const res = await api.get("/rhu/profile/");
         const d = res.data;
-        const name =
-          d.official_representative_name && d.official_representative_name.trim()
-            ? d.official_representative_name
-            : `${d.representative_first_name || ""} ${d.representative_last_name || ""}`.trim() || "RHU";
+        const name = d.official_representative_name
+          // d.official_representative_name && d.official_representative_name.trim()
+          //   ? d.official_representative_name
+          //   : `${d.representative_first_name || ""} ${d.representative_last_name || ""}`.trim() || "RHU";
         const avatar = d.avatar ? `http://localhost:8000${d.avatar}` : "/images/Avatar.png";
         setProfileName(name);
         setProfileAvatar(avatar);
@@ -84,7 +84,7 @@ const AdminHeader = () => {
         onClick={() => setIsSidebarOpen(true)}
       />
 
-      <h1 className="text-md font-bold">RHU</h1>
+      <h1 className="text-md font-bold">Rural Health Unit</h1>
 
       <div className="relative flex items-center gap-3">
         {/* Notification */}

@@ -23,7 +23,7 @@ from apps.patient.serializers import PreScreeningFormSerializer
 from apps.cancer_screening.models import ScreeningAttachment
 from apps.precancerous.models import PreCancerousMedsRequest
 from apps.precancerous.serializers import PreCancerousMedsRequestSerializer
-from apps.rhu.models import RHU
+from apps.rhu.models import RHU, Representative, Rhuv2
 
 from .models import IndividualScreening, MassScreeningRequest, MassScreeningAttachment, MassScreeningAttendanceEntry
 
@@ -64,8 +64,10 @@ def validate_attachment(file):
 # ---------------------------
 def get_rhu_for_user_or_error(user):
   try:
-    return RHU.objects.get(user=user)
-  except RHU.DoesNotExist:
+    representative = get_object_or_404(Representative, user=user)
+    rhu = representative.rhu
+    return Rhuv2.objects.get(lgu=rhu.lgu)
+  except Representative.DoesNotExist:
     # Return a clearer 403 instead of generic 404
     raise PermissionDenied("Your account has no RHU profile, please contact admin")
 
@@ -315,7 +317,7 @@ class MassScreeningRequestCreateView(APIView):
     serializer.is_valid(raise_exception=True)
     obj = serializer.save(rhu=rhu)
 
-    # Handle attachments
+    # Handle attachments 
     files = request.FILES.getlist('attachments')
     for f in files:
       validate_attachment(f)

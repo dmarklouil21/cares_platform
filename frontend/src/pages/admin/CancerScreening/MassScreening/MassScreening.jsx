@@ -23,6 +23,7 @@ const AdminMassScreening = () => {
       const normalized = (Array.isArray(data) ? data : []).map((d) => ({
         id: d.id,
         rhuName: d.rhu_lgu,
+        privateName: d.institution_name,
         date: d.date, // YYYY-MM-DD
         status: d.status, // Pending | Verified | Rejected | Done
         attachments: d.attachments || [],
@@ -182,7 +183,7 @@ const AdminMassScreening = () => {
       >
         <Notification message={notification} type={notificationType} />
 
-        <div className="flex justify-between px-5 items-center w-full">
+        <div className="flex justify-between px-1 items-center w-full">
           <h2 className="text-xl font-bold text-left w-full">Mass Screening</h2>
           <Link
             to="/admin/cancer-screening/add/mass"
@@ -192,9 +193,9 @@ const AdminMassScreening = () => {
           </Link>
         </div>
 
-        <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-5">
+        <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-5">
           <p className="text-lg font-semibold text-yellow">
-            Mass Screening Requests
+            Manage Mass Screening Requests
           </p>
 
           {/* Filters */}
@@ -250,7 +251,7 @@ const AdminMassScreening = () => {
                   <th className="w-[14%] text-left text-sm py-3 pl-4 !bg-lightblue">
                     Request ID
                   </th>
-                  <th className="w-[26%] text-left text-sm py-3">RHU name</th>
+                  <th className="w-[26%] text-left text-sm py-3">RHU/Private name</th>
                   <th className="w-[18%] text-left text-sm py-3">Date</th>
                   <th className="w-[14%] text-left text-sm py-3">Documents</th>
                   <th className="w-[12%] text-left text-sm py-3">Status</th>
@@ -291,7 +292,12 @@ const AdminMassScreening = () => {
                           {item.id}
                         </td>
                         <td className="text-sm py-4 text-gray-800">
-                          {item.rhuName || "—"}
+                          {/* {item.rhuName || "—"} */}
+                          {item.rhuName ? (
+                            item.rhuName
+                          ) : (
+                            item.privateName
+                          )}
                         </td>
                         <td className="text-sm py-4 text-gray-800">
                           {formatDate(item.date)}
