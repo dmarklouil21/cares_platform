@@ -2,7 +2,7 @@ from django.urls import path
 from . import views 
 
 urlpatterns = [
-  path('profile/', views.RHUProfileAPIView.as_view(), name='rhu-profile'),
+  path('profile/', views.RHURepresentativeProfileAPIView.as_view(), name='rhu-profile'),
   path('admin/list/', views.AdminRHUListAPIView.as_view(), name='rhu-admin-list'),
   
   path('list/', views.RhuListView.as_view(), name='rhu_list'),

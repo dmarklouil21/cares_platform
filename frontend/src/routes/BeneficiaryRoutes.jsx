@@ -110,7 +110,6 @@ const BeneficiaryRoutes = () => (
       </Route>
 
       {/* Survivorship */}
-      {/* <Route path="survivorship" element={<Survivorship />} /> */}
       <Route path="survivorship">
         <Route index element={<Survivorship />} />
         <Route path="hormonal-replacement" element={<HormonalReplacement />} />

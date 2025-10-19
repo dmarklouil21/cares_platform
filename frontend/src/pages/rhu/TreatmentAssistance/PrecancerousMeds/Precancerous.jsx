@@ -561,7 +561,7 @@ const PreCancerous = () => {
 
             <div className="flex gap-2">
               <Link
-                to="/admin/treatment-assistance/add-pre-cancerous"
+                to="/rhu/treatment-assistance/pre-cancerous/add"
                 className="bg-yellow px-5 py-1 rounded-sm text-white"
               >
                 Add

@@ -7,7 +7,7 @@ import Dashboard from "../pages/rhu/Dashboard/Dashboard";
 import CancerAwareness from "../pages/rhu/cancerawareness/CancerAwareness";
 import PatientList from "../pages/rhu/Patient/PatientList";
 import CancerScreening from "../pages/rhu/Services/CancerScreening/CancerScreening";
-import ApplicationStatus from "../pages/rhu/applicationStatus/applicationStatus";
+import MassScreeningApplication from "../pages/rhu/Application/Mass Screening/applicationStatus";
 import ViewProfile from "../pages/rhu/Profile/ViewProfile";
 import PychosocialSupport from "../pages/rhu/pychosocialSupport/pychosocialSupport";
 
@@ -17,6 +17,12 @@ import Precancerous from "../pages/rhu/TreatmentAssistance/PrecancerousMeds/Prec
 
 // Views 
 import PrecancerousView from "../pages/rhu/TreatmentAssistance/PrecancerousMeds/View/DetailedView"
+
+// Add 
+import AddMeds from "../pages/rhu/TreatmentAssistance/PrecancerousMeds/Add/AddMeds";
+
+// Apply 
+import ApplyMassScreening from "../pages/rhu/Services/CancerScreening/Apply/MassScreening/";
 
 // Patient Features
 import PatientView from "../pages/rhu/Patient/View/PatientView";
@@ -29,8 +35,8 @@ import PatientEdit from "../pages/rhu/Patient/Edit/PatientEdit";
 import EditPreScreeningForm from "../pages/rhu/Patient/Edit/EditPreScreeningForm";
 
 // application actions
-import ApplicationStatusView from "../pages/rhu/applicationStatus/view/applicationView";
-import ApplicationAttendanceView from "../pages/rhu/applicationStatus/view/applicationAttendance";
+import MassScreeningStatusView from "../pages/rhu/Application/Mass Screening/View/applicationView";
+import ApplicationAttendanceView from "../pages/rhu/Application/Mass Screening/View/applicationAttendance";
 
 const RhuRoutes = () => (
   <Route
@@ -51,13 +57,13 @@ const RhuRoutes = () => (
     <Route path="treatment-assistance">
       <Route path="pre-cancerous" element={<Precancerous />} />
       <Route path="pre-cancerous/view/:id" element={<PrecancerousView />} />
+      <Route path="pre-cancerous/add" element={<AddMeds />} />
     </Route>
 
     {/* Services */}
     <Route path="services">
       <Route path="cancer-screening" element={<CancerScreening />} />
-      {/* <Route path="cancer-management" element={<CancerManagement />} /> */}
-      {/* <Route path="survivorship" element={<Survivorship />} /> */}
+      <Route path="cancer-screening/apply" element={<ApplyMassScreening />} />
     </Route>
 
     {/* Patient Management */}
@@ -84,15 +90,16 @@ const RhuRoutes = () => (
     </Route>
 
     <Route path="application">
-      <Route index element={<ApplicationStatus />} />
-      <Route path="view">
-        <Route path="applicationview" element={<ApplicationStatusView />} />
+      <Route path="mass-screening" element={<MassScreeningApplication />} />
+      <Route path="mass-screening/view">
+        <Route index element={<MassScreeningStatusView />} />
         <Route
-          path="applicationAttendance"
+          path="attendance"
           element={<ApplicationAttendanceView />}
         />
       </Route>
     </Route>
+    
     <Route path="PychosocialSupport" element={<PychosocialSupport />} />
   </Route>
 );

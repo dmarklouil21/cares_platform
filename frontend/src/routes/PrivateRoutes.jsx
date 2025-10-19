@@ -7,7 +7,7 @@ import Dashboard from "../pages/private/Dashboard/Dashboard";
 import CancerAwareness from "../pages/private/cancerawareness/CancerAwareness";
 import PatientList from "../pages/private/Patient/PatientList";
 import CancerScreening from "../pages/private/Services/CancerScreening/CancerScreening";
-import ApplicationStatus from "../pages/private/applicationStatus/applicationStatus";
+import MassScreeningApplication from "../pages/private/Application/Mass Screening/applicationStatus";
 import ViewProfile from "../pages/private/Profile/ViewProfile";
 import PychosocialSupport from "../pages/private/pychosocialSupport/pychosocialSupport";
 
@@ -17,6 +17,12 @@ import Precancerous from "../pages/private/TreatmentAssistance/PrecancerousMeds/
 
 // Views 
 import PrecancerousView from "../pages/private/TreatmentAssistance/PrecancerousMeds/View/DetailedView"
+
+// Add 
+import AddMeds from "../pages/private/TreatmentAssistance/PrecancerousMeds/Add/AddMeds";
+
+// Apply 
+import ApplyMassScreening from "../pages/private/Services/CancerScreening/Apply/MassScreening/";
 
 // Patient Features
 import PatientView from "../pages/private/Patient/View/PatientView";
@@ -29,8 +35,8 @@ import PatientEdit from "../pages/private/Patient/Edit/PatientEdit";
 import EditPreScreeningForm from "../pages/private/Patient/Edit/EditPreScreeningForm";
 
 // application actions
-import ApplicationStatusView from "../pages/private/applicationStatus/view/applicationView";
-import ApplicationAttendanceView from "../pages/private/applicationStatus/view/applicationAttendance";
+import MassScreeningStatusView from "../pages/private/Application/Mass Screening/View/applicationView";
+import ApplicationAttendanceView from "../pages/private/Application/Mass Screening/View/applicationAttendance";
 
 const PrivateRoutes = () => (
   <Route
@@ -51,13 +57,13 @@ const PrivateRoutes = () => (
     <Route path="treatment-assistance">
       <Route path="pre-cancerous" element={<Precancerous />} />
       <Route path="pre-cancerous/view/:id" element={<PrecancerousView />} />
+      <Route path="pre-cancerous/add" element={<AddMeds />} />
     </Route>
 
     {/* Services */}
     <Route path="services">
       <Route path="cancer-screening" element={<CancerScreening />} />
-      {/* <Route path="cancer-management" element={<CancerManagement />} /> */}
-      {/* <Route path="survivorship" element={<Survivorship />} /> */}
+      <Route path="cancer-screening/apply" element={<ApplyMassScreening />} />
     </Route>
 
     {/* Patient Management */}
@@ -84,15 +90,16 @@ const PrivateRoutes = () => (
     </Route>
 
     <Route path="application">
-      <Route index element={<ApplicationStatus />} />
-      <Route path="view">
-        <Route path="applicationview" element={<ApplicationStatusView />} />
+      <Route path="mass-screening" element={<MassScreeningApplication />} />
+      <Route path="mass-screening/view">
+        <Route index element={<MassScreeningStatusView />} />
         <Route
-          path="applicationAttendance"
+          path="attendance"
           element={<ApplicationAttendanceView />}
         />
       </Route>
     </Route>
+
     <Route path="PychosocialSupport" element={<PychosocialSupport />} />
   </Route>
 );

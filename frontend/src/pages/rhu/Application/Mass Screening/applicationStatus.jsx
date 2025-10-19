@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   listMyMassScreenings,
   deleteMyMassScreening,
-} from "../../../api/massScreening";
+} from "../../../../api/massScreening";
 
 /* Notification (no close button) */
 function Notification({ message }) {
@@ -101,7 +101,7 @@ const applicationStatus = () => {
 
   const handleViewClick = (id) => {
     const record = items.find((x) => x.id === id);
-    navigate("/rhu/application/view/applicationview", {
+    navigate("/rhu/application/mass-screening/view", {
       state: record ?? { id },
     });
   };

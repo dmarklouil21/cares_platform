@@ -1,6 +1,7 @@
 from django.db import models
 from apps.patient.models import Patient
-from apps.rhu.models import RHU
+from apps.rhu.models import RHU, Rhuv2
+from apps.partners.models import Private
 
 # Create your models here.
 
@@ -83,7 +84,8 @@ class ScreeningAttachment(models.Model):
 
 class MassScreeningRequest(models.Model):
   """Represents an RHU-initiated mass screening request."""
-  rhu = models.ForeignKey(RHU, on_delete=models.CASCADE, related_name='mass_screening_requests')
+  rhu = models.ForeignKey(Rhuv2, on_delete=models.CASCADE, related_name='mass_screening_requests', blank=True, null=True)
+  private = models.ForeignKey(Private, on_delete=models.CASCADE, related_name='mass_screening_requests', blank=True, null=True)
   title = models.CharField(max_length=255)
   venue = models.CharField(max_length=255)
   date = models.DateField()
@@ -103,7 +105,9 @@ class MassScreeningRequest(models.Model):
     ordering = ['-created_at']
 
   def __str__(self):
-    return f"{self.title} ({self.rhu.lgu})"
+    # rhu = self.__getattribute__('rhu')
+    # private = self.__getattribute__('private')
+    return f"{self.title}"
 
 class MassScreeningAttachment(models.Model):
   request = models.ForeignKey(MassScreeningRequest, on_delete=models.CASCADE, related_name='attachments')

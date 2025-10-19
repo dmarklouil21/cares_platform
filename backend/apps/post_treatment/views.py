@@ -32,7 +32,6 @@ class PostTreatmentCreateView(generics.CreateAPIView):
 
   def perform_create(self, serializer):
     try:
-      print("Data: ", self.request.data)
       with transaction.atomic():
         patient = get_object_or_404(Patient, patient_id=self.request.data.get('patient_id'))
         existing_record = PostTreatment.objects.filter(

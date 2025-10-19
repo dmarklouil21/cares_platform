@@ -1,320 +1,410 @@
-// src/pages/treatment/AdminprecancerousAdd.jsx
-import React, { useEffect, useMemo, useState } from "react";
+// src/pages/treatment/AdminPostTreatmentAdd.jsx
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-const LIST_PATH = "/admin/treatment-assistance/pre-cancerous";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
+import LoadingModal from "src/components/Modal/LoadingModal";
 
-const PreCancerousAdd = () => {
-  const navigate = useNavigate();
+import SystemLoader from "src/components/SystemLoader";
 
-  // ------- Request info -------
-  const [lguName, setLguName] = useState("");
-  const [date, setDate] = useState("");
-  const [contactNumber, setContactNumber] = useState("");
-  const [preparedBy, setPreparedBy] = useState("");
-  const [approvedBy, setApprovedBy] = useState("");
+import api from "src/api/axiosInstance";
 
-  // ------- Patient row (single entry; removed Patient No.) -------
-  const [lastName, setLastName] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [middleInitial, setMiddleInitial] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-  const [interpretationOfResult, setInterpretationOfResult] = useState("");
+import { REQUIRED_DOCS } from "src/constants/requiredDocs";
 
-  // ------- Optional: release date; status defaults to Pending -------
-  const [releaseDate, setReleaseDate] = useState("");
-  const status = "Pending";
+/* =========================
+   Searchable Select (same UX pattern)
+   ========================= */
+const SearchableSelect = ({
+  label = "Patient Name",
+  placeholder = "Search patient...",
+  options = [],
+  value = null,
+  onChange,
+}) => {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const ref = useRef(null);
 
-  // ------- UI state: confirm + loading -------
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const filtered = useMemo(() => {
+    if (!q) return options;
+    const s = q.toLowerCase();
+    return options.filter(
+      (o) =>
+        o.full_name.toLowerCase().includes(s) ||
+        (o.email && o.email.toLowerCase().includes(s))
+    );
+  }, [q, options]);
 
-  // Default the request date to today
   useEffect(() => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, "0");
-    const dd = String(today.getDate()).padStart(2, "0");
-    setDate(`${yyyy}-${mm}-${dd}`);
+    const onDocClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  // Simple validations (no Patient No. required anymore)
-  const isValid = useMemo(() => {
-    return (
-      lguName.trim() &&
-      date &&
-      lastName.trim() &&
-      firstName.trim() &&
-      dateOfBirth &&
-      interpretationOfResult.trim()
-    );
-  }, [lguName, date, lastName, firstName, dateOfBirth, interpretationOfResult]);
-
-  // UI-only "submit" (no real API)
-  const handleSubmit = () => {
-    if (!isValid || submitting) return;
-    setSubmitting(true);
-
-    // mock payload just for dev console (removed patient_id)
-    const payload = {
-      lgu_name: lguName || null,
-      date,
-      contact_number: contactNumber || null,
-      prepared_by: preparedBy || null,
-      approved_by: approvedBy || null,
-      last_name: lastName,
-      first_name: firstName,
-      middle_initial: middleInitial || null,
-      date_of_birth: dateOfBirth,
-      interpretation_of_result: interpretationOfResult,
-      release_date_of_meds: releaseDate || null,
-      status: "Pending",
-    };
-    console.log("[PreCancerousAdd] mock create payload:", payload);
-
-    // simulate a short delay, then navigate to list WITH a flash message
-    setTimeout(() => {
-      setSubmitting(false);
-      navigate(LIST_PATH, {
-        state: {
-          flash: "Record created successfully.",
-        },
-        // we won't replace here; we'll clear the state on the list page
-      });
-    }, 700);
-  };
-
   return (
-    <div className="h-screen w-full flex p-5 gap-3 flex-col justify-between items-center bg-gray overflow-auto">
-      {/* Header Card */}
-      <div className="bg-white w-full rounded-md shadow border border-black/10">
-        <div className="border-b border-black/10 px-5 py-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">
-            Add Pre-Cancerous Meds Request
-          </h2>
-        </div>
-
-        {/* Request info grid */}
-        <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-          <label className="flex items-center gap-4">
-            <span className="font-sm w-40">
-              LGU Name<span className="text-red-500">*</span>
-            </span>
-            <input
-              type="text"
-              className="border border-gray-300 rounded px-3 py-1 w-full"
-              value={lguName}
-              onChange={(e) => setLguName(e.target.value)}
-              placeholder="e.g., City of Cebu"
-            />
-          </label>
-
-          <label className="flex items-center">
-            <span className="font-sm w-31 ">
-              Date<span className="text-red-500">*</span>
-            </span>
-            <input
-              type="date"
-              className="border border-gray-300 rounded px-3 py-1 w-full md:w-auto"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </label>
-
-          <label className="flex items-center gap-4">
-            <span className="font-sm w-40">Contact Number</span>
-            <input
-              type="text"
-              className="border border-gray-300 rounded px-3 py-1 w-full"
-              value={contactNumber}
-              onChange={(e) => setContactNumber(e.target.value)}
-              placeholder="e.g., 09XXXXXXXXX"
-              inputMode="numeric"
-            />
-          </label>
-
-          <label className="flex items-center gap-4">
-            <span className="font-sm w-40">Prepared by</span>
-            <input
-              type="text"
-              className="border border-gray-300 rounded px-3 py-1 w-full"
-              value={preparedBy}
-              onChange={(e) => setPreparedBy(e.target.value)}
-              placeholder="Name of preparer"
-            />
-          </label>
-
-          <label className="flex items-center gap-4">
-            <span className="font-sm w-40">Approved by</span>
-            <input
-              type="text"
-              className="border border-gray-300 rounded px-3 py-1 w-full"
-              value={approvedBy}
-              onChange={(e) => setApprovedBy(e.target.value)}
-              placeholder="Name of approver"
-            />
-          </label>
-        </div>
-      </div>
-
-      {/* Patient Row (removed No. & Patient No.) */}
-      <div className="bg-white w-full rounded-md shadow border border-black/10">
-        <table className="min-w-full border-separate border-spacing-0">
-          <thead>
-            <tr className="bg-gray/30">
-              <th className="text-left text-sm font-semibold px-4 py-3">
-                Last Name<span className="text-red-500">*</span>
-              </th>
-              <th className="text-left text-sm font-semibold px-4 py-3">
-                First Name<span className="text-red-500">*</span>
-              </th>
-              <th className="text-left text-sm font-semibold px-4 py-3">
-                Middle Initial
-              </th>
-              <th className="text-left text-sm font-semibold px-4 py-3">
-                Date of Birth<span className="text-red-500">*</span>
-              </th>
-              <th className="text-left text-sm font-semibold px-4 py-3">
-                Interpretation of Result<span className="text-red-500">*</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-t">
-              <td className="px-4 py-3">
-                <input
-                  type="text"
-                  className="border border-gray-300 rounded px-3 py-1 w-full"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="e.g., Dela Cruz"
-                />
-              </td>
-              <td className="px-4 py-3">
-                <input
-                  type="text"
-                  className="border border-gray-300 rounded px-3 py-1 w-full"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="e.g., Maria"
-                />
-              </td>
-              <td className="px-4 py-3">
-                <input
-                  type="text"
-                  className="border border-gray-300 rounded px-3 py-1 w-full uppercase"
-                  value={middleInitial}
-                  onChange={(e) => setMiddleInitial(e.target.value)}
-                  maxLength={2}
-                  placeholder="e.g., L."
-                />
-              </td>
-              <td className="px-4 py-3">
-                <input
-                  type="date"
-                  className="border border-gray-300 rounded px-3 py-1 w-full"
-                  value={dateOfBirth}
-                  onChange={(e) => setDateOfBirth(e.target.value)}
-                />
-              </td>
-              <td className="px-4 py-3">
-                <input
-                  type="text"
-                  className="border border-gray-300 rounded px-3 py-1 w-full"
-                  value={interpretationOfResult}
-                  onChange={(e) => setInterpretationOfResult(e.target.value)}
-                  placeholder="e.g., Negative / Positive"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      {/* Optional Release Date */}
-      <div className="bg-white w-full rounded-md shadow border border-black/10 p-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-          <label className="flex items-center gap-4">
-            <span className="font-sm w-40">Release Date</span>
-            <input
-              type="date"
-              className="border  border-gray-300 rounded px-3 py-1 w-full md:w-auto"
-              value={releaseDate}
-              onChange={(e) => setReleaseDate(e.target.value)}
-            />
-          </label>
-        </div>
-      </div>
-
-      {/* Bottom actions */}
-      <div className="w-full flex flex-col md:flex-row gap-3 justify-between md:justify-around">
-        <Link
-          className="text-center bg-white text-black py-2 md:w-[30%] w-full border border-black/15 hover:border-black rounded-md"
-          to={LIST_PATH}
-        >
-          BACK
-        </Link>
-
+    <div className="w-full" ref={ref}>
+      <label className="text-sm font-medium block mb-1">{label}</label>
+      <div className="relative">
         <button
           type="button"
-          onClick={() => setConfirmOpen(true)}
-          disabled={!isValid || submitting}
-          className={`text-center py-2 md:w-[30%] w-full rounded-md shadow ${
-            !isValid || submitting
-              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-              : "bg-primary text-white hover:opacity-90"
-          }`}
-          title={!isValid ? "Fill all required fields" : ""}
+          className="w-full border border-gray-300 rounded px-3 py-2 bg-white text-left"
+          onClick={() => setOpen((o) => !o)}
         >
-          {submitting ? "Creating..." : "Create record"}
+          {value ? value.full_name : "Select patient"}
         </button>
-      </div>
 
-      {/* Confirmation Modal */}
-      {confirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setConfirmOpen(false)}
-          />
-          <div className="relative bg-white w-[92%] max-w-md rounded-lg shadow-lg p-6">
-            <h3 className="text-lg font-semibold mb-2">Create this record?</h3>
-            <p className="text-sm text-gray-700 mb-4">
-              This will create a new Pre-Cancerous meds request for{" "}
-              <strong>
-                {firstName || "First"} {lastName || "Last"}
-              </strong>{" "}
-              with status <strong>Pending</strong>
-              {releaseDate ? ` and release date ${releaseDate}` : ""}.<br />
-              <span className="text-gray-500">
-                (UI only — no data will be saved)
-              </span>
-            </p>
-
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50"
-                onClick={() => setConfirmOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="px-4 py-2 rounded text-white hover:opacity-90 bg-primary"
-                onClick={() => {
-                  setConfirmOpen(false);
-                  handleSubmit();
-                }}
-              >
-                Confirm
-              </button>
+        {open && (
+          <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded shadow">
+            <div className="p-2 border-b border-gray-200">
+              <input
+                autoFocus
+                type="text"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder={placeholder}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              />
             </div>
+            <ul className="max-h-56 overflow-auto">
+              {filtered.length === 0 && (
+                <li className="px-3 py-2 text-sm text-gray-500">No results</li>
+              )}
+              {filtered.map((opt) => (
+                <li
+                  key={opt.id}
+                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    onChange(opt);
+                    setOpen(false);
+                    setQ("");
+                  }}
+                >
+                  <div className="text-sm font-medium">{opt.full_name}</div>
+                  <div className="text-xs text-gray-500">{opt.email}</div>
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
+        )}
+      </div>
+      {value && (
+        <p className="text-xs text-gray-500 mt-1">
+          Selected: <span className="font-medium">{value.full_name}</span>{" "}
+          <span className="text-gray-400">({value.email})</span>
+        </p>
       )}
     </div>
   );
 };
 
-export default PreCancerousAdd;
+const LIST_PATH = "/private/treatment-assistance/pre-cancerous";
+
+const CheckIcon = ({ active }) => (
+  <img
+    src="/images/check.svg"
+    alt=""
+    className={`h-5 w-5 transition ${active ? "" : "grayscale opacity-50"}`}
+  />
+);
+
+const AdminHormonalReplacementAdd = () => {
+  const navigate = useNavigate();
+
+  // ===== LOA GENERATION (shown first) =====
+  const [patient, setPatient] = useState(null); // { id, full_name, email, age, address }
+  const [patientTable, setPatientTable] = useState([]);
+  const [age, setAge] = useState("");
+  const [patientAddress, setPatientAddress] = useState("");
+  const [date, setDate] = useState("");
+  const [medicines, setMedicines] = useState();
+  const [providerAddress, setProviderAddress] = useState("");
+  const [diagnosis, setDiagnosis] = useState("");
+  const [procedure, setProcedure] = useState("");
+  const [preparedBy, setPreparedBy] = useState("");
+  const [approvedBy, setApprovedBy] = useState("");
+  const [status, setStatus] = useState("Approved");
+  const [interpretationOfResult, setInterpretationOfResult] = useState("");
+  // const [serviceProvider, setServiceProvider] = useState("Chong Hua Hospital Mandaue")
+
+  const requiredDocs = REQUIRED_DOCS["Hormonal Replacement"];
+
+  const [activeIdx, setActiveIdx] = useState(0);
+  const activeDoc = requiredDocs[activeIdx];
+
+  // helper to build a cleared files map
+  const makeEmptyFiles = () =>
+    requiredDocs.reduce((acc, d) => ({ ...acc, [d.key]: null }), {});
+  const [files, setFiles] = useState(makeEmptyFiles);
+
+  const allUploaded = useMemo(
+    () => requiredDocs.every((doc) => !!files[doc.key]),
+    [files, requiredDocs]
+  );
+  const inputRef = useRef(null);
+
+  const [destinationName, setDestinationName] = useState("");
+
+  // ===== Request Post-Treatment Labs (separate card) =====
+  // Send Report Modal
+  const [labRequestModal, setLabRequestModal] = useState(false);
+  const [labRequestFile, setLabRequestFile] = useState(null);
+  // const [labRequest, setLabRequest] = useState("");
+  const [labResult, setLabResult] = useState("");
+  const [schedule, setSchedule] = useState("");
+
+  // ===== Global UX =====
+  const [loading, setLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [notifyOpen, setNotifyOpen] = useState(false);
+  const [notifyInfo, setNotifyInfo] = useState({
+    type: "success",
+    title: "Success!",
+    message: "Record has been created.",
+  });
+
+  const fetchData = async () => {
+    try {
+      const response = await api.get("/patient/list/");
+      setPatientTable(response.data);
+      console.log("Responses: ", response.data);
+    } catch (error) {
+      console.error("Error fetching patient data:", error);
+    }
+  };
+
+  const fetchProfile = async () => {
+    try {
+      const {data} = await api.get("/partners/private/profile/");
+      setDestinationName(data.institution_name)
+    } catch (error) {
+      console.error("Error fetching representative profile", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    fetchProfile();
+  }, []);
+
+  const handleChooseFile = () => inputRef.current?.click();
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file && activeDoc) {
+      setFiles((prev) => ({ ...prev, [activeDoc.key]: file }));
+    }
+    e.target.value = ""; // allow reselecting the same file
+  };
+
+  // Defaults for date/schedule
+  // useEffect(() => {
+  //   const today = new Date();
+  //   const yyyy = today.getFullYear();
+  //   const mm = String(today.getMonth() + 1).padStart(2, "0");
+  //   const dd = String(today.getDate()).padStart(2, "0");
+  //   if (!date) setDate(`${yyyy}-${mm}-${dd}`);
+  //   if (!schedule) setSchedule(`${yyyy}-${mm}-${dd}`);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
+
+  // Auto-fill Age & Address when selecting a patient
+  // useEffect(() => {
+  //   if (!patient) return;
+  //   setAge(patient.age != null ? String(patient.age) : "");
+  //   setPatientAddress(patient.address || "");
+  // }, [patient]);
+
+  const isValid = useMemo(() => {
+    return (
+      patient &&
+      date &&
+      interpretationOfResult
+    );
+  }, [
+    patient,
+    // age,
+    date,
+    interpretationOfResult,
+  ]);
+
+  const validateOrNotify = () => {
+    if (isValid) return true;
+
+    const msg = !patient
+      ? "Please select a patient."
+      : !diagnosis.trim()
+      ? "Please enter Diagnosis."
+      : !date
+      ? "Please set Date."
+      : "Please complete all required fields.";
+
+    setNotifyInfo({ type: "info", title: "Incomplete", message: msg });
+    setNotifyOpen(true);
+    return false;
+  };
+
+  const doSubmit = async () => {
+    if (!validateOrNotify()) return;
+
+    setConfirmOpen(false);
+    setLoading(true);
+
+    try { 
+      const formData = new FormData();
+      formData.append("patient_id", patient.patient_id);
+      formData.append("status", status);
+      formData.append("interpretation_of_result", interpretationOfResult);
+      formData.append("release_date_of_meds", date);
+      formData.append("request_destination", "Private Partners");
+      formData.append("destination_name", destinationName);
+
+      await api.post(
+        `/precancerous/create/`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      navigate("/private/treatment-assistance/pre-cancerous", {
+        state: { type: "success", message: "Created Successfully." },
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmSelectedFile = () => {
+    setLabRequestModal(false);
+    console.log("Selected File: ", labRequestFile)
+  };
+
+  return (
+    <>
+      {loading && <SystemLoader />}
+      {/* Global Modals (same components you already use) */}
+      <ConfirmationModal
+        open={confirmOpen}
+        title="Create this post-treatment record?"
+        desc="Please review all details before submitting."
+        onConfirm={doSubmit}
+        onCancel={() => setConfirmOpen(false)}
+      />
+      <NotificationModal
+        show={notifyOpen}
+        type={notifyInfo.type}
+        title={notifyInfo.title}
+        message={notifyInfo.message}
+        onClose={() => setNotifyOpen(false)}
+      />
+
+      <div className="h-screen w-full flex p-5 gap-4 flex-col justify-start items-center bg-gray overflow-auto">
+        <div className="bg-white w-full rounded-md shadow border border-black/10">
+          <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+            <h2 className="text-lg font-semibold">Pre Cancerous Medication</h2>
+          </div>
+
+          <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            {/* Select Patient (Searchable) */}
+            <div className="w-full">
+              <SearchableSelect
+                label="Patient Name"
+                options={patientTable}
+                value={patient}
+                onChange={setPatient}
+                placeholder="Type to search by name or email..."
+              />
+            </div>
+
+            {/* Auto-filled (editable) */}
+            <div className="w-full">
+              <label className="text-sm font-medium block mb-1">
+                Diagnosis {/* <span className="text-red-500">*</span> */}
+              </label>
+              <input
+                type="text"
+                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                value={patient?.diagnosis[0]?.diagnosis}
+                onChange={(e) => setDiagnosis(e.target.value)}
+                placeholder="e.g., Hypertension"
+              />
+            </div>
+
+            <div className="w-full">
+              <label className="text-sm font-medium block mb-1">Interpretation of Result</label>
+              <select
+                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                value={interpretationOfResult}
+                onChange={(e) => setInterpretationOfResult(e.target.value)}
+              >
+                <option value="Negative">Negative</option>
+                <option value="ASC-US">ASC-US</option>
+                <option value="HPV Positive">HPV Positive</option>
+                <option value="Unsatisfactory">Unsatisfactory</option>
+                {/* <option value="Reject">Reject</option> */}
+              </select>
+            </div>
+
+            <div className="w-full">
+              <label className="text-sm font-medium block mb-1">Status</label>
+              <select
+                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approve</option>
+                <option value="Completed">Complete</option>
+                <option value="Follow-up Required">Follow-up Required</option>
+                {/* <option value="Reject">Reject</option> */}
+              </select>
+            </div>
+
+            <div className="w-full">
+              <label className="text-sm font-medium block mb-1">
+                Release Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom actions */}
+        <div className="w-full flex flex-col md:flex-row gap-3 justify-between">
+          <Link
+            className="text-center bg-white text-black py-2 w-full md:w-[30%] border border-black/15 hover:border-black rounded-md"
+            to={LIST_PATH}
+          >
+            Cancel
+          </Link>
+          <button
+            type="button"
+            onClick={() => setConfirmOpen(true)}
+            disabled={!isValid}
+            className={`text-center font-bold text-white py-2 w-full md:w-[30%] rounded-md shadow ${
+              !isValid
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-primary hover:opacity-90"
+            }`}
+            // className={`text-center font-bold text-white py-2 w-full md:w-[30%] rounded-md shadow bg-primary hover:opacity-90`}
+            title={!isValid ? "Complete required fields" : ""}
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default AdminHormonalReplacementAdd;

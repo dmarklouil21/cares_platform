@@ -69,11 +69,12 @@ class MassScreeningAttachmentSerializer(serializers.ModelSerializer):
 class MassScreeningRequestSerializer(serializers.ModelSerializer):
   attachments = MassScreeningAttachmentSerializer(many=True, read_only=True)
   rhu_lgu = serializers.CharField(source='rhu.lgu', read_only=True)
+  institution_name = serializers.CharField(source='private.institution_name', read_only=True)
 
   class Meta:
     model = MassScreeningRequest
     fields = [
-      'id', 'rhu_lgu', 'title', 'venue', 'date', 'beneficiaries', 'description', 'support_need',
+      'id', 'rhu_lgu', 'institution_name', 'title', 'venue', 'date', 'beneficiaries', 'description', 'support_need',
       'status', 'created_at', 'attachments'
     ]
     read_only_fields = ['status', 'created_at', 'attachments', 'rhu_lgu']

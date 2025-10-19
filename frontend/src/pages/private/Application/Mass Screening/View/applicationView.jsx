@@ -1,6 +1,13 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import React, { useEffect, useRef, useState } from "react";
-import { getMyMassScreeningDetail, updateMyMassScreening, addMassScreeningAttachments, deleteMassScreeningAttachment } from "../../../../api/massScreening";
+import { 
+  getMyMassScreeningDetail, 
+  updateMyMassScreening, 
+  addMassScreeningAttachments, 
+  deleteMassScreeningAttachment 
+} from "src/api/massScreening";
+
+import api from "src/api/axiosInstance";
 
 /* Notification (no close button) */
 function Notification({ message }) {
@@ -62,7 +69,7 @@ const applicationView = () => {
   })();
 
   const handleCheckAttendance = () => {
-    navigate("/rhu/application/view/applicationAttendance", {
+    navigate("/private/application/mass-screening/view/attendance", {
       state: {
         record: form, // pass edited values forward
         // Only pass patients if they exist; otherwise let Attendance fetch from backend
@@ -72,7 +79,7 @@ const applicationView = () => {
       },
     });
   };
-
+// Stop here for now
   /* ------------------- Editable attachments ------------------- */
 
   // Normalize initial attachments
@@ -123,14 +130,15 @@ const applicationView = () => {
     }
     if (next.length) setAttachments((prev) => [...prev, ...next]);
   };
-
+// Stop here for now
   const removeAttachment = async (idx) => {
     const item = attachments[idx];
     if (!item) return;
     // If server-side (has id), call API to delete then remove from state
     if (item.id != null) {
       try {
-        await deleteMassScreeningAttachment(item.id);
+        // await deleteMassScreeningAttachment(item.id);
+        await api.delete(`/partners/cancer-screening/mass-screening/attachments/delete/${item.id}/`)
         setAttachments((prev) => prev.filter((_, i) => i !== idx));
         setNotif("Attachment removed.");
       } catch (e) {
@@ -173,7 +181,8 @@ const applicationView = () => {
       try {
         setLoading(true);
         setError("");
-        const data = await getMyMassScreeningDetail(passedId);
+        // const data = await getMyMassScreeningDetail(passedId);
+        const { data } = await api.get(`/partners/cancer-screening/mass-screening/detail/${passedId}/`)
         setForm({
           id: data.id,
           title: data.title || "",
@@ -201,23 +210,35 @@ const applicationView = () => {
       setSaving(true);
       setShowSaveConfirm(false);
       // 1) Update basic fields
-      const payload = {
+      console.log("Fuccck");
+      const enntries = {
         title: form.title,
         date: form.date,
         beneficiaries: form.beneficiaries,
         description: form.description,
         support_need: form.supportNeed,
+        // venue: "Argao",
       };
-      await updateMyMassScreening(form.id, payload);
+      const payload = { enntries };
+      console.log("Data: ", enntries);
+      await api.patch(`/partners/cancer-screening/mass-screening/update/${form.id}/`, enntries );
 
       // 2) Upload any new local attachments
       const newFiles = attachments.filter((a) => a.file instanceof File && a.id == null).map((a) => a.file);
       if (newFiles.length) {
-        await addMassScreeningAttachments(form.id, newFiles);
+        // await addMassScreeningAttachments(form.id, newFiles);
+        const fd = new FormData();
+        newFiles.forEach((file) => fd.append('attachments', file));
+        const res = await api.post(`/partners/cancer-screening/mass-screening/${form.id}/attachments/add/`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        // await api.post(`/partners/cancer-screening/mass-screening/${form.id}/attachments/add/`, newFiles)
       }
 
       // 3) Refresh from backend to sync
-      const data = await getMyMassScreeningDetail(form.id);
+      // const data = await getMyMassScreeningDetail(form.id);
+      const { data } = await api.get(`/partners/cancer-screening/mass-screening/detail/${form.id}/`)
       setForm({
         id: data.id,
         title: data.title || "",
@@ -232,6 +253,7 @@ const applicationView = () => {
 
       setNotif("Changes saved successfully.");
     } catch (e) {
+      console.error(e);
       setNotif(e?.response?.data?.detail || e?.response?.data?.error || "Failed to save changes.");
     } finally {
       setSaving(false);
@@ -243,9 +265,9 @@ const applicationView = () => {
       <Notification message={notif} />
 
       {/* Top bar */}
-      <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
+      {/* <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
         <h1 className="text-md font-bold h-full flex items-center">RHU</h1>
-      </div>
+      </div> */}
 
       {/* Content */}
       <div className="w-full flex-1 py-5 flex flex-col justify-start gap-5 px-5 overflow-auto">
@@ -437,7 +459,7 @@ const applicationView = () => {
 
         <div className="w-full flex justify-end">
           <Link
-            to="/Rhu/application"
+            to="/private/application/mass-screening"
             className="px-4 py-2 rounded-md w-[30%] text-center bg-primary text-white font-semibold"
           >
             Back

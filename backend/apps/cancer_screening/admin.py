@@ -17,3 +17,4 @@ class IndividualScreeningAdmin(admin.ModelAdmin):
 
 admin.site.register(models.IndividualScreening, IndividualScreeningAdmin)
 admin.site.register(models.ScreeningAttachment, ScreeningAttachmentAdmin)
+admin.site.register(models.MassScreeningRequest)
