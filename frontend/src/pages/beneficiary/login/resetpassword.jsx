@@ -8,6 +8,7 @@ const ResetPasswordPanel = () => {
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
   const [animationClass, setAnimationClass] = useState("bounce-in");
+  const [showReqModal, setShowReqModal] = useState(false);
 
   // Loading Modal
   const [loading, setLoading] = useState(false);
@@ -17,6 +18,16 @@ const ResetPasswordPanel = () => {
     newPassword: "",
     confirmPassword: "",
   });
+
+  const password = formData.newPassword || "";
+  const criteria = {
+    length: password.length >= 8,
+    letterNumber: /[A-Za-z]/.test(password) && /\d/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
+    upperLower: /[a-z]/.test(password) && /[A-Z]/.test(password),
+  };
+  const allMet = criteria.length && criteria.letterNumber && criteria.special && criteria.upperLower;
+  const passwordsMatch = formData.confirmPassword.length > 0 && formData.newPassword === formData.confirmPassword;
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -36,6 +47,10 @@ const ResetPasswordPanel = () => {
     }
     if (!formData.oldPassword || !formData.newPassword || !formData.confirmPassword) {
       alert("Please fill in all fields.");
+      return;
+    }
+    if (!allMet) {
+      alert("Password does not meet the required strength.");
       return;
     }
     if (formData.newPassword !== formData.confirmPassword) {
@@ -123,8 +138,36 @@ const ResetPasswordPanel = () => {
                   type="password"
                   value={formData.newPassword}
                   onChange={handleChange}
+                  onFocus={() => setShowReqModal(true)}
+                  onBlur={() => setShowReqModal(false)}
                   className="border-[#E2E2E2] border-[1px] rounded-md p-2 pl-10 w-full"
                 />
+                {showReqModal && (
+                  <div className="absolute z-50 right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg p-4 border border-lightblue">
+                    <h3 className="text-sm font-semibold text-primary mb-2">Password requirements</h3>
+                    <ul className="space-y-1.5 text-sm">
+                      <li className={`flex items-center gap-2 ${criteria.length ? "text-green-600" : "text-gray-500"}`}>
+                        <span className={`w-2 h-2 rounded-full ${criteria.length ? "bg-green-600" : "bg-gray-300"}`}></span>
+                        <span>At least 8 characters</span>
+                      </li>
+                      <li className={`flex items-center gap-2 ${criteria.upperLower ? "text-green-600" : "text-gray-500"}`}>
+                        <span className={`w-2 h-2 rounded-full ${criteria.upperLower ? "bg-green-600" : "bg-gray-300"}`}></span>
+                        <span>Uppercase and lowercase letters</span>
+                      </li>
+                      <li className={`flex items-center gap-2 ${criteria.letterNumber ? "text-green-600" : "text-gray-500"}`}>
+                        <span className={`w-2 h-2 rounded-full ${criteria.letterNumber ? "bg-green-600" : "bg-gray-300"}`}></span>
+                        <span>Combination of letters and numbers</span>
+                      </li>
+                      <li className={`flex items-center gap-2 ${criteria.special ? "text-green-600" : "text-gray-500"}`}>
+                        <span className={`w-2 h-2 rounded-full ${criteria.special ? "bg-green-600" : "bg-gray-300"}`}></span>
+                        <span>At least one special character</span>
+                      </li>
+                    </ul>
+                    <div className={`mt-2 text-xs ${allMet ? "text-green-600" : "text-gray-500"}`}>
+                      {allMet ? "Strong password" : "Keep typing..."}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -143,12 +186,18 @@ const ResetPasswordPanel = () => {
                   className="border-[#E2E2E2] border-[1px] rounded-md p-2 pl-10 w-full"
                 />
               </div>
+              {formData.confirmPassword.length > 0 && (
+                <p className={`text-sm ${passwordsMatch ? "text-green-600" : "text-red-600"}`}>
+                  {passwordsMatch ? "Passwords match" : "Passwords do not match"}
+                </p>
+              )}
             </div>
           </div>
 
           <button
             type="submit"
-            className=" font-bold bg-primary text-white py-2 w-[45%] border-[1px] border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+            disabled={!allMet || !passwordsMatch || !formData.oldPassword}
+            className={`font-bold py-2 w-[45%] border-[1px] rounded-md ${!allMet || !passwordsMatch || !formData.oldPassword ? "bg-gray-300 text-gray-600 border-gray-300 cursor-not-allowed" : "bg-primary text-white border-primary hover:border-lightblue hover:bg-lightblue"}`}
           >
             Reset Password
           </button>

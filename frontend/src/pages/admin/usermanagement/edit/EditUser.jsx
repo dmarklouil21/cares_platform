@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { updateUser } from "../../../../services/userManagementService";
+import { updateUser, checkEmailExists } from "../../../../services/userManagementService";
 
 // Modal component for confirmation
 function ConfirmationModal({ open, text, onConfirm, onCancel }) {
@@ -111,11 +111,21 @@ const EditUser = () => {
   };
 
   // Save changes with confirmation modal
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      return;
+    }
+    try {
+      const { exists } = await checkEmailExists({ email: form.email, excludeId: backendUser.id });
+      if (exists) {
+        setErrors((prev) => ({ ...prev, email: "Email already in use." }));
+        return;
+      }
+    } catch (_) {
+      setErrors((prev) => ({ ...prev, email: "Unable to verify email. Try again." }));
       return;
     }
     setModalText("Are you sure you want to save changes?");
@@ -162,7 +172,7 @@ const EditUser = () => {
         setNotification("Profile changes saved successfully!");
         setTimeout(() => {
           setNotification("");
-          navigate("/Admin/UserManagement");
+          navigate("/admin/user-management");
         }, 2000);
       } catch (error) {
         setNotification("Failed to update user");

@@ -50,7 +50,8 @@ const PrivateHeader = () => {
         const res = await api.get("/partners/private/profile/");
         const d = res.data;
         const name = `${d.first_name} ${d.last_name}` 
-        const avatar = d.avatar ? `http://localhost:8000${d.avatar}` : "/images/Avatar.png";
+        const base = (api.defaults?.baseURL || '').replace(/\/$/, '');
+        const avatar = d.avatar ? (d.avatar.startsWith('http') ? d.avatar : `${base}${d.avatar}`) : "/images/Avatar.png";
         setProfileName(name);
         setProfileAvatar(avatar);
       } catch (e) {

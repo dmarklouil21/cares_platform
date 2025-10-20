@@ -53,7 +53,8 @@ const AdminHeader = () => {
           // d.official_representative_name && d.official_representative_name.trim()
           //   ? d.official_representative_name
           //   : `${d.representative_first_name || ""} ${d.representative_last_name || ""}`.trim() || "RHU";
-        const avatar = d.avatar ? `http://localhost:8000${d.avatar}` : "/images/Avatar.png";
+        const base = (api.defaults?.baseURL || '').replace(/\/$/, '');
+        const avatar = d.avatar ? (d.avatar.startsWith('http') ? d.avatar : `${base}${d.avatar}`) : "/images/Avatar.png";
         setProfileName(name);
         setProfileAvatar(avatar);
       } catch (e) {
@@ -61,6 +62,18 @@ const AdminHeader = () => {
       }
     };
     fetchRhuProfile();
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const d = e?.detail || {};
+      const base = (api.defaults?.baseURL || '').replace(/\/$/, '');
+      const avatar = d.avatar ? (String(d.avatar).startsWith('http') ? d.avatar : `${base}${d.avatar}`) : "/images/Avatar.png";
+      if (d.official_representative_name) setProfileName(d.official_representative_name);
+      setProfileAvatar(avatar);
+    };
+    window.addEventListener('rhu-profile-updated', handler);
+    return () => window.removeEventListener('rhu-profile-updated', handler);
   }, []);
 
   const handleLogout = () => {
