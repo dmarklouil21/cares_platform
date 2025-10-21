@@ -15,7 +15,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
 
   // Notification Modal
@@ -37,7 +37,8 @@ const Login = () => {
         setModalInfo({
           type: "info",
           title: "Login Failed",
-          message: "You need an RHU account to access the site for the rhu/private partner portal.",
+          message:
+            "You need an RHU account to access the site for the rhu/private partner portal.",
         });
         setShowModal(true);
         // alert(
@@ -80,6 +81,14 @@ const Login = () => {
         id="right-panel"
         className="bg-gray w-[100%]  lg:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10"
       >
+        <div className="bg-primary w-full h-18 absolute flex px-5 py-10 gap-4 items-center md:hidden">
+          <img src="/images/logo_white_text.png" className="size-15" />
+          <div>
+            {" "}
+            <p className="font-bold text-white  text-[20px]">CARES Platform</p>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-2 items-center justify-center mt-36 md:mt-0">
           <h2 className="text-3xl md:text-5xl font-bold text-primary text-center">
             Login as RHU Focal Person
