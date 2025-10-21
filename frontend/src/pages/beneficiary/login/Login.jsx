@@ -14,7 +14,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Loading Modal 
+  // Loading Modal
   const [loading, setLoading] = useState(false);
 
   // Notification Modal
@@ -33,11 +33,11 @@ const Login = () => {
       const loggedInUser = await login(email, password);
 
       if (loggedInUser.is_superuser || loggedInUser.is_rhu) {
-
         setModalInfo({
           type: "info",
           title: "Login Failed",
-          message: "You need a beneficiary account to access the beneficiary portal.",
+          message:
+            "You need a beneficiary account to access the beneficiary portal.",
         });
         setShowModal(true);
         return;
@@ -56,14 +56,13 @@ const Login = () => {
           navigate("/beneficiary/pre-enrollment/note");
         }
       }
-
     } catch (err) {
       setModalInfo({
-          type: "error",
-          title: "Login Failed",
-          message: "Login failed. Please check your credentials.",
-        });
-        setShowModal(true);
+        type: "error",
+        title: "Login Failed",
+        message: "Login failed. Please check your credentials.",
+      });
+      setShowModal(true);
       console.error("Login error:", err);
     } finally {
       setLoading(false);
@@ -83,8 +82,16 @@ const Login = () => {
       {loading && <SystemLoader />}
       <div
         id="right-panel"
-        className="bg-gray w-[100%]  lg:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10"
+        className="bg-gray w-[100%]  lg:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10 shadow-xl"
       >
+        <div className="bg-primary w-full h-18 absolute flex px-5 py-10 gap-4 items-center md:hidden shadow-xl">
+          <img src="/images/logo_white_text.png" className="size-15" />
+          <div>
+            {" "}
+            <p className="font-bold text-white  text-[20px] tracking-wider">CARES Platform</p>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-2 items-center justify-center mt-36 md:mt-0">
           <h2 className="text-3xl md:text-5xl font-bold text-primary text-center">
             Login as Beneficiary

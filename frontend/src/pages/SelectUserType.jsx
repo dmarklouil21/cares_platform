@@ -3,11 +3,23 @@ import { Link } from "react-router-dom";
 
 const SelectUserType = () => {
   return (
-    <div className="bg-gray w-full  lg:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10 ">
-      <h2 className="text-3xl md:text-5xl font-bold text-primary mt-36 md:mt-0">Log in to Your Account</h2>
+    <div className="bg-gray w-full  lg:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10 relative`">
+      
+      <div className="bg-primary w-full h-18 absolute flex px-5 py-10 gap-4 items-center md:hidden shadow-xl">
+        <img src="/images/logo_white_text.png" className="size-15" />
+        <div>
+          {" "}
+          <p className="font-bold text-white  text-[20px] tracking-wider">CARES Platform</p>
+        
+        </div>
+      </div>
+
+      <h2 className="text-3xl md:text-5xl font-bold text-primary mt-36 md:mt-0">
+        Log in to Your Account
+      </h2>
       <p className="text-center text-base text-black">
         Access your account to manage patient <br />
-          services with ease.
+        services with ease.
         {/* <br />
         registration and access the right services tailored
         <br />
@@ -41,7 +53,7 @@ const SelectUserType = () => {
             />
             RHU
           </Link>
-          <Link 
+          <Link
             to="/private-login"
             className="flex gap-5 w-full text-black hover:text-[#636c72] font-bold text-xl px-4 py-3 rounded-lg hover:bg-lightblue focus:outline-none"
           >
