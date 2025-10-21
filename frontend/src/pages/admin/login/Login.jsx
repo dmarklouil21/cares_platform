@@ -53,8 +53,17 @@ const Login = () => {
       {loading && <SystemLoader />}
       <div
         id="right-panel"
-        className="bg-gray w-full  lg:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10 justify-center"
+       className="relative bg-gray w-full lg:w-[75%] h-full flex flex-col items-center justify-center md:justify-center gap-10"
       >
+       
+  
+        <div className="bg-primary w-full h-[65px] fixed top-0 left-0 flex items-center gap-4 px-5 py-10 md:hidden shadow-lg z-10 ">
+          <img src="/images/logo_white_text.png" alt="CARES Logo" className="size-15"  />
+          <p className="font-bold text-white text-[20px] tracking-wider">CARES Platform</p>
+        </div>
+
+
+       
         <div className="flex flex-col gap-2 items-center justify-center">
           <h2 className="text-5xl font-bold text-primary text-center">
             Log in to your Account
