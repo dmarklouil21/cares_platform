@@ -1,28 +1,10 @@
-import { use, useEffect, useState } from "react";
-import { useAuth } from "src/context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import barangayData from "src/constants/barangayData";
-import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
-
-function Notification({ message, onClose }) {
-  if (!message) return null;
-  return (
-    <div className="fixed top-1 left-1/2 bg-amber-100 transform -translate-x-1/2 z-50">
-      <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3 animate-fade-in">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="Rafi Logo"
-          className="h-[25px]"
-        />
-        <span>{message}</span>
-      </div>
-    </div>
-  );
-}
 
 export default function PatinetProfileForm() {
   // Notification Modal
@@ -41,7 +23,6 @@ export default function PatinetProfileForm() {
   const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [formData, setFormData] = useState({
     // user_id: user.user_id,
     first_name: "",
@@ -85,6 +66,9 @@ export default function PatinetProfileForm() {
   });
 
   const [notification, setNotification] = useState("");
+  const location = useLocation();
+
+  const record = location.state?.formData;
 
   const validate = () => {
     const newErrors = {};
@@ -142,6 +126,9 @@ export default function PatinetProfileForm() {
     return newErrors;
   };
 
+  // useEffect (() => { stop here for now
+  // })
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -187,59 +174,6 @@ export default function PatinetProfileForm() {
     setModalOpen(true);
   };
 
-  const handleModalConfirm = async () => {
-    if (modalAction?.type === "submit") {
-      try {
-        setLoading(true);
-        const response = await api.post(
-          "/beneficiary/pre-enrollment/",
-          formData
-        );
-        setModalInfo({
-          type: "success",
-          title: "Success!",
-          message: "Your form was submitted.",
-        });
-        setShowModal(true);
-        navigate("/Beneficiary");
-      } catch (error) {
-        let errorMessage = "Something went wrong while submitting the form.";
-
-        if (error.response && error.response.data) {
-          // DRF ValidationError returns an object with arrays of messages
-          if (error.response.data.non_field_errors) {
-            errorMessage = error.response.data.non_field_errors[0];
-          } //else if (typeof error.response.data === "string") {
-          //errorMessage = error.response.data; // for plain text errors
-          //}
-        }
-        setModalInfo({
-          type: "error",
-          title: "Submission Failed",
-          message: errorMessage,
-        });
-        setShowModal(true);
-        /* setModalInfo({
-          type: "error",
-          title: "Submission Failed",
-          message: "Something went wrong while submitting the form.",
-        });
-        setShowModal(true); */
-        // if (error.response && error.response.data && error.response.data.exists) {
-        //   setNotification("You already registered as beneficiary");
-        //   setTimeout(() => setNotification(""), 3500);
-        //   return;
-        // }
-        console.error("Error submitting form:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    setModalOpen(false);
-    setModalAction(null);
-    setModalText("");
-  };
   // 2×2 photo preview (UI only; no data changes)
   const [photoUrl, setPhotoUrl] = useState(null);
   const [imageFile, setImageFile] = useState(null);
@@ -250,10 +184,6 @@ export default function PatinetProfileForm() {
     const url = URL.createObjectURL(file);
     setPhotoUrl(url);
     setImageFile(file);
-    // setFormData((prev) => ({
-    //   ...prev,
-    //   photoUrl: url,
-    // }));
   }
 
   // cleanup the blob URL to avoid leaks
@@ -280,7 +210,7 @@ export default function PatinetProfileForm() {
 
   return (
     <>
-      <ConfirmationModal
+      {/* <ConfirmationModal
         open={modalOpen}
         text={modalText}
         onConfirm={handleModalConfirm}
@@ -289,7 +219,7 @@ export default function PatinetProfileForm() {
           setModalAction(null);
           setModalText("");
         }}
-      />
+      /> */}
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -366,43 +296,6 @@ export default function PatinetProfileForm() {
             </div>
           </div>
 
-          {/* <div className="flex justify-between items-center">
-            <h1 className="font-bold md:text-3xl">Patient Profile</h1>
-            <p>Note: Please put NA for not Applicable fields</p><br/>
-            <label>Date: </label>
-            <input type="date"></input>
-
-            <div className="flex items-center gap-4">
-              <label
-                htmlFor="photo2x2"
-                className="relative w-[130px] h-[130px] border-2 border-dashed rounded-md flex items-center justify-center text-xs text-gray-600 cursor-pointer overflow-hidden"
-                title="Upload 2×2 photo"
-              >
-                {photoUrl ? (
-                  <img
-                    src={photoUrl}
-                    alt="2×2 preview"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="p-2 text-center leading-tight">
-                    Upload 2×2 photo
-                    <br />
-                    <span className="text-[11px] opacity-70">JPG/PNG</span>
-                  </span>
-                )}
-                <input
-                  id="photo2x2"
-                  type="file"
-                  accept="image/*"
-                  onChange={handle2x2Change}
-                  className="hidden"
-                />
-              </label>
-
-              <img src="/images/logo_black_text.png" alt="rafi icon" />
-            </div>
-          </div> */}
           <h2 className="text-md font-bold border-b pb-1">GENERAL DATA</h2>
 
           <div className="grid grid-cols-2 md:gap-x-10 gap-3">

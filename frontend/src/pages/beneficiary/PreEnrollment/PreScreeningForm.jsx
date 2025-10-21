@@ -27,9 +27,92 @@ const PreScreeningForm = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
   const [modalAction, setModalAction] = useState(null); 
+  const [modalDesc, setModalDesc] = useState("Please confirm before proceeding.");
+
+  const [errors, setErrors] = useState({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const form = document.getElementById("pre-screening-form"); 
+    const formElements = form.elements;
+
+    const newErrors = {}; // collect all errors here
+
+    // --- Checkbox groups to validate ---
+    const checkboxGroupsInput = [
+      {
+        name: "diagnosis_basis",
+        message: "Select at least one diagnosis basis.",
+      },
+      {
+        name: "primary_sites",
+        message: "Select at least one primary site.",
+      },
+      {
+        name: "distant_metastasis_sites",
+        message: "Select 'None' if no distant metastasis.",
+      },
+      {
+        name: "adjuvant_treatments_received",
+        message: "Select 'None' if none received.",
+      },
+      {
+        name: "other_source_treatments",
+        message: "Select 'None' if none received.",
+      },
+    ];
+
+    checkboxGroupsInput.forEach((group) => {
+      const boxes = Array.from(formElements).filter(
+        (el) => el.name && el.name.startsWith(group.name) && el.type === "checkbox"
+      );
+      const isChecked = boxes.some((el) => el.checked);
+      if (!isChecked) {
+        newErrors[group.name] = group.message;
+      }
+    });
+
+    // --- Text / textarea / date inputs to validate ---
+    const textFields = [
+      { name: "referred_from", message: "Referred from is required." },
+      {
+        name: "referring_doctor_or_facility",
+        message: "Name of referring doctor/facility is required.",
+      },
+      {
+        name: "reason_for_referral",
+        message: "Reason for referral is required.",
+      },
+      { name: "chief_complaint", message: "Chief complaint is required." },
+      {
+        name: "date_of_consultation",
+        message: "Date of consultation/admission is required.",
+      }, 
+      { name: "date_of_diagnosis", message: "Date of diagnosis is required." },
+      { name: "multiple_primaries", message: "This field is required." },
+      { name: "histology", message: "Histology is required." },
+      { name: "laterality", message: "This field is required." },
+      { name: "staging", message: "Staging is required." },
+      { name: "tnm_system", message: "This field is required." },
+      { name: "final_diagnosis", message: "Final diagnosis is required." },
+      { name: "final_diagnosis_icd10", message: "This field is required." },
+      { name: "treatment_purpose", message: "This field is required." },
+      { name: "primary_assistance_by_ejacc", message: "This field is required." },
+    ];
+
+    textFields.forEach((field) => {
+      const input = formElements[field.name];
+      if (input && !input.value.trim()) {
+        newErrors[field.name] = field.message;
+      }
+    });
+
+    // --- If any errors exist, stop submission ---
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
 
     setModalText('Make sure all your inputs are correct!');
     setModalAction({ type: "submit" }); 
@@ -41,6 +124,7 @@ const PreScreeningForm = () => {
       try {
         const form = document.getElementById("pre-screening-form"); 
         const formElements = form.elements;
+
         const data = {
           general_data: generalData,
           cancer_data: {},
@@ -127,7 +211,8 @@ const PreScreeningForm = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={() => {
           setModalOpen(false);
@@ -151,6 +236,10 @@ const PreScreeningForm = () => {
         >
           <div>
             <h2 className="text-md font-bold border-b pb-1 mb-5">CANCER DATA</h2>
+            {/* <p className="text-sm text-gray-600 italic">
+              Note: Please put <span className="font-semibold">"NA"</span> for not applicable fields.
+            </p>
+            <br /> */}
             <div className="grid grid-cols-2 gap-x-10 gap-y-5">
               <div className="flex gap-2 flex-col">
                 <label>Referred From</label>
@@ -159,6 +248,11 @@ const PreScreeningForm = () => {
                   name="referred_from"
                   className="border-[#6B7280] border-[1px] rounded-md p-2"
                 />
+                {errors.referred_from && (
+                  <span className="text-red-500 text-xs">
+                    {errors.referred_from}
+                  </span>
+                )}
               </div>
               <div className="flex gap-2 flex-col">
                 <label>Name of Referring Doctor / Facility</label>
@@ -167,6 +261,11 @@ const PreScreeningForm = () => {
                   name="referring_doctor_or_facility"
                   className="border-[#6B7280] border-[1px] rounded-md p-2"
                 />
+                {errors.referring_doctor_or_facility && (
+                  <span className="text-red-500 text-xs">
+                    {errors.referring_doctor_or_facility}
+                  </span>
+                )}
               </div>
               <div className="flex gap-2 flex-col">
                 <label>Reason for Referral</label>
@@ -174,6 +273,11 @@ const PreScreeningForm = () => {
                   name="reason_for_referral"
                   className="border-[#6B7280] border-[1px] rounded-md p-2 resize-none h-28"
                 ></textarea>
+                {errors.reason_for_referral && (
+                  <span className="text-red-500 text-xs">
+                    {errors.reason_for_referral}
+                  </span>
+                )}
               </div>
               <div className="flex gap-2 flex-col">
                 <label>Chief Complaint</label>
@@ -181,6 +285,11 @@ const PreScreeningForm = () => {
                   name="chief_complaint"
                   className="border-[#6B7280] border-[1px] rounded-md p-2 resize-none h-28"
                 ></textarea>
+                {errors.chief_complaint && (
+                  <span className="text-red-500 text-xs">
+                    {errors.chief_complaint}
+                  </span>
+                )}
               </div>
               <div className="flex gap-2 flex-col">
                 <label>Date of Consultation / Admission</label>
@@ -208,6 +317,11 @@ const PreScreeningForm = () => {
                     placeholder="Select date"
                   />
                 </div>
+                {errors.date_of_consultation && (
+                  <span className="text-red-500 text-xs">
+                    {errors.date_of_consultation}
+                  </span>
+                )}
               </div>
               <div className="flex gap-2 flex-col">
                 <label>Date of Diagnosis</label>
@@ -233,8 +347,14 @@ const PreScreeningForm = () => {
                     name="date_of_diagnosis"
                     className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
                     placeholder="Select date"
+
                   />
                 </div>
+                {errors.date_of_diagnosis && (
+                  <span className="text-red-500 text-xs">
+                    {errors.date_of_diagnosis}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -242,7 +362,14 @@ const PreScreeningForm = () => {
             <h1 id="details_title" className="font-bold">
               Diagnosis
             </h1>
-            <p className="text-[#6B7280]">Most Valid Basis of Diagnosis:</p>
+            <p className="text-[#6B7280]">
+              Most Valid Basis of Diagnosis {" "}
+              {errors.diagnosis_basis && (
+                <span className="text-red-500 text-xs">
+                  {errors.diagnosis_basis}
+                </span>
+              )}
+            </p>
             <div className="grid grid-cols-3 gap-x-10 gap-y-5">
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -319,7 +446,14 @@ const PreScreeningForm = () => {
             </div>
           </div>
           <div className="flex flex-col gap-5">
-            <p className="text-[#6B7280]">Multiple Primaries</p>
+            <p className="text-[#6B7280]">
+              Multiple Primaries {" "}
+              {errors.multiple_primaries && (
+                <span className="text-red-500 text-xs">
+                  {errors.multiple_primaries}
+                </span>
+              )}
+            </p>
             <div className="grid grid-cols-3 gap-x-10 gap-y-5 w-fit">
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -351,7 +485,14 @@ const PreScreeningForm = () => {
             </div>
           </div>
           <div className="flex flex-col gap-5">
-            <p className="text-[#6B7280]">Primary Sites</p>
+            <p className="text-[#6B7280]">
+              Primary Sites {" "}
+              {errors.primary_sites && (
+                <span className="text-red-500 text-xs">
+                  {errors.primary_sites}
+                </span>
+              )}
+            </p>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-10 gap-y-5">
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -573,7 +714,14 @@ const PreScreeningForm = () => {
             </div>
           </div>
           <div className="flex flex-col gap-5">
-            <p className="text-[#6B7280]">Laterality</p>
+            <p className="text-[#6B7280]">
+              Laterality {" "}
+              {errors.laterality && (
+                <span className="text-red-500 text-xs">
+                  {errors.laterality}
+                </span>
+              )}
+            </p>
             <div className="flex flex-col gap-3">
               <div className="flex gap-3 items-center">
                 <input
@@ -655,6 +803,11 @@ const PreScreeningForm = () => {
                 name="histology"
                 className="border-[#6B7280] border-[1px] rounded-md p-2"
               />
+              {errors.histology && (
+                <span className="text-red-500 text-xs">
+                  {errors.histology}
+                </span>
+              )}
             </div>
             <div className="flex gap-2 flex-col">
               <label className="">Staging</label>
@@ -677,6 +830,11 @@ const PreScreeningForm = () => {
                   <option value="Unknown">Unknown</option>
                 </select>
               </div>
+              {errors.staging && (
+                <span className="text-red-500 text-xs">
+                  {errors.staging}
+                </span>
+              )}
             </div>
             <div className="flex gap-2 flex-col">
               <label className="text-[#6B7280] h-10">TNM System</label>
@@ -689,6 +847,7 @@ const PreScreeningForm = () => {
                   maxLength="1"
                   onInput={handleTNMInput}
                   className="border-b outline-none px-2 w-[20%] text-center"
+                  required
                 />
                 N
                 <input
@@ -698,6 +857,7 @@ const PreScreeningForm = () => {
                   maxLength="1"
                   onInput={handleTNMInput}
                   className="border-b outline-none px-2 w-[20%] text-center"
+                  required
                 />
                 M
                 <input
@@ -707,12 +867,25 @@ const PreScreeningForm = () => {
                   maxLength="1"
                   onInput={handleTNMInput}
                   className="border-b outline-none px-2 w-[20%] text-center"
+                  required
                 />
               </div>
+              {errors.tnm_system && (
+                <span className="text-red-500 text-xs">
+                  {errors.tnm_system}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex flex-col gap-5">
-            <p className="text-[#6B7280]">Sites of Distant Metastasis</p>
+            <p className="text-[#6B7280]">
+              Sites of Distant Metastasis {" "}
+              {errors.distant_metastasis_sites && (
+                <span className="text-red-500 text-xs">
+                  {errors.distant_metastasis_sites}
+                </span>
+              )}
+            </p>
             <div className="grid grid-cols-3 gap-x-10 gap-y-5">
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -824,6 +997,11 @@ const PreScreeningForm = () => {
                   name="final_diagnosis"
                   className="border-[#6B7280] border-[1px] rounded-md p-2 h-36 w-[60%] resize-none"
                 ></textarea>
+                {errors.final_diagnosis && (
+                  <span className="text-red-500 text-xs">
+                    {errors.final_diagnosis}
+                  </span>
+                )}
               </div>
               <div className="flex flex-col gap-5 w-[50%]">
                 <label className="text-sm text-[#6B7280]">
@@ -834,12 +1012,24 @@ const PreScreeningForm = () => {
                   name="final_diagnosis_icd10"
                   className="border-[#6B7280] border-[1px] rounded-md p-2"
                 />
+                {errors.final_diagnosis_icd10 && (
+                  <span className="text-red-500 text-xs">
+                    {errors.final_diagnosis_icd10}
+                  </span>
+                )}
               </div>
             </div>
           </div>
           <div className="flex flex-col gap-5">
             <h1 className="font-bold">Treatment</h1>
-            <p className="text-[#6B7280] text-sm">Treatment Purposes</p>
+            <p className="text-[#6B7280] text-sm">
+              Treatment Purposes {" "}
+              {errors.treatment_purpose && (
+                <span className="text-red-500 text-xs">
+                  {errors.treatment_purpose}
+                </span>
+              )}
+            </p>
             <div className="flex flex-col gap-3">
               <div className="flex gap-3 items-center">
                 <input
@@ -898,13 +1088,18 @@ const PreScreeningForm = () => {
           <div className="flex gap-5 w-full">
             <div className="flex gap-2 flex-col w-full">
               <label className="text-[#6B7280] text-sm">
-                Primary Assistance by RAFI-ELACC
+                Primary Assistance given by RAFI-ELACC
               </label>
               <input
                 type="text"
                 name="primary_assistance_by_ejacc"
                 className="border-[#6B7280] border-[1px] rounded-md p-2"
               />
+              {errors.primary_assistance_by_ejacc && (
+                <span className="text-red-500 text-xs">
+                  {errors.primary_assistance_by_ejacc}
+                </span>
+              )}
             </div>
             <div className="flex gap-2 flex-col w-full">
               <label className="text-[#6B7280] text-sm">
@@ -939,7 +1134,12 @@ const PreScreeningForm = () => {
           <div className="flex flex-col gap-4">
             <p className="text-sm text-[#6B7280]">
               Planned Additional/Adjuvant Treatment/s actually received from
-              RAFI-EJACC
+              RAFI-EJACC {" "}
+              {errors.adjuvant_treatments_received && (
+                <span className="text-red-500 text-xs">
+                  {errors.adjuvant_treatments_received}
+                </span>
+              )}
             </p>
 
             <div className="flex flex-wrap gap-x-8 gap-y-3">
@@ -1018,13 +1218,13 @@ const PreScreeningForm = () => {
               <div className="flex items-center gap-2 w-fit">
                 <input
                   type="checkbox"
-                  id="unknown"
-                  name="adjuvant_treatments_received_unknownTreatment"
+                  id="none"
+                  name="adjuvant_treatments_received_noneTreatment"
                   value="Unknown"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label htmlFor="unknown" className="text-[#374151] text-sm">
-                  Unknown
+                  None
                 </label>
               </div>
             </div>
@@ -1041,7 +1241,12 @@ const PreScreeningForm = () => {
           </div>
           <div className="flex flex-col gap-4">
             <p className="text-sm text-[#6B7280]">
-              Treatment/s received from other sources
+              Treatment/s received from other sources {" "}
+              {errors.other_source_treatments && (
+                <span className="text-red-500 text-xs">
+                  {errors.other_source_treatments}
+                </span>
+              )}
             </p>
 
             <div className="flex flex-wrap gap-x-8 gap-y-3">
@@ -1126,16 +1331,16 @@ const PreScreeningForm = () => {
               <div className="flex items-center gap-2 w-fit">
                 <input
                   type="checkbox"
-                  id="unknownOther"
-                  name="other_source_treatments_unknownOther"
+                  id="noneOther"
+                  name="other_source_treatments_noneOther"
                   value="Unknown"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
                 <label
-                  htmlFor="unknownOther"
+                  htmlFor="noneOther"
                   className="text-[#374151] text-sm"
                 >
-                  Unknown
+                  None
                 </label>
               </div>
             </div>
