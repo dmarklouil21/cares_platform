@@ -137,6 +137,8 @@ const ViewProfile = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const d = res.data;
+      const base = (api.defaults?.baseURL || '').replace(/\/$/, '');
+      const avatarUrl = d.avatar ? (d.avatar.startsWith('http') ? d.avatar : `${base}${d.avatar}`) : formData.profilePic;
       const mapped = {
         lgu: d.lgu || "",
         address: d.address || "",
@@ -145,7 +147,7 @@ const ViewProfile = () => {
         representative_first_name: d.representative_first_name || "",
         representative_last_name: d.representative_last_name || "",
         official_representative_name: d.official_representative_name || "",
-        profilePic: d.avatar ? `http://localhost:8000${d.avatar}` : formData.profilePic,
+        profilePic: avatarUrl,
         profileFile: null,
         agreed: true,
       };
@@ -158,6 +160,9 @@ const ViewProfile = () => {
         title: "Saved",
         message: "RHU profile updated.",
       });
+      try {
+        window.dispatchEvent(new CustomEvent('rhu-profile-updated', { detail: { avatar: d.avatar, official_representative_name: d.official_representative_name } }));
+      } catch {}
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to save RHU profile.";
       setNotify({ show: true, type: "info", title: "Error", message: msg });
@@ -172,6 +177,8 @@ const ViewProfile = () => {
       try {
         const res = await api.get("/rhu/profile/");
         const d = res.data;
+        const base = (api.defaults?.baseURL || '').replace(/\/$/, '');
+        const avatarUrl = d.avatar ? (d.avatar.startsWith('http') ? d.avatar : `${base}${d.avatar}`) : "";
         const mapped = {
           lgu: d.lgu || "",
           address: d.address || "",
@@ -180,7 +187,7 @@ const ViewProfile = () => {
           representative_first_name: d.representative_first_name || "",
           representative_last_name: d.representative_last_name || "",
           official_representative_name: d.official_representative_name || "",
-          profilePic: d.avatar ? `http://localhost:8000${d.avatar}` : "",
+          profilePic: avatarUrl,
           profileFile: null,
           agreed: true,
         };

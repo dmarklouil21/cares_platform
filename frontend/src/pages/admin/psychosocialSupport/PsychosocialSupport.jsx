@@ -5,11 +5,12 @@ import { Link } from "react-router-dom";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
+import api from "src/api/axiosInstance";
+
 import {
   adminListPsychosocialActivities,
   adminUpdatePsychosocialActivity,
   adminDeletePsychosocialActivity,
-  adminPatientSuggestions,
 } from "src/api/psychosocialSupport";
 
 
@@ -87,29 +88,42 @@ const PschosocialSupport = () => {
   const [patientQuery, setPatientQuery] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
+  const [patientList, setPatientList] = useState([]);
 
   // Dynamic suggestions from backend
   useEffect(() => {
     let alive = true;
-    const run = async () => {
-      if (!inputFocused) return setSuggestions([]);
+    const load = async () => {
       try {
-        const data = await adminPatientSuggestions(patientQuery);
-        if (!alive) return;
-        const filtered = (data || []).filter(
-          (name) => !form.patients.some((p) => p.toLowerCase() === String(name).toLowerCase())
-        );
-        setSuggestions(filtered);
-      } catch (e) {
-        if (alive) setSuggestions([]);
+        const res = await api.get("/patient/list/");
+        const arr = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res?.data?.results)
+          ? res.data.results
+          : [];
+        const names = (arr || [])
+          .map((d) => d.full_name || `${d.first_name || ""} ${d.last_name || ""}`.trim())
+          .filter(Boolean);
+        if (alive) setPatientList(names);
+      } catch {
+        if (alive) setPatientList([]);
       }
     };
-    const id = setTimeout(run, 200);
+    load();
     return () => {
       alive = false;
-      clearTimeout(id);
     };
-  }, [inputFocused, patientQuery, form.patients]);
+  }, []);
+
+  useEffect(() => {
+    if (!inputFocused) return setSuggestions([]);
+    const q = (patientQuery || "").trim().toLowerCase();
+    const exclude = new Set(form.patients.map((p) => String(p).toLowerCase()));
+    const base = patientList.filter((n) => !exclude.has(String(n).toLowerCase()));
+    if (!q) return setSuggestions(base.slice(0, 50));
+    const filtered = base.filter((n) => String(n).toLowerCase().includes(q));
+    setSuggestions(filtered.slice(0, 20));
+  }, [inputFocused, patientQuery, form.patients, patientList]);
 
   const resetForm = () => {
     setForm({
@@ -124,6 +138,27 @@ const PschosocialSupport = () => {
     setEditing(null);
   };
 
+  // Patients helpers
+  const addPatient = (name) => {
+    const n = name.trim();
+    if (!n) return;
+    const exists = patientList.some((p) => String(p).toLowerCase() === n.toLowerCase());
+    if (!exists) {
+      setNotifyInfo({ type: "error", title: "Invalid Patient", message: "Select a patient from the list." });
+      setNotifyOpen(true);
+      return;
+    }
+    if (!form.patients.some((p) => p.toLowerCase() === n.toLowerCase())) {
+      setForm((f) => ({ ...f, patients: [...f.patients, n] }));
+    }
+    setPatientQuery("");
+    setInputFocused(false); // CLOSE suggestions after selecting/adding
+  };
+
+  const removePatient = (name) => {
+    setForm((f) => ({ ...f, patients: f.patients.filter((p) => p !== name) }));
+  };
+
   // EDIT ONLY: open the modal prefilled
   const startEdit = (a) => {
     setEditing(a);
@@ -136,21 +171,6 @@ const PschosocialSupport = () => {
       patients: Array.isArray(a.patients) ? [...a.patients] : [],
     });
     setShowModal(true);
-  };
-
-  // Patients helpers
-  const addPatient = (name) => {
-    const n = name.trim();
-    if (!n) return;
-    if (!form.patients.some((p) => p.toLowerCase() === n.toLowerCase())) {
-      setForm((f) => ({ ...f, patients: [...f.patients, n] }));
-    }
-    setPatientQuery("");
-    setInputFocused(false); // CLOSE suggestions after selecting/adding
-  };
-
-  const removePatient = (name) => {
-    setForm((f) => ({ ...f, patients: f.patients.filter((p) => p !== name) }));
   };
 
   const onPatientsKeyDown = (e) => {

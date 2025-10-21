@@ -1,11 +1,12 @@
 // @ts-nocheck
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
-import { adminCreatePsychosocialActivity, adminPatientSuggestions } from "src/api/psychosocialSupport";
+import { adminCreatePsychosocialActivity } from "src/api/psychosocialSupport";
 
 const add = () => {
   // Local-only UI state
@@ -34,38 +35,50 @@ const add = () => {
   const [patientQuery, setPatientQuery] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
+  const [patientList, setPatientList] = useState([]);
 
   // Today's date (local) as YYYY-MM-DD for input[min]
   const todayStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
     .toISOString()
     .split("T")[0];
 
-  // Fetch dynamic suggestions from backend
+  // Load overall patient list (admin)
   useEffect(() => {
     let alive = true;
     const run = async () => {
-      if (!inputFocused) return setSuggestions([]);
       try {
-        const data = await adminPatientSuggestions(patientQuery);
-        if (!alive) return;
-        const filtered = (data || []).filter(
-          (name) => !form.patients.some((p) => p.toLowerCase() === String(name).toLowerCase())
-        );
-        setSuggestions(filtered);
+        const res = await api.get("/patient/list/");
+        const arr = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.results) ? res.data.results : []);
+        const names = (arr || []).map((d) => d.full_name || `${d.first_name || ""} ${d.last_name || ""}`.trim()).filter(Boolean);
+        if (alive) setPatientList(names);
       } catch (e) {
-        if (alive) setSuggestions([]);
+        if (alive) setPatientList([]);
       }
     };
-    const id = setTimeout(run, 200);
-    return () => {
-      alive = false;
-      clearTimeout(id);
-    };
-  }, [inputFocused, patientQuery, form.patients]);
+    run();
+    return () => { alive = false; };
+  }, []);
+
+  // Compute suggestions locally from patientList
+  useEffect(() => {
+    if (!inputFocused) return setSuggestions([]);
+    const q = (patientQuery || "").trim().toLowerCase();
+    const exclude = new Set(form.patients.map((p) => String(p).toLowerCase()));
+    const base = patientList.filter((n) => !exclude.has(String(n).toLowerCase()));
+    if (!q) return setSuggestions(base.slice(0, 50));
+    const filtered = base.filter((n) => String(n).toLowerCase().includes(q));
+    setSuggestions(filtered.slice(0, 20));
+  }, [inputFocused, patientQuery, form.patients, patientList]);
 
   const addPatient = (name) => {
     const n = name.trim();
     if (!n) return;
+    const exists = patientList.some((p) => String(p).toLowerCase() === n.toLowerCase());
+    if (!exists) {
+      setNotifyInfo({ type: "error", title: "Invalid Patient", message: "Select a patient from the list." });
+      setNotifyOpen(true);
+      return;
+    }
     if (!form.patients.some((p) => p.toLowerCase() === n.toLowerCase())) {
       setForm((f) => ({ ...f, patients: [...f.patients, n] }));
     }

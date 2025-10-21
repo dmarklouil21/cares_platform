@@ -28,7 +28,8 @@ const applicationView = () => {
     (location.state &&
       (location.state.record || location.state.item || location.state)) ||
     null;
-  const passedId = selected?.id || location.state?.id || null;
+  const qsId = new URLSearchParams(location.search).get('id');
+  const passedId = selected?.id || location.state?.id || qsId || null;
 
   /* ------------------------- Editable form state ------------------------- */
   const [form, setForm] = useState({
@@ -438,7 +439,7 @@ const applicationView = () => {
 
         <div className="w-full flex justify-end">
           <Link
-            to="/Rhu/application"
+            to="/rhu/application/mass-screening"
             className="px-4 py-2 rounded-md w-[30%] text-center bg-primary text-white font-semibold"
           >
             Back

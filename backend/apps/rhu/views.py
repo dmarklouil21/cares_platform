@@ -19,6 +19,9 @@ from apps.precancerous.models import PreCancerousMedsRequest
 from apps.precancerous.serializers import (
   PreCancerousMedsRequestSerializer,
 )
+from apps.patient.models import Patient
+from apps.patient.serializers import PatientSerializer
+from django.db.models import Q
 
 import logging
 logger = logging.getLogger(__name__)
@@ -35,12 +38,12 @@ class RHURepresentativeProfileAPIView(APIView):
 
   def get(self, request):
     representative = self._get_rhu(request.user)
-    serializer = RepresentativeSerializer(representative)
+    serializer = RepresentativeSerializer(representative, context={'request': request})
     return Response(serializer.data, status=status.HTTP_200_OK)
 
   def put(self, request):
     representative = self._get_rhu(request.user)
-    serializer = RepresentativeSerializer(representative, data=request.data, partial=True)
+    serializer = RepresentativeSerializer(representative, data=request.data, partial=True, context={'request': request})
     serializer.is_valid(raise_exception=True)
     serializer.save()
     # Sync RHU avatar to User avatar so it's available globally
@@ -99,6 +102,43 @@ class RepresentativeDetailView(generics.RetrieveAPIView):
   queryset = Representative.objects.select_related('rhu', 'user').all()
   serializer_class = RepresentativeSerializer
   permission_classes = [IsAuthenticated]
+
+class RHUPatientListAPIView(generics.ListAPIView):
+  permission_classes = [IsAuthenticated]
+  serializer_class = PatientSerializer
+
+  def get_queryset(self):
+    representative = getattr(self.request.user, 'representative', None)
+    if not representative:
+      return Patient.objects.none()
+    lgu = representative.rhu.lgu or ''
+    def to_city(s: str) -> str:
+      s = (s or '').strip()
+      for prefix in ['RHU ', 'City of ', 'Municipality of ', 'LGU ']:
+        if s.lower().startswith(prefix.lower()):
+          s = s[len(prefix):]
+      # Take first token up to comma
+      return s.split(',')[0].strip()
+
+    city = to_city(lgu)
+    qs = Patient.objects.filter(registered_by='rhu')
+    if city:
+      qs = qs.filter(
+        Q(city__iexact=city) |
+        Q(city__icontains=city) |
+        Q(address__icontains=city) |
+        Q(barangay__icontains=city)
+      )
+    q = (self.request.query_params.get('q') or '').strip()
+    if q:
+      qs = qs.filter(
+        Q(first_name__icontains=q) |
+        Q(last_name__icontains=q) |
+        Q(email__icontains=q) |
+        Q(patient_id__icontains=q) |
+        Q(mobile_number__icontains=q)
+      )
+    return qs.order_by('last_name', 'first_name')
 
 # Pre Cancerous Views 
 class PreCancerousMedsListView(generics.ListAPIView):

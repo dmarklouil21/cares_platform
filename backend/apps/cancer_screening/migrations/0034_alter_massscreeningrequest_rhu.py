@@ -8,13 +8,13 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('cancer_screening', '0033_delete_precancerousmedsrequest'),
-        ('rhu', '0003_rhuv2_representative'),
+        ('rhu', '0004_backfill_rhuv2_from_rhu'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='massscreeningrequest',
             name='rhu',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mass_screening_requests', to='rhu.rhuv2'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mass_screening_requests', to='rhu.rhuv2', null=True),
         ),
     ]

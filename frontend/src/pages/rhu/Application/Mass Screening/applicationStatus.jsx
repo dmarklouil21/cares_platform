@@ -101,7 +101,7 @@ const applicationStatus = () => {
 
   const handleViewClick = (id) => {
     const record = items.find((x) => x.id === id);
-    navigate("/rhu/application/mass-screening/view", {
+    navigate(`/rhu/application/mass-screening/view?id=${encodeURIComponent(id)}`, {
       state: record ?? { id },
     });
   };

@@ -4,6 +4,7 @@ import {
   getMassScreeningAttendance,
   saveMassScreeningAttendance,
 } from "../../../../../api/massScreening";
+import api from "src/api/axiosInstance";
 
 /* Notification (no close button) */
 function Notification({ message }) {
@@ -41,6 +42,9 @@ const ApplicationAttendance = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [rhuLgu, setRhuLgu] = useState("");
+  const [patientList, setPatientList] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
 
   useEffect(() => setPatients(initialPatients), [initialPatients]);
 
@@ -66,6 +70,43 @@ const ApplicationAttendance = () => {
     load();
   }, [record?.id]);
 
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const prof = await api.get("/rhu/profile/");
+        const lgu = prof?.data?.lgu || "";
+        setRhuLgu(lgu);
+        const toCity = (s) => String(s || "").replace(/^RHU\s+/i, "").split(",")[0].trim();
+        const norm = (s) => toCity(s).toLowerCase();
+        const cityExact = toCity(lgu);
+
+        let list = [];
+        try {
+          const res = await api.get("/rhu/patients/");
+          list = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.results) ? res.data.results : []);
+        } catch {}
+
+        if (!Array.isArray(list) || list.length === 0) {
+          try {
+            const resCity = await api.get(`/patient/list/`, { params: { registered_by: "rhu", city: cityExact } });
+            list = Array.isArray(resCity?.data) ? resCity.data : (Array.isArray(resCity?.data?.results) ? resCity.data.results : []);
+            if (!list.length) {
+              const resAllRhu = await api.get(`/patient/list/`, { params: { registered_by: "rhu" } });
+              const allRhu = Array.isArray(resAllRhu?.data) ? resAllRhu.data : (Array.isArray(resAllRhu?.data?.results) ? resAllRhu.data.results : []);
+              list = allRhu.filter((p) => norm(p.city) === norm(cityExact) || norm(p.city).includes(norm(cityExact)));
+            }
+          } catch {}
+        }
+
+        setPatientList(list || []);
+        if (!list || list.length === 0) {
+          setNotif("No RHU patients found for your LGU.");
+        }
+      } catch {}
+    };
+    run();
+  }, []);
+
   const updateResult = (idx, value) => {
     setPatients((list) =>
       list.map((p, i) => (i === idx ? { ...p, result: value } : p))
@@ -80,20 +121,45 @@ const ApplicationAttendance = () => {
   const [newName, setNewName] = useState("");
   const [newResult, setNewResult] = useState("");
   const nameInputRef = useRef(null);
+  const isValidName = useMemo(() => {
+    const name = newName.trim().toLowerCase();
+    if (!name) return false;
+    return patientList.some((p) => (p.full_name || `${p.first_name} ${p.last_name}`.trim()).toLowerCase() === name);
+  }, [newName, patientList]);
+
+  const onNameChange = (v) => {
+    setNewName(v);
+    const term = v.trim().toLowerCase();
+    if (!term) {
+      setSuggestions([]);
+      return;
+    }
+    const next = patientList
+      .map((p) => p.full_name || `${p.first_name} ${p.last_name}`.trim())
+      .filter((n) => n.toLowerCase().includes(term))
+      .slice(0, 8);
+    setSuggestions(next);
+  };
 
   const addPatient = () => {
     const name = newName.trim();
-    if (!name) return;
+    if (!name || !isValidName) {
+      setNotif("Select a patient from your RHU list.");
+      return;
+    }
+    if (patients.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
+      setNotif("Patient already added.");
+      return;
+    }
     setPatients((list) => [...list, { name, result: newResult.trim() }]);
     setNewName("");
     setNewResult("");
     setNotif("Patient added.");
-    // focus back to name input for fast entry
     requestAnimationFrame(() => nameInputRef.current?.focus());
   };
 
   const handleAddKey = (e) => {
-    if (e.key === "Enter") addPatient();
+    if (e.key === "Enter" && isValidName) addPatient();
   };
 
   /* Save + confirmation + notification */
@@ -167,16 +233,33 @@ const ApplicationAttendance = () => {
           <div className="mt-2">
             <div className="text-gray2 text-sm mb-2">Add Patient</div>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-              <div className="md:col-span-5">
+              <div className="md:col-span-5 relative">
                 <input
                   ref={nameInputRef}
                   type="text"
                   value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
+                  onChange={(e) => onNameChange(e.target.value)}
                   onKeyDown={handleAddKey}
                   placeholder="Full name"
                   className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
                 />
+                {newName && suggestions.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow max-h-60 overflow-auto">
+                    {suggestions.map((s) => (
+                      <div
+                        key={s}
+                        className="px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm"
+                        onClick={() => {
+                          setNewName(s);
+                          setSuggestions([]);
+                          requestAnimationFrame(() => nameInputRef.current?.focus());
+                        }}
+                      >
+                        {s}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="md:col-span-5">
                 <input
@@ -192,9 +275,9 @@ const ApplicationAttendance = () => {
                 <button
                   type="button"
                   onClick={addPatient}
-                  disabled={!newName.trim() || saving}
+                  disabled={!isValidName || saving}
                   className={`w-full px-4 py-2 rounded-md font-semibold ${
-                    newName.trim() && !saving
+                    isValidName && !saving
                       ? "bg-secondary text-white"
                       : "bg-gray-200 text-gray-500 cursor-not-allowed"
                   }`}
@@ -268,7 +351,7 @@ const ApplicationAttendance = () => {
             Back
           </button>
           <Link
-            to="/Rhu/application"
+            to="/rhu/application/mass-screening"
             className="px-4 py-2 rounded-md w-[30%] text-center bg-primary text-white font-semibold"
           >
             Back to List
