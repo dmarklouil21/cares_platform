@@ -163,7 +163,7 @@ const ViewPreScreeningForm = () => {
       />
       <LoadingModal open={loading} text="Submitting changes..." />
       <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center bg-[#F8F9FA] overflow-auto">
-        <div className=" h-[10%] px-5 w-full flex justify-between items-center">
+        {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Add Patient</h1>
           <Link
             to={"/admin/patient/add/general-data"}
@@ -175,7 +175,7 @@ const ViewPreScreeningForm = () => {
               className="h-6"
             />
           </Link>
-        </div>
+        </div> */}
         <div className="h-full w-full flex flex-col justify-between">
           <form
             id="pre-screening-form"

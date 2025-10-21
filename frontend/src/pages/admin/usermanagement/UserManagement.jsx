@@ -1,6 +1,7 @@
 // src/pages/user-management/UserManagement.jsx
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Printer, FileText, FileDown } from "lucide-react";
 import {
   fetchUsers,
   deleteUser,
@@ -325,10 +326,11 @@ const UserManagement = () => {
               {/* ⬇️ Generate button with cursor-pointer */}
               <button
                 onClick={() => window.print()}
-                className="px-7 font-bold rounded-md text-sm text-white bg-primary cursor-pointer"
+                className="px-3 font-bold rounded-md text-sm text-white bg-primary cursor-pointer"
                 title="Print current list"
               >
-                Generate
+                {/* Generate */}
+                <Printer className="w-4 h-4" /> 
               </button>
             </div>
 

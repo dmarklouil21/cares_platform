@@ -28,7 +28,7 @@ const PatientMasterListAdd = () => {
     highest_educational_attainment: "",
     occupation: "",
     source_of_income: "",
-    monthly_income: 0,
+    monthly_income: "",
     registered_by: "rafi",
     emergency_contacts: [
       {
@@ -314,8 +314,10 @@ const PatientMasterListAdd = () => {
   //           }}
   const handleNext = () => {
     const validationErrors = validate();
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      console.log("Validation errors:", validationErrors);
       return;
     }
 
@@ -1124,17 +1126,17 @@ const PatientMasterListAdd = () => {
 
         <div className="w-full flex justify-around">
           <Link
-            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
+            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black rounded-md"
             to="/admin/patient/master-list"
           >
-            CANCEL
+            Cancel
           </Link>
           <button
             type="button"
             onClick={handleNext}
-            className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+            className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md cursor-pointer"
           >
-            NEXT
+            Next
           </button>
         </div>
         <br />

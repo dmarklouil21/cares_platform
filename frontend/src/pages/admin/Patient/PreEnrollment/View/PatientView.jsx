@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useLocation, Link, useParams } from "react-router-dom";
 import api from "src/api/axiosInstance";
 
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import Notification from "src/components/Notification";
+
 const PatientMasterListView = () => {
   const { patient_id } = useParams();
   const [patient, setPatient] = useState(null);
@@ -36,7 +39,7 @@ const PatientMasterListView = () => {
 
   return (
     <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center bg-[#F8F9FA] overflow-auto">
-      <div className=" h-[10%] px-5 w-full flex justify-between items-center">
+      {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">View Patient</h1>
         <div>
           <Link to={"/admin/patient/pre-enrollment"}>
@@ -47,7 +50,7 @@ const PatientMasterListView = () => {
             />
           </Link>
         </div>
-      </div>
+      </div> */}
 
       <form className="h-full w-full flex flex-col justify-between gap-5 bg[#F8F9FA]">
         <div className="border border-black/15 p-3 bg-white rounded-sm">
@@ -505,13 +508,20 @@ const PatientMasterListView = () => {
           </div>
         </div>
 
-        <div className="w-full flex justify-end ">
+        <div className="flex justify-around print:hidden">
           <Link
-            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
+            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black rounded-md"
+            to="/admin/patient/pre-enrollment"
+            state={{ patient: patient }}
+          >
+            Back
+          </Link>
+          <Link
+            className="text-center bg-primary text-white py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
             to="/admin/patient/view/pre-enrollment/cancer-data"
             state={{ patient: patient }}
           >
-            NEXT
+            Next
           </Link>
         </div>
         <br />
