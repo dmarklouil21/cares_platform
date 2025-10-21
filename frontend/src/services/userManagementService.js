@@ -25,4 +25,12 @@ export const updateUser = async (id, userData) => {
 export const deleteUser = async (id) => {
   const response = await api.delete(`${BASE_URL}${id}/`);
   return response.data;
-}; 
+};
+
+export const checkEmailExists = async ({ email, excludeId } = {}) => {
+  const params = {};
+  if (email) params.email = email;
+  if (excludeId != null) params.exclude_id = excludeId;
+  const res = await api.get('/api/user-management/email-check/', { params });
+  return res.data; // { exists: boolean }
+};

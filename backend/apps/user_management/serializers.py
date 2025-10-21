@@ -14,6 +14,15 @@ class UserManagementSerializer(serializers.ModelSerializer):
       'password', 'role', 'input_role'
     ]
 
+  def validate_email(self, value):
+    email = (value or '').strip().lower()
+    qs = User.objects.filter(email__iexact=email)
+    if self.instance and getattr(self.instance, 'pk', None):
+      qs = qs.exclude(pk=self.instance.pk)
+    if qs.exists():
+      raise serializers.ValidationError('Email already in use.')
+    return email
+
   def get_role(self, obj):
     if obj.is_superuser:
       return 'admin'
@@ -26,7 +35,8 @@ class UserManagementSerializer(serializers.ModelSerializer):
   def create(self, validated_data):
     password = validated_data.pop('password')
     role = validated_data.pop('input_role', None)
-    email = validated_data.get('email')
+    email = (validated_data.get('email') or '').strip().lower()
+    validated_data['email'] = email
     user = User(**validated_data)
     user.username = email  # Set username as email
     user.set_password(password)  
@@ -39,7 +49,7 @@ class UserManagementSerializer(serializers.ModelSerializer):
 
   def update(self, instance, validated_data):
     # Update email and username
-    email = validated_data.get('email', instance.email)
+    email = (validated_data.get('email', instance.email) or '').strip().lower()
     instance.email = email
     instance.username = email 
 

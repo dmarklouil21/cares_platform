@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
   path('profile/', views.RHURepresentativeProfileAPIView.as_view(), name='rhu-profile'),
   path('admin/list/', views.AdminRHUListAPIView.as_view(), name='rhu-admin-list'),
+  path('patients/', views.RHUPatientListAPIView.as_view(), name='rhu-patient-list'),
   
   path('list/', views.RhuListView.as_view(), name='rhu_list'),
   path('rhus/create/', views.RhuCreateView.as_view(), name='rhu_create'),
