@@ -209,7 +209,7 @@ const PatientMasterListEdit = () => {
     // Add validation logic here if needed
     return true;
   };
-
+  
   const handleNext = () => {
     if (!validate()) return;
 
@@ -219,6 +219,7 @@ const PatientMasterListEdit = () => {
         : [...newUpdate];
 
     setHistoricalUpdates(updatedUpdates);
+    console.log("Form Data: ", form);
 
     navigate(`/admin/patient/edit/${form?.patient_id}/cancer-data`, {
       state: {
@@ -253,7 +254,7 @@ const PatientMasterListEdit = () => {
       <LoadingModal open={loading} text="Submitting changes..." />
 
       <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center bg-[#F8F9FA] overflow-auto">
-        <div className=" h-[10%] px-5 w-full flex justify-between items-center">
+        {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Edit Patient</h1>
           <div>
             <Link to={"/admin/patient/master-list"}>
@@ -264,7 +265,7 @@ const PatientMasterListEdit = () => {
               />
             </Link>
           </div>
-        </div>
+        </div> */}
 
         <form className="h-full w-full flex flex-col justify-between gap-5 bg[#F8F9FA]">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
@@ -796,7 +797,7 @@ const PatientMasterListEdit = () => {
           </div>
 
           {/* Historical Updates Section */}
-          <div className="border border-black/15 p-3 bg-white rounded-sm">
+          {/* <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="mb-6 mt-8 border-b border-gray-200 px-5">
               <h2 className="text-md font-bold tracking-wide uppercase pb-1">
                 Patient Historical Updates
@@ -804,7 +805,7 @@ const PatientMasterListEdit = () => {
             </div>
 
             <div className="p-4 space-y-4">
-              {/* Add new update form */}
+              {/* Add new update form *s/}
               {newUpdate.map((update, index) => (
                 <div key={index} className="flex flex-col gap-3 border-b pb-4">
                   <div className="flex justify-between items-center">
@@ -855,7 +856,7 @@ const PatientMasterListEdit = () => {
                 + Add Another Update
               </button>
 
-              {/* Updates list */}
+              {/* Updates list *s/}
               <div className="pt-4">
                 <div className="mb-6 mt-8 border-b border-gray-200">
                   <h2 className="text-md font-bold tracking-wide uppercase pb-1">
@@ -892,7 +893,7 @@ const PatientMasterListEdit = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div>s */}
 
           <div className="w-full flex justify-around">
             <Link

@@ -87,7 +87,7 @@ class PatientSerializer(serializers.ModelSerializer):
   pre_screening_form = PreScreeningFormSerializer(read_only=True)
   emergency_contacts = EmergencyContactSerializer(many=True)
   diagnosis = CancerDiagnosisSerializer(many=True, read_only=True) # required=False , allow_empty=True, allow_null=True, default=[]
-  service_received = ServiceReceivedSerializer(many=True, required=False)
+  service_received = ServiceReceivedSerializer(many=True, required=False, read_only=True)
   historical_updates = HistoricalUpdateSerializer(many=True, required=False) # , allow_empty=True, allow_null=True, default=[]
 
   # computed fields

@@ -95,7 +95,8 @@ class IndividualScreeningCreateView(generics.CreateAPIView):
               'There\'s an ongoing screening application for this patient.'
             ]
           })
-    
+        patient.status = 'active'
+        patient.save()
         instance = serializer.save(
           patient=patient
         )
@@ -149,6 +150,8 @@ class IndividualScreeningDeleteView(generics.DestroyAPIView):
     status_value = self.request.data.get('status')
 
     patient = instance.patient
+    patient.status = 'validated'
+    patient.save()
 
     if remarks:
       send_individual_screening_status_email(patient=patient, status=status_value, remarks=remarks)
@@ -229,6 +232,8 @@ class IndividualScreeningStatusRejectView(APIView):
     individual_screening.status = status_value
     individual_screening.has_patient_response = False
     individual_screening.response_description = ''
+    patient.status = 'validated'
+    patient.save()
     individual_screening.save()
 
     send_individual_screening_status_email(patient=patient, status=status_value, remarks=remarks)

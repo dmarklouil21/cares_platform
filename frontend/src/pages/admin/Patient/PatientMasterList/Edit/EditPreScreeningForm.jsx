@@ -93,6 +93,8 @@ const PatientPreScreeningForm = () => {
 
         setModalOpen(false);
         setLoading(true);
+        console.log("Cancer Data: ", pre_screening_form);
+        console.log("Patient Data: ", patient);
         const response = await api.patch(
           `/patient/update/${patient.patient_id}/`,
           formData,
@@ -102,8 +104,6 @@ const PatientPreScreeningForm = () => {
             },
           }
         );
-        console.log("Cancer Data: ", pre_screening_form);
-        console.log("Patient Data: ", patient);
         setModalInfo({
           type: "success",
           title: "Success!",

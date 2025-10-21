@@ -101,6 +101,8 @@ class CancerTreatmentSubmissionSerializer(serializers.Serializer):
         continue
 
     # 3. Create CancerTreatment
+    patient.status = 'active'
+    patient.save()
     cancer_treatment = CancerTreatment.objects.create(
       patient=patient,  # pass patient from view
       service_type=well_being_data.get('serviceType'), 

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, Link, useParams } from "react-router-dom";
+import { useLocation, Link, useParams, useNavigate } from "react-router-dom";
 import api from "src/api/axiosInstance";
 
 const PatientView = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { patient_id } = useParams();
   const [patient, setPatient] = useState(null);
 
@@ -670,13 +671,23 @@ const PatientView = () => {
           </div>s */}
         </div>
 
-        <div className="w-full flex justify-end">
+        <div className="w-full flex justify-around">
+          <button
+            type="button"
+            className="text-center bg-white text-black py-2 w-[35%] cursor-pointer border border-black hover:border-black/15 rounded-md"
+            onClick={() => {
+              console.log("Patient ID: ", patient?.patient_id);
+              navigate(`/admin/patient/master-list`);
+            }}
+          >
+            Back
+          </button>
           <Link
-            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
+            className="text-center bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
             to={`/admin/patient/view/${patient?.patient_id}/cancer-data`}
             state={{ patient: patient }}
           >
-            NEXT
+            Next
           </Link>
         </div>
         <br />

@@ -1,10 +1,14 @@
 from django.shortcuts import get_object_or_404
+from django.db.models.functions import TruncMonth
+from django.db.models import Count
 
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.views import APIView
+
+from apps.survivorship.models import PatientHomeVisit
 
 from .models import Patient, CancerDiagnosis
 from .serializers import PatientSerializer, AdminPreEnrollmentSerializer
@@ -142,3 +146,42 @@ class PatientDeleteView(generics.DestroyAPIView):
   lookup_field = 'patient_id'
 
   permission_classes = [IsAuthenticated, IsAdminUser]
+
+class PatientStatsView(APIView):
+  permission_classes = [IsAuthenticated]
+
+  def get(self, request, *args, **kwargs):
+    # You can customize these filters based on your model fields
+    total_patients = Patient.objects.count()
+    due_for_home_visit = PatientHomeVisit.objects.filter(status="Processing").count()
+    active_patients = Patient.objects.filter(status="active").count()
+    pending_pre_enrollment = Patient.objects.filter(status="pending").count()
+
+    # === Monthly Data ===
+    monthly_counts = (
+      Patient.objects
+      .annotate(month=TruncMonth("created_at")) 
+      .values("month")
+      .annotate(count=Count("id"))
+      .order_by("month")
+    )
+
+    # Convert to chart-friendly format
+    monthly_data = []
+    month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    
+    for entry in monthly_counts:
+      month_index = entry["month"].month - 1  # 0-based index
+      monthly_data.append({
+          "label": month_labels[month_index],
+          "value": entry["count"]
+      })
+
+    return Response({
+      "total_patients": total_patients,
+      "due_for_home_visit": due_for_home_visit,
+      "active_patients": active_patients,
+      "pending_pre_enrollment": pending_pre_enrollment,
+      "monthly_data": monthly_data
+    })

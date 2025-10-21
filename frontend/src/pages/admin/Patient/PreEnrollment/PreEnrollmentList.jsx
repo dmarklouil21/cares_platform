@@ -1,53 +1,9 @@
-// pages/admin/Patient/PreEnrollment/PreEnrollmentList.jsx
 import { useState, useEffect, act, useRef } from "react";
-// at the top with your other imports
 import GeneratePrintTemplate from "./generate/generate";
 import { Printer, FileText, FileDown } from "lucide-react";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import Notification from "src/components/Notification";
-
-// function ConfirmationModal({ open, text, onConfirm, onCancel }) {
-//   if (!open) return null;
-//   return (
-//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
-//       <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
-//         <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
-//         <div className="flex gap-4">
-//           <button
-//             className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
-//             onClick={onConfirm}
-//           >
-//             Confirm
-//           </button>
-//           <button
-//             className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
-//             onClick={onCancel}
-//           >
-//             Cancel
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// Notification component for showing popup messages
-// function Notification({ message, onClose }) {
-//   if (!message) return null;
-//   return (
-//     <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
-//       <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-//         <img
-//           src="/images/logo_white_notxt.png"
-//           alt="Rafi Logo"
-//           className="h-[25px]"
-//         />
-//         <span>{message}</span>
-//       </div>
-//     </div>
-//   );
-// }
 
 import { useNavigate } from "react-router-dom";
 import api from "src/api/axiosInstance";
@@ -209,21 +165,22 @@ const PreEnrollmentList = () => {
   return (
     <>
       {/* --- Print rules: only show GeneratePrintTemplate during print --- */}
-      <style>{`
-        @media print {
-          #preenrollment-root { display: none !important; }
-          #print-root { display: block !important; }
-        }
-        @media screen {
-          #print-root { display: none !important; }
-        }
+      <style>
+        {`
+          @media print {
+            #preenrollment-root { display: none !important; }
+            #print-root { display: block !important; }
+          }
+          @media screen {
+            #print-root { display: none !important; }
+          }
           /* inside a <style> tag in the component */
-.preenroll-table { border-collapse: collapse; }
-.preenroll-table, .preenroll-table th, .preenroll-table td, .preenroll-table tr {
-  border: 0 !important;
-}
-
-      `}</style>
+            .preenroll-table { border-collapse: collapse; }
+            .preenroll-table, .preenroll-table th, .preenroll-table td, .preenroll-table tr {
+              border: 0 !important;
+          }
+        `}
+      </style>
 
       {/* --- PRINT-ONLY CONTENT --- */}
       <div id="print-root">
@@ -236,12 +193,6 @@ const PreEnrollmentList = () => {
         className="h-full overflow-auto w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray"
       >
         {/* Confirmation Modal */}
-        {/* <ConfirmationModal
-          open={modalOpen}
-          text={modalText}
-          onConfirm={handleModalConfirm}
-          onCancel={handleModalCancel}
-        /> */}
         <ConfirmationModal
           open={modalOpen}
           title={modalText}
@@ -254,11 +205,6 @@ const PreEnrollmentList = () => {
           }}
         />
         <Notification message={notification} type={notificationType} />
-
-        {/* <Notification
-          message={notification}
-          onClose={() => setNotification("")}
-        /> */}
 
         <h2 className="text-xl font-bold text-left w-full pl-1">
           Pre-Enrollment
@@ -285,8 +231,8 @@ const PreEnrollmentList = () => {
             >
               <option value="all">All</option>
               <option value="pending">Pending</option>
-              <option value="validated">Validated</option>
-              <option value="rejected">Rejected</option>
+              {/* <option value="validated">Validated</option> */}
+              {/* <option value="rejected">Rejected</option> */}
             </select>
 
             <input

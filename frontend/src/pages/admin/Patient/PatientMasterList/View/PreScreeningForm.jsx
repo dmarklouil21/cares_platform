@@ -1183,7 +1183,7 @@ const PatientPreScreeningForm = () => {
           <div className="w-full flex justify-around mt-5">
             <button
               type="button"
-              className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
+              className="text-center bg-white text-black cursor-pointer py-2 w-[35%] cursor-pointer border border-black hover:border-black/15 rounded-md"
               onClick={() => {
                 console.log("Patient ID: ", patient?.patient_id);
                 navigate(`/admin/patient/view/${patient?.patient_id}`);

@@ -15,7 +15,7 @@ from backend.utils.email import (
   send_return_remarks_email, send_loa_email,
 )
 
-from apps.patient.models import Patient, HistoricalUpdate
+from apps.patient.models import Patient, HistoricalUpdate, ServiceReceived
 
 from . models import PostTreatment, FollowupCheckups, RequiredAttachment
 from . serializers import PostTreatmentSerializer, PostTreatmentAdminCreateSerializer
@@ -45,7 +45,9 @@ class PostTreatmentCreateView(generics.CreateAPIView):
               'There\'s an ongoing screening application for this patient.'
             ]
           })
-    
+
+        patient.status = 'active'
+        patient.save()
         instance = serializer.save(
           patient=patient
         )
@@ -131,6 +133,7 @@ class PostTreatmentUpdateView(APIView):
   def patch(self, request, id):
     post_treatment = get_object_or_404(PostTreatment, id=id)
     serializer = PostTreatmentSerializer(post_treatment, data=request.data, partial=True)
+    patient = post_treatment.patient
     if serializer.is_valid():
       previous_status = post_treatment.status
       serializer.save()
@@ -139,12 +142,22 @@ class PostTreatmentUpdateView(APIView):
       if previous_status != 'Approved' and serializer.validated_data.get('status') == 'Approved':
         post_treatment.date_approved = timezone.now().date()
         post_treatment.save()
+        patient.status = 'active'
+        patient.save()
         # send_loa_email(post_treatment)
 
       # If status changed to 'Complete', set date_completed to today
       if previous_status != 'Completed' and serializer.validated_data.get('status') == 'Completed':
         post_treatment.date_completed = timezone.now().date()
         post_treatment.save()
+        patient.status = 'validated'
+        patient.save()
+
+        ServiceReceived.objects.create(
+          patient=patient,
+          service_type = 'Post Treatment',
+          date_completed = timezone.now().date()
+        )
         # send_precancerous_meds_status_email(post_treatment)
 
       followup_data = request.data.get('followup_checkups')
@@ -184,7 +197,6 @@ class PostTreatmentCheckupUpdateView(APIView):
 
     patient = followup_checkup.post_treatment.patient
     HistoricalUpdate.objects.create(patient=patient, date=timezone.now(), note=followup_checkup.note)
-    print('Hell Yeah!')
     
     return Response({"success": f"Successfully marked as done."}, status=200)
 

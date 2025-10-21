@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from apps.patient.models import Patient
+from apps.patient.models import Patient, ServiceReceived
 from apps.cancer_management.models import CancerTreatment
 
 from .models import PatientHomeVisit, HormonalReplacement, HormonalReplacementRequiredAttachment
@@ -123,6 +123,8 @@ class HormonalReplacementCreateView(generics.CreateAPIView):
             ]
           })
     
+        patient.status = 'active'
+        patient.save()
         instance = serializer.save(
           patient=patient,  # ensure patient is set
           service_completed=service_completed
@@ -195,4 +197,14 @@ class HormonalReplacementUpdateView(generics.UpdateAPIView):
     if instance.status == 'Approved':
       instance.date_approved = timezone.now().date()
       instance.save(update_fields=['date_approved'])
+    elif instance.status == 'Completed':
+      patient = instance.patient
+      patient.status = 'validated'
+      patient.save()
+
+      ServiceReceived.objects.create(
+        patient=patient,
+        service_type = 'Hormonal Replacement',
+        date_completed = timezone.now().date()
+      )
     # return super().perform_update(serializer)
