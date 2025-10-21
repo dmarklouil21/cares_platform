@@ -2,48 +2,52 @@
 import { useState, useEffect, act, useRef } from "react";
 // at the top with your other imports
 import GeneratePrintTemplate from "./generate/generate";
+import { Printer, FileText, FileDown } from "lucide-react";
 
-function ConfirmationModal({ open, text, onConfirm, onCancel }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
-        <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
-        <div className="flex gap-4">
-          <button
-            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-          <button
-            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import Notification from "src/components/Notification";
+
+// function ConfirmationModal({ open, text, onConfirm, onCancel }) {
+//   if (!open) return null;
+//   return (
+//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
+//       <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
+//         <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
+//         <div className="flex gap-4">
+//           <button
+//             className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
+//             onClick={onConfirm}
+//           >
+//             Confirm
+//           </button>
+//           <button
+//             className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
+//             onClick={onCancel}
+//           >
+//             Cancel
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 // Notification component for showing popup messages
-function Notification({ message, onClose }) {
-  if (!message) return null;
-  return (
-    <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
-      <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="Rafi Logo"
-          className="h-[25px]"
-        />
-        <span>{message}</span>
-      </div>
-    </div>
-  );
-}
+// function Notification({ message, onClose }) {
+//   if (!message) return null;
+//   return (
+//     <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
+//       <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
+//         <img
+//           src="/images/logo_white_notxt.png"
+//           alt="Rafi Logo"
+//           className="h-[25px]"
+//         />
+//         <span>{message}</span>
+//       </div>
+//     </div>
+//   );
+// }
 
 import { useNavigate } from "react-router-dom";
 import api from "src/api/axiosInstance";
@@ -56,12 +60,21 @@ const PreEnrollmentList = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [notification, setNotification] = useState("");
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null);
+  const [modalDesc, setModalDesc] = useState("Are you sure you want to proceed with this action?");
+
+  // Notification
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState(
+    location.state?.type || ""
+  );
+  const [notificationMessage, setNotificationMessage] = useState(
+    location.state?.message || ""
+  );
 
   // Fetch data function so it can be reused
   const fetchData = async () => {
@@ -155,8 +168,11 @@ const PreEnrollmentList = () => {
       let actionWord =
         action === "validate"
           ? "Validated"
+          : action === "reject"
+          ? "Rejected"
           : action.charAt(0).toUpperCase() + action.slice(1);
       setNotification(`${actionWord} Successfully`);
+      setNotificationType("success");
       fetchData();
       setTimeout(() => setNotification(""), 3500);
     } catch (error) {
@@ -220,17 +236,29 @@ const PreEnrollmentList = () => {
         className="h-full overflow-auto w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray"
       >
         {/* Confirmation Modal */}
-        <ConfirmationModal
+        {/* <ConfirmationModal
           open={modalOpen}
           text={modalText}
           onConfirm={handleModalConfirm}
           onCancel={handleModalCancel}
+        /> */}
+        <ConfirmationModal
+          open={modalOpen}
+          title={modalText}
+          desc={modalDesc}
+          onConfirm={handleModalConfirm}
+          onCancel={() => {
+            setModalOpen(false);
+            setModalAction(null);
+            setModalText("");
+          }}
         />
+        <Notification message={notification} type={notificationType} />
 
-        <Notification
+        {/* <Notification
           message={notification}
           onClose={() => setNotification("")}
-        />
+        /> */}
 
         <h2 className="text-xl font-bold text-left w-full pl-1">
           Pre-Enrollment
@@ -238,10 +266,10 @@ const PreEnrollmentList = () => {
 
         <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
           <p className="text-md font-semibold text-yellow">
-            Pre-Enrollment Requests
+            Manage Pre-Enrollment Requests
           </p>
 
-          <div className="flex justify-between flex-wrap gap-3">
+          <div className="flex justify-between flex-wrap gap-2">
             <input
               type="text"
               placeholder="Search by beneficiary ID ..."
@@ -270,9 +298,10 @@ const PreEnrollmentList = () => {
 
             <button
               onClick={() => window.print()}
-              className="px-7 font-bold cursor-pointer rounded-md text-sm text-white bg-primary"
+              className="px-3 font-bold cursor-pointer rounded-md text-sm text-white bg-primary"
             >
-              Generate
+              <Printer className="w-4 h-4" />
+              {/* Generate */}
             </button>
           </div>
 

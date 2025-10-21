@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Printer, FileText, FileDown } from "lucide-react";
 
 import api from "src/api/axiosInstance";
 
@@ -241,9 +242,10 @@ const PatientMasterList = () => {
             {/* ⬇️ NEW: Generate button mirrors the Pre-Enrollment page */}
             <button
               onClick={() => window.print()}
-              className="bg-primary px-5 py-1 rounded-sm text-white cursor-pointer"
+              className="bg-primary px-3 py-1 rounded-sm text-white cursor-pointer"
             >
-              Generate
+              <Printer className="w-4 h-4" />
+              {/* Generate */}
             </button>
           </div>
 

@@ -1,6 +1,7 @@
 // src/pages/treatment/AdminPreCancerous.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Printer, FileText, FileDown } from "lucide-react";
 import {
   adminListPreCancerousMeds,
   adminVerifyPreCancerousMeds,
@@ -614,12 +615,13 @@ const PreCancerous = () => {
               <button
                 onClick={() => window.print()}
                 disabled={loading}
-                className={`px-7 font-bold rounded-md text-sm text-white cursor-pointer ${
+                className={`px-3 font-bold rounded-md text-sm text-white cursor-pointer ${
                   loading ? "bg-primary/60 cursor-not-allowed" : "bg-primary"
                 }`}
                 title={loading ? "Loading data..." : "Print current list"}
               >
-                Generate
+                {/* Generate */}
+                <Printer className="w-4 h-4" />
               </button>
             </div>
 

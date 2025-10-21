@@ -1,5 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
+import { Printer, FileText, FileDown } from "lucide-react";
+
 import {
   listAdminMassScreenings,
   setAdminMassScreeningStatus,
@@ -237,9 +239,9 @@ const AdminMassScreening = () => {
             {/* ⬇️ NEW: Generate button with cursor-pointer */}
             <button
               onClick={() => window.print()}
-              className="bg-primary px-5 py-2 rounded-sm text-white cursor-pointer"
+              className="bg-primary px-3 py-3 rounded-sm text-white cursor-pointer"
             >
-              Generate
+              <Printer className="w-4 h-4" />
             </button>
           </div>
 

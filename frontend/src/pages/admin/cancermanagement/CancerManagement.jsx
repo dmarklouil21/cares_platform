@@ -1,6 +1,7 @@
 // src/pages/cancer-management/AdminCancerManagement.jsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Printer, FileText, FileDown } from "lucide-react";
 
 import api from "src/api/axiosInstance";
 
@@ -239,10 +240,11 @@ const AdminCancerManagement = () => {
               {/* ⬇️ Generate button with cursor-pointer */}
               <button
                 onClick={() => window.print()}
-                className="px-7 font-bold rounded-md text-sm text-white bg-primary cursor-pointer"
+                className="px-3 font-bold rounded-md text-sm text-white bg-primary cursor-pointer"
                 title="Print current list"
               >
-                Generate
+                {/* Generate */}
+                <Printer className="w-4 h-4" />
               </button>
               {/* <div className="flex gap-2">
                 <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
