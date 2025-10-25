@@ -28,6 +28,8 @@ const AdminCancerManagementView = () => {
   const [interviewModalOpen, setInterviewModalOpen] = useState(false);
   const [interviewDate, setInterviewDate] = useState("");
 
+  const [providerName, setProviderName] = useState("Chong Hua Hospital Mandaue");
+
   // Notification Modal
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState({
@@ -236,7 +238,8 @@ const AdminCancerManagementView = () => {
         const payload = { 
           status: modalAction.newStatus || status,
           interview_date: modalAction.interviewDate || interviewDate,
-          treatment_date: modalAction.treatment_date || treatmentDate
+          treatment_date: modalAction.treatment_date || treatmentDate,
+          service_provider: modalAction.newProvider || providerName,
         };
 
         // const payload = { status: modalAction.newStatus };
@@ -545,9 +548,9 @@ const AdminCancerManagementView = () => {
                   <option value="Case Summary Generation">
                     Case Summary Generation
                   </option>
-                  <option value="Approved">Approved</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Rejected">Rejected</option>
+                  <option value="Approved">Approve</option>
+                  <option value="Completed">Complete</option>
+                  {/* <option value="Rejected">Rejected</option> */}
                 </select>
               </div>
 
@@ -597,6 +600,17 @@ const AdminCancerManagementView = () => {
                     Edit
                   </span>
                 )}
+              </div>
+
+              <div className="flex gap-2">
+                <label className="font-medium w-40">Service Provider</label>
+                <select
+                  className="-ml-1 outline-none focus:ring-0 text-gray-700"
+                  value={status}
+                  onChange={(e) => setProviderName(e.target.value)}
+                >
+                  <option value="Chong Hua Hospital Mandaue">Chong Hua Hospital Mandaue</option>
+                </select>
               </div>
             </div>
           </div>

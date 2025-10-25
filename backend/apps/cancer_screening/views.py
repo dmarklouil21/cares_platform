@@ -15,7 +15,8 @@ from backend.utils.email import (
   send_individual_screening_status_email,
   send_return_remarks_email, send_loa_email,
   send_precancerous_meds_status_email,
-  send_mass_screening_status_email,
+  send_mass_screening_status_email, 
+  send_service_registration_email
 )
 
 from apps.patient.models import Patient, CancerDiagnosis, HistoricalUpdate, PreScreeningForm, ServiceReceived
@@ -95,9 +96,12 @@ class IndividualScreeningCreateView(generics.CreateAPIView):
               'There\'s an ongoing screening application for this patient.'
             ]
           })
-    
+        
+        patient.status = 'active'
+        patient.save()
         instance = serializer.save(
-          patient=patient
+          patient=patient,
+          date_approved=timezone.now().date(),
         )
 
         files_dict = {}
@@ -112,6 +116,15 @@ class IndividualScreeningCreateView(generics.CreateAPIView):
             file=file,
             doc_type=key 
           )
+        
+        email_status = send_service_registration_email(
+          patient=patient, 
+          service_name='Cancer Screening'
+        )
+        
+        if email_status is not True:
+          logger.error(f"Email failed to send: {email_status}")
+          
     except ValidationError:
       raise
     
@@ -149,6 +162,8 @@ class IndividualScreeningDeleteView(generics.DestroyAPIView):
     status_value = self.request.data.get('status')
 
     patient = instance.patient
+    patient.status = 'validated'
+    patient.save()
 
     if remarks:
       send_individual_screening_status_email(patient=patient, status=status_value, remarks=remarks)
@@ -229,6 +244,8 @@ class IndividualScreeningStatusRejectView(APIView):
     individual_screening.status = status_value
     individual_screening.has_patient_response = False
     individual_screening.response_description = ''
+    patient.status = 'validated'
+    patient.save()
     individual_screening.save()
 
     send_individual_screening_status_email(patient=patient, status=status_value, remarks=remarks)

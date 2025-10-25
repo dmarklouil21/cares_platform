@@ -356,7 +356,11 @@ class CaseSummaryUploadView(APIView):
   def patch(self, request, id):
     cancer_treatment = get_object_or_404(CancerTreatment, id=id)
 
-    if cancer_treatment.has_patient_response: 
+    existing_attachments = ServiceAttachment.objects.filter(
+      cancer_treatment=cancer_treatment,
+      doc_type="signedCaseSummary"
+    )
+    if cancer_treatment.has_patient_response and existing_attachments.exists() and not request.user.is_superuser: 
       raise ValidationError ({'non_field_errors': ['You can only submit once. Please wait for it\'s feedback before submitting again.']})
     
     attachments = request.FILES.getlist('attachments')
@@ -608,6 +612,23 @@ class HomeVisitDetailView(generics.RetrieveAPIView):
   serializer_class = HomevisitSerializer
   permission_classes = [IsAuthenticated]
   lookup_field = 'id'
+
+class HomeVisitUpdateView(generics.UpdateAPIView):
+  queryset = PatientHomeVisit.objects.all()
+  serializer_class = HomevisitSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = "id"   # so you can update by /<id> in the URL
+
+  def perform_update(self, serializer):
+    # instance = serializer.save(
+    #   has_patient_response=True,
+    #   response_description='Submitted Well being form.'
+    # )
+    serializer.save(
+      has_patient_response=True,
+      response_description='Submitted Well-being form.'
+    )
+    # return super().perform_update(serializer)
 
 def validate_attachment(file):
   max_size_mb = 5

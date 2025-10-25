@@ -1,8 +1,11 @@
 // src/pages/survivorship/HomeVisit.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Printer, FileText, FileDown } from "lucide-react";
 
 import api from "src/api/axiosInstance";
+
+import { Info } from "lucide-react";
 
 // ⬇️ PRINT TEMPLATE
 import HomeVisitPrint from "./generate/generate";
@@ -223,10 +226,11 @@ const HomeVisit = () => {
               {/* ⬇️ Generate button with cursor-pointer */}
               <button
                 onClick={() => window.print()}
-                className="px-7 font-bold rounded-md text-sm text-white bg-primary cursor-pointer"
+                className="px-3 font-bold rounded-md text-sm text-white bg-primary cursor-pointer"
                 title="Print current list"
               >
-                Generate
+                {/* Generate */}
+                <Printer className="w-4 h-4" />
               </button>
             </div>
 
@@ -282,7 +286,10 @@ const HomeVisit = () => {
                         </td>
                         <td className="text-center text-sm py-3">
                           <span
-                            className={`px-3 py-1 inline-flex text-xs font-semibold rounded-md ${
+                            // className={`px-3 py-1 inline-flex items-center gap-1 text-xs font-semibold rounded-md ${
+                            //   statusColors[item.status] || statusColors.Default
+                            // }`}
+                            className={`px-3 py-1 inline-flex items-center text-xs font-semibold rounded-md ${
                               p.status === "Approved"
                                 ? "bg-green-50 text-green-600"
                                 : p.status === "Completed"
@@ -291,6 +298,23 @@ const HomeVisit = () => {
                             }`}
                           >
                             {p.status}
+                            <span
+                              title={
+                                p.has_patient_response
+                                  ? p.response_description
+                                  : "Info icon."
+                              }
+                              className="cursor-pointer"
+                            >
+                              <Info
+                                size={14}
+                                className={
+                                  p.has_patient_response
+                                    ? "text-blue-500"
+                                    : "text-gray-300"
+                                }
+                              />
+                            </span>
                           </span>
                         </td>
                         <td className="text-center text-sm py-3">

@@ -38,7 +38,9 @@ class HomevisitSerializer(serializers.ModelSerializer):
       "findings",
       "recommendations",
       "signed_recommendation",
-      "well_being_data",
+      "well_being_data", 
+      'has_patient_response',
+      'response_description',
       "created_at",
     ]
     extra_kwargs = {
@@ -153,3 +155,5 @@ class HormonalReplacementSerializer(serializers.ModelSerializer):
         'medicines_requested',
     ]
     read_only_fields = ['id', 'date_submitted', 'service_completed']
+
+    

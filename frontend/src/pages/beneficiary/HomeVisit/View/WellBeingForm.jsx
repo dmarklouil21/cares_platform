@@ -126,7 +126,8 @@ const RadioTherapyWellBeingTool = () => {
         }
       }
       console.log("Payload: ", payload);
-      await api.patch(`survivorship/home-visit/update/${id}/`, payload);
+      // home-visit/update/<int:id>
+      await api.patch(`beneficiary/home-visit/update/${id}/`, payload);
 
       // setNotificationType("success");
       // setNotification("Success.");

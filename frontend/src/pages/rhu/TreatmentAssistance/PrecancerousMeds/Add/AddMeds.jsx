@@ -179,6 +179,7 @@ const AdminHormonalReplacementAdd = () => {
     try {
       const {data} = await api.get("/rhu/profile/");
       setDestinationName(data.rhu_name)
+      console.log("Representative Profile: ", data.rhu_name);
     } catch (error) {
       console.error("Error fetching representative profile", error);
     }
@@ -247,7 +248,7 @@ const AdminHormonalReplacementAdd = () => {
   };
 
   const doSubmit = async () => {
-    if (!validateOrNotify()) return;
+    // if (!validateOrNotify()) return;
 
     setConfirmOpen(false);
     setLoading(true);
@@ -260,6 +261,10 @@ const AdminHormonalReplacementAdd = () => {
       formData.append("release_date_of_meds", date);
       formData.append("request_destination", "Rural Health Unit");
       formData.append("destination_name", destinationName);
+      console.log("Form Data Entries:");
+      for (let pair of formData.entries()) {
+        console.log(`${pair[0]}: ${pair[1]}`);
+      }
 
       await api.post(
         `/precancerous/create/`,
@@ -390,9 +395,9 @@ const AdminHormonalReplacementAdd = () => {
           <button
             type="button"
             onClick={() => setConfirmOpen(true)}
-            disabled={!isValid}
+            // disabled={!isValid}
             className={`text-center font-bold text-white py-2 w-full md:w-[30%] rounded-md shadow ${
-              !isValid
+              !true
                 ? "bg-gray-300 cursor-not-allowed"
                 : "bg-primary hover:opacity-90"
             }`}

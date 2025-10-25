@@ -2,31 +2,34 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { updateUser, checkEmailExists } from "../../../../services/userManagementService";
 
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import Notification from "src/components/Notification";
+
 // Modal component for confirmation
-function ConfirmationModal({ open, text, onConfirm, onCancel }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
-        <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
-        <div className="flex gap-4">
-          <button
-            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-          <button
-            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+// function ConfirmationModal({ open, text, onConfirm, onCancel }) {
+//   if (!open) return null;
+//   return (
+//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
+//       <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
+//         <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
+//         <div className="flex gap-4">
+//           <button
+//             className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
+//             onClick={onConfirm}
+//           >
+//             Confirm
+//           </button>
+//           <button
+//             className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
+//             onClick={onCancel}
+//           >
+//             Cancel
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 const EditUser = () => {
   const location = useLocation();
@@ -49,6 +52,9 @@ const EditUser = () => {
     status: backendUser.is_active ? "active" : "inactive",
   });
   const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState(
+    location.state?.type || ""
+  );
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetPassword, setResetPassword] = useState("");
   const [resetConfirmPassword, setResetConfirmPassword] = useState("");
@@ -56,6 +62,7 @@ const EditUser = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null); // {type: 'reset'|'save'}
+  const [modalDesc, setModalDesc] = useState("Are you sure you want to proceed with this action?");
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
 
@@ -116,6 +123,7 @@ const EditUser = () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      console.log("Validation errors:", validationErrors);
       return;
     }
     try {
@@ -170,12 +178,14 @@ const EditUser = () => {
       try {
         await updateUser(backendUser.id, payload);
         setNotification("Profile changes saved successfully!");
+        setNotificationType("success");
         setTimeout(() => {
           setNotification("");
           navigate("/admin/user-management");
         }, 2000);
       } catch (error) {
         setNotification("Failed to update user");
+        setNotificationType("error");
         setTimeout(() => setNotification(""), 2000);
       }
     } else if (modalAction?.type === "reset") {
@@ -183,7 +193,9 @@ const EditUser = () => {
       try {
         await updateUser(backendUser.id, { password: modalAction.password });
         setNotification("Password reset successfully!");
+        setNotificationType("success");
       } catch (error) {
+        setNotificationType("error");
         setNotification("Failed to reset password");
       }
       setTimeout(() => setNotification(""), 2000);
@@ -205,7 +217,7 @@ const EditUser = () => {
   return (
     <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
       {/* Main Notification Popup */}
-      {notification && (
+      {/* {notification && (
         <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
           <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
             <img
@@ -216,7 +228,7 @@ const EditUser = () => {
             <span>{notification}</span>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Reset Password Modal */}
       {showResetModal && (
@@ -268,10 +280,16 @@ const EditUser = () => {
       {/* Main confirmation modal for save/reset */}
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
-        onCancel={handleModalCancel}
+        onCancel={() => {
+          setModalOpen(false);
+          setModalAction(null);
+          setModalText("");
+        }}
       />
+      <Notification message={notification} type={notificationType} />
 
       <form
         onSubmit={handleSubmit}

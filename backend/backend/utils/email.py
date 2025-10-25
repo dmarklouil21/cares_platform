@@ -655,6 +655,77 @@ def send_report_email(recipient_email, file_obj, patient_name=None):
   except Exception as e:
     return str(e)
 
+def send_service_registration_email(patient, service_name):
+    try:
+        send_mail(
+            subject=f"RAFI-EJACC: {service_name} Registration Confirmation",
+            message="",  # Plain text fallback (optional)
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[patient.email],
+            fail_silently=False,
+            html_message=f"""
+                <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
+                    <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                        
+                        <!-- Header -->
+                        <div style="background: #005baa; padding: 20px; text-align: center;">
+                            <img src="https://rafi.org.ph/wp-content/uploads/2021/03/RAFI-LOGO-1.png" 
+                                 alt="RAFI Logo" 
+                                 style="height: 50px; display: block; margin: 0 auto 10px;">
+                            <h2 style="color: #fff; margin: 0; font-weight: normal;">Service Registration Confirmed</h2>
+                        </div>
+                        
+                        <!-- Content -->
+                        <div style="padding: 30px;">
+                            <p style="margin: 0 0 15px 0;">Dear <b>{patient.first_name} {patient.last_name}</b>,</p>
+                            
+                            <p style="font-size: 15px; line-height: 1.6; color: #333;">
+                                We’re pleased to inform you that your registration for the 
+                                <b>{service_name}</b> service at 
+                                <b>RAFI - Eduardo J. Aboitiz Cancer Center (EJACC)</b> has been successfully created.
+                            </p>
+
+                            <div style="background: #eaf3fb; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #005baa;">
+                                <p style="margin: 0; font-size: 15px;">
+                                    Our healthcare team will review your service request shortly. 
+                                    You will be contacted once the next steps are ready.
+                                </p>
+                            </div>
+
+                            <p style="font-size: 15px; line-height: 1.6; color: #333;">
+                                If you have any questions or need assistance, 
+                                feel free to reach out to our support team or your assigned health worker.
+                            </p>
+
+                            <!-- CTA Button -->
+                            <a href="https://rafi.org.ph/ejacc/" 
+                               style="display: inline-block; margin-top: 20px; padding: 12px 20px; background: #005baa; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                                Visit RAFI-EJACC Website
+                            </a>
+
+                            <p style="font-size: 14px; line-height: 1.6; color: #555; margin-top: 25px;">
+                                Thank you for trusting RAFI-EJACC. Together, we work towards your better health and well-being.
+                            </p>
+                        </div>
+
+                        <!-- Footer -->
+                        <div style="background: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+                            <p>
+                                For inquiries, contact us at 
+                                <a href="mailto:no-reply@gmail.com" style="color: #005baa;">no-reply@gmail.com</a>.
+                            </p>
+                            <p>
+                                This email was sent by RAFI-EJACC. Please do not reply directly to this message.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            """
+        )
+        return True
+    except Exception as e:
+        return str(e)
+
 # def send_individual_screening_status_email(patient, status, screening_date=None):
 #   try:
 #     status_messages = {

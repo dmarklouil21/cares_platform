@@ -340,7 +340,7 @@ const PostTreatmentStatus = () => {
                               View
                             </button>
                           )}
-                          {app.status !== "Complete" && (
+                          {app.status !== "Complete" || app.status !== "Closed" && (
                             <button
                               type="button"
                               className="text-white py-1 px-3 rounded-md shadow bg-red-500 cursor-pointer"

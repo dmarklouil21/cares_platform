@@ -151,7 +151,7 @@ export default function ViewPostTreatmentStatus() {
           activeStep === 4 ? (
             <> Case is closed, thank you for your cooperation. </>
           ) : (
-            <> After completion you are required to upload the results. </>
+            <> Case is closed, thank you for your cooperation. </>
           ),
       });
     } else {
@@ -161,7 +161,7 @@ export default function ViewPostTreatmentStatus() {
           activeStep === 3 ? (
             <> Case is closed, thank you for your cooperation. </>
           ) : (
-            <> After completion you are required to upload the results. </>
+            <> Case is closed, thank you for your cooperation.  </>
           ),
       });
     }

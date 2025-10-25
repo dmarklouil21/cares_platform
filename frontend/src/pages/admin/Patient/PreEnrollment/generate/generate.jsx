@@ -57,7 +57,7 @@ const GeneratePrintTemplate = ({ rows = [] }) => {
       {/* Content */}
       <div className="flex-1 flex flex-col px-26 pt-32">
         <div className="py-5 w-full text-center">
-          <h1 className="font-bold text-xl">Pre enrollment</h1>
+          <h1 className="font-bold text-xl">Pre Enrollment</h1>
           <p className="text-[11px] text-gray-500 mt-1">
             Generated on {new Date().toLocaleString()}
           </p>

@@ -282,7 +282,7 @@ const PatientMasterListAdd = () => {
         </div>
       )} */}
 
-      <div className=" px-5 w-full flex justify-between items-center">
+      {/* <div className=" px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">Add Patient</h1>
         <Link to={"/rhu/patients"}>
           <img
@@ -291,7 +291,7 @@ const PatientMasterListAdd = () => {
             className="h-6 cursor-pointer"
           />
         </Link>
-      </div>
+      </div> */}
 
       <form
         // onSubmit={handleSubmit}
@@ -916,12 +916,12 @@ const PatientMasterListAdd = () => {
           </div> */}
 
           {/* Historical Updates Section */}
-          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+          {/* <div className="mb-6 mt-8 border-b border-gray-200 px-5">
             <h2 className="text-md font-bold tracking-wide uppercase pb-1">
               Patient Historical Updates
             </h2>
-          </div>
-          <div className="p-4 space-y-4">
+          </div> */}
+          {/* <div className="p-4 space-y-4">
             {historicalUpdates.map((update, index) => (
               <div key={index} className="flex flex-col gap-3 border-b pb-4">
                 <div className="flex justify-between items-center">
@@ -980,8 +980,8 @@ const PatientMasterListAdd = () => {
               className="mt-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-sm"
             >
               + Add Another Update
-            </button>
-          </div>
+            </button> 
+          </div> */}
         </div>
 
         <div className="w-full flex justify-around">

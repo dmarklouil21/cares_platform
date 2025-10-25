@@ -49,7 +49,7 @@ class IndividualScreeningSerializer(serializers.ModelSerializer):
     model = IndividualScreening
     fields = [
       'id', 'patient', 'procedure_name', 'procedure_details', 'cancer_site',
-      'status', 'created_at', 'has_patient_response', 'screening_attachments',
+      'status', 'created_at', 'has_patient_response', 'screening_attachments', 'service_provider',
       'response_description', 'date_approved', 'screening_date', 'uploaded_result',
     ]
 
@@ -58,7 +58,7 @@ class IndividualScreeningAdminCreateSerializer(serializers.ModelSerializer):
     model = IndividualScreening
     fields = [
       'procedure_name', 'procedure_details', 'cancer_site',
-      'status', 'screening_date', 'uploaded_result',
+      'status', 'screening_date', 'uploaded_result', 'service_provider',
     ]
 
 class MassScreeningAttachmentSerializer(serializers.ModelSerializer):

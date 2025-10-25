@@ -450,6 +450,17 @@ const PostTreatmentView = () => {
                   </span>
                 )}
               </div>
+
+              <div className="flex gap-2">
+                <span className="font-medium w-40">Service Provider</span>
+                <select
+                  className="-ml-1 outline-none focus:ring-0 text-gray-700"
+                  value={data?.service_provider || ""}
+                  // onChange={handleStatusChange}
+                >
+                  <option value="Chong Hua Hospital Mandaue">Chong Hua Hospital Mandaue</option>
+                </select>
+              </div>
             </div>
           </div>
 

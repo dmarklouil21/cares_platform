@@ -1,68 +1,78 @@
 // src/pages/user-management/UserManagement.jsx
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Printer, FileText, FileDown } from "lucide-react";
 import {
   fetchUsers,
   deleteUser,
   updateUser,
 } from "../../../services/userManagementService";
 
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import SystemLoader from "src/components/SystemLoader";
+import Notification from "src/components/Notification";
+
 // ⬇️ PRINT TEMPLATE
 import UserManagementPrint from "./generate/generate";
 
 // Modal component for confirmation
-function ConfirmationModal({ open, text, onConfirm, onCancel }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
-        <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
-        <div className="flex gap-4">
-          <button
-            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-          <button
-            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+// function ConfirmationModal({ open, text, onConfirm, onCancel }) {
+//   if (!open) return null;
+//   return (
+//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
+//       <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
+//         <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
+//         <div className="flex gap-4">
+//           <button
+//             className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
+//             onClick={onConfirm}
+//           >
+//             Confirm
+//           </button>
+//           <button
+//             className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
+//             onClick={onCancel}
+//           >
+//             Cancel
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 // Notification component for showing popup messages
-function Notification({ message, onClose }) {
-  if (!message) return null;
-  return (
-    <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
-      <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="Rafi Logo"
-          className="h-[25px]"
-        />
-        <span>{message}</span>
-      </div>
-    </div>
-  );
-}
+// function Notification({ message, onClose }) {
+//   if (!message) return null;
+//   return (
+//     <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
+//       <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
+//         <img
+//           src="/images/logo_white_notxt.png"
+//           alt="Rafi Logo"
+//           className="h-[25px]"
+//         />
+//         <span>{message}</span>
+//       </div>
+//     </div>
+//   );
+// }
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [notification, setNotification] = useState("");
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState(
+    location.state?.type || ""
+  );
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null); // {id, action}
+  const [modalDesc, setModalDesc] = useState("Are you sure you want to proceed with this action?");
 
   // Status filter state
   const [statusFilter, setStatusFilter] = useState("all");
@@ -148,9 +158,11 @@ const UserManagement = () => {
       try {
         await deleteUser(modalAction.id);
         setNotification("User deleted successfully");
+        setNotificationType("success");
         loadUsers();
       } catch (error) {
         setNotification("Failed to delete user");
+        setNotificationType("error");
       }
       setTimeout(() => setNotification(""), 3500);
     } else {
@@ -160,6 +172,7 @@ const UserManagement = () => {
           modalAction?.action?.slice(1)
         } user successfully`
       );
+      setNotificationType("success");
       setTimeout(() => setNotification(""), 3500);
     }
     setModalOpen(false);
@@ -255,16 +268,28 @@ const UserManagement = () => {
 
       {/* --- SCREEN CONTENT --- */}
       <div id="um-root">
-        <ConfirmationModal
+        {/* <ConfirmationModal
           open={modalOpen}
           text={modalText}
           onConfirm={handleModalConfirm}
           onCancel={handleModalCancel}
+        /> */}
+        <ConfirmationModal
+          open={modalOpen}
+          title={modalText}
+          desc={modalDesc}
+          onConfirm={handleModalConfirm}
+          onCancel={() => {
+            setModalOpen(false);
+            setModalAction(null);
+            setModalText("");
+          }}
         />
-        <Notification
+        <Notification message={notification} type={notificationType} />
+        {/* <Notification
           message={notification}
           onClose={() => setNotification("")}
-        />
+        /> */}
 
         <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
           <div className="flex justify-between items-center w-full">
@@ -325,10 +350,11 @@ const UserManagement = () => {
               {/* ⬇️ Generate button with cursor-pointer */}
               <button
                 onClick={() => window.print()}
-                className="px-7 font-bold rounded-md text-sm text-white bg-primary cursor-pointer"
+                className="px-3 font-bold rounded-md text-sm text-white bg-primary cursor-pointer"
                 title="Print current list"
               >
-                Generate
+                {/* Generate */}
+                <Printer className="w-4 h-4" /> 
               </button>
             </div>
 

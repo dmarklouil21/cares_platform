@@ -130,7 +130,7 @@ const applicationView = () => {
     }
     if (next.length) setAttachments((prev) => [...prev, ...next]);
   };
-// Stop here for now
+
   const removeAttachment = async (idx) => {
     const item = attachments[idx];
     if (!item) return;

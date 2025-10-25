@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
+import api from "src/api/axiosInstance";
 
 const usePrefersReducedMotion = () => {
   const [prefers, setPrefers] = useState(false);
@@ -417,6 +418,12 @@ const DonutChart = ({
 };
 
 const Dashboard = () => {
+  const [totalPatients, setTotalPatients] = useState(0);
+  const [dueForHomeVisit, setDueForHomeVisit] = useState(0);
+  const [activePatients, setActivePatients] = useState(0);
+  const [pendingPreEnrollment, setPendingPreEnrollment] = useState(0);
+  const [monthlyData, setMonthlyData] = useState([]);
+
   const CHART_HEIGHT = 220;
   const DONUT_SIZE = 160;
   const MONTHLY_BOX_MIN_H = CHART_HEIGHT + 80;
@@ -431,53 +438,70 @@ const Dashboard = () => {
 
   const donutPalette = ["#749ab6", "#fcb814", "#6b7280", "#c5d7e5"];
 
+  const fetchStats = async () => {
+    try {
+      const { data } = await api.get("/patient/stats/");
+      setTotalPatients(data.total_patients);
+      setDueForHomeVisit(data.due_for_home_visit);
+      setActivePatients(data.active_patients);
+      setPendingPreEnrollment(data.pending_pre_enrollment);
+      setMonthlyData(data.monthly_data);
+    } catch (error) {
+      console.error("Error fetching patient stats:", error);
+    }
+  }
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
   const cards = [
     {
       id: 1,
       icon: "/src/assets/images/dashboard/2patients.svg",
       label: "Total patient registered",
-      value: "2,000",
+      value: totalPatients.toLocaleString(),
     },
     {
       id: 2,
       icon: "/src/assets/images/dashboard/home.svg",
       label: "Due for Home Visit",
-      value: "85",
+      value: dueForHomeVisit.toLocaleString(),
     },
     {
       id: 3,
       icon: "/src/assets/images/dashboard/activepatient.svg",
       label: "Active Patients",
-      value: "1,340",
+      value: activePatients.toLocaleString(),
     },
     {
       id: 4,
       icon: "/src/assets/images/dashboard/pending.svg",
       label: "Pending Pre Enrollment",
-      value: "47",
+      value: pendingPreEnrollment.toLocaleString(),
     },
   ].map((c, i) => ({ ...c, accent: donutPalette[i % donutPalette.length] }));
 
-  const monthlyData = [
-    { label: "Jan", value: 120 },
-    { label: "Feb", value: 180 },
-    { label: "Mar", value: 210 },
-    { label: "Apr", value: 160 },
-    { label: "May", value: 240 },
-    { label: "Jun", value: 300 },
-    { label: "Jul", value: 280 },
-    { label: "Aug", value: 260 },
-    { label: "Sep", value: 320 },
-    { label: "Oct", value: 290 },
-    { label: "Nov", value: 310 },
-    { label: "Dec", value: 350 },
-  ];
+  // const sampleMonthlyData = [
+  //   { label: "Jan", value: 120 },
+  //   { label: "Feb", value: 180 },
+  //   { label: "Mar", value: 210 },
+  //   { label: "Apr", value: 160 },
+  //   { label: "May", value: 240 },
+  //   { label: "Jun", value: 300 },
+  //   { label: "Jul", value: 280 },
+  //   { label: "Aug", value: 260 },
+  //   { label: "Sep", value: 320 },
+  //   { label: "Oct", value: 290 },
+  //   { label: "Nov", value: 310 },
+  //   { label: "Dec", value: 350 },
+  // ];
 
   const donutData = [
-    { label: "Registered", value: 2000 },
-    { label: "Active", value: 1340 },
-    { label: "Due Home Visit", value: 85 },
-    { label: "Pending Pre-Enroll", value: 47 },
+    { label: "Registered", value: totalPatients },
+    { label: "Active", value: activePatients },
+    { label: "Due Home Visit", value: dueForHomeVisit },
+    { label: "Pending Pre-Enroll", value: pendingPreEnrollment },
   ];
 
   const edgeProgress = useMountProgress(900);

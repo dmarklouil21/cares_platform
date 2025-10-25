@@ -19,6 +19,7 @@ from backend.utils.email import (
   send_return_remarks_email, send_loa_email,
   send_case_summary_email,
   send_precancerous_meds_status_email,
+  send_service_registration_email
 )
 
 import json
@@ -48,7 +49,16 @@ class CancerTreatmentCreateView(generics.CreateAPIView):
       })
 
     # Parse JSON safely
-    well_being_data = json.loads(request.data.get("well_being_data", "{}"))
+    raw_data = request.data.get("well_being_data", "{}")
+    if raw_data:
+      try:
+        well_being_data = json.loads(raw_data)
+      except json.JSONDecodeError:
+        well_being_data = {}
+    else:
+      well_being_data = {}
+
+    # well_being_data = json.loads(request.data.get("well_being_data", "{}"))
 
     files_dict = {
       key.split("files.")[1]: value
@@ -70,6 +80,13 @@ class CancerTreatmentCreateView(generics.CreateAPIView):
     cancer_treatment = serializer.save()
 
     response_data = CancerTreatmentSerializer(cancer_treatment, context={"request": request}).data
+    email_status = send_service_registration_email(
+      patient=patient, 
+      service_name=cancer_treatment.get_service_type_display()
+    )
+    
+    if email_status is not True:
+      logger.error(f"Email failed to send: {email_status}")
     return Response({"message": "Success", "data": response_data}, status=status.HTTP_201_CREATED)
 
 class CancerManagementListView(generics.ListAPIView):
@@ -117,7 +134,7 @@ class CancerTreatmentRequestStatusUpdateView(generics.UpdateAPIView):
   permission_classes = [IsAuthenticated, IsAdminUser]
 
   def perform_update(self, serializer):
-    instance = serializer.save()
+    instance = serializer.save(has_patient_response=False, response_description='')
 
     patient = instance.patient
     request_status = instance.status

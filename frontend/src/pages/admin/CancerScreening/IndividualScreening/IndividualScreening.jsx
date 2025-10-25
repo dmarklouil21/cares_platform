@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link, data } from "react-router-dom";
+import { Printer, FileText, FileDown } from "lucide-react";
 
 import api from "src/api/axiosInstance";
 
@@ -298,7 +299,7 @@ const IndividualScreening = () => {
               {/* <option value="LOA Generation">LOA Generation</option> */}
               <option value="In Progress">In Progress</option>
               <option value="Complete">Complete</option>
-              <option value="Reject">Reject</option>
+              {/* <option value="Reject">Reject</option> */}
             </select>
 
             <input
@@ -311,9 +312,10 @@ const IndividualScreening = () => {
             {/* ⬇️ NEW: Generate button */}
             <button
               onClick={() => window.print()}
-              className="bg-primary px-5 py-1 rounded-sm text-white cursor-pointer"
+              className="bg-primary px-3 py-1 rounded-sm text-white cursor-pointer"
             >
-              Generate
+              {/* Generate */}
+              <Printer className="w-4 h-4" />
             </button>
           </div>
 

@@ -10,7 +10,7 @@ from rest_framework.exceptions import ValidationError
 
 from backend.utils.email import send_precancerous_meds_status_email
 
-from apps.patient.models import Patient
+from apps.patient.models import Patient, ServiceReceived
 from apps.precancerous.models import PreCancerousMedsRequest
 # Use local re-export to avoid cross-app dependency/cycles
 from apps.precancerous.serializers import (
@@ -42,7 +42,9 @@ class PreCancerousMedsCreateView(generics.CreateAPIView):
               "You already have an ongoing request. Please wait for its feedback before submitting another."
             ]
           })
-    
+
+        patient.status = 'active'
+        patient.save()
         instance = serializer.save(
           patient=patient
         )
@@ -80,9 +82,21 @@ class AdminPreCancerousMedsUpdateView(generics.UpdateAPIView):
   def perform_update(self, serializer):
     instance = serializer.save()
 
+    patient = instance.patient
     if instance.status == 'Approved':
+      patient.status = 'active'
       instance.date_approved = timezone.now().date()
       instance.save(update_fields=['date_approved'])
+    elif instance.status == 'Completed':
+      patient.status = 'validated'
+      
+      ServiceReceived.objects.create(
+        patient=patient,
+        service_type = 'Pre Cancerous Medication',
+        date_completed = timezone.now().date()
+      )
+      
+    patient.save()
     # return super().perform_update(serializer)
 
 class PreCancerousMedsDeleteView(generics.DestroyAPIView):

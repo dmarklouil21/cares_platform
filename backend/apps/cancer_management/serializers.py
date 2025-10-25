@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from rest_framework import serializers
 from .models import (
@@ -65,6 +66,7 @@ class CancerTreatmentSerializer(serializers.ModelSerializer):
       "attachments",
       'has_patient_response',
       'response_description',
+      'service_provider',
     ]
 
 class CancerTreatmentSubmissionSerializer(serializers.Serializer):
@@ -101,11 +103,13 @@ class CancerTreatmentSubmissionSerializer(serializers.Serializer):
         continue
 
     # 3. Create CancerTreatment
+    patient.status = 'active'
+    patient.save()
     cancer_treatment = CancerTreatment.objects.create(
       patient=patient,  # pass patient from view
       service_type=well_being_data.get('serviceType'), 
       wellbeing_assessment=assessment,
-      status="Pending"
+      status="Pending",
     )
 
     # 4. Save ServiceAttachments
@@ -166,6 +170,7 @@ class CancerTreatmentCreationSerializer(serializers.Serializer):
       service_type=validated_data['service_type'], 
       wellbeing_assessment=assessment,
       interview_date=validated_data["interview_date"],
+      service_provider=validated_data.get("service_provider"),
       status="Interview Process"
     )
 

@@ -11,4 +11,5 @@ urlpatterns = [
     path('pre-enrollment/validate/<str:patient_id>/', views.PatientStatusUpdateView.as_view(), name='pre_enrollment_verify'),
     path('pre-enrollment/reject/<str:patient_id>/', views.PatientDeleteView.as_view(), name='pre_enrollment_reject'),
     path('delete/<str:patient_id>/', views.PatientDeleteView.as_view(), name='patient_delete'),
+    path('stats/', views.PatientStatsView.as_view(), name='patient-stats'),
 ]

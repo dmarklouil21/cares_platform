@@ -1,28 +1,10 @@
-import { use, useEffect, useState } from "react";
-import { useAuth } from "src/context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import barangayData from "src/constants/barangayData";
-import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
-
-function Notification({ message, onClose }) {
-  if (!message) return null;
-  return (
-    <div className="fixed top-1 left-1/2 bg-amber-100 transform -translate-x-1/2 z-50">
-      <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3 animate-fade-in">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="Rafi Logo"
-          className="h-[25px]"
-        />
-        <span>{message}</span>
-      </div>
-    </div>
-  );
-}
 
 export default function PatinetProfileForm() {
   // Notification Modal
@@ -38,9 +20,9 @@ export default function PatinetProfileForm() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
   const [modalAction, setModalAction] = useState(null);
+  const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [formData, setFormData] = useState({
     // user_id: user.user_id,
     first_name: "",
@@ -84,6 +66,68 @@ export default function PatinetProfileForm() {
   });
 
   const [notification, setNotification] = useState("");
+  const location = useLocation();
+
+  const record = location.state?.formData;
+
+  const validate = () => {
+    const newErrors = {};
+
+    // Required fields
+    const requiredFields = {
+      first_name: "First name is required.",
+      last_name: "Last name is required.",
+      date_of_birth: "Birthdate is required.",
+      sex: "Sex is required.",
+      civil_status: "Civil status is required.",
+      barangay: "Barangay is required.",
+      address: "Address is required.",
+      email: "Email is required.",
+      city: "City/Municipality is required.",
+      mobile_number: "Mobile number is required.",
+      source_of_information: "Source of information is required.",
+      highest_educational_attainment: "Educational attainment is required.",
+      occupation: "Occupation is required.",
+      source_of_income: "Source of income is required.",
+      monthly_income: "Monthly income is required.",
+    };
+
+    // Validate form fields
+    Object.entries(requiredFields).forEach(([field, message]) => {
+      if (!formData[field] || !formData[field].toString().trim()) {
+        newErrors[field] = message;
+      }
+    });
+
+    // Validate photo
+    if (!photoUrl) {
+      newErrors.photoUrl = "2×2 photo is required.";
+    }
+
+    // Validate emergency contacts
+    formData.emergency_contacts.forEach((contact, index) => {
+      if (!contact.name.trim()) {
+        newErrors[`emergency_contact_${index}_name`] = "Contact name is required.";
+      }
+      if (!contact.relationship_to_patient.trim()) {
+        newErrors[`emergency_contact_${index}_relationship`] = "Relationship is required.";
+      }
+      if (!contact.address.trim()) {
+        newErrors[`emergency_contact_${index}_address`] = "Address is required.";
+      }
+      if (!contact.mobile_number.trim()) {
+        newErrors[`emergency_contact_${index}_mobile_number`] = "Mobile number is required.";
+      }
+      if (!contact.email.trim()) {
+        newErrors[`emergency_contact_${index}_email`] = "Email is required.";
+      }
+    });
+
+    return newErrors;
+  };
+
+  // useEffect (() => { stop here for now
+  // })
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -130,59 +174,6 @@ export default function PatinetProfileForm() {
     setModalOpen(true);
   };
 
-  const handleModalConfirm = async () => {
-    if (modalAction?.type === "submit") {
-      try {
-        setLoading(true);
-        const response = await api.post(
-          "/beneficiary/pre-enrollment/",
-          formData
-        );
-        setModalInfo({
-          type: "success",
-          title: "Success!",
-          message: "Your form was submitted.",
-        });
-        setShowModal(true);
-        navigate("/Beneficiary");
-      } catch (error) {
-        let errorMessage = "Something went wrong while submitting the form.";
-
-        if (error.response && error.response.data) {
-          // DRF ValidationError returns an object with arrays of messages
-          if (error.response.data.non_field_errors) {
-            errorMessage = error.response.data.non_field_errors[0];
-          } //else if (typeof error.response.data === "string") {
-          //errorMessage = error.response.data; // for plain text errors
-          //}
-        }
-        setModalInfo({
-          type: "error",
-          title: "Submission Failed",
-          message: errorMessage,
-        });
-        setShowModal(true);
-        /* setModalInfo({
-          type: "error",
-          title: "Submission Failed",
-          message: "Something went wrong while submitting the form.",
-        });
-        setShowModal(true); */
-        // if (error.response && error.response.data && error.response.data.exists) {
-        //   setNotification("You already registered as beneficiary");
-        //   setTimeout(() => setNotification(""), 3500);
-        //   return;
-        // }
-        console.error("Error submitting form:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    setModalOpen(false);
-    setModalAction(null);
-    setModalText("");
-  };
   // 2×2 photo preview (UI only; no data changes)
   const [photoUrl, setPhotoUrl] = useState(null);
   const [imageFile, setImageFile] = useState(null);
@@ -193,10 +184,6 @@ export default function PatinetProfileForm() {
     const url = URL.createObjectURL(file);
     setPhotoUrl(url);
     setImageFile(file);
-    // setFormData((prev) => ({
-    //   ...prev,
-    //   photoUrl: url,
-    // }));
   }
 
   // cleanup the blob URL to avoid leaks
@@ -206,9 +193,24 @@ export default function PatinetProfileForm() {
     };
   }, [photoUrl]);
 
+  const handleNext = () => {
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    navigate(`/beneficiary/pre-enrollment/cancer-data`, {
+      state: {
+        formData: formData,
+        photoUrl: imageFile,
+      },
+    });
+  };
+
   return (
     <>
-      <ConfirmationModal
+      {/* <ConfirmationModal
         open={modalOpen}
         text={modalText}
         onConfirm={handleModalConfirm}
@@ -217,7 +219,7 @@ export default function PatinetProfileForm() {
           setModalAction(null);
           setModalText("");
         }}
-      />
+      /> */}
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -258,10 +260,23 @@ export default function PatinetProfileForm() {
                   />
                 ) : (
                   <span className="p-2 text-center leading-tight">
-                    Upload 2×2 photo
-                    <br />
-                    <span className="text-[11px] opacity-70">JPG/PNG</span>
+                    {errors.photoUrl ? (
+                      <span className="text-red-500 text-xs">
+                        {errors.photoUrl}
+                      </span>
+                    ) : (
+                      <>
+                        Upload 2×2 photo
+                        <br />
+                        <span className="text-[11px] opacity-70">JPG/PNG</span>
+                      </>
+                    )}
                   </span>
+                  // <span className="p-2 text-center leading-tight">
+                  //   Upload 2×2 photo
+                  //   <br />
+                  //   <span className="text-[11px] opacity-70">JPG/PNG</span>
+                  // </span>
                 )}
                 <input
                   id="photo2x2"
@@ -281,43 +296,6 @@ export default function PatinetProfileForm() {
             </div>
           </div>
 
-          {/* <div className="flex justify-between items-center">
-            <h1 className="font-bold md:text-3xl">Patient Profile</h1>
-            <p>Note: Please put NA for not Applicable fields</p><br/>
-            <label>Date: </label>
-            <input type="date"></input>
-
-            <div className="flex items-center gap-4">
-              <label
-                htmlFor="photo2x2"
-                className="relative w-[130px] h-[130px] border-2 border-dashed rounded-md flex items-center justify-center text-xs text-gray-600 cursor-pointer overflow-hidden"
-                title="Upload 2×2 photo"
-              >
-                {photoUrl ? (
-                  <img
-                    src={photoUrl}
-                    alt="2×2 preview"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="p-2 text-center leading-tight">
-                    Upload 2×2 photo
-                    <br />
-                    <span className="text-[11px] opacity-70">JPG/PNG</span>
-                  </span>
-                )}
-                <input
-                  id="photo2x2"
-                  type="file"
-                  accept="image/*"
-                  onChange={handle2x2Change}
-                  className="hidden"
-                />
-              </label>
-
-              <img src="/images/logo_black_text.png" alt="rafi icon" />
-            </div>
-          </div> */}
           <h2 className="text-md font-bold border-b pb-1">GENERAL DATA</h2>
 
           <div className="grid grid-cols-2 md:gap-x-10 gap-3">
@@ -330,6 +308,11 @@ export default function PatinetProfileForm() {
                 onChange={handleChange}
                 className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
+              {errors.first_name && (
+                <span className="text-red-500 text-xs">
+                  {errors.first_name}
+                </span>
+              )}
             </div>
 
             {/* Middle Name */}
@@ -358,6 +341,11 @@ export default function PatinetProfileForm() {
                 onChange={handleChange}
                 className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
+              {errors.last_name && (
+                <span className="text-red-500 text-xs">
+                  {errors.last_name}
+                </span>
+              )}
             </div>
 
             {/* Suffix */}
@@ -396,6 +384,11 @@ export default function PatinetProfileForm() {
                   placeholder="Select date"
                 />
               </div>
+              {errors.date_of_birth && (
+                <span className="text-red-500 text-xs">
+                  {errors.date_of_birth}
+                </span>
+              )}
             </div>
 
             {/* Age */}
@@ -440,6 +433,11 @@ export default function PatinetProfileForm() {
                   </svg>
                 </div>
               </div>
+              {errors.sex && (
+                <span className="text-red-500 text-xs">
+                  {errors.sex}
+                </span>
+              )}
             </div>
 
             {/* Civil Status */}
@@ -474,6 +472,11 @@ export default function PatinetProfileForm() {
                   </svg>
                 </div>
               </div>
+              {errors.civil_status && (
+                <span className="text-red-500 text-xs">
+                  {errors.civil_status}
+                </span>
+              )}
             </div>
 
             {/* Number of Children */}
@@ -510,6 +513,11 @@ export default function PatinetProfileForm() {
                     onChange={handleChange}
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
+                  {errors.address && (
+                    <span className="text-red-500 text-xs">
+                      {errors.address}
+                    </span>
+                  )}
                 </div>
 
                 {/* City/Municipality */}
@@ -549,6 +557,11 @@ export default function PatinetProfileForm() {
                       </svg>
                     </div>
                   </div>
+                  {errors.city && (
+                    <span className="text-red-500 text-xs">
+                      {errors.city}
+                    </span>
+                  )}
                 </div>
 
                 {/* Barangay */}
@@ -585,6 +598,11 @@ export default function PatinetProfileForm() {
                       </svg>
                     </div>
                   </div>
+                  {errors.barangay && (
+                    <span className="text-red-500 text-xs">
+                      {errors.barangay}
+                    </span>
+                  )}
                 </div>
 
                 {/* Contact Number */}
@@ -607,6 +625,11 @@ export default function PatinetProfileForm() {
                       className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                     />
                   </div>
+                  {errors.mobile_number && (
+                    <span className="text-red-500 text-xs">
+                      {errors.mobile_number}
+                    </span>
+                  )}
                 </div>
 
                 {/* Email */}
@@ -630,6 +653,11 @@ export default function PatinetProfileForm() {
                       placeholder="ejacc@gmail.com"
                     />
                   </div>
+                  {errors.email && (
+                    <span className="text-red-500 text-xs">
+                      {errors.email}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -650,6 +678,11 @@ export default function PatinetProfileForm() {
                     onChange={handleChange}
                     className="border-black border-[1px] rounded-md p-2 h-36 resize-none text-[12px] md:text-[16px] w-full md:w-[60%]"
                   />
+                  {errors.source_of_information && (
+                      <span className="text-red-500 text-xs">
+                        {errors.source_of_information}
+                      </span>
+                    )}
                 </div>
 
                 {/* Other RAFI Programs */}
@@ -683,6 +716,11 @@ export default function PatinetProfileForm() {
                     onChange={handleChange}
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
+                  {errors.highest_educational_attainment && (
+                    <span className="text-red-500 text-xs">
+                      {errors.highest_educational_attainment}
+                    </span>
+                  )}
                 </div>
 
                 {/* Occupation */}
@@ -697,6 +735,11 @@ export default function PatinetProfileForm() {
                     onChange={handleChange}
                     className="border-black border-[1px] rounded-md p-2   text-[12px] md:text-[16px]"
                   />
+                  {errors.occupation && (
+                    <span className="text-red-500 text-xs">
+                      {errors.occupation}
+                    </span>
+                  )}
                 </div>
 
                 {/* Income Source */}
@@ -711,6 +754,11 @@ export default function PatinetProfileForm() {
                     onChange={handleChange}
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
+                  {errors.source_of_income && (
+                    <span className="text-red-500 text-xs">
+                      {errors.source_of_income}
+                    </span>
+                  )}
                 </div>
 
                 {/* Income */}
@@ -725,6 +773,11 @@ export default function PatinetProfileForm() {
                     onChange={handleChange}
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
+                  {errors.monthly_income && (
+                    <span className="text-red-500 text-xs">
+                      {errors.monthly_income}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -745,6 +798,9 @@ export default function PatinetProfileForm() {
                     onChange={handleChange}
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
+                  {errors[`emergency_contact_0_name`] && (
+                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_name`]}</span>
+                  )}
                 </div>
 
                 {/* Address */}
@@ -759,6 +815,9 @@ export default function PatinetProfileForm() {
                     onChange={handleChange}
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
+                  {errors[`emergency_contact_0_address`] && (
+                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_address`]}</span>
+                  )}
                 </div>
 
                 {/* Relationship */}
@@ -775,6 +834,9 @@ export default function PatinetProfileForm() {
                     onChange={handleChange}
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
+                  {errors[`emergency_contact_0_relationship`] && (
+                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_relationship`]}</span>
+                  )}
                 </div>
 
                 {/* Email */}
@@ -798,6 +860,9 @@ export default function PatinetProfileForm() {
                       placeholder="ejacc@gmail.com"
                     />
                   </div>
+                  {errors[`emergency_contact_0_email`] && (
+                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_email`]}</span>
+                  )}
                 </div>
 
                 {/* Landline */}
@@ -842,6 +907,9 @@ export default function PatinetProfileForm() {
                       className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                     />
                   </div>
+                  {errors[`emergency_contact_0_mobile_number`] && (
+                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_mobile_number`]}</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -862,6 +930,9 @@ export default function PatinetProfileForm() {
                     onChange={handleChange}
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
+                  {errors[`emergency_contact_1_name`] && (
+                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_name`]}</span>
+                  )}
                 </div>
 
                 {/* Address */}
@@ -876,6 +947,9 @@ export default function PatinetProfileForm() {
                     onChange={handleChange}
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
+                  {errors[`emergency_contact_1_address`] && (
+                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_address`]}</span>
+                  )}
                 </div>
 
                 {/* Relationship */}
@@ -892,6 +966,9 @@ export default function PatinetProfileForm() {
                     onChange={handleChange}
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
+                  {errors[`emergency_contact_1_relationship`] && (
+                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_relationship`]}</span>
+                  )}
                 </div>
 
                 {/* Email */}
@@ -915,6 +992,9 @@ export default function PatinetProfileForm() {
                       placeholder="ejacc@gmail.com"
                     />
                   </div>
+                  {errors[`emergency_contact_1_email`] && (
+                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_email`]}</span>
+                  )}
                 </div>
 
                 {/* Landline */}
@@ -959,6 +1039,9 @@ export default function PatinetProfileForm() {
                       className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                     />
                   </div>
+                  {errors[`emergency_contact_1_mobile_number`] && (
+                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_mobile_number`]}</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -972,16 +1055,18 @@ export default function PatinetProfileForm() {
             >
               Cancel
             </Link>
-            <Link
-              to="/beneficiary/pre-enrollment/cancer-data"
+            <button
+              type="button"
+              // to="/beneficiary/pre-enrollment/cancer-data"
+              onClick={handleNext}
               className="bg-[#749AB6] text-center font-bold text-white py-3 w-full border-[1px] border-[#749AB6] hover:border-[#C5D7E5] hover:bg-[#C5D7E5] rounded-md cursor-pointer"
-              state={{
-                formData: formData, 
-                photoUrl: imageFile
-              }}
+              // state={{
+              //   formData: formData, 
+              //   photoUrl: imageFile
+              // }}
             >
               Next
-            </Link>
+            </button>
           </div>
         </form>
       </div>
