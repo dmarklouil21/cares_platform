@@ -29,6 +29,7 @@ const PatientPreScreeningForm = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
   const [modalAction, setModalAction] = useState(null);
+  const [modalDesc, setModalDesc] = useState("Make sure all your inputs are correct.")
 
   useEffect(() => {
     if (record) {
@@ -131,7 +132,8 @@ const PatientPreScreeningForm = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={() => {
           setModalOpen(false);
@@ -148,7 +150,7 @@ const PatientPreScreeningForm = () => {
       />
       <LoadingModal open={loading} text="Submitting changes..." />
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+        {/* <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Edit Patient</h1>
           <Link to={`/rhu/patients/edit/${patient.patient_id}`}>
             <img
@@ -157,7 +159,7 @@ const PatientPreScreeningForm = () => {
               className="h-6"
             />
           </Link>
-        </div>
+        </div> */}
         <div className="h-full w-full flex flex-col justify-between">
           <form
             className="border border-black/15 p-3 bg-white rounded-sm"
@@ -1523,7 +1525,7 @@ const PatientPreScreeningForm = () => {
               className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black cursor-pointer rounded-md"
               onClick={() => {
                 console.log("Patient ID: ", patient?.patient_id);
-                navigate(`/rhu/patients/edit/${patient.patient_id}`);
+                navigate(`/private/patients/edit/${patient.patient_id}`);
               }}
             >
               Back

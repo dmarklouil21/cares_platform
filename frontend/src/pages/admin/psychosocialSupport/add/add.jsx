@@ -184,7 +184,8 @@ const add = () => {
   };
 
   return (
-    <div className="w-full max-w-5xl py-6 px-5 h-screen bg-gray">
+    // <div className="w-full max-w-5xl py-6 px-5 h-screen bg-gray">
+    <>
       {/* Shared modals to match list page design */}
       <LoadingModal open={loading} text="Processing..." />
       <NotificationModal
@@ -202,7 +203,7 @@ const add = () => {
         onConfirm={doSave}
       />
 
-      <div className="flex justify-between px-5">
+      {/* <div className="flex justify-between px-5">
         <h1 className="text-2xl font-bold mb-4">
           Add Psychosocial Support Activity
         </h1>
@@ -213,142 +214,203 @@ const add = () => {
             className="h-6 cursor-pointer"
           />
         </Link>
-      </div>
+      </div> */}
 
-      <div className="bg-white rounded-2xl flex flex-col justify-between shadow-md p-6 h-[90%]">
-        {/* ===== Same inputs as before ===== */}
-        <div className="flex w-full justify-between overflow-auto h-full">
-          <div className="mb-6  w-[50%] pr-4">
+      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center bg-gray overflow-auto">
+        <div className="h-fit w-full flex flex-col gap-4">
+          <div className="bg-white rounded-md shadow border border-black/10">
+            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Activity Details</h2>
+              {/* <span
+                className={`text-xs px-2 py-1 rounded ${
+                  status === "Complete"
+                    ? "bg-green-100 text-green-700 border border-green-200"
+                    : "bg-gray-100 text-gray-700 border border-gray-200"
+                }`}
+              >
+                {status}
+              </span> */}
+            </div>
             {/* Title */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Title</label>
-              <input
-                type="text"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="border w-full p-1 rounded"
-                placeholder="e.g., Group Sharing Session"
-              />
-            </div>
 
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">
-                Description
-              </label>
-              <textarea
-                value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-                className="border w-full p-1 rounded"
-                placeholder="What is this session about?"
-              />
-            </div>
+            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+              <div className="w-full">
+                <label className="text-sm font-medium block mb-1">Title</label>
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                  placeholder="e.g., Group Sharing Session"
+                />
+              </div>
 
-            {/* Date */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Date</label>
-              <input
-                type="date"
-                value={form.date}
-                onChange={(e) => setForm({ ...form, date: e.target.value })}
-                min={todayStr}
-                className="border w-full p-1 rounded"
-              />
-            </div>
+              {/* Date */}
+              <div className="w-full">
+                <label className="text-sm font-medium block mb-1">Date</label>
+                <input
+                  type="date"
+                  value={form.date}
+                  onChange={(e) => setForm({ ...form, date: e.target.value })}
+                  min={todayStr}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                />
+              </div>
 
-            {/* Photo (preview only) */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Photo</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) =>
-                  setForm({ ...form, photo: e.target.files?.[0] || null })
-                }
-                className="border w-full p-1 rounded"
-              />
-              {form.photo && (
-                <div className="mt-2">
-                  <img
-                    src={filePreviewUrl(form.photo)}
-                    alt="Preview"
-                    className="w-full h-28 object-cover rounded"
-                  />
-                  <p className="text-xs text-gray-600 mt-1">
-                    {form.photo instanceof File
-                      ? `Selected image: ${form.photo.name}`
-                      : "Existing image"}
+              {/* Attachment */}
+              <div className="w-full">
+                <label className="text-sm font-medium block mb-1">
+                  Attachment
+                </label>
+                <input
+                  type="file"
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      attachment: e.target.files?.[0] || null,
+                    })
+                  }
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                />
+                {form.attachment && (
+                  <p className="text-xs text-gray-600 mt-1 break-all whitespace-normal leading-snug">
+                    {form.attachment instanceof File
+                      ? `Selected file: ${form.attachment.name}`
+                      : `Existing file: ${form.attachment}`}
                   </p>
+                )}
+              </div>
+              
+              {/* Description */}
+              <div className="w-full">
+                <label className="text-sm font-medium block mb-1">
+                  Description
+                </label>
+                <textarea
+                  type="text"
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm({ ...form, description: e.target.value })
+                  }
+                  placeholder="What is this session about?"
+                ></textarea>
+              </div>
+
+              {/* Photo (preview only) */}
+              <div className="w-full">
+                <label className="text-sm font-medium block mb-1">Photo</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setForm({ ...form, photo: e.target.files?.[0] || null })
+                  }
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                />
+                {form.photo && (
+                  <div className="mt-2">
+                    <img
+                      src={filePreviewUrl(form.photo)}
+                      alt="Preview"
+                      className="w-full h-28 object-cover rounded"
+                    />
+                    <p className="text-xs text-gray-600 mt-1">
+                      {form.photo instanceof File
+                        ? `Selected image: ${form.photo.name}`
+                        : "Existing image"}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Input with suggestions */}
+              <div className="w-full">
+                <label className="text-sm font-medium block mb-1">
+                  Patients who attended
+                </label>
+                <input
+                  type="text"
+                  value={patientQuery}
+                  onChange={(e) => setPatientQuery(e.target.value)}
+                  onKeyDown={onPatientsKeyDown}
+                  onFocus={() => setInputFocused(true)}
+                  onClick={() => setInputFocused(true)}
+                  onBlur={() => setTimeout(() => setInputFocused(false), 120)}
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                  placeholder="Type a name, press Enter, or pick from options…"
+                />
+
+                {/* Suggestions dropdown */}
+                {suggestions.length > 0 && (
+                  <div className="left-0 right-0 mt-1 border rounded bg-white shadow max-h-40 overflow-auto z-10">
+                    {suggestions.map((name) => (
+                      <button
+                        key={name}
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => addPatient(name)}
+                        className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-md shadow border border-black/10">
+            <div className="bg-white rounded-md shadow border border-black/10">
+              <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
+                <h2 className="text-lg font-semibold">Patients Added</h2>
+                {/* <span
+                  className={`text-xs px-2 py-1 rounded ${
+                    status === "Complete"
+                      ? "bg-green-100 text-green-700 border border-green-200"
+                      : "bg-gray-100 text-gray-700 border border-gray-200"
+                  }`}
+                >
+                  {status}
+                </span> */}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                <div className="mt-3 overflow-auto">
+                  {form.patients.length === 0 ? (
+                    <p className="text-xs text-gray-500 italic px-5 py-2">
+                      No patients added yet.
+                    </p>
+                  ) : (
+                    <ul className="bg-gray rounded h-full p-2 flex flex-col gap-1">
+                      {form.patients.map((p) => (
+                        <li
+                          key={p}
+                          className="flex items-center bg-white rounded-md justify-between px-3 py-2"
+                        >
+                          <span className="text-sm">{p}</span>
+                          <button
+                            type="button"
+                            onClick={() => removePatient(p)}
+                            className="text-gray-500 hover:text-red-600"
+                            aria-label={`Remove ${p}`}
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
           {/* Right column */}
-          <div className="w-[50%] pl-4  h-full overflow-auto">
-            {/* Attachment (UI only) */}
-            <div className="h-[19.5%] ">
-              <label className="block text-sm font-semibold mb-1">
-                Attachment
-              </label>
-              <input
-                type="file"
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    attachment: e.target.files?.[0] || null,
-                  })
-                }
-                className="border w-full p-1 rounded"
-              />
-              {form.attachment && (
-                <p className="text-xs text-gray-600 mt-1 break-all whitespace-normal leading-snug">
-                  {form.attachment instanceof File
-                    ? `Selected file: ${form.attachment.name}`
-                    : `Existing file: ${form.attachment}`}
-                </p>
-              )}
-            </div>
-
-            {/* Input with suggestions */}
-            <div className="relative  h-[15.5%] border-red-500">
-              <label className="block text-sm font-semibold mb-1 ">
-                Patients who attended
-              </label>
-              <input
-                type="text"
-                value={patientQuery}
-                onChange={(e) => setPatientQuery(e.target.value)}
-                onKeyDown={onPatientsKeyDown}
-                onFocus={() => setInputFocused(true)}
-                onClick={() => setInputFocused(true)}
-                onBlur={() => setTimeout(() => setInputFocused(false), 120)}
-                className="w-full p-1 border rounded"
-                placeholder="Type a name, press Enter, or pick from options…"
-              />
-
-              {/* Suggestions dropdown */}
-              {suggestions.length > 0 && (
-                <div className="absolute  left-0 right-0 mt-1 border rounded bg-white shadow max-h-40 overflow-auto z-10">
-                  {suggestions.map((name) => (
-                    <button
-                      key={name}
-                      type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => addPatient(name)}
-                      className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                    >
-                      {name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* <div className="w-[50%] pl-4  h-full overflow-auto"> */}
 
             {/* Added patients — vertical list with an × on the right */}
-            <div className="mt-3  h-[60%] overflow-auto">
+            {/* <div className="mt-3  h-[60%] overflow-auto">
               {form.patients.length === 0 ? (
                 <p className="text-xs text-gray-500 italic">
                   No patients added yet.
@@ -373,15 +435,16 @@ const add = () => {
                   ))}
                 </ul>
               )}
-            </div>
-          </div>
+            </div> */}
+          {/* </div> */}
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            className="px-4 py-2 bg-gray-300 rounded"
+        <div className="w-full flex justify-around pb-6">
+          <Link
+            // type="button"
+            to={"/admin/PychosocialSupport"}
+            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black rounded-md"
             onClick={() => {
               // UI-only cancel (no routing logic added)
               setForm({
@@ -396,20 +459,22 @@ const add = () => {
             }}
           >
             Cancel
-          </button>
+          </Link>
           <button
             type="button"
             disabled={!canSubmit}
-            className={`px-4 py-2 text-white rounded ${
-              canSubmit ? "bg-primary" : "bg-primary cursor-not-allowed"
-            }`}
+            className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+            // className={`px-4 py-2 text-white rounded ${
+            //   canSubmit ? "bg-primary" : "bg-primary cursor-not-allowed"
+            // }`}
             onClick={handleAddClick}
           >
             Add Activity
           </button>
         </div>
       </div>
-    </div>
+    {/* </div> */}
+    </>
   );
 };
 

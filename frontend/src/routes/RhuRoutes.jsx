@@ -27,6 +27,7 @@ import ApplyMassScreening from "../pages/rhu/Services/CancerScreening/Apply/Mass
 // Patient Features
 import PatientView from "../pages/rhu/Patient/View/PatientView";
 import PreScreeningFormView from "../pages/rhu/Patient/View/PreScreeningForm";
+import HistoricalView from "../pages/rhu/Patient/View/HistoricalUpdates";
 
 import PatientAdd from "../pages/rhu/Patient/Add/PatientAdd";
 import PreScreeningForm from "../pages/rhu/Patient/Add/PreScreeningForm";
@@ -69,10 +70,14 @@ const RhuRoutes = () => (
     {/* Patient Management */}
     <Route path="patients">
       <Route index element={<PatientList />} />
-      <Route path="mass-screening" element={<MassScreening />} />
+      {/* <Route path="mass-screening" element={<MassScreening />} /> */}
+
       <Route path="view">
         <Route path=":patient_id" element={<PatientView />}></Route>
         <Route path="cancer-data" element={<PreScreeningFormView />}></Route>
+        <Route path="historical-updates"
+          element={<HistoricalView />}
+        />
       </Route>
 
       <Route path="add">

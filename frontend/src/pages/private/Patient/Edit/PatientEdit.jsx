@@ -162,7 +162,7 @@ const PatientMasterListEdit = () => {
 
     // console.log("Historical Update 1: ", historicalUpdates);
 
-    navigate(`/rhu/patients/edit/${form?.patient_id}/cancer-data`, {
+    navigate(`/private/patients/edit/${form?.patient_id}/cancer-data`, {
       state: {
         formData: {
           ...form,
@@ -194,7 +194,7 @@ const PatientMasterListEdit = () => {
       />
       <LoadingModal open={loading} text="Submitting changes..." />
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
-        <div className=" px-5 w-full flex justify-between items-center">
+        {/* <div className=" px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Edit Patient</h1>
           <Link to={"/rhu/patients"}>
             <img
@@ -203,7 +203,7 @@ const PatientMasterListEdit = () => {
               className="h-6 cursor-pointer"
             />
           </Link>
-        </div>
+        </div> */}
 
         <form className="h-full w-full  flex flex-col justify-between gap-5 bg[#F8F9FA]">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
@@ -727,118 +727,10 @@ const PatientMasterListEdit = () => {
             </div>
           </div>
 
-          {/* Historical Updates Section */}
-          <div className="border border-black/15 p-3 bg-white rounded-sm">
-            <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-              <h2 className="text-md font-bold tracking-wide uppercase pb-1">
-                Patient Historical Updates
-              </h2>
-            </div>
-
-            <div className="p-4 space-y-4">
-              {/* Add new update form */}
-              {newUpdate.map((update, index) => (
-                <div key={index} className="flex flex-col gap-3 border-b pb-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-sm font-bold">Update #{index + 1}</h3>
-                    {newUpdate.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeNewHistoricalUpdate(index)}
-                        className="text-sm text-red-500 hover:text-red-700"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="w-1/2">
-                      <label className="text-sm font-medium block mb-1">
-                        Update Date:
-                      </label>
-                      <input
-                        type="date"
-                        name="date"
-                        value={update.date}
-                        onChange={(e) => handleHistoricalUpdateChange(index, e)}
-                        className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                      />
-                      {/* {errors[`update_date_${index}`] && (
-                        <span className="text-red-500 text-xs">
-                          {errors[`update_date_${index}`]}
-                        </span>
-                      )} */}
-                    </div>
-                    <div className="w-1/2">
-                      <label className="text-sm font-medium block mb-1">
-                        Notes:
-                      </label>
-                      <textarea
-                        name="note"
-                        value={update.note}
-                        onChange={(e) => handleHistoricalUpdateChange(index, e)}
-                        className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                        rows="3"
-                      />
-                      {/* {errors[`notes_${index}`] && (
-                        <span className="text-red-500 text-xs">
-                          {errors[`notes_${index}`]}
-                        </span>
-                      )} */}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addHistoricalUpdate}
-                className="mt-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-sm"
-              >
-                + Add Another Update
-              </button>
-
-              {/* Updates list */}
-              <div className="pt-4">
-                {/* <h3 className="font-semibold mb-2">Previous Updates:</h3> */}
-                <div className="mb-6 mt-8 border-b border-gray-200">
-                  <h2 className="text-md font-bold tracking-wide uppercase pb-1">
-                    Previous Updates
-                  </h2>
-                </div>
-                <div className="overflow-x-auto">
-                  {historicalUpdates?.length === 0 ? (
-                    <p className="text-sm">No updates recorded</p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {historicalUpdates?.map((update, index) => (
-                        <li
-                          key={index}
-                          className="flex justify-between items-center bg-gray-50 p-2 rounded"
-                        >
-                          <div>
-                            <span className="text-sm">{update.date}</span>:{" "}
-                            {update.note}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeHistoricalUpdate(index)}
-                            className="text-sm text-red-500 hover:text-red-700"
-                          >
-                            Remove
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div className="w-full flex justify-around">
             <Link
               className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
-              to="/rhu/patients"
+              to="/private/patients"
             >
               CANCEL
             </Link>
