@@ -31,6 +31,9 @@ class PatientHomeVisit(models.Model):
   findings = models.TextField(null=True, blank=True)
   recommendations = models.TextField(null=True, blank=True)
 
+  has_patient_response = models.BooleanField(default=False)
+  response_description = models.CharField(max_length=255, blank=True, null=True)
+
   wellbeing_assessment = models.OneToOneField(WellBeingAssessment, on_delete=models.CASCADE, null=True, blank=True)
 
   created_at = models.DateField(auto_now_add=True)
@@ -48,6 +51,9 @@ class HormonalReplacement(models.Model):
   date_submitted = models.DateField(auto_now_add=True)
   date_approved = models.DateField(blank=True, null=True)
   medicines_requested = models.CharField(max_length=255)
+
+  has_patient_response = models.BooleanField(default=False)
+  response_description = models.CharField(max_length=255, blank=True, null=True)
 
 class HormonalReplacementRequiredAttachment(models.Model):
   hormonal_replacement = models.ForeignKey(HormonalReplacement, on_delete=models.CASCADE, related_name='required_attachments')

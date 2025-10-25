@@ -67,7 +67,7 @@ const ViewPreScreeningForm = () => {
       />
       <LoadingModal open={loading} text="Submitting changes..." />
       <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
-        <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
+        {/* <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Cancer Management</h1>
           <div className="p-3">
             <Link to={`/admin/cancer-screening/view/details`} state={{ record: record }} >
@@ -78,7 +78,7 @@ const ViewPreScreeningForm = () => {
               />
             </Link>
           </div>
-        </div>
+        </div> */}
 
         <div className="h-full w-full p-5 flex flex-col justify-between">
           <form className="border border-black/15 p-3 bg-white rounded-sm">

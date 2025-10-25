@@ -1,31 +1,9 @@
-// Modal component for confirmation
-function ConfirmationModal({ open, text, onConfirm, onCancel }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
-        <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
-        <div className="flex gap-4">
-          <button
-            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-          <button
-            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { addUser, checkEmailExists } from "../../../../services/userManagementService";
+
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import Notification from "src/components/Notification";
 
 const AddUser = () => {
   const [form, setForm] = useState({
@@ -39,8 +17,12 @@ const AddUser = () => {
     status: "active",
   });
   const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState(
+    location.state?.type || ""
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
+  const [modalDesc, setModalDesc] = useState("Are you sure you want to proceed with this action?");
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
@@ -128,12 +110,14 @@ const AddUser = () => {
     try {
       await addUser(payload);
       setNotification("User successfully added!");
+      setNotificationType("success");
       setTimeout(() => {
         setNotification("");
         navigate("/admin/user-management");
       }, 2000);
     } catch (error) {
       setNotification("Failed to add user");
+      setNotificationType("error");
       setTimeout(() => setNotification(""), 2000);
     }
   };
@@ -147,14 +131,26 @@ const AddUser = () => {
   return (
     <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
       {/* Confirmation Modal */}
-      <ConfirmationModal
+      {/* <ConfirmationModal
         open={modalOpen}
         text={modalText}
         onConfirm={handleModalConfirm}
         onCancel={handleModalCancel}
+      /> */}
+      <ConfirmationModal
+        open={modalOpen}
+        title={modalText}
+        desc={modalDesc}
+        onConfirm={handleModalConfirm}
+        onCancel={() => {
+          setModalOpen(false);
+          setModalAction(null);
+          setModalText("");
+        }}
       />
+      <Notification message={notification} type={notificationType} />
       {/* Notification Popup */}
-      {notification && (
+      {/* {notification && (
         <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
           <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
             <img
@@ -165,7 +161,7 @@ const AddUser = () => {
             <span>{notification}</span>
           </div>
         </div>
-      )}
+      )} */}
       <form
         onSubmit={handleSubmit}
         className="h-full w-full p-5 flex flex-col justify-between"

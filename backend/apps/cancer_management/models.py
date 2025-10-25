@@ -51,6 +51,7 @@ class CancerTreatment(models.Model):
   wellbeing_assessment = models.OneToOneField(WellBeingAssessment, on_delete=models.CASCADE)
   treatment_date = models.DateField(blank=True, null=True)
   interview_date = models.DateField(blank=True, null=True)
+  service_provider = models.CharField(max_length=255, blank=True, null=True)
   date_submitted = models.DateField(auto_now_add=True)
   date_approved = models.DateField(blank=True, null=True)
   date_completed = models.DateField(blank=True, null=True)

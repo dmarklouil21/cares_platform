@@ -299,7 +299,7 @@ const IndividualScreening = () => {
               {/* <option value="LOA Generation">LOA Generation</option> */}
               <option value="In Progress">In Progress</option>
               <option value="Complete">Complete</option>
-              <option value="Reject">Reject</option>
+              {/* <option value="Reject">Reject</option> */}
             </select>
 
             <input

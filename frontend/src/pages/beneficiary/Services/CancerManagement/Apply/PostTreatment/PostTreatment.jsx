@@ -118,7 +118,7 @@ const PostTreatment = () => {
       );
 
       navigate("/beneficiary/success-application", {
-        state: { okLink: "beneficiary/applications/individual-screening" },
+        state: { okLink: "beneficiary/applications/post-treatment" },
       });
     } catch (error) {
       let message = "Something went wrong while submitting the form.";
@@ -305,7 +305,7 @@ const PostTreatment = () => {
                 {allUploaded ? (
                   <button
                     type="submit"
-                    className="bg-[#749AB6] text-white w-[40%] font-bold py-3 px-8 rounded-md border border-[#749AB6] hover:bg-[#C5D7E5] hover:border-[#C5D7E5 w-full md:w-[40%]]"
+                    className="bg-[#749AB6] text-white font-bold py-3 px-8 rounded-md border border-[#749AB6] hover:bg-[#C5D7E5] hover:border-[#C5D7E5] w-full md:w-[40%]"
                   >
                     Submit
                   </button>

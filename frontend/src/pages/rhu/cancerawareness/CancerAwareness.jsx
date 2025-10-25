@@ -263,6 +263,14 @@ const CancerAwareness = () => {
           <h2 className="text-xl font-bold text-left w-full pl-5">
             Cancer Awareness Activities
           </h2>
+          <div className="flex gap-2">
+            <button
+              to="/private/treatment-assistance/pre-cancerous/add"
+              className="bg-yellow px-5 py-1 rounded-sm text-white"
+            >
+              Add
+            </button>
+          </div>
           <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-3 gap-3 flex-1">
             <p className="text-md font-semibold text-yellow">
               View, add, or manage awareness activities for patients and

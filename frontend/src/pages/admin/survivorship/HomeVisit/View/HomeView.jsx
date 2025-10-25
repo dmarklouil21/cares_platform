@@ -265,8 +265,8 @@ const HomeVisitView = () => {
     doc.line(width - M - 200, y, width - M, y);
     doc.setFontSize(11);
     doc.setTextColor(0);
-    doc.text("Prepared by:", M, y + 18);
-    doc.text("Approved by:", width - M - 200, y + 18);
+    doc.text(`Prepared by: ${data.prepared_by}`, M, y + 18);
+    doc.text(`Approved by: ${data.approved_by}`, width - M - 200, y + 18);
     doc.setFontSize(10);
     doc.text("EJACC Representative", M, y + 34);
     doc.save(`PatientHomeVisit_${id}.pdf`);

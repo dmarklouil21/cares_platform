@@ -49,7 +49,8 @@ class PostTreatmentCreateView(generics.CreateAPIView):
         patient.status = 'active'
         patient.save()
         instance = serializer.save(
-          patient=patient
+          patient=patient,
+          date_approved=timezone.now().date(),
         )
 
         files_dict = {}

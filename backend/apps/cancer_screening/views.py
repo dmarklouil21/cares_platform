@@ -15,7 +15,8 @@ from backend.utils.email import (
   send_individual_screening_status_email,
   send_return_remarks_email, send_loa_email,
   send_precancerous_meds_status_email,
-  send_mass_screening_status_email,
+  send_mass_screening_status_email, 
+  send_service_registration_email
 )
 
 from apps.patient.models import Patient, CancerDiagnosis, HistoricalUpdate, PreScreeningForm, ServiceReceived
@@ -95,10 +96,12 @@ class IndividualScreeningCreateView(generics.CreateAPIView):
               'There\'s an ongoing screening application for this patient.'
             ]
           })
+        
         patient.status = 'active'
         patient.save()
         instance = serializer.save(
-          patient=patient
+          patient=patient,
+          date_approved=timezone.now().date(),
         )
 
         files_dict = {}
@@ -113,6 +116,15 @@ class IndividualScreeningCreateView(generics.CreateAPIView):
             file=file,
             doc_type=key 
           )
+        
+        email_status = send_service_registration_email(
+          patient=patient, 
+          service_name='Cancer Screening'
+        )
+        
+        if email_status is not True:
+          logger.error(f"Email failed to send: {email_status}")
+          
     except ValidationError:
       raise
     

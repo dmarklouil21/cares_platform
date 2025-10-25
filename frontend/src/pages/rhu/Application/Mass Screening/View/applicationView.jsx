@@ -245,15 +245,15 @@ const applicationView = () => {
       <Notification message={notif} />
 
       {/* Top bar */}
-      <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
+      {/* <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
         <h1 className="text-md font-bold h-full flex items-center">RHU</h1>
-      </div>
+      </div> */}
 
       {/* Content */}
       <div className="w-full flex-1 py-5 flex flex-col justify-start gap-5 px-5 overflow-auto">
-        <h2 className="text-xl font-bold text-left w-full pl-5">
+        {/* <h2 className="text-xl font-bold text-left w-full pl-5">
           Mass Screening — View
-        </h2>
+        </h2> */}
 
         <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-5">
           {(!selected && loading) ? (

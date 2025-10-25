@@ -119,7 +119,8 @@ const AdminCancerManagementAdd = () => {
   const [patientTable, setPatientTable] = useState([]);
   const [patient, setPatient] = useState(null); // from SearchableSelect
   const [serviceType, setServiceType] = useState("");
-  const [status] = useState("Interview Process"); // UI-only
+  const [status, setStatus] = useState("Interview Process"); 
+  const [providerName, setProviderName] = useState("Chong Hua Hospital Mandaue");
 
   // Optional dates
   const [treatmentDate, setTreatmentDate] = useState("");
@@ -280,6 +281,7 @@ const AdminCancerManagementAdd = () => {
     formData.append("well_being_data", JSON.stringify(wellBeingData));
     formData.append("service_type", serviceType);
     formData.append("interview_date", interviewDate);
+    formData.append("service_provider", providerName);
     // append files
     for (const key in files) {
       if (files[key]) {
@@ -461,7 +463,46 @@ const AdminCancerManagementAdd = () => {
                 </select>
               </div>
 
-              <div className="flex gap-2 items-center">
+              <div className="w-full">
+                <label className="text-sm font-medium block mb-1">Status</label>
+                <select
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Interview Process">Interview Process</option>
+                  <option value="Approved">Approve</option>
+                  <option value="Completed">Complete</option>
+                  <option value="Follow-up Required">Follow-up Required</option>
+                  {/* <option value="Reject">Reject</option> */}
+                </select>
+              </div>
+
+              <div className="w-full">
+                <label className="text-sm font-medium block mb-1">Service Provider</label>
+                <select
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                  value={status}
+                  onChange={(e) => setProviderName(e.target.value)}
+                >
+                  <option value="Chong Hua Hospital Mandaue">Chong Hua Hospital Mandaue</option>
+                </select>
+              </div>
+
+              <div className="w-full">
+                <label className="text-sm font-medium block mb-1">
+                  Interview Date
+                </label>
+                <input
+                  type="date"
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                  value={interviewDate}
+                  onChange={(e) => setInterviewDate(e.target.value)}
+                />
+              </div>
+
+              {/* <div className="flex gap-2 items-center">
                 <span className="font-medium w-40">Interview Schedule</span>
                 <div className="flex-1 flex items-center gap-3">
                   <span className="text-gray-700">
@@ -472,7 +513,7 @@ const AdminCancerManagementAdd = () => {
                     onClick={onPickInterviewDate}
                   >
                     Pick date
-                  </button> */}
+                  </button> *s/}
                   {interviewDate ? ( 
                     <span 
                       // to={"/admin/survivorship/add/well-being-form"}
@@ -493,7 +534,7 @@ const AdminCancerManagementAdd = () => {
                     ) 
                   }
                 </div>
-              </div>
+              </div> */}
 
               {/* <div className="flex gap-2 items-center">
                 <span className="font-medium w-40">Treatment Date</span>

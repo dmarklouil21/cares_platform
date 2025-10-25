@@ -73,6 +73,24 @@ class PatientHomeVisitUpdateView(generics.UpdateAPIView):
   permission_classes = [IsAuthenticated]
   lookup_field = "id"   # so you can update by /<id> in the URL
 
+  def perform_update(self, serializer):
+    instance = serializer.save(
+      has_patient_response=False,
+      response_description='',
+    )
+
+    # if instance.status == 'Completed':
+    #   patient = instance.patient
+    #   patient.status = 'validated'
+    #   patient.save()
+
+    #   ServiceReceived.objects.create(
+    #     patient=patient,
+    #     service_type = 'Home Visit',
+    #     date_completed = timezone.now().date()
+    #   )
+    # return super().perform_update(serializer)
+
 class SendReportView(APIView):
   permission_classes = [IsAuthenticated, IsAdminUser]
 

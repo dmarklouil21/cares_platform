@@ -23,6 +23,7 @@ class IndividualScreening(models.Model):
     ],
     default='Pending'
   )
+  service_provider = models.CharField(max_length=255, blank=True, null=True)
   date_approved = models.DateField(blank=True, null=True)
   date_completed = models.DateField(blank=True, null=True)
   # loa_generated = models.FileField(upload_to='attachments/loa/', blank=True, null=True)

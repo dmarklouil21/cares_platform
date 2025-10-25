@@ -83,8 +83,9 @@ export default function ViewHomeVisitStatus() {
             <> Your post-visit recommendation has been finalized. </>
           ) : (
             <>
-              Your home visit schedule will be set once your Well-Being Form has
-              been reviewed.
+              Your home visit has been completed. Our healthcare team is now
+              preparing a report and medical recommendation based on the visit
+              findings.
             </>
           ),
       },

@@ -719,12 +719,12 @@ const PreCancerous = () => {
                               </button>
                               {p.status === "Pending" && (
                                 <>
-                                  <button
+                                  {/* <button
                                     onClick={() => openConfirm(p.id, "verify")}
                                     className="text-white py-1 px-3 rounded-[5px] shadow bg-green-500"
                                   >
                                     Approve
-                                  </button>
+                                  </button> */}
                                   <button
                                     onClick={() => openConfirm(p.id, "reject")}
                                     className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"

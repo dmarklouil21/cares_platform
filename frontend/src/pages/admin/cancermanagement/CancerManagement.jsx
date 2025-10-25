@@ -225,10 +225,14 @@ const AdminCancerManagement = () => {
               >
                 <option value="All">All</option>
                 <option value="Pending">Pending</option>
+                <option value="Interview Process">Interview Process</option>
+                <option value="Case Summary Generation">
+                  Case Summary Generation
+                </option>
                 <option value="Approved">Approved</option>
-                <option value="In Progress">In Progress</option>
+                {/* <option value="In Progress">In Progress</option> */}
                 <option value="Completed">Completed</option>
-                <option value="Rejected">Rejected</option>
+                {/* <option value="Rejected">Rejected</option> */}
               </select>
 
               <input

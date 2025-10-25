@@ -41,6 +41,7 @@ urlpatterns = [
   # path('post-treatment/laboratory-request/', views.PostTreatmentRequestView.as_view(), name='post_treatment_request'),
   path('home-visit/list/', views.HomeVisitListView.as_view(), name='home_visit_list_view'),
   path('home-visit/details/<int:id>/', views.HomeVisitDetailView.as_view(), name='home_visit_detail_view'),
+  path('home-visit/update/<int:id>/', views.HomeVisitUpdateView.as_view(), name='home_visit_update_view'),
   # path('post-treatment/result/upload/<str:id>/', views.PostTreatmentResultUploadView.as_view(), name='post_treatment_result_upload_view'),
 
   # Hormonal Replacement 

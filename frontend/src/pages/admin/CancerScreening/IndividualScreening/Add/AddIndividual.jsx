@@ -117,6 +117,7 @@ const AddIndividualScreening = () => {
   const [cancerSite, setCancerSite] = useState("");
   const [screeningDate, setScreeningDate] = useState("");
   const [status, setStatus] = useState("Approve");
+  const [providerName, setProviderName] = useState("Chong Hua Hospital Mandaue");
   const inputRef = useRef(null);
 
   const requiredDocs = REQUIRED_DOCS["Individual Screening"] || [];
@@ -237,6 +238,7 @@ const AddIndividualScreening = () => {
       formData.append("procedure_details", procedureDetails);
       formData.append("cancer_site", cancerSite);
       formData.append("screening_date", screeningDate);
+      formData.append("service_provider", providerName);
 
       Object.entries(files).forEach(([key, file]) => {
         if (file) formData.append(`files.${key}`, file);
@@ -399,6 +401,17 @@ const AddIndividualScreening = () => {
                   value={screeningDate}
                   onChange={(e) => setScreeningDate(e.target.value)}
                 />
+              </div>
+
+              <div className="w-full">
+                <label className="text-sm font-medium block mb-1">Service Provider</label>
+                <select
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                  value={status}
+                  onChange={(e) => setProviderName(e.target.value)}
+                >
+                  <option value="Chong Hua Hospital Mandaue">Chong Hua Hospital Mandaue</option>
+                </select>
               </div>
 
               <div className="w-full md:col-span-2">
