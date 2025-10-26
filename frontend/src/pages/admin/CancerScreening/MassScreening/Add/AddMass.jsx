@@ -180,7 +180,7 @@ export default function MassScreeningAdd() {
 
       {/* Page */}
       <div className="h-screen w-full bg-gray p-5 gap-3 justify-start  flex flex-col overflow-auto">
-        <div className="flex  items-center px-5 justify-between">
+        {/* <div className="flex  items-center px-5 justify-between">
           <div>
             <h2 className="text-2xl font-semibold">Add Mass Screening</h2>
             <p className="text-yellow mt-1">
@@ -194,10 +194,10 @@ export default function MassScreeningAdd() {
               className="h-6 cursor-pointer"
             />
           </Link>
-        </div>
+        </div> */}
 
         {/* Request Info */}
-        <section className="bg-white rounded-2xl border border-gray-200 px-5 md:px-7 py-6">
+        <section className="bg-white rounded-md border border-gray-200 px-5 md:px-7 py-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Request Info</h3>
             <span
@@ -310,7 +310,7 @@ export default function MassScreeningAdd() {
         </section>
 
         {/* Attachments */}
-        <section className="bg-white rounded-2xl border border-gray-200 px-5 md:px-7 py-6">
+        <section className="bg-white rounded-md border border-gray-200 px-5 md:px-7 py-6">
           <h3 className="font-semibold mb-3">Attachments</h3>
 
           <div className="flex flex-col gap-4">
@@ -364,7 +364,7 @@ export default function MassScreeningAdd() {
         </section>
 
         {/* Attendance (optional at add time) */}
-        <section className="bg-white rounded-2xl border border-gray-200">
+        <section className="bg-white rounded-md border border-gray-200">
           <div className="px-5 md:px-7 py-4 border-b border-black/15">
             <h3 className="font-semibold">Attendance List (Optional)</h3>
           </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, use } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
+import { Printer, FileText, FileDown } from "lucide-react";
 
 import api from "src/api/axiosInstance";
 
@@ -56,6 +57,7 @@ const PatientMasterList = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null);
+  const [modalDesc, setModalDesc] = useState("Please confirm before proceeding.");
 
   const fetchData = async () => {
     //?status=validated&registered_by=rhu&city=${user.city}
@@ -102,13 +104,13 @@ const PatientMasterList = () => {
   });
 
   const handleViewClick = (id) => {
-    navigate(`/rhu/patients/view/${id}`);
+    navigate(`/private/patients/view/${id}`);
   };
 
   const handleEditClick = (id) => {
     const patient = patients.find((p) => p.patient_id === id);
     if (patient) {
-      navigate(`/rhu/patients/edit/${id}`);
+      navigate(`/private/patients/edit/${id}`);
     }
   };
 
@@ -177,7 +179,8 @@ const PatientMasterList = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={() => {
           setModalOpen(false);
@@ -200,11 +203,11 @@ const PatientMasterList = () => {
             to="/private/patients/add"
             className="bg-yellow gap-3 flex justify-center items-center px-5 py-1 rounded-sm"
           >
-            <img
+            {/* <img
               src="/images/add.svg"
               alt="Add User Icon"
               className="h-[15px]"
-            />
+            /> */}
             <p className="text-white text-sm">Add</p>
           </Link>
         </div>
@@ -235,8 +238,9 @@ const PatientMasterList = () => {
               type="date"
               className="border border-gray-200 py-2 px-5 rounded-md"
             />
-            <button className="px-7 rounded-md text-sm text-white bg-lightblue">
-              Filter
+            <button className="bg-primary px-3 py-1 rounded-sm text-white cursor-pointer">
+              {/* Filter */}
+              <Printer className="w-4 h-4" />
             </button>
           </div>
           <div className="bg-white shadow overflow-auto">

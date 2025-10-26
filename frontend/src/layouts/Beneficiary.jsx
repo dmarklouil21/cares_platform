@@ -43,7 +43,8 @@ const BeneficiaryLayout = () => {
         }
       } catch (error) {
         console.error("Error fetching pre-enrollment data:", error);
-        setIsValidated(false);
+        navigate("/beneficiary/pre-enrollment/note");
+        // setIsValidated(false);
       } finally {
         setLoading(false);
       }

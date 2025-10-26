@@ -4,12 +4,12 @@ import { Link } from "react-router-dom";
 const NotePanel = ({ onAccept, onDecline }) => {
   return (
     <div className="  lg:w-[75%] bg-gray flex flex-col h-screen gap-5 px-8 py-8 items-center">
-      <div className="w-full flex justify-between px-9">
+      <div className="w-full flex justify-between px-1">
         <h1 className="font-bold text-[16px] md:text-2xl">RHU Focal Person registration</h1>
-        <div className="flex text-right flex-col">
+        {/* <div className="flex text-right flex-col">
           <p className="text-[10px] md:text-sm">STEP 01/01</p>
           <h1 className="font-bold text-gray-600 text-[12px] md:text-[16px]">NOTE</h1>
-        </div>
+        </div> */}
       </div>
 
       <div className="flex flex-col justify-between gap-5 bg-white rounded-xl shadow px-8 py-6 w-auto h-auto">

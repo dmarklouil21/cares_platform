@@ -676,7 +676,6 @@ const PatientView = () => {
             type="button"
             className="text-center bg-white text-black py-2 w-[35%] cursor-pointer border border-black hover:border-black/15 rounded-md"
             onClick={() => {
-              console.log("Patient ID: ", patient?.patient_id);
               navigate(`/admin/patient/master-list`);
             }}
           >

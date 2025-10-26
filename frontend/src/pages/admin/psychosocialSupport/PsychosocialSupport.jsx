@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { Download } from 'lucide-react';
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
@@ -295,23 +296,24 @@ const PschosocialSupport = () => {
       />
       <LoadingModal open={loading} text="Processing..." />
 
-      {/* Page */}
-      <div className="bg-gray w-full h-screen flex flex-col items-center">
-        <div className="w-full flex-1 py-3 gap-3 flex flex-col justify-start px-5">
-          <div className="flex items-center justify-between w-full pl-5 pr-2">
-            <h2 className="text-xl font-bold">
-              Psychosocial Support Activities
-            </h2>
+      {/* Page */} 
+      {/* bg-gray w-full h-screen flex flex-col items-center */}
+      <div className="h-screen w-full flex p-5 gap-3 flex-col justify-start items-center bg-gray">
+        <div className="flex items-center justify-between w-full pl-1 pr-2">
+          <h2 className="text-xl font-bold text-left">
+            Psychosocial Support Activities
+          </h2>
 
-            <Link
-              to="/admin/PychosocialSupport/add"
-              className="px-4 py-2 rounded-md text-sm text-white bg-primary"
-            >
-              + Add Activity
-            </Link>
-          </div>
-
-          <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-4 gap-4 flex-1">
+          <Link
+            to="/admin/PychosocialSupport/add"
+            className="bg-yellow px-5 py-1 rounded-sm text-white"
+          >
+            Add
+          </Link>
+        </div>
+        {/* w-full flex-1 py-3 gap-3 flex flex-col justify-start px-5 */}
+        <div className="flex flex-col bg-white rounded-md w-full shadow-md px-5 py-5 gap-3">
+          <div className="flex flex-col bg-white w-full rounded-md shadow-md gap-4 flex-1">
             {activities.length === 0 ? (
               <p className="text-gray-500 italic">
                 No activities yet. Use “Add Activity”.
@@ -325,7 +327,21 @@ const PschosocialSupport = () => {
                   >
                     <div className="flex flex-col gap-2">
                       <h3 className="font-bold text-lg">{a.title}</h3>
-                      <p className="text-primary text-xs">{a.date}</p>
+                      <p className="text-primary text-xs">
+                        {a.date} {" "}
+                        {a.attachment && (
+                          <a
+                            href={filePreviewUrl(a.attachment)}
+                            download
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary underline text-sm"
+                          >
+                            {/* Download */}
+                            <Download className="inline-block w-4 h-4 mr-1 ml-3" />
+                          </a>
+                        )}
+                      </p>
                       {a.description && (
                         <p className="text-sm">{a.description}</p>
                       )}
@@ -354,19 +370,19 @@ const PschosocialSupport = () => {
                     <div className="flex flex-col items-start gap-3">
                       <div className="flex gap-2">
                         <button
-                          className="bg-primary px-4 py-1 text-sm text-white rounded-sm"
+                          className="bg-yellow-500 cursor-pointer px-4 py-1 text-sm text-white rounded-sm"
                           onClick={() => startEdit(a)}
                         >
                           Edit
                         </button>
                         <button
-                          className="bg-white border-[1.5px] border-red-500 px-3 py-1 text-sm text-red-500 rounded-sm"
+                          className="bg-red-500 border-[1.5px] border-red-500 px-3 py-1 text-sm text-white rounded-sm"
                           onClick={() => requestDelete(a.id)}
                         >
                           Delete
                         </button>
                       </div>
-                      {a.attachment && (
+                      {/* {a.attachment && (
                         <a
                           href={filePreviewUrl(a.attachment)}
                           download
@@ -374,9 +390,10 @@ const PschosocialSupport = () => {
                           rel="noreferrer"
                           className="text-primary underline text-sm"
                         >
-                          Download
+                          {/* Download *s/}
+                          <Download className="inline-block w-4 h-4 mr-1" />
                         </a>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 ))}
@@ -459,7 +476,7 @@ const PschosocialSupport = () => {
                         <img
                           src={filePreviewUrl(form.photo)}
                           alt="Preview"
-className="w-full h-32 object-cover rounded"
+                          className="w-full h-32 object-cover rounded"
                           />
                         <p className="text-xs text-gray-600 mt-1">
                           {form.photo instanceof File

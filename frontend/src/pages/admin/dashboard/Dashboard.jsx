@@ -499,8 +499,8 @@ const Dashboard = () => {
 
   const donutData = [
     { label: "Registered", value: totalPatients },
-    { label: "Active", value: activePatients },
     { label: "Due Home Visit", value: dueForHomeVisit },
+    { label: "Active", value: activePatients },
     { label: "Pending Pre-Enroll", value: pendingPreEnrollment },
   ];
 

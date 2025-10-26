@@ -68,7 +68,7 @@ const PatientView = () => {
 
   return (
     <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
-      <div className=" px-5 w-full flex justify-between items-center">
+      {/* <div className=" px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">View Patient</h1>
         <Link to={"/rhu/patients"}>
           <img
@@ -77,7 +77,7 @@ const PatientView = () => {
             className="h-6 cursor-pointer"
           />
         </Link>
-      </div>
+      </div> */}
 
       <form className="h-full w-full  flex flex-col justify-between gap-5 bg[#F8F9FA]">
         <div className="border border-black/15 p-3 bg-white rounded-sm">
@@ -590,12 +590,13 @@ const PatientView = () => {
             </div>
           </div>
 
-          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
+          {/* <div className="mb-6 mt-8 border-b border-gray-200 px-5">
             <h2 className="text-md font-bold tracking-wide uppercase pb-1">
               Patient Historical Updates
             </h2>
-          </div>
-          <div className="p-4">
+          </div> */}
+
+          {/* <div className="p-4">
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white border border-gray-300">
                 <thead>
@@ -632,16 +633,25 @@ const PatientView = () => {
                 </tbody>
               </table>
             </div>
-          </div>
+          </div>s */}
         </div>
 
-        <div className="w-full flex justify-end">
+        <div className="w-full flex justify-around">
+          <button
+            type="button"
+            className="text-center bg-white text-black py-2 w-[35%] cursor-pointer border border-black rounded-md"
+            onClick={() => {
+              navigate(`/rhu/patients`);
+            }}
+          >
+            Back
+          </button>
           <Link
-            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
+            className="text-center bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
             to="/rhu/patients/view/cancer-data"
             state={{ patient: patient }}
           >
-            NEXT
+            Next
           </Link>
         </div>
         <br />

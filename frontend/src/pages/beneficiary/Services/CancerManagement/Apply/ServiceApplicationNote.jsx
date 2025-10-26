@@ -29,7 +29,7 @@ const NotePanel = ({ onAccept, onDecline }) => {
             to={"/beneficiary/services/cancer-management"} 
             id="i-accept-btn" 
             className="  font-bold text-center py-2 w-[45%] border-[1px] hover:border-lightblue hover:bg-lightblue rounded-md"
-            onClick={onAccept}
+            // onClick={onAccept} 
           >
             I Don't Accept
           </Link>

@@ -27,6 +27,7 @@ import ApplyMassScreening from "../pages/private/Services/CancerScreening/Apply/
 // Patient Features
 import PatientView from "../pages/private/Patient/View/PatientView";
 import PreScreeningFormView from "../pages/private/Patient/View/PreScreeningForm";
+import HistoricalView from "../pages/private/Patient/View/HistoricalUpdates";
 
 import PatientAdd from "../pages/private/Patient/Add/PatientAdd";
 import PreScreeningForm from "../pages/private/Patient/Add/PreScreeningForm";
@@ -69,10 +70,10 @@ const PrivateRoutes = () => (
     {/* Patient Management */}
     <Route path="patients">
       <Route index element={<PatientList />} />
-      <Route path="mass-screening" element={<MassScreening />} />
       <Route path="view">
         <Route path=":patient_id" element={<PatientView />}></Route>
         <Route path="cancer-data" element={<PreScreeningFormView />}></Route>
+        <Route path="historical-updates" element={<HistoricalView />}></Route>
       </Route>
 
       <Route path="add">

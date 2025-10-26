@@ -128,7 +128,7 @@ const Registration = () => {
       />
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className=" w-full lg:w-[75%] flex flex-col  bg-gray py-12  overflow-auto h-screen lg:min-h-screen gap-3 md:gap-12 md:px-12 px-5">
-        <div className="w-full flex justify-between px-9">
+        {/* <div className="w-full flex justify-between px-9">
           <h1 className="font-bold text-[15px] md:text-2xl">
             RHU Focal Person <br /> registration
           </h1>
@@ -138,14 +138,14 @@ const Registration = () => {
               Info
             </h1>
           </div>
-        </div>
+        </div> */}
 
         <form
           id="beneficiary-form"
           onSubmit={handleSubmit}
           className="bg-white p-5 md:p-9 flex flex-col gap-8 rounded-2xl "
         >
-          <h1 className="font-bold md:text-2xl">Details</h1>
+          <h1 className="font-bold md:text-2xl">Provide Details</h1>
 
           <div className="grid grid-cols-2 md:gap-x-10 gap-y-5 gap-x-4">
             <div className="flex gap-2 flex-col">

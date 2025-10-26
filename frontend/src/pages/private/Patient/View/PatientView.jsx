@@ -68,7 +68,7 @@ const PatientView = () => {
 
   return (
     <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
-      <div className=" px-5 w-full flex justify-between items-center">
+      {/* <div className=" px-5 w-full flex justify-between items-center">
         <h1 className="text-md font-bold">View Patient</h1>
         <Link to={"/rhu/patients"}>
           <img
@@ -77,7 +77,7 @@ const PatientView = () => {
             className="h-6 cursor-pointer"
           />
         </Link>
-      </div>
+      </div> */}
 
       <form className="h-full w-full  flex flex-col justify-between gap-5 bg[#F8F9FA]">
         <div className="border border-black/15 p-3 bg-white rounded-sm">
@@ -533,112 +533,12 @@ const PatientView = () => {
               </div>
             </div>
           </div>
-
-          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
-              Medical Information
-            </h2>
-          </div>
-          <div className="flex flex-row gap-8 p-4">
-            <div className="flex flex-col gap-3 w-1/2">
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Date Diagnosed
-                </label>
-                <input
-                  type="text"
-                  value={patient?.diagnosis?.[0]?.date_diagnosed ?? ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Diagnosis
-                </label>
-                <input
-                  type="text"
-                  value={patient?.diagnosis?.[0]?.diagnosis ?? ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Cancer Stage
-                </label>
-                <input
-                  type="text"
-                  value={patient?.diagnosis?.[0]?.cancer_stage ?? ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-            </div>
-            <div className="flex flex-col gap-3 w-1/2">
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Cancer Site
-                </label>
-                <input
-                  type="text"
-                  value={patient?.diagnosis?.[0]?.cancer_site ?? ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
-              Patient Historical Updates
-            </h2>
-          </div>
-          <div className="p-4">
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border border-gray-300">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="py-2 px-4 border-b text-left text-sm font-bold">
-                      Date
-                    </th>
-                    <th className="py-2 px-4 border-b text-left text-sm font-bold">
-                      Note
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(patient?.historical_updates ?? []).map((update, index) => (
-                    <tr
-                      key={index}
-                      className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                    >
-                      <td className="py-2 px-4 border-b text-sm">
-                        {update?.date ?? ""}
-                      </td>
-                      <td className="py-2 px-4 border-b text-sm">
-                        {update?.note ?? ""}
-                      </td>
-                    </tr>
-                  ))}
-                  {(patient?.historical_updates ?? []).length === 0 && (
-                    <tr>
-                      <td className="py-2 px-4 border-b text-sm" colSpan={2}>
-                        No history available.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
 
         <div className="w-full flex justify-end">
           <Link
             className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
-            to="/rhu/patients/view/cancer-data"
+            to="/private/patients/view/cancer-data"
             state={{ patient: patient }}
           >
             NEXT

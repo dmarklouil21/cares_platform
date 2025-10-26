@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, use } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
+import { Printer, FileText, FileDown } from "lucide-react";
 
 import api from "src/api/axiosInstance";
 
@@ -56,6 +57,7 @@ const PatientMasterList = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null);
+  const [modalDesc, setModalDesc] = useState("Please confirm before proceeding.");
 
   const fetchData = async () => {
     //?status=validated&registered_by=rhu&city=${user.city}
@@ -177,7 +179,8 @@ const PatientMasterList = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={() => {
           setModalOpen(false);
@@ -194,21 +197,21 @@ const PatientMasterList = () => {
       />
       <LoadingModal open={loading} text="Submitting changes..." />
       <div className="h-screen w-full flex flex-col justify-start items-center bg-gray p-5 gap-3">
-        <div className="w-full flex justify-between items-center px-5">
+        <div className="w-full flex justify-between items-center px-1">
           <h2 className="text-xl font-bold text-left w-full ">Patient List</h2>
           <Link
             to="/rhu/patients/add"
             className="bg-yellow gap-3 flex justify-center items-center px-5 py-1 rounded-sm"
           >
-            <img
+            {/* <img
               src="/images/add.svg"
               alt="Add User Icon"
               className="h-[15px]"
-            />
+            /> */}
             <p className="text-white text-sm">Add</p>
           </Link>
         </div>
-        <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-3">
+        <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
           <p className="text-md font-semibold text-yellow">
             Manage all RHU patients
           </p>
@@ -235,8 +238,9 @@ const PatientMasterList = () => {
               type="date"
               className="border border-gray-200 py-2 px-5 rounded-md"
             />
-            <button className="px-7 rounded-md text-sm text-white bg-lightblue">
-              Filter
+            <button className="bg-primary px-3 py-1 rounded-sm text-white cursor-pointer">
+              {/* Filter */}
+              <Printer className="w-4 h-4" />
             </button>
           </div>
           <div className="bg-white shadow overflow-auto">

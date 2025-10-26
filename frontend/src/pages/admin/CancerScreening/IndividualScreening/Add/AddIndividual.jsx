@@ -313,18 +313,6 @@ const AddIndividualScreening = () => {
 
       {/* Screen */}
       <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center bg-gray overflow-auto">
-        {/* Header */}
-        {/* <div className=" h-[10%] px-1 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Add Individual Screening</h1>
-          <Link to={"/admin/cancer-screening"}>
-            <img
-              src="/images/back.png"
-              alt="Back"
-              className="h-6 cursor-pointer"
-            />
-          </Link>
-        </div> */}
-
         {/* Content */}
         <div className="h-fit w-full flex flex-col gap-4">
           {/* Screening Info */}
