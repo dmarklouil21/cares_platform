@@ -570,7 +570,7 @@ const Dashboard = () => {
         </div>
 
         <div
-          className="bg-white/30 text-primary rounded-md p-4 shadow"
+          className="bg-white/30 text-primary rounded-md p-4 shadow overflow-x-auto"
           style={{ minHeight: MONTHLY_BOX_MIN_H }}
         >
           <div className="flex items-center justify-between mb-3">

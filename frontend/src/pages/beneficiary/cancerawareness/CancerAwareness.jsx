@@ -52,10 +52,10 @@ const CancerAwareness = () => {
         <div className="py-6 p-5 md:px-10">
           <h1 className="text-lg font-bold mb-6">Cancer Awareness</h1>
           <div className="bg-white rounded-lg p-5 md:p-10 mb-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-yellow mb-4">
+            <h2 className="md:text-2xl font-bold text-yellow mb-4 text-[18px]">
               Cancer Awareness Activities
             </h2>
-            <p className="mb-4 font-bold text-[16px]">
+            <p className="mb-4 font-bold text-[14px] md:text-[16px]">
               Stay informed about past and upcoming cancer awareness programs
               and events.
             </p>
@@ -71,7 +71,7 @@ const CancerAwareness = () => {
                           className="h-40 w-72 rounded-md border"
                         />
                       </div>
-                      <div className="flex flex-col   justify-between py-2 w-full md:w-[50%]">
+                      <div className="flex flex-col   justify-between py-2 w-full md:w-[50%] gap-2">
                         <h1 className="font-bold text-primary text-xl">
                           {activity.title}
                         </h1>
