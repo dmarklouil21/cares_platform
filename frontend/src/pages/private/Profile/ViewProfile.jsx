@@ -114,21 +114,44 @@ const ViewProfile = () => {
         payload.append("phone_number", formData.phone_number);
         hasChanges = true;
       }
-      if (formData.representative_first_name !== beforeEdit.representative_first_name) {
-        payload.append("representative_first_name", formData.representative_first_name);
+      if (
+        formData.representative_first_name !==
+        beforeEdit.representative_first_name
+      ) {
+        payload.append(
+          "representative_first_name",
+          formData.representative_first_name
+        );
         hasChanges = true;
       }
-      if (formData.representative_last_name !== beforeEdit.representative_last_name) {
-        payload.append("representative_last_name", formData.representative_last_name);
+      if (
+        formData.representative_last_name !==
+        beforeEdit.representative_last_name
+      ) {
+        payload.append(
+          "representative_last_name",
+          formData.representative_last_name
+        );
         hasChanges = true;
       }
-      if (formData.official_representative_name !== beforeEdit.official_representative_name) {
-        payload.append("official_representative_name", formData.official_representative_name);
+      if (
+        formData.official_representative_name !==
+        beforeEdit.official_representative_name
+      ) {
+        payload.append(
+          "official_representative_name",
+          formData.official_representative_name
+        );
         hasChanges = true;
       }
 
       if (!hasChanges) {
-        setNotify({ show: true, type: "info", title: "No changes", message: "There are no changes to save." });
+        setNotify({
+          show: true,
+          type: "info",
+          title: "No changes",
+          message: "There are no changes to save.",
+        });
         setSaving(false);
         return;
       }
@@ -145,7 +168,9 @@ const ViewProfile = () => {
         representative_first_name: d.representative_first_name || "",
         representative_last_name: d.representative_last_name || "",
         official_representative_name: d.official_representative_name || "",
-        profilePic: d.avatar ? `http://localhost:8000${d.avatar}` : formData.profilePic,
+        profilePic: d.avatar
+          ? `http://localhost:8000${d.avatar}`
+          : formData.profilePic,
         profileFile: null,
         agreed: true,
       };
@@ -187,7 +212,8 @@ const ViewProfile = () => {
         setFormData(mapped);
         setBeforeEdit(mapped);
       } catch (err) {
-        const msg = err?.response?.data?.message || "Failed to load RHU profile.";
+        const msg =
+          err?.response?.data?.message || "Failed to load RHU profile.";
         setNotify({ show: true, type: "info", title: "Error", message: msg });
       } finally {
         setLoading(false);
@@ -283,7 +309,7 @@ const ViewProfile = () => {
                 <img
                   src={formData.profilePic || "/images/bigAvatar.png"}
                   alt="Profile"
-                  className="h-28 md:h-50 object-cover rounded-full border border-gray-300"
+                  className="size-40 md:size-60 object-cover rounded-full border border-gray-300"
                 />
                 {!readOnly && (
                   <label

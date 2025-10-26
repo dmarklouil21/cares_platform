@@ -294,7 +294,7 @@ const Profile = () => {
                 <img
                   src={formData.profilePic || "/images/bigAvatar.png"}
                   alt="Profile"
-                  className="h-28 md:h-50 object-cover rounded-full border border-gray-300"
+                  className="size-40 md:size-60 object-cover rounded-full border border-gray-300"
                 />
                 {!readOnly && (
                   <label

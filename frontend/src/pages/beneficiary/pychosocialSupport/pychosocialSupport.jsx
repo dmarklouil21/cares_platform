@@ -60,30 +60,30 @@ const PychosocialSupport = () => {
       */}
 
       <div className="h-full flex flex-col justify-between overflow-auto ">
-        <div className="py-6 px-10">
+        <div className="py-6 p-5 md:px-10">
           <h1 className="text-lg font-bold mb-6">Psychosocial Support</h1>
 
           <div className="bg-white rounded-lg p-5 md:p-10 mb-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-yellow mb-4">
+            <h2 className="md:text-2xl font-bold text-yellow mb-4 text-[18px]">
               Psychosocial Support Activities
             </h2>
-            <p className="mb-4 font-bold text-[16px]">
+            <p className="mb-4 font-bold text-[14px] md:text-[16px]">
               Browse sessions and programs organized by the RHU.
             </p>
 
-            <div className="flex flex-col gap-7">
+            <div className="flex flex-col gap-7 ">
               {activities.length > 0 ? (
                 activities.map((activity) => (
                   <div
                     key={activity.id}
-                    className="flex justify-start gap-8 p-5 border-b-[1.5px] border-primary"
+                    className="flex flex-col  md:flex-row gap-8 p-5 border-b-[1.5px] border-primary"
                   >
                     <img
                       src={activity.photo || "/images/placeholder-image.png"}
                       alt={activity.title || "Activity photo"}
-                      className="h-40 w-72 rounded-md object-cover"
+                      className="h-40 w-72 rounded-md object-cover border"
                     />
-                    <div className="flex flex-col justify-between py-2 w-[50%]">
+                    <div className="flex flex-col   justify-between py-2 w-full md:w-[50%] gap-2">
                       <h1 className="font-bold text-primary text-xl">
                         {activity.title}
                       </h1>
