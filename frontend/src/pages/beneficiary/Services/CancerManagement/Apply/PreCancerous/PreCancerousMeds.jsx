@@ -166,7 +166,7 @@ const PreCancerousMeds = () => {
                     type="text"
                     name="diagnosisImpression"
                     placeholder="ex: Breast Mass, right"
-                    className="w-full p-3 border border-gray2 rounded-md"
+                    className="w-full font-bold p-3 border border-gray2 rounded-md"
                     value={"Breast Mass, right"}
                     // onChange={(e) => setProcedureDetails(e.target.value)}
                     readOnly

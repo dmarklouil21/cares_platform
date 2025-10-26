@@ -111,16 +111,16 @@ const RadioTherapyWellBeingTool = () => {
       <div className="py-6 px-4 md:px-10 flex flex-col flex-1 overflow-auto">
         <div className="bg-white rounded-2xl flex p-4 md:p-7 flex-col gap-7">
           {/* Header */}
-          <div className="flex w-full justify-between gap-6 p-4  rounded-xl shadow-sm bg-gray-50 overflow-x-auto">
-            <div className="flex flex-col w-full gap-3">
-              <div className="flex w-full items-center gap-2">
-                <label className="font-medium text-gray-700 whitespace-nowrap">
+          <div className="flex w-full justify-between gap-6 p-4  rounded-xl shadow-sm bg-gray-50 overflow-x-auto ">
+            <div className="flex flex-col w-[500px] md:w-full gap-3 ">
+              <div className="flex w-[500px] md:w-full  gap-2  items-start">
+                <label className="font-medium text-gray-700 whitespace-nowrap ">
                   Name:
                 </label>
                 <input
                   type="text"
                   value={form.name}
-                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                  className="outline-none font-bold  w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
                 <label className="font-medium text-gray-700 whitespace-nowrap">
@@ -129,36 +129,36 @@ const RadioTherapyWellBeingTool = () => {
                 <input
                   type="text"
                   value={formatDate(new Date())}
-                  className="outline-none w-40 border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                  className="outline-none font-bold  w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
               </div>
 
-              <div className="flex w-full items-center gap-2">
+              <div className="flex w-[500px] md:w-full items-center gap-2">
                 <label className="font-medium text-gray-700 whitespace-nowrap">
                   Address:
                 </label>
                 <input
                   type="text"
                   value={form.address}
-                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                  className="outline-none font-bold w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
               </div>
 
-              <div className="flex w-full items-center gap-2">
+              <div className="flex w-[500px] md:w-full items-center gap-2">
                 <label className="font-medium text-gray-700 whitespace-nowrap">
                   Diagnosis:
                 </label>
                 <input
                   type="text"
                   value={form.diagnosis}
-                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                  className="outline-none font-bold w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
               </div>
 
-              <div className="flex w-full items-center gap-2">
+              <div className="flex w-[500px] md:w-full items-center gap-2">
                 <label className="font-medium text-gray-700 whitespace-nowrap">
                   General Status/Name:
                 </label>

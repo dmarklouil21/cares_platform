@@ -83,7 +83,9 @@ const ViewProfile = () => {
       "lgu",
       "address",
     ];
-    const allFilled = requiredFields.every((k) => String(formData[k] ?? "").trim() !== "");
+    const allFilled = requiredFields.every(
+      (k) => String(formData[k] ?? "").trim() !== ""
+    );
     if (!allFilled) {
       setNotify({
         show: true,
@@ -94,11 +96,21 @@ const ViewProfile = () => {
       return false;
     }
     if (!emailOk(formData.email)) {
-      setNotify({ show: true, type: "info", title: "Invalid Email", message: "Please enter a valid email." });
+      setNotify({
+        show: true,
+        type: "info",
+        title: "Invalid Email",
+        message: "Please enter a valid email.",
+      });
       return false;
     }
     if (!phoneOk(formData.phone)) {
-      setNotify({ show: true, type: "info", title: "Invalid Phone Number", message: "Phone number must be exactly 11 digits." });
+      setNotify({
+        show: true,
+        type: "info",
+        title: "Invalid Phone Number",
+        message: "Phone number must be exactly 11 digits.",
+      });
       return false;
     }
     return true;
@@ -113,14 +125,21 @@ const ViewProfile = () => {
       payload.append("first_name", formData.firstName);
       payload.append("last_name", formData.lastName);
       payload.append("date_of_birth", formData.birthDate);
-      if (String(formData.age ?? "").trim() !== "") payload.append("age", formData.age);
+      if (String(formData.age ?? "").trim() !== "")
+        payload.append("age", formData.age);
       payload.append("phone_number", formData.phone);
-      if (formData.isResident !== "") payload.append("is_resident_of_cebu", formData.isResident === "yes" ? "true" : "false");
+      if (formData.isResident !== "")
+        payload.append(
+          "is_resident_of_cebu",
+          formData.isResident === "yes" ? "true" : "false"
+        );
       payload.append("lgu", formData.lgu);
       payload.append("address", formData.address);
       if (formData.profileFile) payload.append("avatar", formData.profileFile);
 
-      const res = await api.put("/user/profile/", payload, { headers: { "Content-Type": "multipart/form-data" } });
+      const res = await api.put("/user/profile/", payload, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       const d = res.data;
       const mapped = {
         firstName: d.first_name || "",
@@ -132,14 +151,21 @@ const ViewProfile = () => {
         isResident: d.is_resident_of_cebu ? "yes" : "no",
         lgu: d.lgu || "",
         address: d.address || "",
-        profilePic: d.avatar ? `http://localhost:8000${d.avatar}` : formData.profilePic,
+        profilePic: d.avatar
+          ? `http://localhost:8000${d.avatar}`
+          : formData.profilePic,
         profileFile: null,
         agreed: true,
       };
       setFormData(mapped);
       setBeforeEdit(mapped);
       setReadOnly(true);
-      setNotify({ show: true, type: "success", title: "Saved", message: "Your profile has been updated." });
+      setNotify({
+        show: true,
+        type: "success",
+        title: "Saved",
+        message: "Your profile has been updated.",
+      });
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to save profile.";
       setNotify({ show: true, type: "info", title: "Error", message: msg });
@@ -268,7 +294,7 @@ const ViewProfile = () => {
                 <img
                   src={formData.profilePic || "/images/bigAvatar.png"}
                   alt="Profile"
-                  className="h-28 md:h-50 object-cover rounded-full border border-gray-300"
+                  className="size-40 md:size-60 object-cover rounded-full border border-gray-300"
                 />
                 {!readOnly && (
                   <label

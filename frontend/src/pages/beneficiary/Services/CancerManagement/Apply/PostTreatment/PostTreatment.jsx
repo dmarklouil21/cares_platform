@@ -186,7 +186,7 @@ const PostTreatment = () => {
                   type="text"
                   name="diagnosisImpression"
                   placeholder="ex: Breast Mass, right"
-                  className="w-full :w-[85%] p-3 border border-gray2 rounded-md"
+                  className="w-full :w-[85%] p-3 border border-gray2 rounded-md font-bold"
                   value={"Breast Mass, right"}
                   // onChange={(e) => setProcedureDetails(e.target.value)}
                   readOnly
