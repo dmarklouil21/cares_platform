@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 const NotePanel = ({ onAccept, onDecline }) => {
   return (
     <div className="  lg:w-[75%] bg-gray flex flex-col h-screen gap-5 px-8 py-8 items-center">
-      <div className="w-full flex justify-between px-9">
+      <div className="w-full flex justify-between px-1">
         <h1 className="font-bold text-[16px] md:text-2xl">Private/Partner Registration</h1>
         {/* <div className="flex text-right flex-col">
           <p className="text-[10px] md:text-sm">STEP 01/01</p>

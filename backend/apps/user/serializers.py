@@ -43,6 +43,9 @@ class LoginSerializer(TokenObtainPairSerializer):
       'email': self.user.email,
       'first_name': self.user.first_name,
       'last_name': self.user.last_name,
+      'date_of_birth': self.user.date_of_birth,
+      'address': self.user.address,
+      'phone_number': self.user.phone_number,
       'is_first_login': self.user.is_first_login,
       'is_rhu': self.user.is_rhu,
       'is_private': self.user.is_private,
@@ -51,12 +54,10 @@ class LoginSerializer(TokenObtainPairSerializer):
     }
     return data
 
-
 # ------------------------------
 # User Profile Serializer
 # ------------------------------
 User = get_user_model()
-
 
 class UserProfileSerializer(serializers.ModelSerializer):
   class Meta:
@@ -68,7 +69,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
       'phone_number', 'is_resident_of_cebu',
       'lgu', 'address', 'avatar',
     ]
-    read_only_fields = ['user_id', 'email']
+    read_only_fields = ['user_id', 'email', 'age']
 
   def update(self, instance, validated_data):
     # Allow partial updates

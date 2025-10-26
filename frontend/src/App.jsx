@@ -72,14 +72,6 @@ const App = () => {
               }
             />
 
-            {/* <Route
-              path="beneficiary/NoteBeneficiary"
-              element={
-                <ProtectedAuthenticatedRoute>
-                  <NoteBeneficiary />
-                </ProtectedAuthenticatedRoute>
-              }
-            /> */}
             <Route
               path="beneficiary/pre-enrollment/note"
               element={
@@ -106,31 +98,9 @@ const App = () => {
                 </ProtectedAuthenticatedRoute>
               } 
             />
-              {/* <ProtectedAuthenticatedRoute>
-                <PreEnrollment />
-                <Route index element={<PreEnrollment />} />
-                <Route path="note" element={<NoteBeneficiary />} />
-                <Route path="pre-screening-form" element={<PreScreeningForm />} />
-              </ProtectedAuthenticatedRoute>
-            </Route> */}
-
-            {/* <Route path="beneficiary/pre-enrollment/note">
-              <ProtectedAuthenticatedRoute>
-                <NoteBeneficiary />
-                <Route path="note" element={<NoteBeneficiary />} />
-                <Route path="pre-screening-form" element={<PreScreeningForm />} />
-              </ProtectedAuthenticatedRoute>
-            </Route> */}
-
-            {/* <Route path="beneficiary/pre-enrollment/pre-screening-form">
-              <ProtectedAuthenticatedRoute>
-                <PreScreeningForm />
-                <Route path="note" element={<NoteBeneficiary />} />
-                <Route path="pre-screening-form" element={<PreScreeningForm />} />
-              </ProtectedAuthenticatedRoute>
-            </Route> */}
 
             <Route path="NotValidated" element={<NotValidated />} />
+
             <Route
               path="AccountNotSupported"
               element={<AccountNotSupported />}

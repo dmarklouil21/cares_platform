@@ -2,6 +2,10 @@ import { Route } from "react-router-dom";
 import BeneficiaryLayout from "../layouts/Beneficiary";
 import ProtectedRoute from "../components/RoleGuard/ProtectedRoute";
 
+import PreEnrollment from "../pages/beneficiary/PreEnrollment/PreEnrollment";
+import PreScreeningForm from "../pages/beneficiary/PreEnrollment/PreScreeningForm";
+import NoteBeneficiary from "../pages/beneficiary/registration/note/registration/Beneficiary";
+
 // Sidebar Options
 import Home from "../pages/beneficiary/Home/Home/";
 import CancerAwareness from "../pages/beneficiary/CancerAwareness/CancerAwareness/";
@@ -63,8 +67,30 @@ const BeneficiaryRoutes = () => (
       </ProtectedRoute>
     }
   >
+    {/* <Route
+      path="pre-enrollment/note"
+      element={
+          <NoteBeneficiary />
+      }
+    />
+
+    <Route 
+      path="pre-enrollment" 
+      element={
+          <PreEnrollment />
+      }
+    />
+
+    <Route 
+      path="pre-enrollment/cancer-data" 
+      element={
+          <PreScreeningForm />
+      } 
+    /> */}
+
     {/* Success Page */}
     <Route path="success-application" element={<SuccessPage />} />
+
     <Route path="profile" element={<Profile />} />
 
     {/* Home & Awareness */}

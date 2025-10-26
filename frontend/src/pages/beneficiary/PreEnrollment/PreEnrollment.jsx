@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useAuth } from "src/context/AuthContext";
+
 import barangayData from "src/constants/barangayData";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
+import { use } from "react";
 
 export default function PatinetProfileForm() {
+  const { user } = useAuth();
   // Notification Modal
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState({
@@ -126,9 +130,22 @@ export default function PatinetProfileForm() {
     return newErrors;
   };
 
-  // useEffect (() => { stop here for now
-  // })
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        first_name: user.first_name || "",
+        last_name: user.last_name || "",
+        date_of_birth: user.date_of_birth || "",
+        address: user.address || "",
+        mobile_number: user.phone_number || "",
+        email: user.email || "",
+        barangay: "", // Reset barangay when city changes
+      }));
+    }
+  }, [user]);
 
+  console.log("User Data: ", user);
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -166,13 +183,13 @@ export default function PatinetProfileForm() {
     return barangayData[formData.city] || [];
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
 
-    setModalText("Submit this form?");
-    setModalAction({ type: "submit" });
-    setModalOpen(true);
-  };
+  //   setModalText("Submit this form?");
+  //   setModalAction({ type: "submit" });
+  //   setModalOpen(true);
+  // };
 
   // 2×2 photo preview (UI only; no data changes)
   const [photoUrl, setPhotoUrl] = useState(null);
@@ -210,16 +227,6 @@ export default function PatinetProfileForm() {
 
   return (
     <>
-      {/* <ConfirmationModal
-        open={modalOpen}
-        text={modalText}
-        onConfirm={handleModalConfirm}
-        onCancel={() => {
-          setModalOpen(false);
-          setModalAction(null);
-          setModalText("");
-        }}
-      /> */}
       <NotificationModal
         show={showModal}
         type={modalInfo.type}

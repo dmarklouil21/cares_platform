@@ -83,11 +83,11 @@ const ResetPasswordPanel = () => {
       if (currentUser?.is_superuser) {
         navigate("/admin");
       } else if (currentUser?.is_rhu) {
-        navigate("/Rhu");
+        navigate("/rhu");
       } else if (currentUser?.is_private) {
-        navigate("private");
+        navigate("/private");
       } else {
-        navigate("/NoteBeneficiary");
+        navigate("/beneficiary/pre-enrollment/note");
       }
     }, 400);
   };
