@@ -10,8 +10,8 @@ from rest_framework.exceptions import ValidationError
 
 from apps.patient.models import ServiceReceived, Patient
 
-from .models import WellBeingQuestion, CancerTreatment
-from .serializers import WellBeingQuestionSerializer, CancerTreatmentCreationSerializer, CancerTreatmentSerializer
+from .models import WellBeingQuestion, CancerTreatment, ServiceAttachment
+from .serializers import WellBeingQuestionSerializer, CancerTreatmentCreationSerializer, CancerTreatmentSerializer, ServiceAttachmentSerializer
 
 from backend.utils.email import (
   send_individual_screening_status_email,
@@ -23,10 +23,29 @@ from backend.utils.email import (
 )
 
 import json
-
+import os
 import logging
 logger = logging.getLogger(__name__)
 
+# ---------------------------
+# Helper: File validation
+# ---------------------------
+def validate_attachment(file):
+  max_size_mb = 10
+  allowed_types = {
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  }
+  if file.size > max_size_mb * 1024 * 1024:
+    raise ValidationError(f"File {file.name} exceeds {max_size_mb}MB limit.")
+  if file.content_type not in allowed_types:
+    raise ValidationError(f"Unsupported file type: {file.content_type} for file {file.name}.")
+  
 # Create your views here.
 
 class WellBeingQuestionListView(generics.ListAPIView):
@@ -189,6 +208,106 @@ class SendLOAView(APIView):
     if result is True:
       return Response({"message": "LOA sent successfully."}, status=200)
     return Response({"error": f"Failed to send LOA: {result}"}, status=500)
+
+class ServiceAttachmentUpdateView(APIView):
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def patch(self, request, id):
+    cancer_treatment = get_object_or_404(CancerTreatment, id=id)
+    
+    files_dict = {}
+    for key, value in self.request.FILES.items():
+      if key.startswith("files."):
+        field_name = key.split("files.")[1] 
+        files_dict[field_name] = value
+
+    for key, file in files_dict.items():
+      ServiceAttachment.objects.create(
+        cancer_treatment=cancer_treatment,
+        file=file,
+        doc_type=key 
+      )
+
+    return Response({"message": "Attachments updated successfully."})
+
+class ServiceAttachmentDeleteView(generics.DestroyAPIView):
+  queryset = ServiceAttachment.objects.all()
+  serializer_class = ServiceAttachmentSerializer
+  lookup_field = 'id'
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+class ResultAttachmentUploadView(APIView):
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+
+  def patch(self, request, id):
+    cancer_treatment = get_object_or_404(CancerTreatment, id=id)
+    attachments = request.FILES.getlist('attachments')
+
+    if not attachments:
+      return Response(
+        {"message": "No file attached."},
+        status=status.HTTP_400_BAD_REQUEST
+      )
+    
+    file = attachments[0]
+    validate_attachment(file)
+
+    if cancer_treatment.uploaded_result:
+      old_path = cancer_treatment.uploaded_result.path
+      if os.path.exists(old_path):
+        os.remove(old_path)
+
+    cancer_treatment.uploaded_result = file
+    cancer_treatment.save()
+
+    return Response(
+      {
+        "message": "Attachment uploaded successfully.",
+        "file_url": cancer_treatment.uploaded_result.url,
+        "file_name": os.path.basename(cancer_treatment.uploaded_result.name),
+      },
+      status=status.HTTP_200_OK,
+    )
+  
+class ResultDeleteView(APIView):
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def delete(self, request, id):
+    cancer_treatment = get_object_or_404(CancerTreatment, id=id)
+
+    if not cancer_treatment.uploaded_result:
+      return Response(
+        {"message": "No attachment found for this record."},
+        status=status.HTTP_404_NOT_FOUND,
+      )
+    
+    try:
+      # Get file path before deleting from model
+      file_path = cancer_treatment.uploaded_result.path
+
+      # Delete file reference from model
+      cancer_treatment.uploaded_result.delete(save=False)
+
+      # Clear model field
+      cancer_treatment.uploaded_result = None
+      cancer_treatment.save(update_fields=["uploaded_result"])
+
+      # If the file still exists in storage, remove it manually (edge case)
+      if os.path.exists(file_path):
+        os.remove(file_path)
+
+      return Response(
+        {"message": "Attachment deleted successfully."},
+        status=status.HTTP_200_OK,
+      )
+
+    except Exception as e:
+      return Response(
+        {"message": f"An error occurred while deleting the attachment: {str(e)}"},
+        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+      )
 
 class SendCaseSummaryiew(APIView):
   permission_classes = [IsAuthenticated, IsAdminUser]

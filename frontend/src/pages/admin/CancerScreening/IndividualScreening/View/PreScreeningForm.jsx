@@ -1218,8 +1218,8 @@ const ViewPreScreeningForm = () => {
           <div className="w-full flex justify-end mt-5">
             <Link
               className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
-              to={`/admin/cancer-screening/view/details`}
-              state={{ record: record }}
+              to={`/admin/cancer-screening/view/${record?.id}`}
+              // state={{ record: record }}
             >
               Back
             </Link>

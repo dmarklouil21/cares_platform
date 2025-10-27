@@ -145,7 +145,7 @@ const AdminRoutes = () => (
       <Route path="view">
         <Route path="mass-view" element={<MassScreeningView />} />
         <Route path="mass-attendance-view" element={<MassAttendanceView />} />
-        <Route path="details" element={<IndividualScreeningDetailedView />} />
+        <Route path=":id" element={<IndividualScreeningDetailedView />} />
         <Route
           path="attachments"
           element={<IndividualScreeningAttachments />}

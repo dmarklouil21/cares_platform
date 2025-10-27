@@ -370,11 +370,7 @@ const AdminCancerManagementView = () => {
 
   if (!record) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-[#F8F9FA]">
-        <div className="bg-white p-6 rounded shadow">
-          <p className="font-semibold">Record not found.</p>
-        </div>
-      </div>
+      <SystemLoader />
     );
   }
 
@@ -656,7 +652,7 @@ const AdminCancerManagementView = () => {
               </div>
 
               <div className="flex gap-2">
-                <span className="font-medium w-40">Lab Results</span>
+                <span className="font-medium w-40">Lab Results <span className="text-xs text-red-500">(Missing)</span></span>
                 <Link
                   className="text-blue-700"
                   to={`/admin/cancer-management/view/${record?.id}/results`}
@@ -726,19 +722,19 @@ const AdminCancerManagementView = () => {
             </div>
           </div>
           <div className="flex justify-around print:hidden">
-              <Link
-                to={`/admin/cancer-management`}
-                className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md"
-              >
-                Back
-              </Link>
-              <button
-                onClick={handleSaveChanges}
-                className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer"
-              >
-                Save Changes
-              </button>
-            </div>
+            <Link
+              to={`/admin/cancer-management`}
+              className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md"
+            >
+              Back
+            </Link>
+            <button
+              onClick={handleSaveChanges}
+              className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer"
+            >
+              Save Changes
+            </button>
+          </div>
         </div>
         <LOAPrintTemplate loaData={record} />
       </div>
