@@ -3,6 +3,8 @@ from . import views
 from apps.precancerous import views as precancerous_views
 
 urlpatterns = [
+  # Individual Screening
+  path('individual-screening/details/<int:id>/', views.IndividualScreeningDetailedView.as_view(), name='individual_screening_details'),
   path('individual-screening-list/', views.IndividualScreeningListView.as_view(), name='individual_screening_list'),
   path('individual-screening/create/', views.IndividualScreeningCreateView.as_view(), name='individual_screening_create'),
   path('individual-screening/approve/<str:patient_id>/', views.IndividualScreeningStatusUpdateView.as_view(), name='individual_screening_status_update'),

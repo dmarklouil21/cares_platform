@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
+import SystemLoader from "src/components/SystemLoader";
 
 import api from "src/api/axiosInstance";
 
@@ -25,18 +26,49 @@ const Registration = () => {
   const [submitting, setSubmitting] = useState(false);
 
   // Notification Modal
-    const [showModal, setShowModal] = useState(false);
-    const [modalInfo, setModalInfo] = useState({
-      type: "success",
-      title: "Success!",
-      message: "The form has been submitted successfully.",
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({
+    type: "success",
+    title: "Success!",
+    message: "The form has been submitted successfully.",
+  });
+  // Loading Modal
+  const [loading, setLoading] = useState(false);
+  // Confirmation Modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("Confirm Status Change?");
+  const [modalAction, setModalAction] = useState(null);
+
+  const [errors, setErrors] = useState({});
+    
+  const validate = () => {
+    const newErrors = {};
+
+    // Required fields
+    const requiredFields = {
+      representative_first_name: "First name is required.",
+      representative_last_name: "Last name is required.",
+      address: "Address is required.",
+      institution_name: "Institution name is required.",
+      email: "Email is required.",
+      phone_number: "Phone number is required.",
+      agreed: "You must agree to the privacy notice.",
+    };
+
+    // Validate form fields
+    Object.entries(requiredFields).forEach(([field, message]) => {
+      if (!formData[field] || !formData[field].toString().trim()) {
+        newErrors[field] = message;
+      }
     });
-    // Loading Modal
-    const [loading, setLoading] = useState(false);
-    // Confirmation Modal
-    const [modalOpen, setModalOpen] = useState(false);
-    const [modalText, setModalText] = useState("Confirm Status Change?");
-    const [modalAction, setModalAction] = useState(null);
+
+    // Validate photo
+    // if (!photoUrl) {
+    //   newErrors.photoUrl = "2×2 photo is required.";
+    // }
+
+    return newErrors;
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -48,23 +80,25 @@ const Registration = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Print all form inputs to console
-    console.log("Form inputs:", formData);
-
-    const isValid = Object.values(formData).every((val) =>
-      typeof val === "boolean" ? val === true : val.trim() !== ""
-    );
-    if (!isValid) {
-      // alert("Please fill in all fields and agree to the privacy notice.");
-      setModalInfo({
-        type: "info",
-        title: "Note",
-        message: "Please fill in all fields and agree to the privacy notice.",
-      });
-      setShowModal(true);
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
+
+    // const isValid = Object.values(formData).every((val) =>
+    //   typeof val === "boolean" ? val === true : val.trim() !== ""
+    // );
+    // if (!isValid) {
+    //   // alert("Please fill in all fields and agree to the privacy notice.");
+    //   setModalInfo({
+    //     type: "info",
+    //     title: "Note",
+    //     message: "Please fill in all fields and agree to the privacy notice.",
+    //   });
+    //   setShowModal(true);
+    //   return;
+    // }
     // setSubmitting(true);
     setLoading(true);
     try {
@@ -117,6 +151,8 @@ const Registration = () => {
 
   return (
     <>
+      {loading && <SystemLoader />}
+
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -124,7 +160,7 @@ const Registration = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      <LoadingModal open={loading} text="Submitting your data..." />
+
       <div className=" w-full lg:w-[75%] flex flex-col  bg-gray py-12  overflow-auto h-screen lg:min-h-screen gap-3 md:gap-12 md:px-12 px-5">
         {/* <div className="w-full flex justify-between px-9">
           <h1 className="font-bold text-[15px] md:text-2xl">
@@ -153,11 +189,15 @@ const Registration = () => {
                 value={formData.institution_name}
                 onChange={handleChange}
                 type="text"
-                required
                 className="border border-gray-600 rounded-md p-2
                 text-[14px] md:text-[16px]
                 "
               />
+               {errors.institution_name && (
+                <span className="text-red-500 text-xs">
+                  {errors.institution_name}
+                </span>
+              )}
             </div>
 
             <div className="flex gap-2 flex-col">
@@ -175,11 +215,15 @@ const Registration = () => {
                   value={formData.email}
                   onChange={handleChange}
                   type="email"
-                  required
                   className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                   placeholder="ejacc@gmail.com"
                 />
               </div>
+               {errors.email && (
+                <span className="text-red-500 text-xs">
+                  {errors.email}
+                </span>
+              )}
             </div>
 
             <div className="flex gap-2 flex-col">
@@ -203,7 +247,6 @@ const Registration = () => {
                   value={formData.phone_number}
                   onChange={handleChange}
                   type="tel"
-                  required
                   className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5
                   text-[12px] md:text-[16px]
 
@@ -211,6 +254,11 @@ const Registration = () => {
                   placeholder="123-456-7890"
                 />
               </div>
+              {errors.phone_number && (
+                <span className="text-red-500 text-xs">
+                  {errors.phone_number}
+                </span>
+              )}
             </div>
 
             <div className="flex gap-2 flex-col">
@@ -220,11 +268,15 @@ const Registration = () => {
                 value={formData.address}
                 onChange={handleChange}
                 type="text"
-                required
                 className="border border-gray-600 rounded-md p-2
                 text-[14px] md:text-[16px]
                 "
               />
+              {errors.address && (
+                <span className="text-red-500 text-xs">
+                  {errors.address}
+                </span>
+              )}
             </div>
 
             <div className="flex gap-2 flex-col">
@@ -236,9 +288,13 @@ const Registration = () => {
                 value={formData.representative_first_name}
                 onChange={handleChange}
                 type="text"
-                required
                 className="border border-gray-600 rounded-md p-2"
               />
+               {errors.representative_first_name && (
+                <span className="text-red-500 text-xs">
+                  {errors.representative_first_name}
+                </span>
+              )}
             </div>
 
             <div className="flex justify-end gap-2 flex-col">
@@ -248,9 +304,13 @@ const Registration = () => {
                 value={formData.representative_last_name}
                 onChange={handleChange}
                 type="text"
-                required
                 className="border border-gray-600 rounded-md p-2"
               />
+               {errors.representative_last_name && (
+                <span className="text-red-500 text-xs">
+                  {errors.representative_last_name}
+                </span>
+              )}
             </div>
 
             {/* <div className="flex gap-2 flex-col col-span-2">
@@ -262,7 +322,6 @@ const Registration = () => {
                 value={formData.official_representative_name}
                 onChange={handleChange}
                 type="text"
-                required
                 className="border border-gray-600 rounded-md p-2"
               />
             </div> */}
@@ -275,33 +334,40 @@ const Registration = () => {
                 type="checkbox"
                 checked={formData.agreed}
                 onChange={handleChange}
-                required
                 className="accent-primary"
               />
-              <p
-                className="underline text-[12px] cursor-pointer"
-                onClick={() =>
-                  setFormData((prev) => ({ ...prev, agreed: !prev.agreed }))
-                }
-              >
-                Form notice & Data privacy notice
-              </p>
+              <div className="flex">
+                <p
+                  className="underline text-[12px] cursor-pointer"
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, agreed: !prev.agreed }))
+                  }
+                >
+                  Form notice & Data privacy notice {" "}
+                </p>
+                {errors.agreed && (
+                  <span className="ml-1 text-red-500 text-xs">
+                    {errors.agreed}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-{/* Stop here for now */}
+
           <div className="flex justify-between w-full">
             <Link
               to="/private-registration/note"
               className="text-black text-center py-2 w-[45%] border hover:bg-gray border-black hover:border-white rounded-md"
             >
-              BACK
+              Back
             </Link>
             <button
               type="submit"
               className="text-center font-bold bg-primary text-white py-2 w-[45%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
               disabled={submitting}
             >
-              {submitting ? "SUBMITTING..." : "SUBMIT"}
+              Submit
+              {/* {submitting ? "SUBMITTING..." : "SUBMIT"} */}
             </button>
           </div>
         </form>

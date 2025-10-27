@@ -3,47 +3,53 @@ import { Link, useLocation } from "react-router-dom";
 import api from "src/api/axiosInstance";
 
 import NotificationModal from "src/components/Modal/NotificationModal";
-import LoadingModal from "src/components/Modal/LoadingModal";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import SystemLoader from "src/components/SystemLoader";
+
+const CheckIcon = ({ active }) => (
+  <img
+    src="/images/check.svg"
+    alt=""
+    className={`h-6 w-6 transition ${active ? "" : "grayscale opacity-50"}`}
+  />
+);
 
 const ViewResults = () => {
   const location = useLocation();
   const record = location.state;
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState(null);
 
-  // Notification Modal
+  // Modals
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState({
     type: "success",
     title: "Success!",
-    message: "The form has been submitted successfully.",
+    message: "",
   });
-  // Loading Modal 
   const [loading, setLoading] = useState(false);
-  // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("Confirm Status Change?");
+  const [modalText, setModalText] = useState("");
   const [modalDesc, setModalDesc] = useState("");
-  const [modalAction, setModalAction] = useState(null); 
+  const [modalAction, setModalAction] = useState(null);
 
   useEffect(() => {
-    if (record.uploaded_result) {
-      if (record.uploaded_result) {
-        const fileUrl = record.uploaded_result;
-        const fileName = fileUrl.split("/").pop();
-        const fileExtension = fileName.split(".").pop().toLowerCase();
+    if (record?.uploaded_result) {
+      const fileUrl = record.uploaded_result;
+      const fileName = fileUrl.split("/").pop();
+      const fileExtension = fileName.split(".").pop().toLowerCase();
 
-        setFiles([{
-          id: record.id, 
+      setFiles([
+        {
+          id: record.id,
           name: fileName,
           type: fileExtension,
           url: fileUrl,
-        }]);
-      }
+        },
+      ]);
     }
   }, [record]);
 
-  const handleAddFile = () => {
+  const handleAddOrEditFile = () => {
     const input = document.createElement("input");
     input.type = "file";
     input.multiple = false;
@@ -56,7 +62,7 @@ const ViewResults = () => {
         name: file.name,
         type: file.type.split("/")[1] || "file",
         url: URL.createObjectURL(file),
-        fileObject: file, // Store actual file object
+        fileObject: file,
       };
 
       setFiles([newFile]); // Replace any existing file
@@ -65,132 +71,95 @@ const ViewResults = () => {
     input.click();
   };
 
-  const handleDelete = async (index, e) => {
+  const handleDelete = (e) => {
     e.stopPropagation();
-
-    setModalText('Confirm Deletion of this file?');
+    setModalText("Confirm deletion of this file?");
     setModalDesc("This action cannot be undone.");
-    setModalAction({ type: "delete", file: files[index] }); 
+    setModalAction({ type: "delete", file: files[0] });
     setModalOpen(true);
   };
 
   const handleModalConfirm = async () => {
-    if (modalAction?.type === "delete") {
-      const fileToDelete = modalAction.file;
+    try {
+      if (modalAction?.type === "delete") {
+        const fileToDelete = modalAction.file;
 
-      if (!fileToDelete) {
-        console.error("No file found for deletion.");
-        alert("Something went wrong. File not found.");
-        return;
-      }
+        setLoading(true);
+        setModalOpen(false);
 
-      try {
         if (fileToDelete.url.startsWith("blob:")) {
           URL.revokeObjectURL(fileToDelete.url);
-          setFiles((prev) => prev.filter((f) => f !== fileToDelete));
-        } else if (fileToDelete.id) {
-          setLoading(true);
-          setModalOpen(false);
-          await api.delete(`/cancer-screening/individual-screening/results-attachment-delete/${record?.id}/`);
+          setFiles(null);
+        } else {
+          await api.delete(
+            `/cancer-screening/individual-screening/results-attachment-delete/${record?.id}/`
+          );
+          setFiles(null);
           setModalInfo({
             type: "success",
-            title: "Success!",
-            message: "Deleted successfully.",
+            title: "Deleted Successfully",
+            message: "The uploaded result was removed.",
           });
           setShowModal(true);
-          setFiles((prev) => prev.filter((f) => f.id !== fileToDelete.id));
         }
-      } catch (error) {
-        let errorMessage = "Something went wrong while deleting the attachment."; 
+      } else if (modalAction?.type === "submit") {
+        if (!files?.length) {
+          alert("No file selected.");
+          return;
+        }
 
-        if (error.response && error.response.data) {
-          // DRF ValidationError returns an object with arrays of messages
-          if (error.response.data.non_field_errors) {
-            errorMessage = error.response.data.non_field_errors[0];
-          }
+        const formData = new FormData();
+        const fileToUpload = files[0];
+        if (fileToUpload.fileObject) {
+          formData.append("attachments", fileToUpload.fileObject);
         }
+
+        setLoading(true);
+        setModalOpen(false);
+        const response = await api.patch(
+          `/cancer-screening/individual-screening/results-upload/${record?.id}/`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+
         setModalInfo({
-          type: "error",
-          title: "Failed to delete the file.",
-          message: errorMessage,
+          type: "success",
+          title: "Success!",
+          message: response.data?.message || "File uploaded successfully.",
         });
         setShowModal(true);
-        console.error("Error deleting file:", error.message);
-      } finally {
-        setLoading(false);
       }
-    } else if (modalAction?.type === "submit") {
-      const formData = new FormData();
-
-      files.forEach((item) => {
-        if (item.fileObject) {
-          // Only include new files (not existing ones already saved on the backend)
-          formData.append("attachments", item.fileObject);
-        }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.non_field_errors?.[0] ||
+        error.response?.data?.message ||
+        "Something went wrong.";
+      setModalInfo({
+        type: "error",
+        title: "Error",
+        message: errorMessage,
       });
-
-      if (formData.has("attachments")) {
-        try {
-          setLoading(true);
-          setModalOpen(false);
-          await api.patch(`/cancer-screening/individual-screening/results-upload/${record?.id}/`, formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-          setModalInfo({
-            type: "success",
-            title: "Success!",
-            message: "Added successfully.",
-          });
-          setShowModal(true);
-        } catch (error) {
-          let errorMessage = "Something went wrong while submitting the attachment."; 
-
-          if (error.response && error.response.data) {
-            // DRF ValidationError returns an object with arrays of messages
-            if (error.response.data.non_field_errors) {
-              errorMessage = error.response.data.non_field_errors[0];
-            }
-          }
-          setModalInfo({
-            type: "error",
-            title: "Failed to add new file.",
-            message: errorMessage,
-          });
-          setShowModal(true);
-          console.error("Error uploading attachments:", error.message);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        alert("No new attachments to upload.");
-      }
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+      setModalOpen(false);
+      setModalAction(null);
     }
-
-    setModalOpen(false);
-    setModalAction(null);
-    setModalText("");
   };
 
   const handleViewFile = (file, e) => {
     e.stopPropagation();
-    if (file.fileObject) {
-      // For newly uploaded files
-      const fileURL = URL.createObjectURL(file.fileObject);
-      window.open(fileURL, "_blank");
-    } else {
-      // For sample files
-      window.open(file.url, "_blank");
-    }
+    const fileURL = file.fileObject
+      ? URL.createObjectURL(file.fileObject)
+      : file.url;
+    window.open(fileURL, "_blank");
   };
 
-  const handleSave = async (e) => {
+  const handleSave = (e) => {
     e.preventDefault();
-
-    setModalText('Confirm Submission of this file?');
+    setModalText("Confirm submission of this file?");
     setModalDesc("Make sure the file is correct before submitting.");
-    setModalAction({ type: "submit" }); 
+    setModalAction({ type: "submit" });
     setModalOpen(true);
   };
 
@@ -201,11 +170,7 @@ const ViewResults = () => {
         title={modalText}
         desc={modalDesc}
         onConfirm={handleModalConfirm}
-        onCancel={() => {
-          setModalOpen(false);
-          setModalAction(null);
-          setModalText("");
-        }}
+        onCancel={() => setModalOpen(false)}
       />
       <NotificationModal
         show={showModal}
@@ -214,109 +179,76 @@ const ViewResults = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      <LoadingModal open={loading} text="Submitting your data..." />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
-        {/* <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Individual Screening</h1>
-          <div className="p-3">
-            <Link 
-              to={"/admin/cancer-screening/view/details"}
-              state={{record: record}}
-            >
-              <img
-                src="/images/back.png"
-                alt="Back button icon"
-                className="h-6"
-              />
-            </Link>
-          </div>
-        </div> */}
-        <div className="h-full w-full p-5 flex flex-col justify-between">
+      {/* <LoadingModal open={loading} text="Processing your request..." /> */}
+      {loading && <SystemLoader />}
+
+      <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
+        <div className="h-full w-full flex flex-col justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
-            {/* <div className="bg-lightblue rounded-sm py-3 px-5 w-full flex justify-between items-center">
-              <h1 className="text-md font-bold">Patient ID - {record?.patient.patient_id}</h1>
-            </div> */}
-          {files.length === 0 ? (
-            <div className="flex-1 flex flex-col justify-center items-center bg-white rounded-[4px] py-10 px-8 text-center">
-              <h2 className="text-2xl font-semibold text-gray-600">No Attachment Files Found</h2>
-              <p className="text-gray-500 mt-2">
-                This patient doesn't have a result submitted yet.
+            <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
+              <h2 className="text-3xl text-yellow font-bold">Screening Result</h2>
+              <p className="font-bold italic">
+                View or update the uploaded result of the patient.
               </p>
-              <button
-                // to="/Admin/cancerscreening/view/AdminIndividualScreeningView"
-                // state={{ record }}
-                onClick={handleAddFile}
-                className="text-center font-bold bg-primary text-white mt-5 py-2 w-[15%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-              >
-                Add File
-              </button>
-            </div>
-          ) : (
-            <div className="w-full bg-white rounded-[4px] p-4">
-              <h1 id="details_title" className="text-md font-bold mb-3">
-                Results Uploaded
-              </h1>
-              <div className="bg-gray-100 border border-dashed border-gray-300 rounded-sm p-6 flex flex-row gap-4 flex-wrap items-center justify-start min-h-[120px]">
-                {files.map((file, idx) => (
-                  <div
-                    key={idx}
-                    className="relative group"
-                    onClick={(e) => handleViewFile(file, e)}
-                  >
-                    <div className="w-32 h-32 bg-white rounded-lg shadow flex flex-col items-center justify-center cursor-pointer border border-gray-200 hover:shadow-lg transition">
-                      {file?.type?.match(/image/) ? (
-                        <img
-                          src={file.url}
-                          alt={file.name}
-                          className="w-16 h-16 object-contain mb-2"
-                        />
-                      ) : file.type.includes("pdf") ? (
-                        <img
-                          src="/src/assets/images/admin/cancerscreening/individualscreening/pdf.svg"
-                          alt="PDF"
-                          className="w-12 h-12 mb-2"
-                        />
-                      ) : file.type.match(/docx?/) ? (
-                        <img
-                          src="/src/assets/images/admin/cancerscreening/individualscreening/docs.svg"
-                          alt="DOC"
-                          className="w-12 h-12 mb-2"
-                        />
-                      ) : (
-                        <span className="w-12 h-12 mb-2 bg-gray-300 rounded" />
-                      )}
-                      <span className="text-xs text-center break-all px-1">
-                        {file.name}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-6">
+                <div className="flex items-center gap-3 justify-between bg-gray-50 px-4 py-3 rounded-lg shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <CheckIcon active={!!files} />
+                    <span className="text-gray-900 font-medium">
+                      Patient Result
+                    </span>
+                  </div>
+
+                  {files ? (
+                    <div className="flex gap-3">
+                      <span
+                        className="text-blue-600 text-sm hover:text-blue-800 cursor-pointer"
+                        onClick={(e) => handleViewFile(files[0], e)}
+                      >
+                        View
+                      </span>
+                      <span
+                        className="text-yellow text-sm hover:text-yellow-600 cursor-pointer"
+                        onClick={handleAddOrEditFile}
+                      >
+                        Edit
+                      </span>
+                      <span
+                        className="text-red-500 text-sm hover:text-red-700 cursor-pointer"
+                        onClick={handleDelete}
+                      >
+                        Remove
                       </span>
                     </div>
-                    <button
-                      onClick={(e) => handleDelete(idx, e)}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                  ) : (
+                    <span
+                      className="text-blue-600 text-sm cursor-pointer"
+                      onClick={handleAddOrEditFile}
                     >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                      Add
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-          )}
           </div>
-          {files.length !== 0 && (
-            <div className="fw-full flex justify-around">
-            <button
-              onClick={handleAddFile}
-              className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
+
+          <div className="w-full flex justify-around">
+            <Link
+              to={`/admin/cancer-screening/view/${record.id}`}
+              className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
             >
-              Choose File
-            </button>
+              Back
+            </Link>
             <button
+              type="button"
               onClick={handleSave}
               className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
             >
               Save
             </button>
           </div>
-          )}
         </div>
       </div>
     </>

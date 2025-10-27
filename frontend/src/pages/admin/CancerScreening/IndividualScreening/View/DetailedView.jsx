@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
@@ -15,7 +15,10 @@ import LOAPrintTemplate from "./LOAPrintTemplate";
 const DetailedView = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const record = location.state?.record;
+
+  const [record, setRecord] = useState(null);
+  const { id } = useParams();
+  // const record = location.state?.record;
 
   const [status, setStatus] = useState("");
   const [screeningDate, setScreeningDate] = useState(null);
@@ -52,11 +55,28 @@ const DetailedView = () => {
   const [loaFile, setLoaFile] = useState(null);
 
   useEffect(() => {
-    if (record) {
-      setStatus(record.status);
-      setScreeningDate(record.screening_date || null);
-    }
-  }, [record]);
+    const fetchData = async () => {
+      try {
+        // individual-screening/details/<int:id>
+        const { data } = await api.get(`/cancer-screening/individual-screening/details/${id}/`);
+        console.log("Response Data: ", data);
+        setRecord(data);
+        setStatus(data.status);
+        setScreeningDate(data.screening_date || null);
+      } catch (error) {
+        console.error("Error fetching screening data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // useEffect(() => {
+  //   if (record) {
+  //     setStatus(record.status);
+  //     setScreeningDate(record.screening_date || null);
+  //   }
+  // }, [record]);
 
   const handleStatusChange = (e) => {
     const selectedStatus = e.target.value;
@@ -266,11 +286,7 @@ const DetailedView = () => {
 
   if (!record) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-[#F8F9FA]">
-        <div className="bg-white p-6 rounded shadow">
-          <p className="font-semibold">Record not found.</p>
-        </div>
-      </div>
+      <SystemLoader />
     );
   }
 
@@ -305,35 +321,6 @@ const DetailedView = () => {
         onCancel={() => setDateModalOpen(false)}
       />
       {/* <LoadingModal open={loading} text="Submitting changes..." /> */}
-
-      {/* Schedule Modal */}
-      {/* {dateModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Set Screening Date</h2>
-            <input
-              type="date"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none mb-4"
-              value={tempDate}
-              onChange={(e) => setTempDate(e.target.value)}
-            />
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-5 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
-                onClick={() => setDateModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors"
-                onClick={handleDateModalConfirm}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )} */}
 
       {/* Return remarks Modal */}
       {remarksModalOpen && (
@@ -401,7 +388,7 @@ const DetailedView = () => {
       )}
 
       {/* Screen layout */}
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA]">
+      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray overflow-auto">
         {/* Header bar */}
         {/* <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Individual Screening</h1>
@@ -411,7 +398,7 @@ const DetailedView = () => {
         </div> */}
 
         {/* Content */}
-        <div className="h-full w-full overflow-auto p-5 flex flex-col gap-4">
+        <div className="h-full w-full flex flex-col gap-4">
           {/* Patient Info Card */}
           <div className="bg-white rounded-md shadow border border-black/10">
             <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
@@ -530,7 +517,7 @@ const DetailedView = () => {
             </div>
             <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
               <div className="flex gap-2">
-                <span className="font-medium w-40">Pre-Screening Form</span>
+                <span className="font-medium w-50">Pre-Screening Form</span>
                 <Link 
                   className="text-blue-700"
                   to="/admin/cancer-screening/view/pre-screening-form"
@@ -540,7 +527,7 @@ const DetailedView = () => {
                 </Link>
               </div>
               <div className="flex gap-2">
-                <span className="font-medium w-40">Required Documents</span>
+                <span className="font-medium w-50">Required Documents</span>
                 <Link 
                   className="text-blue-700"
                   to={"/admin/cancer-screening/view/attachments"}
@@ -550,7 +537,7 @@ const DetailedView = () => {
                 </Link>
               </div>
               <div className="flex gap-2">
-                <span className="font-medium w-40">Lab Results</span>
+                <span className="font-medium w-50">Screening Results <span className="text-xs text-red-500">(Missing)</span></span>
                 <Link 
                   className="text-blue-700"
                   to={"/admin/cancer-screening/view/results"}
@@ -592,16 +579,6 @@ const DetailedView = () => {
             </div>
           }
 
-          {/* Navigation Links */}
-          {/* <div className="w-full flex flex-col md:flex-row gap-3 justify-between">
-            <Link
-              className="text-center font-bold bg-primary text-white py-2 w-full md:w-[23%] rounded-md shadow hover:opacity-90"
-              to={"/Admin/cancerscreening/view/ViewResults"}
-              state={record}
-            >
-              Save Changes
-            </Link>
-          </div> */}
           <div className="flex justify-around print:hidden">
             <Link
               to={`/admin/cancer-screening`}
@@ -616,6 +593,7 @@ const DetailedView = () => {
               Save Changes
             </button>
           </div>
+          <br />
         </div>
         <LOAPrintTemplate loaData={record} />
       </div>

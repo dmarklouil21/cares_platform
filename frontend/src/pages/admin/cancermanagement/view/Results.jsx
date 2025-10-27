@@ -3,8 +3,8 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import api from "src/api/axiosInstance";
 
 import NotificationModal from "src/components/Modal/NotificationModal";
-import LoadingModal from "src/components/Modal/LoadingModal";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import SystemLoader from "src/components/SystemLoader";
 
 const CheckIcon = ({ active }) => (
   <img
@@ -19,6 +19,7 @@ const ViewResults = () => {
   const record = location.state;
   const { id } = useParams();
   const [files, setFiles] = useState(null);
+
   const [description, setDescription] = useState(
     record?.result_description || ""
   );
@@ -26,42 +27,37 @@ const ViewResults = () => {
     !!record?.result_description // show by default if description already exists
   );
 
-  // Notification Modal
+  // Modals
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState({
     type: "success",
     title: "Success!",
-    message: "The form has been submitted successfully.",
+    message: "",
   });
-  // Loading Modal
   const [loading, setLoading] = useState(false);
-  // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
+  const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
   useEffect(() => {
-    if (record.uploaded_result) {
-      if (record.uploaded_result) {
-        const fileUrl = record.uploaded_result;
-        const fileName = fileUrl.split("/").pop();
-        const fileExtension = fileName.split(".").pop().toLowerCase();
+    if (record?.uploaded_result) {
+      const fileUrl = record.uploaded_result;
+      const fileName = fileUrl.split("/").pop();
+      const fileExtension = fileName.split(".").pop().toLowerCase();
 
-        setFiles([
-          {
-            id: record.id,
-            name: fileName,
-            type: fileExtension,
-            url: fileUrl,
-          },
-        ]);
-      }
+      setFiles([
+        {
+          id: record.id,
+          name: fileName,
+          type: fileExtension,
+          url: fileUrl,
+        },
+      ]);
     }
   }, [record]);
 
-  console.log("Files: ", files);
-
-  const handleAddFile = () => {
+  const handleAddOrEditFile = () => {
     const input = document.createElement("input");
     input.type = "file";
     input.multiple = false;
@@ -74,7 +70,7 @@ const ViewResults = () => {
         name: file.name,
         type: file.type.split("/")[1] || "file",
         url: URL.createObjectURL(file),
-        fileObject: file, // Store actual file object
+        fileObject: file,
       };
 
       setFiles([newFile]); // Replace any existing file
@@ -83,139 +79,94 @@ const ViewResults = () => {
     input.click();
   };
 
-  const handleDelete = async (index, e) => {
+  const handleDelete = (e) => {
     e.stopPropagation();
-
-    setModalText("Are you sure you want to delete this attachment?");
-    setModalAction({ type: "delete", file: files[index] });
+    setModalText("Confirm deletion of this file?");
+    setModalDesc("This action cannot be undone.");
+    setModalAction({ type: "delete", file: files[0] });
     setModalOpen(true);
   };
 
   const handleModalConfirm = async () => {
-    if (modalAction?.type === "delete") {
-      const fileToDelete = modalAction.file;
+    try {
+      if (modalAction?.type === "delete") {
+        const fileToDelete = modalAction.file;
 
-      if (!fileToDelete) {
-        console.error("No file found for deletion.");
-        alert("Something went wrong. File not found.");
-        return;
-      }
+        setLoading(true);
+        setModalOpen(false);
 
-      try {
         if (fileToDelete.url.startsWith("blob:")) {
           URL.revokeObjectURL(fileToDelete.url);
-          setFiles((prev) => prev.filter((f) => f !== fileToDelete));
-        } else if (fileToDelete.id) {
-          setLoading(true);
-          setModalOpen(false);
+          setFiles(null);
+        } else {
           await api.delete(
-            `/cancer-screening/individual-screening/results-attachment-delete/${record?.id}/`
+            `/cancer-management/cancer-treatment/result-attachment/delete/${fileToDelete.id}/`
           );
+          setFiles(null);
           setModalInfo({
             type: "success",
-            title: "Success!",
-            message: "Deleted successfully.",
+            title: "Deleted Successfully",
+            message: "The uploaded result was removed.",
           });
           setShowModal(true);
-          setFiles((prev) => prev.filter((f) => f.id !== fileToDelete.id));
         }
-      } catch (error) {
-        let errorMessage =
-          "Something went wrong while deleting the attachment.";
+      } else if (modalAction?.type === "submit") {
+        if (!files?.length) {
+          alert("No file selected.");
+          return;
+        }
 
-        if (error.response && error.response.data) {
-          // DRF ValidationError returns an object with arrays of messages
-          if (error.response.data.non_field_errors) {
-            errorMessage = error.response.data.non_field_errors[0];
-          }
+        const formData = new FormData();
+        const fileToUpload = files[0];
+        if (fileToUpload.fileObject) {
+          formData.append("attachments", fileToUpload.fileObject);
         }
+
+        setLoading(true);
+        setModalOpen(false);
+        const response = await api.patch(
+          `/cancer-management/cancer-treatment/result-attachment/upload/${record?.id}/`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+
         setModalInfo({
-          type: "error",
-          title: "Failed to delete the file.",
-          message: errorMessage,
+          type: "success",
+          title: "Success!",
+          message: response.data?.message || "File uploaded successfully.",
         });
         setShowModal(true);
-        console.error("Error deleting file:", error.message);
-      } finally {
-        setLoading(false);
       }
-    } else if (modalAction?.type === "submit") {
-      const formData = new FormData();
-
-      files.forEach((item) => {
-        if (item.fileObject) {
-          // Only include new files (not existing ones already saved on the backend)
-          formData.append("attachments", item.fileObject);
-        }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.non_field_errors?.[0] ||
+        error.response?.data?.message ||
+        "Something went wrong.";
+      setModalInfo({
+        type: "error",
+        title: "Error",
+        message: errorMessage,
       });
-
-      formData.append("description", description);
-
-      if (formData.has("attachments")) {
-        try {
-          setLoading(true);
-          setModalOpen(false);
-          await api.patch(
-            `/cancer-screening/individual-screening/results-upload/${record?.id}/`,
-            formData,
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          );
-          setModalInfo({
-            type: "success",
-            title: "Success!",
-            message: "Added successfully.",
-          });
-          setShowModal(true);
-        } catch (error) {
-          let errorMessage =
-            "Something went wrong while submitting the attachment.";
-
-          if (error.response && error.response.data) {
-            // DRF ValidationError returns an object with arrays of messages
-            if (error.response.data.non_field_errors) {
-              errorMessage = error.response.data.non_field_errors[0];
-            }
-          }
-          setModalInfo({
-            type: "error",
-            title: "Failed to add new file.",
-            message: errorMessage,
-          });
-          setShowModal(true);
-          console.error("Error uploading attachments:", error.message);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        alert("No new attachments to upload.");
-      }
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+      setModalOpen(false);
+      setModalAction(null);
     }
-
-    setModalOpen(false);
-    setModalAction(null);
-    setModalText("");
   };
 
   const handleViewFile = (file, e) => {
     e.stopPropagation();
-    if (file.fileObject) {
-      // For newly uploaded files
-      const fileURL = URL.createObjectURL(file.fileObject);
-      window.open(fileURL, "_blank");
-    } else {
-      // For sample files
-      window.open(file.url, "_blank");
-    }
+    const fileURL = file.fileObject
+      ? URL.createObjectURL(file.fileObject)
+      : file.url;
+    window.open(fileURL, "_blank");
   };
 
-  const handleSave = async (e) => {
+  const handleSave = (e) => {
     e.preventDefault();
-
-    setModalText("Are you sure you want to add this file?");
+    setModalText("Confirm submission of this file?");
+    setModalDesc("Make sure the file is correct before submitting.");
     setModalAction({ type: "submit" });
     setModalOpen(true);
   };
@@ -224,13 +175,10 @@ const ViewResults = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
-        onCancel={() => {
-          setModalOpen(false);
-          setModalAction(null);
-          setModalText("");
-        }}
+        onCancel={() => setModalOpen(false)}
       />
       <NotificationModal
         show={showModal}
@@ -239,18 +187,9 @@ const ViewResults = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      <LoadingModal open={loading} text="Submitting your data..." />
+      {loading && <SystemLoader />}
+
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
-        {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Cancer Management</h1>
-          <Link to={`/admin/cancer-management/view/${id}`}>
-            <img
-              src="/images/back.png"
-              alt="Back button icon"
-              className="h-6"
-            />
-          </Link>
-        </div> */}
 
         <div className="h-full w-full flex flex-col justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
@@ -271,16 +210,42 @@ const ViewResults = () => {
                     </span>
                   </div>
                   {files ? (
-                    <a
-                      href={files[0].url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 text-sm hover:text-blue-800 cursor-pointer"
-                    >
-                      View
-                    </a>
+                    // <a
+                    //   href={files[0].url}
+                    //   target="_blank"
+                    //   rel="noopener noreferrer"
+                    //   className="text-blue-600 text-sm hover:text-blue-800 cursor-pointer"
+                    // >
+                    //   View
+                    // </a>
+                    <div className="flex gap-3">
+                      <span
+                        className="text-blue-600 text-sm hover:text-blue-800 cursor-pointer"
+                        onClick={(e) => handleViewFile(files[0], e)}
+                      >
+                        View
+                      </span>
+                      <span
+                        className="text-yellow text-sm hover:text-yellow-600 cursor-pointer"
+                        onClick={handleAddOrEditFile}
+                      >
+                        Edit
+                      </span>
+                      <span
+                        className="text-red-500 text-sm hover:text-red-700 cursor-pointer"
+                        onClick={handleDelete}
+                      >
+                        Remove
+                      </span>
+                    </div>
                   ) : (
-                    <span className="text-red-500 text-sm">Missing</span>
+                    // <span className="text-red-500 text-sm">Missing</span>
+                    <span
+                      className="text-blue-600 text-sm cursor-pointer"
+                      onClick={handleAddOrEditFile}
+                    >
+                      Add
+                    </span>
                   )}
                 </div>
               </div>
@@ -320,7 +285,6 @@ const ViewResults = () => {
               Back
             </Link>
             <button
-              // type="submit"
               type="button"
               onClick={handleSave}
               className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"

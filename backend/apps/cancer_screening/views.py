@@ -38,6 +38,7 @@ from .serializers import (
   MassScreeningAttendanceBulkSerializer,
 )
 
+import os
 import logging
 logger = logging.getLogger(__name__)
 
@@ -151,6 +152,25 @@ class IndividualScreeningListView(generics.ListAPIView):
 
     return qs
 
+class IndividualScreeningDetailedView(generics.RetrieveAPIView):
+  queryset = IndividualScreening.objects.all()
+  serializer_class = IndividualScreeningSerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def get_queryset(self):
+    qs = IndividualScreening.objects.all()
+
+    status_filter = self.request.query_params.get('status')
+    if status_filter:
+      qs = qs.filter(status=status_filter)
+
+    patient_id = self.request.query_params.get('patient_id')
+    if patient_id:
+      qs = qs.filter(patient__patient_id=patient_id)
+
+    return qs 
+
 class IndividualScreeningDeleteView(generics.DestroyAPIView):
   queryset = IndividualScreening.objects.all()
   serializer_class = IndividualScreeningSerializer
@@ -169,25 +189,24 @@ class IndividualScreeningDeleteView(generics.DestroyAPIView):
       send_individual_screening_status_email(patient=patient, status=status_value, remarks=remarks)
     return super().perform_destroy(instance)
 
-# class PreScreeningFormUpdateView(generics.UpdateAPIView):
-#   queryset = PreScreeningForm.objects.all()
-#   serializer_class = PreScreeningFormSerializer
-#   lookup_field = 'id'
-#   permission_classes = [IsAuthenticated, IsAdminUser]
-
 class ScreeningAttachmentUpdateView(APIView):
   parser_classes = [MultiPartParser, FormParser]
   permission_classes = [IsAuthenticated, IsAdminUser]
 
   def patch(self, request, procedure_id):
     individual_screening = get_object_or_404(IndividualScreening, id=procedure_id)
-    attachments = request.FILES.getlist('screening_attachments')
+    
+    files_dict = {}
+    for key, value in self.request.FILES.items():
+      if key.startswith("files."):
+        field_name = key.split("files.")[1] 
+        files_dict[field_name] = value
 
-    for file in attachments:
-      validate_attachment(file)
+    for key, file in files_dict.items():
       ScreeningAttachment.objects.create(
         individual_screening=individual_screening,
-        file=file
+        file=file,
+        doc_type=key 
       )
 
     return Response({"message": "Attachments updated successfully."})
@@ -257,24 +276,74 @@ class ResultAttachmentUploadView(APIView):
 
   def patch(self, request, screening_id):
     individual_screening = get_object_or_404(IndividualScreening, id=screening_id)
-    # individual_screening = get_object_or_404(IndividualScreening, screening_procedure=screening_procedure)
-    
     attachments = request.FILES.getlist('attachments')
 
-    validate_attachment(attachments[0])
+    if not attachments:
+      return Response(
+        {"message": "No file attached."},
+        status=status.HTTP_400_BAD_REQUEST
+      )
+    
+    file = attachments[0]
+    validate_attachment(file)
 
-    individual_screening.uploaded_result = attachments[0]
+    if individual_screening.uploaded_result:
+      old_path = individual_screening.uploaded_result.path
+      if os.path.exists(old_path):
+        os.remove(old_path)
+
+    individual_screening.uploaded_result = file
     individual_screening.save()
 
-    return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
+    return Response(
+      {
+        "message": "Attachment uploaded successfully.",
+        "file_url": individual_screening.uploaded_result.url,
+        "file_name": os.path.basename(individual_screening.uploaded_result.name),
+      },
+      status=status.HTTP_200_OK,
+    )
 
 class ResultDeleteView(APIView):
   permission_classes = [IsAuthenticated, IsAdminUser]
 
   def delete(self, request, screening_id):
     individual_screening = get_object_or_404(IndividualScreening, id=screening_id)
-    individual_screening.uploaded_result.delete()
-    return Response({"message": "Attachment deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+
+    if not individual_screening.uploaded_result:
+      return Response(
+        {"message": "No attachment found for this screening."},
+        status=status.HTTP_404_NOT_FOUND,
+      )
+    
+    try:
+      # Get file path before deleting from model
+      file_path = individual_screening.uploaded_result.path
+
+      # Delete file reference from model
+      individual_screening.uploaded_result.delete(save=False)
+
+      # Clear model field
+      individual_screening.uploaded_result = None
+      individual_screening.save(update_fields=["uploaded_result"])
+
+      # If the file still exists in storage, remove it manually (edge case)
+      if os.path.exists(file_path):
+        os.remove(file_path)
+
+      return Response(
+        {"message": "Attachment deleted successfully."},
+        status=status.HTTP_200_OK,
+      )
+
+    except Exception as e:
+      return Response(
+        {"message": f"An error occurred while deleting the attachment: {str(e)}"},
+        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+      )
+    
+    # individual_screening.uploaded_result.delete()
+    # return Response({"message": "Attachment deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
 class SendLOAView(APIView):
   permission_classes = [IsAuthenticated, IsAdminUser]

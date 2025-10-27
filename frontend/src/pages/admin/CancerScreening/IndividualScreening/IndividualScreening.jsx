@@ -90,9 +90,7 @@ const IndividualScreening = () => {
 
   const handleViewClick = (id) => {
     const selected = tableData.find((item) => item.id === id);
-    navigate(`/admin/cancer-screening/view/details`, {
-      state: { record: selected },
-    });
+    navigate(`/admin/cancer-screening/view/${id}`);
   };
 
   const handleReject = async () => {

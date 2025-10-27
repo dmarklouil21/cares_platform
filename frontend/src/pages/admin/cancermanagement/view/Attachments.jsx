@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
 import { REQUIRED_DOCS } from "src/constants/requiredDocs";
+import api from "src/api/axiosInstance";
 
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
-
-import api from "src/api/axiosInstance";
+import SystemLoader from "src/components/SystemLoader";
 
 const CheckIcon = ({ active }) => (
   <img
@@ -29,19 +29,18 @@ const ViewAttachments = () => {
   const { id } = useParams();
 
   const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Notification Modal
+  // Modals
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState({
     type: "success",
     title: "Success!",
-    message: "The form has been submitted successfully.",
+    message: "The operation was successful.",
   });
-
-  // Loading / Confirm
-  const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("Confirm action?");
+  const [modalText, setModalText] = useState("");
+  const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
   useEffect(() => {
@@ -53,104 +52,170 @@ const ViewAttachments = () => {
     setFiles(mappedFiles);
   }, [record]);
 
-  const handleAddFile = () => {
+  /** ========== Helper Functions ========== */
+  const openFilePicker = (callback) => {
     const input = document.createElement("input");
     input.type = "file";
-    input.multiple = true;
-
+    input.accept = "*/*"; // Accept any type
     input.onchange = (e) => {
-      const newFiles = Array.from(e.target.files).map((file) => ({
-        name: file.name,
-        type: file.type || "file",
-        url: URL.createObjectURL(file),
-        fileObject: file, // mark as new/local
-      }));
-      setFiles((prev) => [...prev, ...newFiles]);
+      const file = e.target.files[0];
+      if (file) callback(file);
     };
-
     input.click();
   };
 
-  const handleDelete = (index, e) => {
+  const showError = (title, message) => {
+    setModalInfo({ type: "error", title, message });
+    setShowModal(true);
+  };
+
+  const showSuccess = (title, message) => {
+    setModalInfo({ type: "success", title, message });
+    setShowModal(true);
+  };
+
+  /** ========== File Actions ========== */
+  const handleAddFile = (docKey) => {
+    openFilePicker((file) => {
+      const newFile = {
+        name: file.name,
+        type: file.type.split("/")[1] || "file",
+        url: URL.createObjectURL(file),
+        fileObject: file,
+      };
+      setFiles((prev) => ({ ...prev, [docKey]: newFile }));
+    });
+  };
+
+  const handleEditFile = (docKey) => {
+    openFilePicker((file) => {
+      const updatedFile = {
+        ...files[docKey],
+        name: file.name,
+        type: file.type.split("/")[1] || "file",
+        url: URL.createObjectURL(file),
+        fileObject: file,
+      };
+      setFiles((prev) => ({ ...prev, [docKey]: updatedFile }));
+    });
+  };
+
+  const handleDelete = (docKey, e) => {
     e.stopPropagation();
-    setModalText("Are you sure you want to delete this attachment?");
-    setModalAction({ type: "delete", file: files[index] });
+    setModalText("Confirm deletion of this file?");
+    setModalDesc("This action cannot be undone.");
+    setModalAction({ type: "delete", file: files[docKey], key: docKey });
     setModalOpen(true);
   };
 
-  const handleViewFile = (file, e) => {
-    e.stopPropagation();
-    if (!file?.url || file.url === "#") return;
-    // For newly added local files we already have a blob URL
-    window.open(file.url, "_blank");
-  };
-
-  const handleSave = (e) => {
-    e.preventDefault();
-    setModalText("Save these attachments (demo only)?");
+  const handleSave = () => {
+    setModalText("Save these attachments?");
+    setModalDesc("Please confirm before proceeding.");
     setModalAction({ type: "submit" });
     setModalOpen(true);
   };
 
-  const handleModalConfirm = () => {
+  const handleModalConfirm = async () => {
     if (modalAction?.type === "delete") {
-      const fileToDelete = modalAction.file;
-      if (fileToDelete?.url?.startsWith("blob:")) {
-        // Free memory for local blobs
-        try {
-          URL.revokeObjectURL(fileToDelete.url);
-        } catch {}
-      }
-      setFiles((prev) => prev.filter((f) => f !== fileToDelete));
-
-      setModalInfo({
-        type: "success",
-        title: "Deleted",
-        message: "Attachment removed (demo only, no server calls).",
-      });
-      setShowModal(true);
+      await confirmDelete(modalAction.file, modalAction.key);
+    } else if (modalAction?.type === "submit") {
+      await submitFiles();
     }
-
-    if (modalAction?.type === "submit") {
-      // Demo: pretend we “saved” to the server and clear fileObject flags
-      setLoading(true);
-      setTimeout(() => {
-        setFiles((prev) =>
-          prev.map((f) => ({
-            ...f,
-            fileObject: undefined,
-            id: f.id ?? undefined,
-          }))
-        );
-        setLoading(false);
-        setModalInfo({
-          type: "success",
-          title: "Saved",
-          message: "Attachments saved locally (no API).",
-        });
-        setShowModal(true);
-      }, 400);
-    }
-
     setModalOpen(false);
     setModalAction(null);
     setModalText("");
+    setModalDesc("");
   };
-  // const [patientData, setPatientData] = useState(SAMPLE_RECORD);
-  console.log("Attachments: ", files);
+
+  const confirmDelete = async (fileToDelete, key) => {
+    try {
+      setLoading(true);
+      if (fileToDelete?.id) {
+        await api.delete( //cancer-management/cancer-treatment/service-attachment/delete/${record.id}
+          `/cancer-management/cancer-treatment/service-attachment/delete/${fileToDelete.id}/`
+        );
+      }
+      setFiles((prev) => {
+        const updated = { ...prev };
+        delete updated[key];
+        return updated;
+      });
+      showSuccess("Success!", "File deleted successfully.");
+    } catch (error) {
+      showError("Deletion Failed", "Unable to delete the selected file.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitFiles = async () => {
+    const formData = new FormData();
+    const entries = Object.entries(files || {});
+
+    // Collect which backend attachments (existing) need to be removed if we're replacing them
+    const toDeleteIds = [];
+    
+    entries.forEach(([key, item]) => {
+      // item may either be an existing backend file (has `id` and `file`)
+      // or a newly selected file object we stored as { fileObject, url, name, ... }
+      if (!item) return;
+
+      if (item.fileObject instanceof File) {
+        // append the raw File under the exact key your DRF expects
+        formData.append(`files.${key}`, item.fileObject);
+      } else {
+        // existing backend file - nothing to append (unless you want to re-upload it)
+        // If you want to replace it, add its id to toDeleteIds so we can remove it first
+        if (item.id) {
+          // toDeleteIds.push(item.id); // uncomment if you want to delete old file first
+        }
+      }
+    });
+
+    // If nothing to upload, inform user
+    const hasNew = Array.from(formData.keys()).length > 0;
+    if (!hasNew) {
+      showError("No Files", "There are no new attachments to upload.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      if (toDeleteIds.length) {
+        // Delete each existing attachment first so the new upload does not create duplicates
+        await Promise.all(
+          toDeleteIds.map((id) =>
+            api.delete(
+              `/cancer-management/cancer-treatment/service-attachment/delete/${record.id}/`
+            )
+          )
+        );
+      }
+
+      await api.patch(
+        `/cancer-management/cancer-treatment/service-attachment/update/${record.id}/`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      showSuccess("Uploaded!", "Files added successfully.");
+    } catch (error) {
+      showError("Upload Failed", "Error uploading new attachments.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
-        onCancel={() => {
-          setModalOpen(false);
-          setModalAction(null);
-          setModalText("");
-        }}
+        onCancel={() => setModalOpen(false)}
       />
+
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -158,20 +223,10 @@ const ViewAttachments = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      <LoadingModal open={loading} text="Submitting your data..." />
+      {/* <LoadingModal open={loading} text="Processing..." /> */}
+      {loading && <SystemLoader />}
 
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 overflow-auto items-center bg-gray">
-        {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Cancer Management</h1>
-          <Link to={`/admin/cancer-management/view/${id}`}>
-            <img
-              src="/images/back.png"
-              alt="Back button icon"
-              className="h-6"
-            />
-          </Link>
-        </div> */}
-
         <div className="h-full w-full flex flex-col gap-5 justify-between">
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
@@ -182,14 +237,9 @@ const ViewAttachments = () => {
                 Review all uploaded documents before approving or rejecting.
               </p>
 
-              {/* Document List */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-6">
                 {requiredDocs.map((d) => {
                   const uploaded = files[d.key];
-                  // const fileName = uploaded
-                  //   ? decodeURIComponent(uploaded.file.split("/").pop()) // extract last part of URL
-                  //   : null;
-
                   return (
                     <div
                       key={d.key}
@@ -211,13 +261,27 @@ const ViewAttachments = () => {
                           >
                             View
                           </a>
-                          <span className="text-yellow text-sm hover:text-yellow-600 cursor-pointer">Edit</span>
-                          <span className="text-red-500 text-sm hover:text-red-700 cursor-pointer">Remove</span>
+                          <span
+                            className="text-yellow text-sm hover:text-yellow-600 cursor-pointer"
+                            onClick={() => handleEditFile(d.key)}
+                          >
+                            Edit
+                          </span>
+                          <span
+                            onClick={(e) => handleDelete(d.key, e)}
+                            className="text-red-500 text-sm hover:text-red-700 cursor-pointer"
+                          >
+                            Remove
+                          </span>
                         </div>
                       ) : (
                         <div className="flex gap-3">
-                          <span className="text-blue-600 text-sm hover:text-blue-800 cursor-pointer">Add</span>
-                          {/* <span className="text-red-500 text-sm">Missing</span> */}
+                          <span
+                            className="text-blue-600 text-sm hover:text-blue-800 cursor-pointer"
+                            onClick={() => handleAddFile(d.key)}
+                          >
+                            Add
+                          </span>
                         </div>
                       )}
                     </div>
@@ -226,13 +290,20 @@ const ViewAttachments = () => {
               </div>
             </div>
           </div>
-          <div className="w-full flex justify-end">
+          <div className="w-full flex justify-around">
             <Link
               to={`/admin/cancer-management/view/${id}`}
               className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
             >
               Back
             </Link>
+            <button
+              type="button"
+              onClick={handleSave}
+              className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+            >
+              Save
+            </button>
           </div>
         </div>
       </div>
