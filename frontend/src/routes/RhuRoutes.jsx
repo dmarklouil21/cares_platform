@@ -3,7 +3,7 @@ import RhuLayout from "../layouts/Rhu";
 import ProtectedRHURoute from "../components/RoleGuard/ProtectedRHURoute";
 
 // Main Modules
-import Dashboard from "../pages/rhu/Dashboard/Dashboard";
+import Dashboard from "../pages/rhu/dashboard/Dashboard";
 import CancerAwareness from "../pages/rhu/cancerawareness/CancerAwareness";
 import PatientList from "../pages/rhu/Patient/PatientList";
 import CancerScreening from "../pages/rhu/Services/CancerScreening/CancerScreening";

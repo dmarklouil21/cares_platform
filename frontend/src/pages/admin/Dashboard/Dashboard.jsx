@@ -464,7 +464,7 @@ const Dashboard = () => {
     },
     {
       id: 2,
-      icon: "/src/assets/images/dashboard/home.svg",
+      icon: "/src/assets/images/dashboard/Home.svg",
       label: "Due for Home Visit",
       value: dueForHomeVisit.toLocaleString(),
     },

@@ -4,7 +4,7 @@ import ProtectedPrivateRoute from "../components/RoleGuard/ProtectedPrivateRoute
 
 // Main Modules
 import Dashboard from "../pages/private/Dashboard/Dashboard";
-import CancerAwareness from "../pages/private/cancerawareness/CancerAwareness";
+import CancerAwareness from "../pages/private/CancerAwareness/CancerAwareness";
 import PatientList from "../pages/private/Patient/PatientList";
 import CancerScreening from "../pages/private/Services/CancerScreening/CancerScreening";
 import MassScreeningApplication from "../pages/private/Application/Mass Screening/applicationStatus";
