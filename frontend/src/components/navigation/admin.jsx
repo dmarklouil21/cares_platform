@@ -50,7 +50,7 @@ const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     },
     {
       name: "Cancer Management",
-      icon: "/src/assets/images/navigation/admin/cancermanagement.svg",
+      icon: "/src/assets/images/navigation/admin/CancerManagement.svg",
       path: "/admin/cancer-management",
       arrow: "",
     },

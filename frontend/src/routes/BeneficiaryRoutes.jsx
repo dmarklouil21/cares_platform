@@ -7,7 +7,7 @@ import PreScreeningForm from "../pages/beneficiary/PreEnrollment/PreScreeningFor
 import NoteBeneficiary from "../pages/beneficiary/registration/note/registration/Beneficiary";
 
 // Sidebar Options
-import Home from "../pages/beneficiary/Home/Home/";
+import Home from "../pages/beneficiary/Home/Home";
 import CancerAwareness from "../pages/beneficiary/CancerAwareness/CancerAwareness/";
 import HomeVisit from "../pages/beneficiary/HomeVisit/HomeVisit";
 import Profile from "../pages/beneficiary/profile/Profile";
