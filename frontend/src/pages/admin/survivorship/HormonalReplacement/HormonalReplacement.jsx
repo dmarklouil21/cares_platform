@@ -40,9 +40,16 @@ const HormonalReplacement = () => {
     action: null,
   });
 
+  const [recordDateFilter, setRecordDateFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+
   const fetchData = async () => {
     try {
-      const { data } = await api.get("/survivorship/hormonal-replacement/list/");
+      const { data } = await api.get(
+        "/survivorship/hormonal-replacement/list/"
+      );
       setTableData(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching post-treatment requests:", error);
@@ -71,34 +78,54 @@ const HormonalReplacement = () => {
 
   // ---------------- Filter (all rows) + Pagination (derived) ----------------
   const filteredAndPaginated = useMemo(() => {
-    const { search, status, date } = filters;
+    const searchQuery = filters.search.trim().toLowerCase();
     const { recordsPerPage, currentPage } = pagination;
 
-    const searchQuery = search.trim().toLowerCase();
-
     const filtered = tableData.filter((row) => {
+      const createdDate = new Date(row.created_at || row.date_submitted);
+      const createdYear = createdDate.getFullYear();
+      const createdMonth = createdDate.getMonth() + 1; // 0–11 → 1–12
+
+      // ✅ Search filter
       const matchesSearch =
         !searchQuery ||
         row.patient?.patient_id?.toLowerCase().includes(searchQuery) ||
         row.patient?.full_name?.toLowerCase().includes(searchQuery);
 
+      // ✅ Status filter
       const matchesStatus =
-        status === "all" || (row.status || "").toLowerCase() === status;
+        filters.status === "all" ||
+        (row.status || "").toLowerCase() === filters.status;
 
-      // Keep your original equality semantics for the date filter
-      const matchesDate = !date || row.created_at === date;
+      // ✅ Exact date filter
+      const matchesDate =
+        !filters.date ||
+        new Date(row.created_at || row.date_submitted)
+          .toISOString()
+          .slice(0, 10) === filters.date;
 
-      return matchesSearch && matchesStatus && matchesDate;
+      // ✅ Month filter
+      const matchesMonth = !monthFilter || createdMonth === Number(monthFilter);
+
+      // ✅ Year filter
+      const matchesYear = !yearFilter || createdYear === Number(yearFilter);
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesDate &&
+        matchesMonth &&
+        matchesYear
+      );
     });
 
     const totalRecords = filtered.length;
     const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
-
     const start = (currentPage - 1) * recordsPerPage;
     const paginatedData = filtered.slice(start, start + recordsPerPage);
 
     return { filtered, paginatedData, totalRecords, totalPages };
-  }, [tableData, filters, pagination]);
+  }, [tableData, filters, pagination, monthFilter, yearFilter]);
 
   useEffect(() => {
     // Reset to page 1 whenever filters change
@@ -212,7 +239,7 @@ const HormonalReplacement = () => {
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, search: e.target.value }))
                 }
-                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+                className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
               />
 
               <select
@@ -236,7 +263,49 @@ const HormonalReplacement = () => {
                   setFilters((prev) => ({ ...prev, date: e.target.value }))
                 }
               />
-
+              <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+              >
+                <option value="">All</option>
+                {[...Array(12)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {new Date(0, i).toLocaleString("en", { month: "long" })}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+              >
+                <option value="">All</option>
+                {Array.from(
+                  new Set(
+                    tableData.map((p) =>
+                      new Date(p.created_at || p.date_submitted).getFullYear()
+                    )
+                  )
+                )
+                  .filter((y) => !isNaN(y))
+                  .sort((a, b) => b - a)
+                  .map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+              </select>
+              <button
+                onClick={() => {
+                  setDateFilter("");
+                  setMonthFilter("");
+                  setYearFilter("");
+                }}
+                className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
+              >
+                Clear
+              </button>
               {/* ⬇️ Generate button with cursor-pointer */}
               <button
                 onClick={() => window.print()}
@@ -297,11 +366,14 @@ const HormonalReplacement = () => {
                           {p.patient?.diagnosis?.[0]?.diagnosis || "N/A"}
                         </td>
                         <td className="text-center text-sm py-3">
-                          {new Date(p.date_submitted).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}
+                          {new Date(p.date_submitted).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            }
+                          )}
                         </td>
                         <td className="text-center text-sm py-4">
                           <span

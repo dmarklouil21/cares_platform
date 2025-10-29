@@ -64,6 +64,10 @@ const HomeVisit = () => {
   const [pendingAction, setPendingAction] = useState(null);
   const [notification, setNotification] = useState("");
 
+  const [recordDateFilter, setRecordDateFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+
   const fetchData = async () => {
     try {
       const response = await api.get("/survivorship/home-visit/list/");
@@ -79,9 +83,14 @@ const HomeVisit = () => {
 
   const filteredResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    const s = statusFilter;
-    const d = dateFilter || null;
+
     return tableData.filter((row) => {
+      const createdDate = new Date(row.created_at || row.date_submitted);
+      const createdYear = createdDate.getFullYear();
+      const createdMonth = createdDate.getMonth() + 1; // 0–11 → 1–12
+      const createdDay = createdDate.getDate();
+
+      // ✅ Search Filter (Patient ID, Name, or Diagnosis)
       const matchesSearch =
         !q ||
         (row.patient?.patient_id || "").toLowerCase().includes(q) ||
@@ -89,12 +98,39 @@ const HomeVisit = () => {
         (row.patient?.diagnosis?.[0]?.diagnosis || "")
           .toLowerCase()
           .includes(q);
+
+      // ✅ Status Filter
       const matchesStatus =
-        s === "all" || (row.status || "").toLowerCase() === s;
-      const matchesDate = !d || row.created_at === d;
-      return matchesSearch && matchesStatus && matchesDate;
+        statusFilter === "all" ||
+        (row.status || "").toLowerCase() === statusFilter;
+
+      // ✅ Exact Date Filter (from input[type=date])
+      const matchesDate =
+        !dateFilter ||
+        new Date(row.created_at).toISOString().slice(0, 10) === dateFilter;
+
+      // ✅ Month Filter
+      const matchesMonth = !monthFilter || createdMonth === Number(monthFilter);
+
+      // ✅ Year Filter
+      const matchesYear = !yearFilter || createdYear === Number(yearFilter);
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesDate &&
+        matchesMonth &&
+        matchesYear
+      );
     });
-  }, [tableData, searchQuery, statusFilter, dateFilter]);
+  }, [
+    tableData,
+    searchQuery,
+    statusFilter,
+    dateFilter,
+    monthFilter,
+    yearFilter,
+  ]);
 
   const totalRecords = filteredResults.length;
   const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
@@ -187,7 +223,9 @@ const HomeVisit = () => {
           </div>
 
           <div className="flex flex-col bg-white w-full rounded-[4px] shadow-md px-5 py-3 gap-3">
-            <p className="text-md font-semibold text-yellow">Manage patients that are in need of home visit</p>
+            <p className="text-md font-semibold text-yellow">
+              Manage patients that are in need of home visit
+            </p>
 
             {/* Filters + Generate */}
             <div className="flex justify-between flex-wrap gap-3">
@@ -199,7 +237,7 @@ const HomeVisit = () => {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+                className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
               />
               <select
                 className="border border-gray-200 rounded-md p-2 bg-white"
@@ -223,6 +261,50 @@ const HomeVisit = () => {
                   setCurrentPage(1);
                 }}
               />
+              <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+              >
+                <option value="">All</option>
+                {[...Array(12)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {new Date(0, i).toLocaleString("en", { month: "long" })}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+              >
+                <option value="">All</option>
+                {Array.from(
+                  new Set(
+                    tableData.map((p) =>
+                      new Date(p.created_at || p.date_submitted).getFullYear()
+                    )
+                  )
+                )
+                  .filter((y) => !isNaN(y))
+                  .sort((a, b) => b - a)
+                  .map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+              </select>
+              <button
+                onClick={() => {
+                  setDateFilter("");
+                  setMonthFilter("");
+                  setYearFilter("");
+                }}
+                className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
+              >
+                Clear
+              </button>
+
               {/* ⬇️ Generate button with cursor-pointer */}
               <button
                 onClick={() => window.print()}
