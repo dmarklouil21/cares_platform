@@ -111,16 +111,20 @@ export default function PatinetProfileForm() {
     // Validate emergency contacts
     formData.emergency_contacts.forEach((contact, index) => {
       if (!contact.name.trim()) {
-        newErrors[`emergency_contact_${index}_name`] = "Contact name is required.";
+        newErrors[`emergency_contact_${index}_name`] =
+          "Contact name is required.";
       }
       if (!contact.relationship_to_patient.trim()) {
-        newErrors[`emergency_contact_${index}_relationship`] = "Relationship is required.";
+        newErrors[`emergency_contact_${index}_relationship`] =
+          "Relationship is required.";
       }
       if (!contact.address.trim()) {
-        newErrors[`emergency_contact_${index}_address`] = "Address is required.";
+        newErrors[`emergency_contact_${index}_address`] =
+          "Address is required.";
       }
       if (!contact.mobile_number.trim()) {
-        newErrors[`emergency_contact_${index}_mobile_number`] = "Mobile number is required.";
+        newErrors[`emergency_contact_${index}_mobile_number`] =
+          "Mobile number is required.";
       }
       if (!contact.email.trim()) {
         newErrors[`emergency_contact_${index}_email`] = "Email is required.";
@@ -236,18 +240,14 @@ export default function PatinetProfileForm() {
       />
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="h-screen w-full lg:w-[75%] flex flex-col gap-3 md:gap-12 bg-gray py-12 px-5 overflow-auto">
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-5 md:p-9 flex flex-col gap-8 rounded-2xl "
-        >
+        <form className="bg-white p-5 md:p-9 flex flex-col gap-8 rounded-2xl ">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             {/* Left Side: Title + Note + Date md:text-2xl text-gray-800*/}
-            <div className="flex flex-col gap-2"> 
-              <h1 className="font-bold text-xl">
-                PATIENT PROFILE
-              </h1>
+            <div className="flex flex-col gap-2">
+              <h1 className="font-bold text-xl">PATIENT PROFILE</h1>
               <p className="text-sm text-gray-600 italic">
-                Note: Please put <span className="font-semibold">"NA"</span> for not applicable fields.
+                Note: Please put <span className="font-semibold">"NA"</span> for
+                not applicable fields.
               </p>
             </div>
 
@@ -313,7 +313,7 @@ export default function PatinetProfileForm() {
                 name="first_name"
                 value={formData.first_name}
                 onChange={handleChange}
-                className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
+                className="border-black  border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
               {errors.first_name && (
                 <span className="text-red-500 text-xs">
@@ -349,9 +349,7 @@ export default function PatinetProfileForm() {
                 className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
               {errors.last_name && (
-                <span className="text-red-500 text-xs">
-                  {errors.last_name}
-                </span>
+                <span className="text-red-500 text-xs">{errors.last_name}</span>
               )}
             </div>
 
@@ -441,9 +439,7 @@ export default function PatinetProfileForm() {
                 </div>
               </div>
               {errors.sex && (
-                <span className="text-red-500 text-xs">
-                  {errors.sex}
-                </span>
+                <span className="text-red-500 text-xs">{errors.sex}</span>
               )}
             </div>
 
@@ -565,9 +561,7 @@ export default function PatinetProfileForm() {
                     </div>
                   </div>
                   {errors.city && (
-                    <span className="text-red-500 text-xs">
-                      {errors.city}
-                    </span>
+                    <span className="text-red-500 text-xs">{errors.city}</span>
                   )}
                 </div>
 
@@ -661,9 +655,7 @@ export default function PatinetProfileForm() {
                     />
                   </div>
                   {errors.email && (
-                    <span className="text-red-500 text-xs">
-                      {errors.email}
-                    </span>
+                    <span className="text-red-500 text-xs">{errors.email}</span>
                   )}
                 </div>
               </div>
@@ -686,10 +678,10 @@ export default function PatinetProfileForm() {
                     className="border-black border-[1px] rounded-md p-2 h-36 resize-none text-[12px] md:text-[16px] w-full md:w-[60%]"
                   />
                   {errors.source_of_information && (
-                      <span className="text-red-500 text-xs">
-                        {errors.source_of_information}
-                      </span>
-                    )}
+                    <span className="text-red-500 text-xs">
+                      {errors.source_of_information}
+                    </span>
+                  )}
                 </div>
 
                 {/* Other RAFI Programs */}
@@ -806,7 +798,9 @@ export default function PatinetProfileForm() {
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                   {errors[`emergency_contact_0_name`] && (
-                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_name`]}</span>
+                    <span className="text-red-500 text-xs">
+                      {errors[`emergency_contact_0_name`]}
+                    </span>
                   )}
                 </div>
 
@@ -823,7 +817,9 @@ export default function PatinetProfileForm() {
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                   {errors[`emergency_contact_0_address`] && (
-                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_address`]}</span>
+                    <span className="text-red-500 text-xs">
+                      {errors[`emergency_contact_0_address`]}
+                    </span>
                   )}
                 </div>
 
@@ -842,7 +838,9 @@ export default function PatinetProfileForm() {
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                   {errors[`emergency_contact_0_relationship`] && (
-                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_relationship`]}</span>
+                    <span className="text-red-500 text-xs">
+                      {errors[`emergency_contact_0_relationship`]}
+                    </span>
                   )}
                 </div>
 
@@ -868,7 +866,9 @@ export default function PatinetProfileForm() {
                     />
                   </div>
                   {errors[`emergency_contact_0_email`] && (
-                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_email`]}</span>
+                    <span className="text-red-500 text-xs">
+                      {errors[`emergency_contact_0_email`]}
+                    </span>
                   )}
                 </div>
 
@@ -915,7 +915,9 @@ export default function PatinetProfileForm() {
                     />
                   </div>
                   {errors[`emergency_contact_0_mobile_number`] && (
-                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_mobile_number`]}</span>
+                    <span className="text-red-500 text-xs">
+                      {errors[`emergency_contact_0_mobile_number`]}
+                    </span>
                   )}
                 </div>
               </div>
@@ -938,7 +940,9 @@ export default function PatinetProfileForm() {
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                   {errors[`emergency_contact_1_name`] && (
-                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_name`]}</span>
+                    <span className="text-red-500 text-xs">
+                      {errors[`emergency_contact_0_name`]}
+                    </span>
                   )}
                 </div>
 
@@ -955,7 +959,9 @@ export default function PatinetProfileForm() {
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                   {errors[`emergency_contact_1_address`] && (
-                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_address`]}</span>
+                    <span className="text-red-500 text-xs">
+                      {errors[`emergency_contact_0_address`]}
+                    </span>
                   )}
                 </div>
 
@@ -974,7 +980,9 @@ export default function PatinetProfileForm() {
                     className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                   />
                   {errors[`emergency_contact_1_relationship`] && (
-                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_relationship`]}</span>
+                    <span className="text-red-500 text-xs">
+                      {errors[`emergency_contact_0_relationship`]}
+                    </span>
                   )}
                 </div>
 
@@ -1000,7 +1008,9 @@ export default function PatinetProfileForm() {
                     />
                   </div>
                   {errors[`emergency_contact_1_email`] && (
-                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_email`]}</span>
+                    <span className="text-red-500 text-xs">
+                      {errors[`emergency_contact_0_email`]}
+                    </span>
                   )}
                 </div>
 
@@ -1047,7 +1057,9 @@ export default function PatinetProfileForm() {
                     />
                   </div>
                   {errors[`emergency_contact_1_mobile_number`] && (
-                    <span className="text-red-500 text-xs">{errors[`emergency_contact_0_mobile_number`]}</span>
+                    <span className="text-red-500 text-xs">
+                      {errors[`emergency_contact_0_mobile_number`]}
+                    </span>
                   )}
                 </div>
               </div>
@@ -1068,7 +1080,7 @@ export default function PatinetProfileForm() {
               onClick={handleNext}
               className="bg-[#749AB6] text-center font-bold text-white py-3 w-full border-[1px] border-[#749AB6] hover:border-[#C5D7E5] hover:bg-[#C5D7E5] rounded-md cursor-pointer"
               // state={{
-              //   formData: formData, 
+              //   formData: formData,
               //   photoUrl: imageFile
               // }}
             >

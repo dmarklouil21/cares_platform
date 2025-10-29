@@ -13,7 +13,7 @@ const PreEnrollmentList = () => {
   const [tableData, setTableData] = useState([]);
   const [statusFilter, setStatusFilter] = useState("pending");
   const [searchQuery, setSearchQuery] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
+
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -21,7 +21,13 @@ const PreEnrollmentList = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null);
-  const [modalDesc, setModalDesc] = useState("Are you sure you want to proceed with this action?");
+  const [modalDesc, setModalDesc] = useState(
+    "Are you sure you want to proceed with this action?"
+  );
+
+  const [dateFilter, setDateFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
 
   // Notification
   const [notification, setNotification] = useState("");
@@ -62,13 +68,26 @@ const PreEnrollmentList = () => {
       const matchesStatus =
         statusFilter === "all" || record.status === statusFilter;
 
-      const formattedDate = dateFilter
-        ? new Date(dateFilter).toISOString().split("T")[0]
-        : null;
+      if (!record.created_at) return false;
+      const recordDate = new Date(record.created_at);
+      if (isNaN(recordDate)) return false;
 
-      const matchesDate = !formattedDate || record.created_at === formattedDate;
+      const recordDateString = recordDate.toISOString().split("T")[0];
+      const recordMonth = recordDate.getMonth() + 1;
+      const recordYear = recordDate.getFullYear();
 
-      return matchesSearch && matchesStatus && matchesDate;
+      const matchesDate = !dateFilter || recordDateString === dateFilter;
+      const matchesMonth =
+        !monthFilter || recordMonth === parseInt(monthFilter);
+      const matchesYear = !yearFilter || recordYear === parseInt(yearFilter);
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesDate &&
+        matchesMonth &&
+        matchesYear
+      );
     }) || [];
 
   const handleRecordsPerPageChange = (e) => {
@@ -218,12 +237,12 @@ const PreEnrollmentList = () => {
           <div className="flex justify-between flex-wrap gap-2">
             <input
               type="text"
-              placeholder="Search by beneficiary ID ..."
+              placeholder="Search by beneficiary ID or name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+              className="border border-gray-200 py-2 w-[28%] px-5 rounded-md"
             />
-
+            {/* Status Filter */}
             <select
               className="border border-gray-200 rounded-md p-2 bg-white"
               value={statusFilter}
@@ -231,16 +250,75 @@ const PreEnrollmentList = () => {
             >
               <option value="all">All</option>
               <option value="pending">Pending</option>
-              {/* <option value="validated">Validated</option> */}
-              {/* <option value="rejected">Rejected</option> */}
+              {/* Add others if needed */}
             </select>
-
+            {/* Date Filter */}
             <input
               type="date"
-              className="border border-gray-200 py-2 px-5 rounded-md"
               value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                setMonthFilter("");
+                setYearFilter("");
+              }}
+              className="border border-gray-200 rounded-md p-2 bg-white"
             />
+
+            {/* Month Filter */}
+            <select
+              className="border border-gray-200 rounded-md p-2 bg-white"
+              value={monthFilter}
+              onChange={(e) => {
+                setMonthFilter(e.target.value);
+                setDateFilter("");
+              }}
+            >
+              <option value="">All Months</option>
+              {[...Array(12)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {new Date(0, i).toLocaleString("default", { month: "long" })}
+                </option>
+              ))}
+            </select>
+
+            {/* Year Filter */}
+            <select
+              className="border border-gray-200 rounded-md p-2 bg-white"
+              value={yearFilter}
+              onChange={(e) => {
+                setYearFilter(e.target.value);
+                setDateFilter("");
+              }}
+            >
+              <option value="">All Years</option>
+              {Array.from(
+                new Set(
+                  tableData
+                    .map((r) => new Date(r.created_at).getFullYear())
+                    .filter((y) => !isNaN(y))
+                )
+              )
+                .sort((a, b) => b - a)
+                .map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+            </select>
+
+            {/* Clear Filters */}
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setStatusFilter("all");
+                setDateFilter("");
+                setMonthFilter("");
+                setYearFilter("");
+              }}
+              className="px-3 py-2 bg-gray-200 rounded-md text-sm"
+            >
+              Clear
+            </button>
 
             <button
               onClick={() => window.print()}
