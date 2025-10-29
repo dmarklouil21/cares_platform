@@ -52,6 +52,8 @@ const IndividualScreening = () => {
   const [remarksModalOpen, setRemarksModalOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
 
+  const [status, setStatus] = useState("");
+
   useEffect(() => {
     if (notificationType && notificationMessage) {
       setNotification(notificationMessage);
@@ -94,18 +96,24 @@ const IndividualScreening = () => {
   };
 
   const handleReject = async () => {
+    // setModalAction({ status: item.status, id: item.id })
     setLoading(true);
     setRemarksModalOpen(false);
     try {
-      const response = await api.delete(
-        `/cancer-screening/individual-screening/delete/${modalAction.id}/`,
-        { 
-          data: {
-            status: "Reject", 
-            remarks 
-          }
-        }
+      const payload = { 
+        status: modalAction.status,
+        remarks
+      };
+      console.log("Reject Payload:", modalAction);
+      await api.patch(
+        `/cancer-screening/individual-screening/status-update/${modalAction.id}/`,
+        payload
       );
+      navigate("/admin/cancer-screening", { 
+        state: { 
+          type: "success", message: "Updated Successfully." 
+        } 
+      });
       setNotificationType("success");
       setNotificationMessage("Request Rejected");
       fetchData();
@@ -247,7 +255,7 @@ const IndividualScreening = () => {
                 className="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors"
                 onClick={handleReject}
               >
-                Send
+                Confirm
               </button>
             </div>
           </div>
@@ -296,8 +304,8 @@ const IndividualScreening = () => {
               <option value="Pending">Pending</option>
               {/* <option value="LOA Generation">LOA Generation</option> */}
               <option value="In Progress">In Progress</option>
-              <option value="Complete">Complete</option>
-              {/* <option value="Reject">Reject</option> */}
+              <option value="Completed">Complete</option>
+              <option value="Rejected">Reject</option>
             </select>
 
             <input
@@ -403,18 +411,25 @@ const IndividualScreening = () => {
                             <button
                               className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
                               onClick={() => {
-                                setModalAction({ status: item.status, id: item.id })
+                                setModalAction({ status: "Rejected", id: item.id })
                                 setRemarksModalOpen(true)
                               }}
                             >
                               Reject
+                            </button>
+                          ) : item.status === "Rejected" || item.status === "Completed" ? (
+                            <button
+                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
+                              onClick={() => handleActionClick(item.id, "delete")}
+                            >
+                              Delete
                             </button>
                           ) : (
                             <button
                               className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
                               onClick={() => handleActionClick(item.id, "delete")}
                             >
-                              Delete
+                              Cancel
                             </button>
                           )
                         }

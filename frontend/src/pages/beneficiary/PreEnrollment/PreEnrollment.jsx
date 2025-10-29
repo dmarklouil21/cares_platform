@@ -237,7 +237,7 @@ export default function PatinetProfileForm() {
       <LoadingModal open={loading} text="Submitting your data..." />
       <div className="h-screen w-full lg:w-[75%] flex flex-col gap-3 md:gap-12 bg-gray py-12 px-5 overflow-auto">
         <form
-          onSubmit={handleSubmit}
+          // onSubmit={handleSubmit}
           className="bg-white p-5 md:p-9 flex flex-col gap-8 rounded-2xl "
         >
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
