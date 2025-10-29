@@ -114,7 +114,8 @@ class IndividualScreeningRequestView(generics.CreateAPIView):
       with transaction.atomic():
         existing_request = IndividualScreening.objects.filter(
           patient=self.request.user.patient, 
-          has_patient_response=True
+          status__in=['Pending', 'Approved'],
+          # has_patient_response=True
         ).first()
 
         if existing_request:
@@ -126,8 +127,8 @@ class IndividualScreeningRequestView(generics.CreateAPIView):
     
         instance = serializer.save(
           patient=self.request.user.patient,  # ensure patient is set
-          has_patient_response=True,
-          response_description='Submitted screening procedure'
+          # has_patient_response=True,
+          # response_description='Submitted screening procedure'
         )
 
         files_dict = {}
@@ -147,7 +148,6 @@ class IndividualScreeningRequestView(generics.CreateAPIView):
       logger.error(f"Error creating screening procedure: {str(e)}")
       raise e
 
-# To be updated
 class IndividualScreeningUpdateView(generics.UpdateAPIView):
   queryset = IndividualScreening.objects.all()
   serializer_class = IndividualScreeningSerializer
@@ -156,29 +156,47 @@ class IndividualScreeningUpdateView(generics.UpdateAPIView):
   lookup_field = 'id'
 
   def perform_update(self, serializer):
+    instance = self.get_object()
+
+    if instance.has_patient_response:
+      raise ValidationError({
+        'non_field_errors': [
+          "You already resubmitted your request. Please wait for its feedback before submitting again."
+        ]
+      })
+
     try:
       with transaction.atomic():
-        instance = self.get_object()
-
-        if instance.has_patient_response:
-          raise ValidationError({'non_field_errors': ['You already have an ongoing request. Please wait for it\'s feedback before submitting another.']})
-
+        # Save the updated screening info
         instance = serializer.save(
           has_patient_response=True,
-          response_description='Submitted screening procedure'
+          response_description='Resubmitted cancer screening request',
+          status='Pending'
         )
-        
-        screening_attachments = self.request.FILES.getlist('screening_attachments')
-        for file in screening_attachments:
-          validate_attachment(file)
+
+        # Handle uploaded files
+        files_dict = {
+          key.split("files.")[1]: value
+          for key, value in self.request.FILES.items()
+          if key.startswith("files.")
+        }
+
+        for key, file in files_dict.items():
+          # Remove any existing attachment of the same type for this screening
+          ScreeningAttachment.objects.filter(
+              individual_screening=instance,
+              doc_type=key
+          ).delete()
+          
           ScreeningAttachment.objects.create(
             individual_screening=instance,
-            file=file
+            file=file,
+            doc_type=key
           )
 
     except Exception as e:
-      logger.error(f"Error creating screening procedure: {str(e)}")
-      raise e
+      logger.error(f"Error during resubmission: {str(e)}")
+      raise ValidationError({"non_field_errors": ["An error occurred while resubmitting the request."]})
  
 class IndividualScreeningListView(generics.ListAPIView):
   serializer_class = IndividualScreeningSerializer
