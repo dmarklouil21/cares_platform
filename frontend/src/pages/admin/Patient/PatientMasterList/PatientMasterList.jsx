@@ -52,6 +52,10 @@ const PatientMasterList = () => {
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
+  // Date Filters for created_at
+  const [dateFilter, setDateFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
   const fetchData = async () => {
     try {
       const response = await api.get("/patient/list/");
@@ -88,6 +92,27 @@ const PatientMasterList = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const filterByCreatedAt = (data) => {
+    if (!dateFilter && !monthFilter && !yearFilter) return data;
+
+    return data.filter((record) => {
+      if (!record.created_at) return false;
+
+      const recordDate = new Date(record.created_at);
+      if (isNaN(recordDate)) return false;
+
+      const recordMonth = recordDate.getMonth() + 1;
+      const recordYear = recordDate.getFullYear();
+      const recordDateString = recordDate.toISOString().split("T")[0];
+
+      const dateMatch = !dateFilter || recordDateString === dateFilter;
+      const monthMatch = !monthFilter || recordMonth === parseInt(monthFilter);
+      const yearMatch = !yearFilter || recordYear === parseInt(yearFilter);
+
+      return dateMatch && monthMatch && yearMatch;
+    });
+  };
+
   const handleViewClick = (patient_id) =>
     navigate(`/admin/patient/view/${patient_id}`);
   const handleEditClick = (id) => {
@@ -95,9 +120,11 @@ const PatientMasterList = () => {
     if (patient) navigate(`/admin/patient/edit/${id}`);
   };
 
-  const totalRecords = filteredResults.length;
+  const filteredAndDateMatched = filterByCreatedAt(filteredResults);
+
+  const totalRecords = filteredAndDateMatched.length;
   const totalPages = Math.ceil(totalRecords / recordsPerPage);
-  const paginatedData = filteredResults.slice(
+  const paginatedData = filteredAndDateMatched.slice(
     (currentPage - 1) * recordsPerPage,
     currentPage * recordsPerPage
   );
@@ -222,23 +249,66 @@ const PatientMasterList = () => {
               placeholder="Search by patient ID, name, or LGU..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+              className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
             />
 
-            <select
-              className="border border-gray-200 rounded-md p-2 bg-white"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="active">Active</option>
-              {/* <option value="inactive">Inactive</option> */}
-            </select>
+            {/* Date filters */}
 
             <input
               type="date"
-              className="border border-gray-200 py-2 px-5 rounded-md"
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
             />
+
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+            >
+              <option value="">All Months</option>
+              {[...Array(12)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {new Date(0, i).toLocaleString("default", {
+                    month: "long",
+                  })}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+            >
+              <option value="">All Years</option>
+              {Array.from(
+                new Set(
+                  patients
+                    .map((p) => new Date(p.created_at).getFullYear())
+                    .filter((y) => !isNaN(y))
+                )
+              )
+                .sort((a, b) => b - a)
+                .map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+            </select>
+
+            {/* Reset filters button */}
+            <button
+              onClick={() => {
+                setDateFilter("");
+                setMonthFilter("");
+                setYearFilter("");
+              }}
+              className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
+            >
+              Clear
+            </button>
+
             {/* ⬇️ NEW: Generate button mirrors the Pre-Enrollment page */}
             <button
               onClick={() => window.print()}
@@ -266,6 +336,7 @@ const PatientMasterList = () => {
                     Middle Name
                   </th>
                   <th className="w-[13%] text-center text-sm py-3">LGU</th>
+
                   <th className="w-[21%] text-center text-sm py-3 ">Actions</th>
                 </tr>
               </thead>
@@ -296,9 +367,11 @@ const PatientMasterList = () => {
                       <td className="text-center text-sm py-4 text-gray-800">
                         {patient.middle_name}
                       </td>
+
                       <td className="text-center text-sm py-4 text-gray-800">
                         {patient.city}
                       </td>
+
                       <td className="text-center text-sm py-4 flex gap-2 justify-center">
                         <button
                           onClick={() => handleViewClick(patient.patient_id)}

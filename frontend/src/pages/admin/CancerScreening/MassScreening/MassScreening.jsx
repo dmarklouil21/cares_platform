@@ -49,25 +49,51 @@ const AdminMassScreening = () => {
   /* ----------------------------- Filters ------------------------------ */
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("");
 
+  // ⬇️ New date filters
+  const [dateFilter, setDateFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
   /* ----------------------------- Pagination --------------------------- */
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredData = useMemo(() => {
     const s = searchQuery.trim().toLowerCase();
+
     return items.filter((it) => {
       const matchesStatus =
         statusFilter === "all" ? true : (it.status ?? "") === statusFilter;
-      const matchesDate = !dateFilter ? true : (it.date ?? "") === dateFilter;
+
+      // Handle date, month, and year filters
+      if (!it.date) return false;
+      const recordDate = new Date(it.date);
+      if (isNaN(recordDate)) return false;
+
+      const recordDateString = recordDate.toISOString().split("T")[0];
+      const recordMonth = recordDate.getMonth() + 1;
+      const recordYear = recordDate.getFullYear();
+
+      const matchesDate = !dateFilter || recordDateString === dateFilter;
+      const matchesMonth =
+        !monthFilter || recordMonth === parseInt(monthFilter);
+      const matchesYear = !yearFilter || recordYear === parseInt(yearFilter);
+
       const matchesSearch =
         !s ||
         String(it.id).toLowerCase().includes(s) ||
-        (it.rhuName || "").toLowerCase().includes(s);
-      return matchesStatus && matchesDate && matchesSearch;
+        (it.rhuName || "").toLowerCase().includes(s) ||
+        (it.privateName || "").toLowerCase().includes(s);
+
+      return (
+        matchesStatus &&
+        matchesSearch &&
+        matchesDate &&
+        matchesMonth &&
+        matchesYear
+      );
     });
-  }, [items, statusFilter, dateFilter, searchQuery]);
+  }, [items, statusFilter, dateFilter, monthFilter, yearFilter, searchQuery]);
 
   const totalRecords = filteredData.length;
   const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
@@ -207,9 +233,9 @@ const AdminMassScreening = () => {
               placeholder="Search by request ID or RHU name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-200 py-2 px-5 rounded-md w-[48%]"
+              className="border border-gray-200 py-2 px-5 rounded-md w-[360px]"
             />
-
+            {/* Status Filter */}
             <select
               className="border border-gray-200 rounded-md p-2 bg-white"
               value={statusFilter}
@@ -221,7 +247,7 @@ const AdminMassScreening = () => {
               <option value="Rejected">Rejected</option>
               <option value="Done">Done</option>
             </select>
-
+            {/* Date Filter */}
             <input
               type="date"
               value={dateFilter}
@@ -230,13 +256,57 @@ const AdminMassScreening = () => {
               aria-label="Filter by Date"
             />
 
-            {/* <button
-              className="px-6 py-2 rounded-md text-sm text-white bg-[#C5D7E5]"
-              onClick={() => setCurrentPage(1)}
+            {/* Month Filter */}
+            <select
+              className="border border-gray-200 rounded-md p-2 bg-white"
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
             >
-              Filter
-            </button> */}
-            {/* ⬇️ NEW: Generate button with cursor-pointer */}
+              <option value="">All Months</option>
+              {[...Array(12)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {new Date(0, i).toLocaleString("default", { month: "long" })}
+                </option>
+              ))}
+            </select>
+
+            {/* Year Filter */}
+            <select
+              className="border border-gray-200 rounded-md p-2 bg-white"
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+            >
+              <option value="">All Years</option>
+              {Array.from(
+                new Set(
+                  items
+                    .map((p) => new Date(p.date).getFullYear())
+                    .filter((y) => !isNaN(y))
+                )
+              )
+                .sort((a, b) => b - a)
+                .map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+            </select>
+
+            {/* Clear Filters */}
+            <button
+              onClick={() => {
+                setDateFilter("");
+                setMonthFilter("");
+                setYearFilter("");
+                setStatusFilter("all");
+                setSearchQuery("");
+              }}
+                className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
+            >
+              Clear
+            </button>
+
+            {/* Print */}
             <button
               onClick={() => window.print()}
               className="bg-primary px-3 py-3 rounded-sm text-white cursor-pointer"
@@ -253,7 +323,9 @@ const AdminMassScreening = () => {
                   <th className="w-[14%] text-left text-sm py-3 pl-4 !bg-lightblue">
                     Request ID
                   </th>
-                  <th className="w-[26%] text-left text-sm py-3">RHU/Private name</th>
+                  <th className="w-[26%] text-left text-sm py-3">
+                    RHU/Private name
+                  </th>
                   <th className="w-[18%] text-left text-sm py-3">Date</th>
                   <th className="w-[14%] text-left text-sm py-3">Documents</th>
                   <th className="w-[12%] text-left text-sm py-3">Status</th>
@@ -295,11 +367,7 @@ const AdminMassScreening = () => {
                         </td>
                         <td className="text-sm py-4 text-gray-800">
                           {/* {item.rhuName || "—"} */}
-                          {item.rhuName ? (
-                            item.rhuName
-                          ) : (
-                            item.privateName
-                          )}
+                          {item.rhuName ? item.rhuName : item.privateName}
                         </td>
                         <td className="text-sm py-4 text-gray-800">
                           {formatDate(item.date)}

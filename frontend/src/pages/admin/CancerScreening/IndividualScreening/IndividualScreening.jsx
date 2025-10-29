@@ -54,6 +54,10 @@ const IndividualScreening = () => {
 
   const [status, setStatus] = useState("");
 
+  //datefilter
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+
   useEffect(() => {
     if (notificationType && notificationMessage) {
       setNotification(notificationMessage);
@@ -86,8 +90,17 @@ const IndividualScreening = () => {
       record.patient.full_name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
-    const dateMatch = !dateFilter || record.created_at === dateFilter;
-    return statusMatch && searchMatch && dateMatch;
+
+    const recordDate = new Date(record.created_at);
+    const recordMonth = recordDate.getMonth() + 1; // 1–12
+    const recordYear = recordDate.getFullYear();
+    const recordDateString = recordDate.toISOString().split("T")[0]; // yyyy-mm-dd
+
+    const dateMatch = !dateFilter || recordDateString === dateFilter;
+    const monthMatch = !monthFilter || recordMonth === parseInt(monthFilter);
+    const yearMatch = !yearFilter || recordYear === parseInt(yearFilter);
+
+    return statusMatch && searchMatch && dateMatch && monthMatch && yearMatch;
   });
 
   const handleViewClick = (id) => {
@@ -121,10 +134,10 @@ const IndividualScreening = () => {
       //   `/cancer-screening/individual-screening/status-reject/${modalAction.id}/`,
       //   { status: modalAction.newStatus, remarks }
       // );
-      // navigate("/admin/cancer-screening", { 
-      //   state: { 
-      //     type: "success", message: "Request Rejected." 
-      //   } 
+      // navigate("/admin/cancer-screening", {
+      //   state: {
+      //     type: "success", message: "Request Rejected."
+      //   }
       // });
     } catch {
       setModalInfo({
@@ -236,7 +249,9 @@ const IndividualScreening = () => {
       {remarksModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Remarks</h2>
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Remarks
+            </h2>
             <textarea
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none mb-4 resize-none"
               rows={4}
@@ -261,7 +276,6 @@ const IndividualScreening = () => {
           </div>
         </div>
       )}
-
 
       <div
         id="individual-root"
@@ -292,7 +306,7 @@ const IndividualScreening = () => {
               placeholder="Search by patient ID ..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+              className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
             />
 
             <select
@@ -307,13 +321,52 @@ const IndividualScreening = () => {
               <option value="Completed">Complete</option>
               <option value="Rejected">Reject</option>
             </select>
-
+            {/* Date filter */}
             <input
               type="date"
-              className="border border-gray-200 py-2 px-5 rounded-md"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
+              className="border border-gray-200 py-2 px-5 rounded-md"
             />
+
+            {/* Month filter */}
+            <select
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+              className="border border-gray-200 py-2 px-5 rounded-md"
+            >
+              <option value="">All Months</option>
+              {[...Array(12)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {new Date(0, i).toLocaleString("default", { month: "long" })}
+                </option>
+              ))}
+            </select>
+
+            {/* Year filter */}
+            <select
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+              className="border border-gray-200 py-2 px-5 rounded-md"
+            >
+              <option value="">All Years</option>
+              {[2022, 2023, 2024, 2025].map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+
+            <button
+              onClick={() => {
+                setDateFilter("");
+                setMonthFilter("");
+                setYearFilter("");
+              }}
+               className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
+            >
+              clear
+            </button>
 
             {/* ⬇️ NEW: Generate button */}
             <button

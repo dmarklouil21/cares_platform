@@ -45,6 +45,10 @@ const AdminCancerManagement = () => {
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
+  const [recordDateFilter, setRecordDateFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+
   useEffect(() => {
     if (notificationType && notificationMessage) {
       setNotification(notificationMessage);
@@ -68,20 +72,41 @@ const AdminCancerManagement = () => {
   }, []);
 
   // ---------- Filters ----------
-  const filteredData = tableData.filter((record) => {
-    const statusMatch =
-      statusFilter === "All" || record.status === statusFilter;
-    const searchMatch =
-      !searchQuery ||
-      record.patient.patient_id
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      record.patient.full_name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-    const dateMatch = !dateFilter || record.date_submitted === dateFilter;
-    return statusMatch && searchMatch && dateMatch;
-  });
+ // ---------- Filters ----------
+const filteredData = tableData.filter((record) => {
+  const createdDate = new Date(record.date_submitted || record.created_at);
+  const createdYear = createdDate.getFullYear();
+  const createdMonth = createdDate.getMonth() + 1; // month index fix
+  const createdDay = createdDate.getDate();
+
+  // ✅ Status Filter
+  const statusMatch =
+    statusFilter === "All" || record.status === statusFilter;
+
+  // ✅ Search Filter
+  const searchMatch =
+    !searchQuery ||
+    record.patient.patient_id
+      ?.toLowerCase()
+      .includes(searchQuery.toLowerCase()) ||
+    record.patient.full_name
+      ?.toLowerCase()
+      .includes(searchQuery.toLowerCase());
+
+  // ✅ Exact Date Filter
+  const dateMatch =
+    !dateFilter ||
+    new Date(record.date_submitted).toISOString().slice(0, 10) === dateFilter;
+
+  // ✅ Month Filter
+  const monthMatch = !monthFilter || createdMonth === Number(monthFilter);
+
+  // ✅ Year Filter
+  const yearMatch = !yearFilter || createdYear === Number(yearFilter);
+
+  return statusMatch && searchMatch && dateMatch && monthMatch && yearMatch;
+});
+
 
   // ---------- Handlers ----------
   const handleViewClick = (id) => {
@@ -214,12 +239,12 @@ const AdminCancerManagement = () => {
                 placeholder="Search by patient ID or name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+                className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
               />
 
               {/* UPDATED FILTER OPTIONS */}
               <select
-                className="border border-gray-200 rounded-md p-2 bg-white"
+                className="border border-gray-200 rounded-md p-2 bg-white w-[100px]"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -241,6 +266,50 @@ const AdminCancerManagement = () => {
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
               />
+
+                <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+              >
+                <option value="">All</option>
+                {[...Array(12)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {new Date(0, i).toLocaleString("en", { month: "long" })}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+              >
+                <option value="">All</option>
+                {Array.from(
+                  new Set(
+                    tableData.map((p) =>
+                      new Date(p.created_at || p.date_submitted).getFullYear()
+                    )
+                  )
+                )
+                  .filter((y) => !isNaN(y))
+                  .sort((a, b) => b - a)
+                  .map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+              </select>
+              <button
+                onClick={() => {
+                  setDateFilter("");
+                  setMonthFilter("");
+                  setYearFilter("");
+                }}
+                className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
+              >
+                Clear
+              </button>
               {/* ⬇️ Generate button with cursor-pointer */}
               <button
                 onClick={() => window.print()}
@@ -257,7 +326,7 @@ const AdminCancerManagement = () => {
               </div> */}
             </div>
 
-            <div className="bg-white shadow">
+            <div className="bg-white shadow overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr className="bg-lightblue">
