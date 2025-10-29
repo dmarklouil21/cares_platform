@@ -233,7 +233,7 @@ const AdminMassScreening = () => {
               placeholder="Search by request ID or RHU name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-200 py-2 px-5 rounded-md w-[28%]"
+              className="border border-gray-200 py-2 px-5 rounded-md w-[360px]"
             />
             {/* Status Filter */}
             <select
@@ -301,7 +301,7 @@ const AdminMassScreening = () => {
                 setStatusFilter("all");
                 setSearchQuery("");
               }}
-              className="bg-gray-200 px-3 py-2 rounded-md text-sm"
+                className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
             >
               Clear
             </button>

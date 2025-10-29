@@ -249,66 +249,65 @@ const PatientMasterList = () => {
               placeholder="Search by patient ID, name, or LGU..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+              className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
             />
 
             {/* Date filters */}
-            <div className="flex gap-2">
-              <input
-                type="date"
-                className="border border-gray-200 py-2 px-3 rounded-md"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-              />
 
-              <select
-                className="border border-gray-200 py-2 px-3 rounded-md"
-                value={monthFilter}
-                onChange={(e) => setMonthFilter(e.target.value)}
-              >
-                <option value="">All Months</option>
-                {[...Array(12)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {new Date(0, i).toLocaleString("default", {
-                      month: "long",
-                    })}
+            <input
+              type="date"
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+            />
+
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+            >
+              <option value="">All Months</option>
+              {[...Array(12)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {new Date(0, i).toLocaleString("default", {
+                    month: "long",
+                  })}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+            >
+              <option value="">All Years</option>
+              {Array.from(
+                new Set(
+                  patients
+                    .map((p) => new Date(p.created_at).getFullYear())
+                    .filter((y) => !isNaN(y))
+                )
+              )
+                .sort((a, b) => b - a)
+                .map((year) => (
+                  <option key={year} value={year}>
+                    {year}
                   </option>
                 ))}
-              </select>
+            </select>
 
-              <select
-                className="border border-gray-200 py-2 px-3 rounded-md"
-                value={yearFilter}
-                onChange={(e) => setYearFilter(e.target.value)}
-              >
-                <option value="">All Years</option>
-                {Array.from(
-                  new Set(
-                    patients
-                      .map((p) => new Date(p.created_at).getFullYear())
-                      .filter((y) => !isNaN(y))
-                  )
-                )
-                  .sort((a, b) => b - a)
-                  .map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-              </select>
-
-              {/* Reset filters button */}
-              <button
-                onClick={() => {
-                  setDateFilter("");
-                  setMonthFilter("");
-                  setYearFilter("");
-                }}
-                className="bg-gray-200 px-3 py-1 rounded-md text-sm"
-              >
-                Clear
-              </button>
-            </div>
+            {/* Reset filters button */}
+            <button
+              onClick={() => {
+                setDateFilter("");
+                setMonthFilter("");
+                setYearFilter("");
+              }}
+              className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
+            >
+              Clear
+            </button>
 
             {/* ⬇️ NEW: Generate button mirrors the Pre-Enrollment page */}
             <button

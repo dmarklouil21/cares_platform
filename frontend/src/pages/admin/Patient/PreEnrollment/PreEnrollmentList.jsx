@@ -240,7 +240,7 @@ const PreEnrollmentList = () => {
               placeholder="Search by beneficiary ID or name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-200 py-2 w-[28%] px-5 rounded-md"
+              className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
             />
             {/* Status Filter */}
             <select
@@ -315,7 +315,7 @@ const PreEnrollmentList = () => {
                 setMonthFilter("");
                 setYearFilter("");
               }}
-              className="px-3 py-2 bg-gray-200 rounded-md text-sm"
+              className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
             >
               Clear
             </button>

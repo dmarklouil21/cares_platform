@@ -298,7 +298,7 @@ const IndividualScreening = () => {
               placeholder="Search by patient ID ..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+              className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
             />
 
             <select
@@ -355,7 +355,7 @@ const IndividualScreening = () => {
                 setMonthFilter("");
                 setYearFilter("");
               }}
-              className="bg-gray-200 px-3 py-1 rounded-sm hover:bg-gray-300"
+               className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
             >
               clear
             </button>
