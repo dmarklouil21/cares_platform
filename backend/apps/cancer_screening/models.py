@@ -15,11 +15,11 @@ class IndividualScreening(models.Model):
     max_length=50,
     choices=[
       ('Pending', 'Pending'),
-      ('Approve', 'Approve'),
+      ('Approved', 'Approve'),
       # ('LOA Generation', 'LOA Generation'), # To be removed
       ('In Progress', 'In Progress'),
-      ('Complete', 'Complete'),
-      ('Reject', 'Reject'),
+      ('Completed', 'Complete'),
+      ('Rejected', 'Reject'),
     ],
     default='Pending'
   )

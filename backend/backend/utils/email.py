@@ -94,28 +94,17 @@ def send_individual_screening_status_email(patient, status, screening_date=None,
       raise ValueError("Recipient email not found for patient.")
     # Friendly but professional messages
     status_messages = {
-      "Approve": (
+      "Approved": (
         "Great news! Your screening request has been <b>approved</b>. "
         f"Your cancer screening has been scheduled for <b>{screening_date.strftime('%B %d, %Y')}</b>" if screening_date else ""
         "Please make sure to arrive at least 15 minutes early and bring any required identification."
         # "Please fill out the <b>Screening Procedure Form</b> and upload the required documents to proceed with your application."
       ),
-      "LOA Generation": (
-        "Your screening procedure and submitted documents have been <b>approved</b>. "
-        "You can now download your <b>Letter of Authorization (LOA)</b> from your account. "
-        "Please sign it and upload the scanned copy."
-      ),
-      "In Progress": (
-        # f"Your cancer screening has been scheduled for <b>{screening_date.strftime('%B %d, %Y')}</b>. "
-        # "Please make sure to arrive at least 15 minutes early and bring any required identification."
-        # if screening_date else
-        "Your screening is now in progress."
-      ),
       "Completed": (
         "Your screening process has been <b>successfully completed</b>. "
         "Thank you for your cooperation and commitment to your health."
       ),
-      "Reject": (
+      "Rejected": (
         "Unfortunately, your screening request has been <b>rejected</b>. "
         "If you believe this decision was made in error or wish to reapply, please contact our support team."
         f"<br><br><b>Remarks:</b> {remarks}" if remarks else ""

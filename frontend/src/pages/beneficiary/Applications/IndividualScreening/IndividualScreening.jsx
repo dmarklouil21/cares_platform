@@ -330,8 +330,7 @@ const IndividualScreeningStatus = () => {
                         </td>
                         <td className="text-center text-sm py-4 flex gap-2 justify-center">
                           {" "}
-                          {/*flex py-2 gap-2 px-2 justify-around text-sm text-center text-[#333333]" */}
-                          {app.status !== "Pending" && (
+                          {app.status !== "Pending" || app.status !== "Rejected" && (
                             <button
                               type="button"
                               className="text-white py-1 px-3 rounded-md shadow bg-primary cursor-pointer"
@@ -340,6 +339,17 @@ const IndividualScreeningStatus = () => {
                               {" "}
                               {/*custom-shadow w-[50%] cursor-pointer text-white bg-primary py-[5px] rounded-md px-3 */}
                               View
+                            </button>
+                          )}
+                          {app.status === "Rejected" && (
+                            <button
+                              type="button"
+                              className="text-white py-1 px-3 rounded-md shadow bg-primary cursor-pointer"
+                              onClick={() => navigate("/beneficiary/services/cancer-screening/procedure")}
+                            >
+                              {" "}
+                              {/*custom-shadow w-[50%] cursor-pointer text-white bg-primary py-[5px] rounded-md px-3 */}
+                              Resubmit
                             </button>
                           )}
                           {app.status !== "Complete" && (

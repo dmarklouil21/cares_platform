@@ -225,14 +225,15 @@ class IndividualScreeningStatusUpdateView(generics.UpdateAPIView):
 
   def perform_update(self, serializer):
     instance = serializer.save(has_patient_response=False, response_description='')
+    request = self.request
 
     patient = instance.patient
     screening_status = instance.status
 
-    if screening_status == 'Approve':
+    if screening_status == 'Approved':
       instance.date_approved = timezone.now().date()
       patient.status = 'active'
-    elif screening_status == 'Complete':
+    elif screening_status == 'Completed':
       patient.status = 'validated'
       
       ServiceReceived.objects.create(
@@ -243,9 +244,9 @@ class IndividualScreeningStatusUpdateView(generics.UpdateAPIView):
     
     instance.save()
     patient.save()
-
+    remarks = request.data.get('remarks')
     email_status = send_individual_screening_status_email(
-      instance.patient, instance.status, instance.screening_date
+      instance.patient, instance.status, instance.screening_date, remarks
     )
     if email_status is not True:
       logger.error(f"Email failed to send: {email_status}")

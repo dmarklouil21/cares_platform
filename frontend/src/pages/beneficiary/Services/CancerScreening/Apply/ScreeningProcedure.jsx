@@ -36,7 +36,7 @@ const IndividualScreening = () => {
     () => requiredDocs.every((doc) => !!files[doc.key]),
     [files, requiredDocs]
   );
-
+// Stop here for now
   // Modal States
   const [confirmation, setConfirmation] = useState({
     open: false,
