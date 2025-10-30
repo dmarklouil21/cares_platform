@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import api from "src/api/axiosInstance";
 
+import RemarksModal from "src/components/Modal/RemarksModal";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import SystemLoader from "src/components/SystemLoader";
@@ -93,9 +94,10 @@ const AdminCancerManagementView = () => {
       setInterviewModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
       setStatus(selectedStatus);
-    } else if (selectedStatus === "Return" || selectedStatus === "Rejected") {
+    } else if (selectedStatus === "Rejected") {
       setRemarksModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
+      setStatus(selectedStatus);
     } else {
       // setModalText(`Mark this request as '${selectedStatus}'?`);
       // setModalDesc(
@@ -240,6 +242,7 @@ const AdminCancerManagementView = () => {
           interview_date: modalAction.interviewDate || interviewDate,
           treatment_date: modalAction.treatment_date || treatmentDate,
           service_provider: modalAction.newProvider || providerName,
+          remarks: remarks || "",
         };
 
         // const payload = { status: modalAction.newStatus };
@@ -416,7 +419,17 @@ const AdminCancerManagementView = () => {
       />
 
       {/* Return remarks Modal */}
-      {remarksModalOpen && (
+      <RemarksModal 
+        open={remarksModalOpen}
+        title="Remarks"
+        placeholder="Enter your remarks here..."
+        value={remarks}
+        onChange={(e) => setRemarks(e.target.value)}
+        onCancel={() => setRemarksModalOpen(false)}
+        onConfirm={() => setRemarksModalOpen(false)}
+        confirmText="Confirm"
+      />
+      {/* {remarksModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
             <h2 className="text-lg font-semibold mb-4 text-gray-800">
@@ -445,7 +458,7 @@ const AdminCancerManagementView = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Send LOA Modal */}
       <FileUploadModal
@@ -545,8 +558,8 @@ const AdminCancerManagementView = () => {
                     Case Summary Generation
                   </option>
                   <option value="Approved">Approve</option>
+                  <option value="Rejected">Reject</option>
                   <option value="Completed">Complete</option>
-                  {/* <option value="Rejected">Rejected</option> */}
                 </select>
               </div>
 

@@ -17,7 +17,7 @@ class IndividualScreening(models.Model):
       ('Pending', 'Pending'),
       ('Approved', 'Approve'),
       # ('LOA Generation', 'LOA Generation'), # To be removed
-      ('In Progress', 'In Progress'),
+      # ('In Progress', 'In Progress'), To be removed
       ('Completed', 'Complete'),
       ('Rejected', 'Reject'),
     ],

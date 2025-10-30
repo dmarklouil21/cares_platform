@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
@@ -18,12 +18,17 @@ const CheckIcon = ({ active }) => (
 
 const IndividualScreening = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const id = location.state?.id || null;
   const fileInputRef = useRef(null);
 
   // Form States
   const [procedureName, setProcedureName] = useState("");
   const [procedureDetails, setProcedureDetails] = useState("");
   const [cancerSite, setCancerSite] = useState("");
+
+  const [isResubmitting, setIsResubmitting] = useState(!!id);
 
   // File Handling
   const requiredDocs = REQUIRED_DOCS["Individual Screening"] || [];
@@ -75,7 +80,43 @@ const IndividualScreening = () => {
   //   fetchScreeningData();
   // }, []);
 
+  /*
+    if (record?.screening_attachments) {
+      const mappedFiles = record.screening_attachments.reduce((acc, doc) => {
+        acc[doc.doc_type] = doc;
+        return acc;
+      }, {});
+      setFiles(mappedFiles);
+    }
+  */
   // File Handlers
+  useEffect(() => {
+    if (!id) return;
+    const fetchData = async () => {
+      try {
+        const { data } = await api.get(
+          `/beneficiary/individual-screening/${id}/`
+        );
+        setProcedureName(data.procedure_name || "");
+        setProcedureDetails(data.procedure_details || "");
+        setCancerSite(data.cancer_site || "");
+
+        if (data.screening_attachments) {
+          const mappedFiles = data.screening_attachments.reduce((acc, doc) => {
+            acc[doc.doc_type] = doc;
+            return acc;
+          }, {});
+          setFiles(mappedFiles);
+        }
+
+      } catch (error) {
+        console.error("Error fetching screening data:", error);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
   const handleChooseFile = () => fileInputRef.current?.click();
 
   const handleFileSelect = (e) => {
@@ -113,13 +154,21 @@ const IndividualScreening = () => {
         if (file) formData.append(`files.${key}`, file);
       });
 
-      await api.post(
-        `/beneficiary/individual-screening/screening-request/`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const endpoint = isResubmitting
+        ? `/beneficiary/individual-screening/update/${id}/`
+        : `/beneficiary/individual-screening/screening-request/`;
+      
+      const method = isResubmitting ? api.patch : api.post;
+
+      await method(endpoint, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      // Stop here for now
+      // await api.post(
+      //   `/beneficiary/individual-screening/screening-request/`,
+      //   formData,
+      //   {
+      //     headers: { "Content-Type": "multipart/form-data" },
+      //   }
+      // );
 
       navigate("/beneficiary/success-application", {
         state: { okLink: "beneficiary/applications/individual-screening" },

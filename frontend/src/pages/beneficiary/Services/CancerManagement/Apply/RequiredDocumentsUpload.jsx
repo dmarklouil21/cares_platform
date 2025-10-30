@@ -65,6 +65,7 @@ const CheckIcon = ({ active }) => (
 
 const RadioactiveDocument = () => {
   const location = useLocation();
+  const id = location.state?.id || null;
   const navigate = useNavigate();
   const { wellBeningData } = location.state || {};
   const [activeIdx, setActiveIdx] = useState(0);
@@ -72,8 +73,10 @@ const RadioactiveDocument = () => {
   const [notif, setNotif] = useState("");
   const inputRef = useRef(null);
 
-  const serviceType = wellBeningData?.serviceType;
+  const [serviceType, setServiceType] = useState(wellBeningData?.serviceType || "");
   const requiredDocs = REQUIRED_DOCS[serviceType] || [];
+
+  const [isResubmitting, setIsResubmitting] = useState(!!id);
 
   const activeDoc = requiredDocs[activeIdx];
 
@@ -92,6 +95,34 @@ const RadioactiveDocument = () => {
     setFiles(makeEmptyFiles());
     setActiveIdx(0);
   }, [serviceType]);
+
+  useEffect(() => {
+    if (!id) return;
+    const fetchData = async () => {
+      try {
+        const { data } = await api.get(
+          `/beneficiary/cancer-treatment/details/`
+        );
+        // setProcedureName(data.procedure_name || "");
+        // setProcedureDetails(data.procedure_details || "");
+        // setCancerSite(data.cancer_site || "");
+        console.log("Fetched Data: ", data);
+        if (data.attachments) {
+          const mappedFiles = data.attachments.reduce((acc, doc) => {
+            acc[doc.doc_type] = doc;
+            return acc;
+          }, {});
+          setServiceType(data.service_type || "");
+          setFiles(mappedFiles);
+        }
+
+      } catch (error) {
+        console.error("Error fetching screening data:", error);
+      }
+    };
+
+    fetchData();
+  }, [id]);
 
   const onFilePicked = (f) => {
     if (!f) return;
@@ -118,38 +149,56 @@ const RadioactiveDocument = () => {
   const confirmSubmit = async () => {
     setConfirmOpen(false);
 
-    const formData = new FormData();
-    // append well-being data as JSON 
-    formData.append("well_being_data", JSON.stringify(wellBeningData));
-    // append files
-    for (const key in files) {
-      if (files[key]) {
-        formData.append(`files.${key}`, files[key]);
-      }
-    }
-    console.log("Well Being Data: ", wellBeningData)
-    console.log("Files: ", files);
-    setLoading(true);
-
     try {
-      await api.post("/beneficiary/cancer-treatment/submit/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      // alert("Submitted successfully");
-      navigate("/beneficiary/applications/cancer-treatment", {
+      const formData = new FormData();
+      // append well-being data as JSON 
+      formData.append("well_being_data", JSON.stringify(wellBeningData));
+      // append files
+      for (const key in files) {
+        if (files[key]) {
+          formData.append(`files.${key}`, files[key]);
+        }
+      }
+      setLoading(true);
+      const endpoint = isResubmitting
+          ? `/beneficiary/cancer-treatment/update/${id}/`
+          : `/beneficiary/cancer-treatment/submit/`;
+        
+        const method = isResubmitting ? api.patch : api.post;
+
+      await method(endpoint, formData, { headers: { "Content-Type": "multipart/form-data" } });
+
+        navigate("/beneficiary/applications/cancer-treatment", {
         state: {
           type: "success",
           message: "Submitted Successfully.",
         },
       });
     } catch (error) {
-      alert(error);
-      console.error();
+      console.error("Submission error:", error);
     } finally {
       setLoading(false);
     }
+
+    // try {
+    //   await api.post("/beneficiary/cancer-treatment/submit/", formData, {
+    //     headers: {
+    //       "Content-Type": "multipart/form-data",
+    //     },
+    //   });
+    //   // alert("Submitted successfully");
+    //   navigate("/beneficiary/applications/cancer-treatment", {
+    //     state: {
+    //       type: "success",
+    //       message: "Submitted Successfully.",
+    //     },
+    //   });
+    // } catch (error) {
+    //   alert(error);
+    //   console.error();
+    // } finally {
+    //   setLoading(false);
+    // }
 
     // 2) show success notification
     // setNotif("Documents submitted successfully!");

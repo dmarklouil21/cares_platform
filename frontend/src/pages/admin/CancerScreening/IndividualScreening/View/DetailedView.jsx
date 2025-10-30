@@ -80,14 +80,15 @@ const DetailedView = () => {
 
   const handleStatusChange = (e) => {
     const selectedStatus = e.target.value;
-    if (selectedStatus === "Approve") {
+    if (selectedStatus === "Approved") {
       // setTempDate(screeningDate || "");
       setDateModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
       setStatus(selectedStatus);
-    } else if (selectedStatus === "Return" || selectedStatus === "Reject") {
+    } else if (selectedStatus === "Rejected") {
       setRemarksModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
+      setStatus(selectedStatus);
     } else {
       // setModalText(`Confirm status change to "${selectedStatus}"?`);
       // setModalDesc("Make sure the necessary procedure are finished before proceeding.");
@@ -175,6 +176,7 @@ const DetailedView = () => {
         const payload = { 
           status: modalAction.newStatus || status,
           screening_date: modalAction.newScreeningDate || screeningDate,
+          remarks: remarks || "",
         };
         // if (screeningDate) payload.screening_date = screeningDate;
 
@@ -343,9 +345,9 @@ const DetailedView = () => {
               </button>
               <button
                 className="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors"
-                onClick={handleReturn}
+                onClick={() => setRemarksModalOpen(false)}
               >
-                Send
+                Confirm
               </button>
             </div>
           </div>
@@ -456,12 +458,9 @@ const DetailedView = () => {
                   onChange={handleStatusChange}
                 >
                   <option value="Pending">Pending</option>
-                  <option value="Approve">Approve</option>
-                  {/* <option value="LOA Generation">LOA Generation</option> */}
-                  {/* <option value="In Progress">In Progress</option> */}
-                  <option value="Complete">Complete</option>
-                  {/* <option value="Return">Return</option> */}
-                  {/* <option value="Reject">Reject</option> */}
+                  <option value="Approved">Approve</option>
+                  <option value="Completed">Complete</option>
+                  <option value="Rejected">Reject</option>
                 </select>
               </div>
               <div className="flex gap-2">

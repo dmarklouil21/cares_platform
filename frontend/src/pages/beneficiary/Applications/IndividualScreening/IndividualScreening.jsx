@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { data, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
+import { RotateCcw, RefreshCcw, Upload, Repeat } from "lucide-react";
 import api from "src/api/axiosInstance";
 
 import Notification from "src/components/Notification";
@@ -344,12 +345,17 @@ const IndividualScreeningStatus = () => {
                           {app.status === "Rejected" && (
                             <button
                               type="button"
-                              className="text-white py-1 px-3 rounded-md shadow bg-primary cursor-pointer"
-                              onClick={() => navigate("/beneficiary/services/cancer-screening/procedure")}
+                              className="text-white py-1 px-3 rounded-md shadow bg-yellow cursor-pointer"
+                              onClick={() => {
+                                navigate("/beneficiary/services/cancer-screening/procedure", {
+                                  state: { id: app.id },
+                                });
+                              }}
                             >
                               {" "}
                               {/*custom-shadow w-[50%] cursor-pointer text-white bg-primary py-[5px] rounded-md px-3 */}
-                              Resubmit
+                              {/* Resubmit */}
+                              <RotateCcw size={16} />
                             </button>
                           )}
                           {app.status !== "Complete" && (

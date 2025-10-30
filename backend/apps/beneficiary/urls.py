@@ -11,7 +11,7 @@ urlpatterns = [
   
   # Individual Screening
   path('individual-screening/screening-request/', views.IndividualScreeningRequestView.as_view(), name='individual_screening_request'),
-  path('individual-screening/screening-procedure-form/<str:id>/', views.IndividualScreeningUpdateView.as_view(), name='screening_procedure_create'),
+  path('individual-screening/update/<str:id>/', views.IndividualScreeningUpdateView.as_view(), name='screening_procedure_create'),
   path('individual-screening/attachments-upload/<str:procedure_id>/', views.LOAAttachmentUploadView.as_view(), name='individual_screening_attachments_upload'),
   path('individual-screening/results-upload/<str:screening_id>/', views.ResultAttachmentUploadView.as_view(), name='individual_screening_results_upload'),
   path('individual-screening/list/', views.IndividualScreeningListView.as_view(), name='individual_screening_list_view'),
@@ -34,6 +34,7 @@ urlpatterns = [
   path('cancer-treatment/submit/', views.CancerTreatmentSubmissionView.as_view(), name='cancer_treatment_submission'),
   path('cancer-treatment/list/', views.CancerManagementListView.as_view(), name='cancer_management_list_view'),
   path('cancer-treatment/details/', views.CancerManagementDetailedView.as_view(), name='detailed_view'),
+  path('cancer-treatment/update/<str:id>/', views.CancerManagementUpdateView.as_view(), name='update_view'),
   path('cancer-treatment/case-summary/upload/<str:id>/', views.CaseSummaryUploadView.as_view(), name='case_summary_upload_view'),
   path('cancer-treatment/result/upload/<str:id>/', views.TreatmentResultUploadView.as_view(), name='result_upload_view'),
 
