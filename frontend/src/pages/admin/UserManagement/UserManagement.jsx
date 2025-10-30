@@ -72,7 +72,9 @@ const UserManagement = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null); // {id, action}
-  const [modalDesc, setModalDesc] = useState("Are you sure you want to proceed with this action?");
+  const [modalDesc, setModalDesc] = useState(
+    "Are you sure you want to proceed with this action?"
+  );
 
   // Status filter state
   const [statusFilter, setStatusFilter] = useState("all");
@@ -319,7 +321,7 @@ const UserManagement = () => {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+                className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
               />
 
               <select
@@ -335,11 +337,33 @@ const UserManagement = () => {
                 <option value="inactive">Inactive</option>
               </select>
 
-              <input
-                type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
-                // (date filter not used in this table—left here for parity)
-              />
+              {/* Day Filter (1–31) */}
+              <select className="border border-gray-200 py-2 px-3 rounded-md">
+                <option value="">All Days</option>
+                {[...Array(31)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
+
+              {/* Month Filter */}
+              <select className="border border-gray-200 py-2 px-3 rounded-md">
+                <option value="">All Months</option>
+                {[...Array(12)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {new Date(0, i).toLocaleString("en", { month: "long" })}
+                  </option>
+                ))}
+              </select>
+
+              {/* Year Filter */}
+              <select className="border border-gray-200 py-2 px-3 rounded-md">
+                <option value="">All Years</option>
+              </select>
+              <button className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm">
+                Clear
+              </button>
 
               {/*  
               <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
@@ -354,7 +378,7 @@ const UserManagement = () => {
                 title="Print current list"
               >
                 {/* Generate */}
-                <Printer className="w-4 h-4" /> 
+                <Printer className="w-4 h-4" />
               </button>
             </div>
 

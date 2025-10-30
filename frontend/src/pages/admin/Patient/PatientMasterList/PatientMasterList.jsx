@@ -56,6 +56,8 @@ const PatientMasterList = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
+
   const fetchData = async () => {
     try {
       const response = await api.get("/patient/list/");
@@ -93,7 +95,7 @@ const PatientMasterList = () => {
   });
 
   const filterByCreatedAt = (data) => {
-    if (!dateFilter && !monthFilter && !yearFilter) return data;
+    if (!dateFilter && !dayFilter && !monthFilter && !yearFilter) return data;
 
     return data.filter((record) => {
       if (!record.created_at) return false;
@@ -101,15 +103,17 @@ const PatientMasterList = () => {
       const recordDate = new Date(record.created_at);
       if (isNaN(recordDate)) return false;
 
+      const recordDay = recordDate.getDate();
       const recordMonth = recordDate.getMonth() + 1;
       const recordYear = recordDate.getFullYear();
       const recordDateString = recordDate.toISOString().split("T")[0];
 
       const dateMatch = !dateFilter || recordDateString === dateFilter;
+      const dayMatch = !dayFilter || recordDay === parseInt(dayFilter);
       const monthMatch = !monthFilter || recordMonth === parseInt(monthFilter);
       const yearMatch = !yearFilter || recordYear === parseInt(yearFilter);
 
-      return dateMatch && monthMatch && yearMatch;
+      return dateMatch && dayMatch && monthMatch && yearMatch;
     });
   };
 
@@ -252,15 +256,21 @@ const PatientMasterList = () => {
               className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
             />
 
-            {/* Date filters */}
-
-            <input
-              type="date"
+            {/* Day Filter (1–31) */}
+            <select
               className="border border-gray-200 py-2 px-3 rounded-md"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-            />
+              value={dayFilter}
+              onChange={(e) => setDayFilter(e.target.value)}
+            >
+              <option value="">All Days</option>
+              {[...Array(31)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
 
+            {/* Month Filter */}
             <select
               className="border border-gray-200 py-2 px-3 rounded-md"
               value={monthFilter}
@@ -269,13 +279,12 @@ const PatientMasterList = () => {
               <option value="">All Months</option>
               {[...Array(12)].map((_, i) => (
                 <option key={i + 1} value={i + 1}>
-                  {new Date(0, i).toLocaleString("default", {
-                    month: "long",
-                  })}
+                  {new Date(0, i).toLocaleString("en", { month: "long" })}
                 </option>
               ))}
             </select>
 
+            {/* Year Filter */}
             <select
               className="border border-gray-200 py-2 px-3 rounded-md"
               value={yearFilter}
@@ -285,8 +294,10 @@ const PatientMasterList = () => {
               {Array.from(
                 new Set(
                   patients
-                    .map((p) => new Date(p.created_at).getFullYear())
-                    .filter((y) => !isNaN(y))
+                    .map((p) =>
+                      p.created_at ? new Date(p.created_at).getFullYear() : null
+                    )
+                    .filter((y) => y !== null)
                 )
               )
                 .sort((a, b) => b - a)
@@ -301,6 +312,7 @@ const PatientMasterList = () => {
             <button
               onClick={() => {
                 setDateFilter("");
+                setDayFilter("");
                 setMonthFilter("");
                 setYearFilter("");
               }}

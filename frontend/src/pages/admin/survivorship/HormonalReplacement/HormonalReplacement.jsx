@@ -44,7 +44,7 @@ const HormonalReplacement = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
-
+  const [dayFilter, setDayFilter] = useState("");
   const fetchData = async () => {
     try {
       const { data } = await api.get(
@@ -82,9 +82,15 @@ const HormonalReplacement = () => {
     const { recordsPerPage, currentPage } = pagination;
 
     const filtered = tableData.filter((row) => {
-      const createdDate = new Date(row.created_at || row.date_submitted);
+      const dateValue = row.created_at || row.date_submitted;
+      if (!dateValue) return false;
+
+      const createdDate = new Date(dateValue);
+      if (isNaN(createdDate)) return false;
+
       const createdYear = createdDate.getFullYear();
-      const createdMonth = createdDate.getMonth() + 1; // 0–11 → 1–12
+      const createdMonth = createdDate.getMonth() + 1;
+      const createdDay = createdDate.getDate();
 
       // ✅ Search filter
       const matchesSearch =
@@ -100,9 +106,10 @@ const HormonalReplacement = () => {
       // ✅ Exact date filter
       const matchesDate =
         !filters.date ||
-        new Date(row.created_at || row.date_submitted)
-          .toISOString()
-          .slice(0, 10) === filters.date;
+        new Date(dateValue).toISOString().slice(0, 10) === filters.date;
+
+      // ✅ Day filter
+      const matchesDay = !dayFilter || createdDay === Number(dayFilter);
 
       // ✅ Month filter
       const matchesMonth = !monthFilter || createdMonth === Number(monthFilter);
@@ -114,6 +121,7 @@ const HormonalReplacement = () => {
         matchesSearch &&
         matchesStatus &&
         matchesDate &&
+        matchesDay &&
         matchesMonth &&
         matchesYear
       );
@@ -125,7 +133,7 @@ const HormonalReplacement = () => {
     const paginatedData = filtered.slice(start, start + recordsPerPage);
 
     return { filtered, paginatedData, totalRecords, totalPages };
-  }, [tableData, filters, pagination, monthFilter, yearFilter]);
+  }, [tableData, filters, pagination, dayFilter, monthFilter, yearFilter]);
 
   useEffect(() => {
     // Reset to page 1 whenever filters change
@@ -255,32 +263,41 @@ const HormonalReplacement = () => {
                 <option value="completed">Completed</option>
               </select>
 
-              <input
-                type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
-                value={filters.date}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, date: e.target.value }))
-                }
-              />
+              {/* Day Filter (1–31) */}
+              <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={dayFilter}
+                onChange={(e) => setDayFilter(e.target.value)}
+              >
+                <option value="">All Days</option>
+                {[...Array(31)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
+
+              {/* Month Filter */}
               <select
                 className="border border-gray-200 py-2 px-3 rounded-md"
                 value={monthFilter}
                 onChange={(e) => setMonthFilter(e.target.value)}
               >
-                <option value="">All</option>
+                <option value="">All Months</option>
                 {[...Array(12)].map((_, i) => (
                   <option key={i + 1} value={i + 1}>
                     {new Date(0, i).toLocaleString("en", { month: "long" })}
                   </option>
                 ))}
               </select>
+
+              {/* Year Filter */}
               <select
                 className="border border-gray-200 py-2 px-3 rounded-md"
                 value={yearFilter}
                 onChange={(e) => setYearFilter(e.target.value)}
               >
-                <option value="">All</option>
+                <option value="">All Years</option>
                 {Array.from(
                   new Set(
                     tableData.map((p) =>
@@ -299,8 +316,9 @@ const HormonalReplacement = () => {
               <button
                 onClick={() => {
                   setDateFilter("");
+                  setDayFilter("");
                   setMonthFilter("");
-                  setYearFilter("");
+                setYearFilter("");
                 }}
                 className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
               >

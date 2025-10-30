@@ -36,7 +36,9 @@ const applicationStatus = () => {
       setError("");
       // const data = await listMyMassScreenings();
       // data: [{ id, title, venue, date, beneficiaries, description, support_need, status, created_at, attachments }]
-      const { data } = await api.get("/partners/cancer-screening/mass-screening/request-list/");
+      const { data } = await api.get(
+        "/partners/cancer-screening/mass-screening/request-list/"
+      );
       const normalized = (Array.isArray(data) ? data : []).map((d) => ({
         id: d.id,
         title: d.title,
@@ -64,26 +66,47 @@ const applicationStatus = () => {
   const [statusFilter, setStatusFilter] = useState("all"); // all | Pending | Verified | Rejected | Done
   const [dateFilter, setDateFilter] = useState("");
 
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
   /* ----------------------------- Pagination --------------------------- */
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredData = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return items.filter((it) => {
-      const matchesSearch =
-        !q ||
-        String(it.id ?? "")
-          .toLowerCase()
-          .includes(q) ||
-        (it.title ?? "").toLowerCase().includes(q) ||
-        (it.beneficiaries ?? "").toLowerCase().includes(q);
-      const matchesStatus =
-        statusFilter === "all" ? true : (it.status ?? "") === statusFilter;
-      const matchesDate = !dateFilter ? true : (it.date ?? "") === dateFilter;
-      return matchesSearch && matchesStatus && matchesDate;
-    });
-  }, [items, searchQuery, statusFilter, dateFilter]);
+  const q = searchQuery.trim().toLowerCase();
+
+  return items.filter((it) => {
+    const dateObj = new Date(it.date);
+    const year = dateObj.getFullYear();
+    const month = dateObj.getMonth() + 1; // 1–12
+    const day = dateObj.getDate(); // 1–31
+
+    const matchesSearch =
+      !q ||
+      String(it.id ?? "")
+        .toLowerCase()
+        .includes(q) ||
+      (it.title ?? "").toLowerCase().includes(q) ||
+      (it.beneficiaries ?? "").toLowerCase().includes(q);
+
+    const matchesStatus =
+      statusFilter === "all" ? true : (it.status ?? "") === statusFilter;
+
+    const matchesDay = !dayFilter || day === Number(dayFilter);
+    const matchesMonth = !monthFilter || month === Number(monthFilter);
+    const matchesYear = !yearFilter || year === Number(yearFilter);
+
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesDay &&
+      matchesMonth &&
+      matchesYear
+    );
+  });
+}, [items, searchQuery, statusFilter, dayFilter, monthFilter, yearFilter]);
+
 
   const totalRecords = filteredData.length;
   const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
@@ -131,7 +154,9 @@ const applicationStatus = () => {
     try {
       if (deleteTargetId == null) return;
       // await deleteMyMassScreening(deleteTargetId);
-      await api.delete(`/partners/cancer-screening/mass-screening/delete/${deleteTargetId}/`)
+      await api.delete(
+        `/partners/cancer-screening/mass-screening/delete/${deleteTargetId}/`
+      );
       setNotif("Record deleted successfully.");
       await loadItems();
     } catch (e) {
@@ -174,7 +199,7 @@ const applicationStatus = () => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+              className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
             />
             <select
               className="border border-gray-200 rounded-md p-2 bg-white"
@@ -190,23 +215,61 @@ const applicationStatus = () => {
               <option value="Rejected">Rejected</option>
               <option value="Done">Done</option>
             </select>
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => {
-                setDateFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="border border-gray-200 py-2 px-5 rounded-md"
-            />
+            {/* Day Filter (1–31) */}
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={dayFilter}
+              onChange={(e) => setDayFilter(e.target.value)}
+            >
+              <option value="">All Days</option>
+              {[...Array(31)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
+
+            {/* Month Filter */}
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+            >
+              <option value="">All Months</option>
+              {[...Array(12)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {new Date(0, i).toLocaleString("en", { month: "long" })}
+                </option>
+              ))}
+            </select>
+
+            {/* Year Filter */}
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+            >
+              <option value="">All Years</option>
+              {Array.from(
+                new Set(items.map((p) => new Date(p.date).getFullYear()))
+              )
+                .filter((y) => !isNaN(y))
+                .sort((a, b) => b - a)
+                .map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+            </select>
             <button
-              className="px-7 rounded-md text-sm text-white bg-lightblue"
               onClick={() => {
-                setSearchQuery("");
+                setDayFilter("");
+                setMonthFilter("");
+                setYearFilter("");
                 setStatusFilter("all");
-                setDateFilter("");
-                setCurrentPage(1);
+                setSearchQuery("");
               }}
+              className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
             >
               Clear
             </button>

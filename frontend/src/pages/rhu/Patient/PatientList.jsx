@@ -57,8 +57,12 @@ const PatientMasterList = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null);
-  const [modalDesc, setModalDesc] = useState("Please confirm before proceeding.");
-
+  const [modalDesc, setModalDesc] = useState(
+    "Please confirm before proceeding."
+  );
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
   const fetchData = async () => {
     //?status=validated&registered_by=rhu&city=${user.city}
     try {
@@ -91,16 +95,27 @@ const PatientMasterList = () => {
     }`
       .trim()
       .toLowerCase();
+
     const matchesSearch =
       !query ||
       patient.patient_id?.toString().toLowerCase().includes(query) ||
       fullName.includes(query) ||
       (patient.lgu || "").toLowerCase().includes(query);
-    /* const matchesStatus =
-      statusFilter === "all" ||
-      (statusFilter === "active" && patient.is_active) ||
-      (statusFilter === "inactive" && !patient.is_active); */
-    return matchesSearch; /* && matchesStatus; */
+
+    // ✅ Date filtering logic
+    const recordDate = patient.created_at || patient.date_submitted;
+    if (!recordDate) return false;
+
+    const date = new Date(recordDate);
+    if (isNaN(date)) return false;
+
+    const matchesDay = !dayFilter || date.getDate() === Number(dayFilter);
+    const matchesMonth =
+      !monthFilter || date.getMonth() + 1 === Number(monthFilter);
+    const matchesYear =
+      !yearFilter || date.getFullYear() === Number(yearFilter);
+
+    return matchesSearch && matchesDay && matchesMonth && matchesYear;
   });
 
   const handleViewClick = (id) => {
@@ -221,7 +236,7 @@ const PatientMasterList = () => {
               placeholder="Search by patient ID, name, or LGU..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+              className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
             />
 
             <select
@@ -234,10 +249,68 @@ const PatientMasterList = () => {
               <option value="inactive">Inactive</option>
             </select>
 
-            <input
-              type="date"
-              className="border border-gray-200 py-2 px-5 rounded-md"
-            />
+            {/* Day Filter (1–31) */}
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={dayFilter}
+              onChange={(e) => setDayFilter(e.target.value)}
+            >
+              <option value="">All Days</option>
+              {[...Array(31)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
+
+            {/* Month Filter */}
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+            >
+              <option value="">All Months</option>
+              {[...Array(12)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {new Date(0, i).toLocaleString("en", { month: "long" })}
+                </option>
+              ))}
+            </select>
+
+            {/* Year Filter */}
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+            >
+              <option value="">All Years</option>
+              {Array.from(
+                new Set(
+                  tableData.map((p) =>
+                    new Date(p.created_at || p.date_submitted).getFullYear()
+                  )
+                )
+              )
+                .filter((y) => !isNaN(y))
+                .sort((a, b) => b - a)
+                .map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+            </select>
+            <button
+              onClick={() => {
+                setDayFilter("");
+                setMonthFilter("");
+                setYearFilter("");
+                setStatusFilter("all");
+                setSearchQuery("");
+              }}
+              className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
+            >
+              Clear
+            </button>
             <button className="bg-primary px-3 py-1 rounded-sm text-white cursor-pointer">
               {/* Filter */}
               <Printer className="w-4 h-4" />
