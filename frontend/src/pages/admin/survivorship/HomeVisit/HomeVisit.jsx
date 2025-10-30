@@ -67,6 +67,7 @@ const HomeVisit = () => {
   const [recordDateFilter, setRecordDateFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
 
   const fetchData = async () => {
     try {
@@ -85,7 +86,12 @@ const HomeVisit = () => {
     const q = searchQuery.trim().toLowerCase();
 
     return tableData.filter((row) => {
-      const createdDate = new Date(row.created_at || row.date_submitted);
+      const dateValue = row.created_at || row.date_submitted;
+      if (!dateValue) return false; // skip invalid
+
+      const createdDate = new Date(dateValue);
+      if (isNaN(createdDate)) return false;
+
       const createdYear = createdDate.getFullYear();
       const createdMonth = createdDate.getMonth() + 1; // 0–11 → 1–12
       const createdDay = createdDate.getDate();
@@ -107,7 +113,10 @@ const HomeVisit = () => {
       // ✅ Exact Date Filter (from input[type=date])
       const matchesDate =
         !dateFilter ||
-        new Date(row.created_at).toISOString().slice(0, 10) === dateFilter;
+        new Date(dateValue).toISOString().slice(0, 10) === dateFilter;
+
+      // ✅ Day Filter
+      const matchesDay = !dayFilter || createdDay === Number(dayFilter);
 
       // ✅ Month Filter
       const matchesMonth = !monthFilter || createdMonth === Number(monthFilter);
@@ -119,6 +128,7 @@ const HomeVisit = () => {
         matchesSearch &&
         matchesStatus &&
         matchesDate &&
+        matchesDay &&
         matchesMonth &&
         matchesYear
       );
@@ -128,6 +138,7 @@ const HomeVisit = () => {
     searchQuery,
     statusFilter,
     dateFilter,
+    dayFilter,
     monthFilter,
     yearFilter,
   ]);
@@ -252,33 +263,42 @@ const HomeVisit = () => {
                 <option value="approved">Approved</option>
                 <option value="completed">Completed</option>
               </select>
-              <input
-                type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
-                value={dateFilter}
-                onChange={(e) => {
-                  setDateFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
+
+              {/* Day Filter (1–31) */}
+              <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={dayFilter}
+                onChange={(e) => setDayFilter(e.target.value)}
+              >
+                <option value="">All Days</option>
+                {[...Array(31)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
+
+              {/* Month Filter */}
               <select
                 className="border border-gray-200 py-2 px-3 rounded-md"
                 value={monthFilter}
                 onChange={(e) => setMonthFilter(e.target.value)}
               >
-                <option value="">All</option>
+                <option value="">All Months</option>
                 {[...Array(12)].map((_, i) => (
                   <option key={i + 1} value={i + 1}>
                     {new Date(0, i).toLocaleString("en", { month: "long" })}
                   </option>
                 ))}
               </select>
+
+              {/* Year Filter */}
               <select
                 className="border border-gray-200 py-2 px-3 rounded-md"
                 value={yearFilter}
                 onChange={(e) => setYearFilter(e.target.value)}
               >
-                <option value="">All</option>
+                <option value="">All Years</option>
                 {Array.from(
                   new Set(
                     tableData.map((p) =>
@@ -297,8 +317,11 @@ const HomeVisit = () => {
               <button
                 onClick={() => {
                   setDateFilter("");
+                  setDayFilter("");
                   setMonthFilter("");
                   setYearFilter("");
+                  setStatusFilter("all");
+                  setSearchQuery("");
                 }}
                 className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
               >

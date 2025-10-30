@@ -43,6 +43,7 @@ const PostTreatment = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
 
   const fetchData = async () => {
     try {
@@ -96,7 +97,7 @@ const PostTreatment = () => {
       const matchesStatus =
         status === "all" || (row.status || "").toLowerCase() === status;
 
-      // ✅ Exact date filter (from input[type=date])
+      // ✅ Exact date filter
       const matchesDate =
         !date || new Date(row.created_at).toISOString().slice(0, 10) === date;
 
@@ -106,12 +107,16 @@ const PostTreatment = () => {
       // ✅ Year filter
       const matchesYear = !yearFilter || createdYear === Number(yearFilter);
 
+      // ✅ Day filter (you forgot this)
+      const matchesDay = !dayFilter || createdDay === Number(dayFilter);
+
       return (
         matchesSearch &&
         matchesStatus &&
         matchesDate &&
         matchesMonth &&
-        matchesYear
+        matchesYear &&
+        matchesDay
       );
     });
 
@@ -122,7 +127,7 @@ const PostTreatment = () => {
     const paginatedData = filtered.slice(start, start + recordsPerPage);
 
     return { filtered, paginatedData, totalRecords, totalPages };
-  }, [tableData, filters, pagination, monthFilter, yearFilter]);
+  }, [tableData, filters, pagination, monthFilter, yearFilter, dayFilter]);
 
   useEffect(() => {
     // Reset to page 1 whenever filters change
@@ -252,32 +257,41 @@ const PostTreatment = () => {
                 <option value="completed">Completed</option>
               </select>
 
-              <input
-                type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
-                value={filters.date}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, date: e.target.value }))
-                }
-              />
+              {/* Day Filter (1–31) */}
+              <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={dayFilter}
+                onChange={(e) => setDayFilter(e.target.value)}
+              >
+                <option value="">All Days</option>
+                {[...Array(31)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
+
+              {/* Month Filter */}
               <select
                 className="border border-gray-200 py-2 px-3 rounded-md"
                 value={monthFilter}
                 onChange={(e) => setMonthFilter(e.target.value)}
               >
-                <option value="">All</option>
+                <option value="">All Months</option>
                 {[...Array(12)].map((_, i) => (
                   <option key={i + 1} value={i + 1}>
                     {new Date(0, i).toLocaleString("en", { month: "long" })}
                   </option>
                 ))}
               </select>
+
+              {/* Year Filter */}
               <select
                 className="border border-gray-200 py-2 px-3 rounded-md"
                 value={yearFilter}
                 onChange={(e) => setYearFilter(e.target.value)}
               >
-                <option value="">All</option>
+                <option value="">All Years</option>
                 {Array.from(
                   new Set(
                     tableData.map((p) =>
@@ -296,6 +310,7 @@ const PostTreatment = () => {
               <button
                 onClick={() => {
                   setDateFilter("");
+                  setDayFilter("");
                   setMonthFilter("");
                   setYearFilter("");
                 }}

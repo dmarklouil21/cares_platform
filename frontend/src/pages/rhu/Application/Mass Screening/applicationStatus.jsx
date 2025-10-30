@@ -61,12 +61,17 @@ const applicationStatus = () => {
   const [statusFilter, setStatusFilter] = useState("all"); // all | Pending | Verified | Rejected | Done
   const [dateFilter, setDateFilter] = useState("");
 
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
+
   /* ----------------------------- Pagination --------------------------- */
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredData = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
+
     return items.filter((it) => {
       const matchesSearch =
         !q ||
@@ -75,12 +80,29 @@ const applicationStatus = () => {
           .includes(q) ||
         (it.title ?? "").toLowerCase().includes(q) ||
         (it.beneficiaries ?? "").toLowerCase().includes(q);
+
       const matchesStatus =
         statusFilter === "all" ? true : (it.status ?? "") === statusFilter;
-      const matchesDate = !dateFilter ? true : (it.date ?? "") === dateFilter;
-      return matchesSearch && matchesStatus && matchesDate;
+
+      // Handle date logic
+      const createdAt = new Date(it.date); // or it.created_at if available
+      const recordDay = createdAt.getDate();
+      const recordMonth = createdAt.getMonth() + 1;
+      const recordYear = createdAt.getFullYear();
+
+      const matchesDay = !dayFilter || Number(dayFilter) === recordDay;
+      const matchesMonth = !monthFilter || Number(monthFilter) === recordMonth;
+      const matchesYear = !yearFilter || Number(yearFilter) === recordYear;
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesDay &&
+        matchesMonth &&
+        matchesYear
+      );
     });
-  }, [items, searchQuery, statusFilter, dateFilter]);
+  }, [items, searchQuery, statusFilter, dayFilter, monthFilter, yearFilter]);
 
   const totalRecords = filteredData.length;
   const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
@@ -101,9 +123,12 @@ const applicationStatus = () => {
 
   const handleViewClick = (id) => {
     const record = items.find((x) => x.id === id);
-    navigate(`/rhu/application/mass-screening/view?id=${encodeURIComponent(id)}`, {
-      state: record ?? { id },
-    });
+    navigate(
+      `/rhu/application/mass-screening/view?id=${encodeURIComponent(id)}`,
+      {
+        state: record ?? { id },
+      }
+    );
   };
 
   // Delete confirmation modal state
@@ -186,23 +211,61 @@ const applicationStatus = () => {
               <option value="Rejected">Rejected</option>
               <option value="Done">Done</option>
             </select>
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => {
-                setDateFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="border border-gray-200 py-2 px-5 rounded-md"
-            />
+            {/* Day Filter (1–31) */}
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={dayFilter}
+              onChange={(e) => setDayFilter(e.target.value)}
+            >
+              <option value="">All Days</option>
+              {[...Array(31)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
+
+            {/* Month Filter */}
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+            >
+              <option value="">All Months</option>
+              {[...Array(12)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {new Date(0, i).toLocaleString("en", { month: "long" })}
+                </option>
+              ))}
+            </select>
+
+            {/* Year Filter */}
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+            >
+              <option value="">All Years</option>
+              {Array.from(
+                new Set(items.map((p) => new Date(p.date).getFullYear()))
+              )
+                .filter((y) => !isNaN(y))
+                .sort((a, b) => b - a)
+                .map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+            </select>
             <button
-              className="px-7 rounded-md text-sm text-white bg-lightblue"
               onClick={() => {
-                setSearchQuery("");
+                setDayFilter("");
+                setMonthFilter("");
+                setYearFilter("");
                 setStatusFilter("all");
-                setDateFilter("");
-                setCurrentPage(1);
+                setSearchQuery("");
               }}
+              className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
             >
               Clear
             </button>

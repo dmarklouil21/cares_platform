@@ -57,6 +57,7 @@ const IndividualScreening = () => {
   //datefilter
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
 
   useEffect(() => {
     if (notificationType && notificationMessage) {
@@ -84,23 +85,28 @@ const IndividualScreening = () => {
   const filteredData = tableData.filter((record) => {
     const statusMatch =
       statusFilter === "All" || record.status === statusFilter;
+
     const searchMatch =
       !searchQuery ||
-      record.patient.patient_id.includes(searchQuery) ||
+      record.patient.patient_id
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
       record.patient.full_name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
 
+    // Convert created_at to date object
     const recordDate = new Date(record.created_at);
-    const recordMonth = recordDate.getMonth() + 1; // 1–12
+    const recordDay = recordDate.getDate();
+    const recordMonth = recordDate.getMonth() + 1; // month starts from 0
     const recordYear = recordDate.getFullYear();
-    const recordDateString = recordDate.toISOString().split("T")[0]; // yyyy-mm-dd
 
-    const dateMatch = !dateFilter || recordDateString === dateFilter;
+    const dayMatch = !dayFilter || recordDay === parseInt(dayFilter);
     const monthMatch = !monthFilter || recordMonth === parseInt(monthFilter);
     const yearMatch = !yearFilter || recordYear === parseInt(yearFilter);
 
-    return statusMatch && searchMatch && dateMatch && monthMatch && yearMatch;
+    // Combine filters
+    return statusMatch && searchMatch && dayMatch && monthMatch && yearMatch;
   });
 
   const handleViewClick = (id) => {
@@ -113,19 +119,20 @@ const IndividualScreening = () => {
     setLoading(true);
     setRemarksModalOpen(false);
     try {
-      const payload = { 
+      const payload = {
         status: modalAction.status,
-        remarks
+        remarks,
       };
       console.log("Reject Payload:", modalAction);
       await api.patch(
         `/cancer-screening/individual-screening/status-update/${modalAction.id}/`,
         payload
       );
-      navigate("/admin/cancer-screening", { 
-        state: { 
-          type: "success", message: "Updated Successfully." 
-        } 
+      navigate("/admin/cancer-screening", {
+        state: {
+          type: "success",
+          message: "Updated Successfully.",
+        },
       });
       setNotificationType("success");
       setNotificationMessage("Request Rejected");
@@ -321,49 +328,68 @@ const IndividualScreening = () => {
               <option value="Completed">Complete</option>
               <option value="Rejected">Reject</option>
             </select>
-            {/* Date filter */}
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="border border-gray-200 py-2 px-5 rounded-md"
-            />
 
-            {/* Month filter */}
+            {/* Day Filter (1–31) */}
             <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={dayFilter}
+              onChange={(e) => setDayFilter(e.target.value)}
+            >
+              <option value="">All Days</option>
+              {[...Array(31)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
+
+            {/* Month Filter */}
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
               value={monthFilter}
               onChange={(e) => setMonthFilter(e.target.value)}
-              className="border border-gray-200 py-2 px-5 rounded-md"
             >
               <option value="">All Months</option>
               {[...Array(12)].map((_, i) => (
                 <option key={i + 1} value={i + 1}>
-                  {new Date(0, i).toLocaleString("default", { month: "long" })}
+                  {new Date(0, i).toLocaleString("en", { month: "long" })}
                 </option>
               ))}
             </select>
 
-            {/* Year filter */}
+            {/* Year Filter */}
             <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="border border-gray-200 py-2 px-5 rounded-md"
             >
               <option value="">All Years</option>
-              {[2022, 2023, 2024, 2025].map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
+              {Array.from(
+                new Set(
+                  tableData.map((p) =>
+                    new Date(p.created_at || p.date_submitted).getFullYear()
+                  )
+                )
+              )
+                .filter((y) => !isNaN(y))
+                .sort((a, b) => b - a)
+                .map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
             </select>
 
             <button
               onClick={() => {
-                setDateFilter("");
+                setSearchQuery("");
+                setStatusFilter("All"); // must match your default state
+                setDayFilter("");
                 setMonthFilter("");
                 setYearFilter("");
+                setDateFilter(""); // optional, for consistency
               }}
-               className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
+              className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
             >
               clear
             </button>
@@ -461,31 +487,34 @@ const IndividualScreening = () => {
                           View
                         </button>
                         {item.status === "Pending" ? (
-                            <button
-                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
-                              onClick={() => {
-                                setModalAction({ status: "Rejected", id: item.id })
-                                setRemarksModalOpen(true)
-                              }}
-                            >
-                              Reject
-                            </button>
-                          ) : item.status === "Rejected" || item.status === "Completed" ? (
-                            <button
-                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
-                              onClick={() => handleActionClick(item.id, "delete")}
-                            >
-                              Delete
-                            </button>
-                          ) : (
-                            <button
-                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
-                              onClick={() => handleActionClick(item.id, "delete")}
-                            >
-                              Cancel
-                            </button>
-                          )
-                        }
+                          <button
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
+                            onClick={() => {
+                              setModalAction({
+                                status: "Rejected",
+                                id: item.id,
+                              });
+                              setRemarksModalOpen(true);
+                            }}
+                          >
+                            Reject
+                          </button>
+                        ) : item.status === "Rejected" ||
+                          item.status === "Completed" ? (
+                          <button
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
+                            onClick={() => handleActionClick(item.id, "delete")}
+                          >
+                            Delete
+                          </button>
+                        ) : (
+                          <button
+                            className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
+                            onClick={() => handleActionClick(item.id, "delete")}
+                          >
+                            Cancel
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

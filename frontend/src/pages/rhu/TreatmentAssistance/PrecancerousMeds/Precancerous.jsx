@@ -372,20 +372,12 @@ const PreCancerous = () => {
   const [verifyId, setVerifyId] = useState(null);
   const [verifyLoading, setVerifyLoading] = useState(false);
 
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
   // ⬇️ Normalize DOB for filtering; include stable sort
   const filteredResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    const dob = dobFilter || null;
-
-    const normDOB = (v) => {
-      if (!v) return null;
-      try {
-        // normalize to YYYY-MM-DD to match <input type="date" />
-        return new Date(v).toISOString().split("T")[0];
-      } catch {
-        return v; // fallback
-      }
-    };
 
     const rows = tableData.filter((p) => {
       const matchesSearch =
@@ -398,12 +390,26 @@ const PreCancerous = () => {
 
       const matchesStatus = statusFilter === "all" || p.status === statusFilter;
 
-      const matchesDob = !dob || normDOB(p.patient.date_of_birth) === dob;
+      // normalize date for filtering
+      const createdAt = new Date(p.created_at || p.date_submitted);
+      const recordDay = createdAt.getDate();
+      const recordMonth = createdAt.getMonth() + 1; // months are 0-based
+      const recordYear = createdAt.getFullYear();
 
-      return matchesSearch && matchesStatus && matchesDob;
+      const matchesDay = !dayFilter || Number(dayFilter) === recordDay;
+      const matchesMonth = !monthFilter || Number(monthFilter) === recordMonth;
+      const matchesYear = !yearFilter || Number(yearFilter) === recordYear;
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesDay &&
+        matchesMonth &&
+        matchesYear
+      );
     });
 
-    // stable, predictable output: Last name, First name, Patient no
+    // stable sorting for consistent UI
     return rows.sort((a, b) => {
       const la = (a.patient.last_name || "").toLowerCase();
       const lb = (b.patient.last_name || "").toLowerCase();
@@ -415,7 +421,14 @@ const PreCancerous = () => {
         String(b.patient.patient_id || "")
       );
     });
-  }, [tableData, searchQuery, statusFilter, dobFilter]);
+  }, [
+    tableData,
+    searchQuery,
+    statusFilter,
+    dayFilter,
+    monthFilter,
+    yearFilter,
+  ]);
 
   const totalRecords = filteredResults.length;
   const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
@@ -570,7 +583,9 @@ const PreCancerous = () => {
           </div>
 
           <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
-            <p className="text-md font-semibold text-yellow">Manage Pre-Cancerous Medication Request</p>
+            <p className="text-md font-semibold text-yellow">
+              Manage Pre-Cancerous Medication Request
+            </p>
 
             {/* filters */}
             <div className="flex justify-between flex-wrap gap-3">
@@ -579,7 +594,7 @@ const PreCancerous = () => {
                 placeholder="Search by patient no, first name, or last name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="border border-gray-200 py-2 w-[48%] px-5 rounded-md"
+                className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
               />
 
               <select
@@ -594,20 +609,68 @@ const PreCancerous = () => {
                 <option value="Done">Done</option>
               </select>
 
-              <input
-                type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
-                value={dobFilter}
-                onChange={(e) => setDobFilter(e.target.value)}
-              />
-
-              {/* <button
-                className="px-7 rounded-md text-sm bg-[#C5D7E5]"
-                onClick={() => loadList(statusFilter)}
-                title="Fetch from server using selected status"
+              {/* Day Filter (1–31) */}
+              <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={dayFilter}
+                onChange={(e) => setDayFilter(e.target.value)}
               >
-                Filter
-              </button> */}
+                <option value="">All Days</option>
+                {[...Array(31)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
+
+              {/* Month Filter */}
+              <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+              >
+                <option value="">All Months</option>
+                {[...Array(12)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {new Date(0, i).toLocaleString("en", { month: "long" })}
+                  </option>
+                ))}
+              </select>
+
+              {/* Year Filter */}
+              <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+              >
+                <option value="">All Years</option>
+                {Array.from(
+                  new Set(
+                    tableData.map((p) =>
+                      new Date(p.created_at || p.date_submitted).getFullYear()
+                    )
+                  )
+                )
+                  .filter((y) => !isNaN(y))
+                  .sort((a, b) => b - a)
+                  .map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+              </select>
+              <button
+                onClick={() => {
+                  setDayFilter("");
+                  setMonthFilter("");
+                  setYearFilter("");
+                  setStatusFilter("all");
+                  setSearchQuery("");
+                }}
+                className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
+              >
+                Clear
+              </button>
               <button
                 onClick={() => window.print()}
                 disabled={loading}
@@ -672,21 +735,20 @@ const PreCancerous = () => {
                             {p.patient.full_name}
                           </td>
                           <td className="text-center text-sm py-3 text-gray-800">
-                            {p.request_destination === "Rural Health Unit" ? 
-                            ("RHU - ") : 
-                            ("")}
+                            {p.request_destination === "Rural Health Unit"
+                              ? "RHU - "
+                              : ""}
                             {p.destination_name}
                           </td>
                           <td className="text-center text-sm py-3 text-gray-800">
                             {p.patient.date_of_birth
-                              ? new Date(p.patient.date_of_birth).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                  }
-                                )
+                              ? new Date(
+                                  p.patient.date_of_birth
+                                ).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })
                               : ""}
                           </td>
                           <td className="text-center text-sm py-3">
