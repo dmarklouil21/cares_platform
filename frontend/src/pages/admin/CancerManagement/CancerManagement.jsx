@@ -48,7 +48,7 @@ const AdminCancerManagement = () => {
   const [recordDateFilter, setRecordDateFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
-
+  const [dayFilter, setDayFilter] = useState("");
   useEffect(() => {
     if (notificationType && notificationMessage) {
       setNotification(notificationMessage);
@@ -72,41 +72,43 @@ const AdminCancerManagement = () => {
   }, []);
 
   // ---------- Filters ----------
- // ---------- Filters ----------
-const filteredData = tableData.filter((record) => {
-  const createdDate = new Date(record.date_submitted || record.created_at);
-  const createdYear = createdDate.getFullYear();
-  const createdMonth = createdDate.getMonth() + 1; // month index fix
-  const createdDay = createdDate.getDate();
+  // ---------- Filters ----------
+  const filteredData = tableData.filter((record) => {
+    const createdDate = new Date(record.date_submitted || record.created_at);
+    const createdYear = createdDate.getFullYear();
+    const createdMonth = createdDate.getMonth() + 1; // month index fix
+    const createdDay = createdDate.getDate();
 
-  // ✅ Status Filter
-  const statusMatch =
-    statusFilter === "All" || record.status === statusFilter;
+    // ✅ Status Filter
+    const statusMatch =
+      statusFilter === "All" || record.status === statusFilter;
 
-  // ✅ Search Filter
-  const searchMatch =
-    !searchQuery ||
-    record.patient.patient_id
-      ?.toLowerCase()
-      .includes(searchQuery.toLowerCase()) ||
-    record.patient.full_name
-      ?.toLowerCase()
-      .includes(searchQuery.toLowerCase());
+    // ✅ Search Filter
+    const searchMatch =
+      !searchQuery ||
+      record.patient.patient_id
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      record.patient.full_name
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
-  // ✅ Exact Date Filter
-  const dateMatch =
-    !dateFilter ||
-    new Date(record.date_submitted).toISOString().slice(0, 10) === dateFilter;
+    // ✅ Exact Date Filter
+    const dateMatch =
+      !dateFilter ||
+      new Date(record.date_submitted).toISOString().slice(0, 10) === dateFilter;
 
-  // ✅ Month Filter
-  const monthMatch = !monthFilter || createdMonth === Number(monthFilter);
+    // ✅ Day Filter
+    const dayMatch = !dayFilter || createdDay === Number(dayFilter);
 
-  // ✅ Year Filter
-  const yearMatch = !yearFilter || createdYear === Number(yearFilter);
+    // ✅ Month Filter
+    const monthMatch = !monthFilter || createdMonth === Number(monthFilter);
 
-  return statusMatch && searchMatch && dateMatch && monthMatch && yearMatch;
-});
+    // ✅ Year Filter
+    const yearMatch = !yearFilter || createdYear === Number(yearFilter);
 
+    return statusMatch && searchMatch && dayMatch && monthMatch && yearMatch;
+  });
 
   // ---------- Handlers ----------
   const handleViewClick = (id) => {
@@ -259,32 +261,41 @@ const filteredData = tableData.filter((record) => {
                 <option value="Completed">Completed</option>
                 {/* <option value="Rejected">Rejected</option> */}
               </select>
+              {/* Day Filter (1–31) */}
+              <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={dayFilter}
+                onChange={(e) => setDayFilter(e.target.value)}
+              >
+                <option value="">All Days</option>
+                {[...Array(31)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
 
-              <input
-                type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-              />
-
-                <select
+              {/* Month Filter */}
+              <select
                 className="border border-gray-200 py-2 px-3 rounded-md"
                 value={monthFilter}
                 onChange={(e) => setMonthFilter(e.target.value)}
               >
-                <option value="">All</option>
+                <option value="">All Months</option>
                 {[...Array(12)].map((_, i) => (
                   <option key={i + 1} value={i + 1}>
                     {new Date(0, i).toLocaleString("en", { month: "long" })}
                   </option>
                 ))}
               </select>
+
+              {/* Year Filter */}
               <select
                 className="border border-gray-200 py-2 px-3 rounded-md"
                 value={yearFilter}
                 onChange={(e) => setYearFilter(e.target.value)}
               >
-                <option value="">All</option>
+                <option value="">All Years</option>
                 {Array.from(
                   new Set(
                     tableData.map((p) =>
@@ -302,9 +313,11 @@ const filteredData = tableData.filter((record) => {
               </select>
               <button
                 onClick={() => {
-                  setDateFilter("");
+                  setDayFilter("");
                   setMonthFilter("");
                   setYearFilter("");
+                  setStatusFilter("All");
+                  setSearchQuery("");
                 }}
                 className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
               >

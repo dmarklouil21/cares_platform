@@ -376,10 +376,10 @@ const PreCancerous = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
-  // ⬇️ Normalize DOB for filtering; include stable sort
+  const [dayFilter, setDayFilter] = useState("");
+
   const filteredResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    const dob = dobFilter || null;
 
     const normDate = (v) => {
       if (!v) return null;
@@ -401,18 +401,14 @@ const PreCancerous = () => {
 
       const matchesStatus = statusFilter === "all" || p.status === statusFilter;
 
-      const matchesDob =
-        !dob ||
-        (p.patient.date_of_birth && p.patient.date_of_birth.startsWith(dob));
-
       const recordDateObj = normDate(p.created_at || p.date_submitted);
       if (!recordDateObj) return false;
 
       const recordYear = recordDateObj.getFullYear();
       const recordMonth = recordDateObj.getMonth() + 1;
-      const recordDateString = recordDateObj.toISOString().split("T")[0];
+      const recordDay = recordDateObj.getDate();
 
-      const matchesDate = !dateFilter || recordDateString === dateFilter;
+      const matchesDay = !dayFilter || recordDay === parseInt(dayFilter);
       const matchesMonth =
         !monthFilter || recordMonth === parseInt(monthFilter);
       const matchesYear = !yearFilter || recordYear === parseInt(yearFilter);
@@ -420,8 +416,7 @@ const PreCancerous = () => {
       return (
         matchesSearch &&
         matchesStatus &&
-        matchesDob &&
-        matchesDate &&
+        matchesDay &&
         matchesMonth &&
         matchesYear
       );
@@ -442,8 +437,7 @@ const PreCancerous = () => {
     tableData,
     searchQuery,
     statusFilter,
-    dobFilter,
-    dateFilter,
+    dayFilter,
     monthFilter,
     yearFilter,
   ]);
@@ -630,31 +624,41 @@ const PreCancerous = () => {
                 <option value="Done">Done</option>
               </select>
 
-              <input
-                type="date"
-                className="border border-gray-200 py-2 px-5 rounded-md"
-                value={dobFilter}
-                onChange={(e) => setDobFilter(e.target.value)}
-              />
+              {/* Day Filter (1–31) */}
+              <select
+                className="border border-gray-200 py-2 px-3 rounded-md"
+                value={dayFilter}
+                onChange={(e) => setDayFilter(e.target.value)}
+              >
+                <option value="">All Days</option>
+                {[...Array(31)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
 
+              {/* Month Filter */}
               <select
                 className="border border-gray-200 py-2 px-3 rounded-md"
                 value={monthFilter}
                 onChange={(e) => setMonthFilter(e.target.value)}
               >
-                <option value="">All</option>
+                <option value="">All Months</option>
                 {[...Array(12)].map((_, i) => (
                   <option key={i + 1} value={i + 1}>
                     {new Date(0, i).toLocaleString("en", { month: "long" })}
                   </option>
                 ))}
               </select>
+
+              {/* Year Filter */}
               <select
                 className="border border-gray-200 py-2 px-3 rounded-md"
                 value={yearFilter}
                 onChange={(e) => setYearFilter(e.target.value)}
               >
-                <option value="">All</option>
+                <option value="">All Years</option>
                 {Array.from(
                   new Set(
                     tableData.map((p) =>
@@ -672,11 +676,13 @@ const PreCancerous = () => {
               </select>
               <button
                 onClick={() => {
-                  setDateFilter("");
+                  setSearchQuery("");
+                  setStatusFilter("all");
+                  setDayFilter("");
                   setMonthFilter("");
                   setYearFilter("");
                 }}
-                 className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
+                className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
               >
                 Clear
               </button>

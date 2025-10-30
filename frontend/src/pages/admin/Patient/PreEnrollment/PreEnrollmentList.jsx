@@ -28,7 +28,7 @@ const PreEnrollmentList = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
-
+  const [dayFilter, setDayFilter] = useState("");
   // Notification
   const [notification, setNotification] = useState("");
   const [notificationType, setNotificationType] = useState(
@@ -60,31 +60,38 @@ const PreEnrollmentList = () => {
 
   const filteredResults =
     tableData.filter((record) => {
+      // --- Search filter ---
       const matchesSearch =
         !searchQuery ||
         record.patient_id?.toString().includes(searchQuery) ||
         record.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
 
+      // --- Status filter ---
       const matchesStatus =
         statusFilter === "all" || record.status === statusFilter;
 
+      // --- Date-related filters ---
       if (!record.created_at) return false;
       const recordDate = new Date(record.created_at);
       if (isNaN(recordDate)) return false;
 
       const recordDateString = recordDate.toISOString().split("T")[0];
+      const recordDay = recordDate.getDate();
       const recordMonth = recordDate.getMonth() + 1;
       const recordYear = recordDate.getFullYear();
 
       const matchesDate = !dateFilter || recordDateString === dateFilter;
+      const matchesDay = !dayFilter || recordDay === parseInt(dayFilter);
       const matchesMonth =
         !monthFilter || recordMonth === parseInt(monthFilter);
       const matchesYear = !yearFilter || recordYear === parseInt(yearFilter);
 
+      // --- Combine all filters ---
       return (
         matchesSearch &&
         matchesStatus &&
         matchesDate &&
+        matchesDay &&
         matchesMonth &&
         matchesYear
       );
@@ -252,52 +259,49 @@ const PreEnrollmentList = () => {
               <option value="pending">Pending</option>
               {/* Add others if needed */}
             </select>
-            {/* Date Filter */}
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => {
-                setDateFilter(e.target.value);
-                setMonthFilter("");
-                setYearFilter("");
-              }}
-              className="border border-gray-200 rounded-md p-2 bg-white"
-            />
+            {/* Day Filter (1–31) */}
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={dayFilter}
+              onChange={(e) => setDayFilter(e.target.value)}
+            >
+              <option value="">All Days</option>
+              {[...Array(31)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
 
             {/* Month Filter */}
             <select
-              className="border border-gray-200 rounded-md p-2 bg-white"
+              className="border border-gray-200 py-2 px-3 rounded-md"
               value={monthFilter}
-              onChange={(e) => {
-                setMonthFilter(e.target.value);
-                setDateFilter("");
-              }}
+              onChange={(e) => setMonthFilter(e.target.value)}
             >
               <option value="">All Months</option>
               {[...Array(12)].map((_, i) => (
                 <option key={i + 1} value={i + 1}>
-                  {new Date(0, i).toLocaleString("default", { month: "long" })}
+                  {new Date(0, i).toLocaleString("en", { month: "long" })}
                 </option>
               ))}
             </select>
 
             {/* Year Filter */}
             <select
-              className="border border-gray-200 rounded-md p-2 bg-white"
+              className="border border-gray-200 py-2 px-3 rounded-md"
               value={yearFilter}
-              onChange={(e) => {
-                setYearFilter(e.target.value);
-                setDateFilter("");
-              }}
+              onChange={(e) => setYearFilter(e.target.value)}
             >
               <option value="">All Years</option>
               {Array.from(
                 new Set(
-                  tableData
-                    .map((r) => new Date(r.created_at).getFullYear())
-                    .filter((y) => !isNaN(y))
+                  tableData.map((p) =>
+                    new Date(p.created_at || p.date_submitted).getFullYear()
+                  )
                 )
               )
+                .filter((y) => !isNaN(y))
                 .sort((a, b) => b - a)
                 .map((year) => (
                   <option key={year} value={year}>
@@ -312,6 +316,7 @@ const PreEnrollmentList = () => {
                 setSearchQuery("");
                 setStatusFilter("all");
                 setDateFilter("");
+                setDayFilter("");
                 setMonthFilter("");
                 setYearFilter("");
               }}

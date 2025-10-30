@@ -54,6 +54,8 @@ const AdminMassScreening = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
+
   /* ----------------------------- Pagination --------------------------- */
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -65,16 +67,17 @@ const AdminMassScreening = () => {
       const matchesStatus =
         statusFilter === "all" ? true : (it.status ?? "") === statusFilter;
 
-      // Handle date, month, and year filters
+      // Skip invalid or missing date values
       if (!it.date) return false;
       const recordDate = new Date(it.date);
       if (isNaN(recordDate)) return false;
 
-      const recordDateString = recordDate.toISOString().split("T")[0];
+      const recordDay = recordDate.getDate();
       const recordMonth = recordDate.getMonth() + 1;
       const recordYear = recordDate.getFullYear();
 
-      const matchesDate = !dateFilter || recordDateString === dateFilter;
+      // ✅ Now includes day filter
+      const matchesDay = !dayFilter || recordDay === parseInt(dayFilter);
       const matchesMonth =
         !monthFilter || recordMonth === parseInt(monthFilter);
       const matchesYear = !yearFilter || recordYear === parseInt(yearFilter);
@@ -88,12 +91,12 @@ const AdminMassScreening = () => {
       return (
         matchesStatus &&
         matchesSearch &&
-        matchesDate &&
+        matchesDay &&
         matchesMonth &&
         matchesYear
       );
     });
-  }, [items, statusFilter, dateFilter, monthFilter, yearFilter, searchQuery]);
+  }, [items, statusFilter, dayFilter, monthFilter, yearFilter, searchQuery]);
 
   const totalRecords = filteredData.length;
   const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
@@ -247,14 +250,19 @@ const AdminMassScreening = () => {
               <option value="Rejected">Rejected</option>
               <option value="Done">Done</option>
             </select>
-            {/* Date Filter */}
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="border border-gray-200 rounded-md p-2 bg-white"
-              aria-label="Filter by Date"
-            />
+            {/* Day Filter (1–31) */}
+            <select
+              className="border border-gray-200 py-2 px-3 rounded-md"
+              value={dayFilter}
+              onChange={(e) => setDayFilter(e.target.value)}
+            >
+              <option value="">All Days</option>
+              {[...Array(31)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
 
             {/* Month Filter */}
             <select
@@ -295,13 +303,13 @@ const AdminMassScreening = () => {
             {/* Clear Filters */}
             <button
               onClick={() => {
-                setDateFilter("");
+                setDayFilter("");
                 setMonthFilter("");
                 setYearFilter("");
                 setStatusFilter("all");
                 setSearchQuery("");
               }}
-                className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
+              className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
             >
               Clear
             </button>
