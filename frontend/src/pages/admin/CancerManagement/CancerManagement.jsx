@@ -5,10 +5,12 @@ import { Printer, FileText, FileDown } from "lucide-react";
 
 import api from "src/api/axiosInstance";
 
+import RemarksModal from "src/components/Modal/RemarksModal";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import Notification from "src/components/Notification";
 import LoadingModal from "src/components/Modal/LoadingModal";
+import SystemLoader from "src/components/SystemLoader";
 import { Info } from "lucide-react";
 
 // ⬇️ PRINT TEMPLATE
@@ -44,6 +46,9 @@ const AdminCancerManagement = () => {
   const [modalText, setModalText] = useState("");
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
+
+  const [remarksModalOpen, setRemarksModalOpen] = useState(false);
+  const [remarks, setRemarks] = useState("");
 
   const [recordDateFilter, setRecordDateFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
@@ -116,6 +121,50 @@ const AdminCancerManagement = () => {
     navigate(`/admin/cancer-management/view/${id}`, {
       state: { record: selected },
     });
+  };
+
+  const handleReject = async () => {
+    // setModalAction({ status: item.status, id: item.id })
+    setLoading(true);
+    setRemarksModalOpen(false);
+    try {
+      const payload = {
+        status: modalAction.status,
+        remarks,
+      };
+
+      await api.patch(
+        `/cancer-management/cancer-treatment/status-update/${modalAction.id}/`,
+        payload
+      );
+      navigate("/admin/cancer-management", {
+        state: {
+          type: "success",
+          message: "Updated Successfully.",
+        },
+      });
+      setNotificationType("success");
+      setNotificationMessage("Request Rejected");
+      fetchData();
+      // await api.patch(
+      //   `/cancer-screening/individual-screening/status-reject/${modalAction.id}/`,
+      //   { status: modalAction.newStatus, remarks }
+      // );
+      // navigate("/admin/cancer-screening", {
+      //   state: {
+      //     type: "success", message: "Request Rejected."
+      //   }
+      // });
+    } catch {
+      setModalInfo({
+        type: "error",
+        title: "Failed",
+        message: "Something went wrong while rejecting request.",
+      });
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleModalConfirm = async () => {
@@ -214,7 +263,18 @@ const AdminCancerManagement = () => {
           onClose={() => setShowModal(false)}
         />
         <Notification message={notification} type={notificationType} />
-        <LoadingModal open={loading} text="Submitting changes..." />
+        <RemarksModal 
+          open={remarksModalOpen}
+          title="Remarks"
+          placeholder="Enter your remarks here..."
+          value={remarks}
+          onChange={(e) => setRemarks(e.target.value)}
+          onCancel={() => setRemarksModalOpen(false)}
+          onConfirm={handleReject}
+          confirmText="Confirm"
+        />
+        {loading && <SystemLoader />}
+        {/* <LoadingModal open={loading} text="Submitting changes..." /> */}
 
         <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
           <div className="flex justify-between items-center w-full">
@@ -428,12 +488,35 @@ const AdminCancerManagement = () => {
                           >
                             View
                           </button>
-                          <button
-                            className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
-                            onClick={() => handleDelete(item.id, "delete")}
-                          >
-                            Delete
-                          </button>
+                          {item.status === "Pending" ? (
+                            <button
+                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
+                              onClick={() => {
+                                setModalAction({
+                                  status: "Rejected",
+                                  id: item.id,
+                                });
+                                setRemarksModalOpen(true);
+                              }}
+                            >
+                              Reject
+                            </button>
+                          ) : item.status === "Rejected" ||
+                              item.status === "Completed" ? (
+                            <button
+                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
+                              onClick={() => handleDelete(item.id, "delete")}
+                            >
+                              Delete
+                            </button>
+                          ) : (
+                            <button
+                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
+                              onClick={() => handleDelete(item.id, "delete")}
+                            >
+                              Cancel
+                            </button>
+                            )}
                         </td>
                       </tr>
                     ))}

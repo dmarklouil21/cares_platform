@@ -154,6 +154,7 @@ class CancerTreatmentRequestStatusUpdateView(generics.UpdateAPIView):
 
   def perform_update(self, serializer):
     instance = serializer.save(has_patient_response=False, response_description='')
+    request = self.request
 
     patient = instance.patient
     request_status = instance.status
@@ -173,12 +174,14 @@ class CancerTreatmentRequestStatusUpdateView(generics.UpdateAPIView):
     
     instance.save()
     patient.save()
+    remarks = request.data.get('remarks')
 
     email_status = send_cancer_treatment_status_email(
       patient=instance.patient, 
       status=instance.status, 
       treatment_date=instance.treatment_date, 
       interview_date=instance.interview_date,
+      remarks=remarks
     )
     if email_status is not True:
       logger.error(f"Email failed to send: {email_status}")

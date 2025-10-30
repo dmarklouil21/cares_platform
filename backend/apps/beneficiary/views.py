@@ -334,6 +334,56 @@ class CancerManagementDetailedView(generics.RetrieveAPIView):
   #     qs = qs.filter(patient__patient_id=patient_id)
 
   #   return qs 
+
+class CancerManagementUpdateView(generics.UpdateAPIView):
+  queryset = CancerTreatment.objects.all()
+  serializer_class = CancerTreatmentSerializer
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def perform_update(self, serializer):
+    instance = self.get_object()
+
+    if instance.has_patient_response:
+      raise ValidationError({
+        'non_field_errors': [
+          "You already resubmitted your request. Please wait for its feedback before submitting again."
+        ]
+      })
+
+    try:
+      with transaction.atomic():
+        # Save the updated screening info
+        instance = serializer.save(
+          has_patient_response=True,
+          response_description='Resubmitted treatment service request',
+          status='Pending'
+        )
+
+        # Handle uploaded files
+        files_dict = {
+          key.split("files.")[1]: value
+          for key, value in self.request.FILES.items()
+          if key.startswith("files.")
+        }
+
+        for key, file in files_dict.items():
+          # Remove any existing attachment of the same type for this screening
+          ServiceAttachment.objects.filter(
+              cancer_treatment=instance,
+              doc_type=key
+          ).delete()
+          
+          ServiceAttachment.objects.create(
+            cancer_treatment=instance,
+            file=file,
+            doc_type=key
+          )
+
+    except Exception as e:
+      logger.error(f"Error during resubmission: {str(e)}")
+      raise ValidationError({"non_field_errors": ["An error occurred while resubmitting the request."]}) 
   
 class CancerManagementListView(generics.ListAPIView):
   serializer_class = CancerTreatmentSerializer

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { data, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
+import { RotateCcw, RefreshCcw, Upload, Repeat } from "lucide-react";
 import api from "src/api/axiosInstance";
 
 import Notification from "src/components/Notification";
@@ -330,7 +331,7 @@ const CancerTreatmentApplication = () => {
                         <td className="text-center text-sm py-4 flex gap-2 justify-center">
                           {" "}
                           {/*flex py-2 gap-2 px-2 justify-around text-sm text-center text-[#333333]" */}
-                          {app.status !== "Pending" && (
+                          {app.status !== "Pending" || app.status !== "Rejected" && (
                             <button
                               type="button"
                               className="text-white py-1 px-3 rounded-md shadow bg-primary cursor-pointer"
@@ -341,6 +342,22 @@ const CancerTreatmentApplication = () => {
                               View
                             </button>
                           )}
+                          {app.status === "Rejected" && (
+                              <button
+                                type="button"
+                                className="text-white py-1 px-3 rounded-md shadow bg-yellow cursor-pointer"
+                                onClick={() => {
+                                  navigate("/beneficiary/services/cancer-management/apply/upload-documents", {
+                                    state: { id: app.id },
+                                  });
+                                }}
+                              >
+                                {" "}
+                                {/*custom-shadow w-[50%] cursor-pointer text-white bg-primary py-[5px] rounded-md px-3 */}
+                                {/* Resubmit */}
+                                <RotateCcw size={16} />
+                              </button>
+                            )}
                           {app.status !== "Complete" && (
                             <button
                               type="button"

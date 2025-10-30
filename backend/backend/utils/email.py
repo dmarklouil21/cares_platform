@@ -254,93 +254,115 @@ def send_mass_screening_status_email(rhu, status, request_obj=None, remarks=None
     return str(e)
   
 def send_cancer_treatment_status_email(patient, status, treatment_date=None, interview_date=None, remarks=None):
-  try:
-    first_name, last_name, recipient_email = _extract_contact_info(patient)
-    if not recipient_email:
-      raise ValueError("Recipient email not found for patient.")
-    # Friendly but professional messages
-    approved_date = treatment_date.strftime('%B %d, %Y') if treatment_date else "to be announced"
-    interview_date_str = interview_date.strftime('%B %d, %Y') if interview_date else "to be announced"
-    status_messages = {
-      "Approved": (
-        "Great news! Your screening request has been <b>approved</b>. "
-        f"Your cancer screening has been scheduled for <b>{approved_date}</b>. "
-        "Please make sure to arrive at least 15 minutes early and bring any required identification."
-        # "Please fill out the <b>Screening Procedure Form</b> and upload the required documents to proceed with your application."
-      ),
-      "Interview Process": (
-        f"Your innterview is scheduled on <b>{interview_date_str}</b>. "
-      ),
-      "Case Summary Generation": (
-        "Your case summary and intervention plan has been to this email</b>. "
-      ),
-      "Completed": (
-        "Your screening process has been <b>successfully completed</b>. "
-        "Thank you for your cooperation and commitment to your health."
-      ),
-      "Rejected": (
-        "Unfortunately, your screening request has been <b>rejected</b>. "
-        "If you believe this decision was made in error or wish to reapply, please contact our support team."
-        f"<br><br><b>Remarks:</b> {remarks}" if remarks else ""
-      )
-    }
+    try:
+        # Extract recipient info
+        first_name = getattr(patient, "first_name", "")
+        last_name = getattr(patient, "last_name", "")
+        recipient_email = getattr(patient.user, "email", None)
 
-    message_body = status_messages.get(status, "Your screening status has been updated.")
+        if not recipient_email:
+            raise ValueError("Recipient email not found for patient.")
 
-    # Status badge colors
-    status_colors = {
-      "Approved": "#28a745",
-      "Interview Process": "#17a2b8",
-      "Completed": "#007bff",
-      "Rejected": "#dc3545"
-    }
-    badge_color = status_colors.get(status, "#6c757d")
+        # Format dates
+        treatment_date_str = treatment_date.strftime("%B %d, %Y") if treatment_date else "to be announced"
+        interview_date_str = interview_date.strftime("%B %d, %Y") if interview_date else "to be announced"
 
-    send_mail(
-      subject="RAFI-EJACC: Cancer Treatment Request Status Update",
-      message="",  # Plain text fallback if needed
-      from_email=settings.DEFAULT_FROM_EMAIL,
-      recipient_list=[patient.user.email],
-      fail_silently=False,
-      html_message=f"""
+        # Message dictionary (friendly + status-specific)
+        status_messages = {
+            "Approved": (
+                f"Good news! Your cancer treatment request has been <b>approved</b>. "
+                f"Your treatment is scheduled for <b>{treatment_date_str}</b>. "
+                "Please arrive at least 15 minutes early and bring a valid ID and any relevant medical records."
+            ),
+            "Interview Process": (
+                f"Your interview has been scheduled for <b>{interview_date_str}</b>. "
+                "Please check your application portal for additional details or required documents."
+            ),
+            "Case Summary Generation": (
+                "Your case summary and intervention plan are currently being prepared. "
+                "You will receive an update once your summary is available."
+            ),
+            "Completed": (
+                "Your cancer treatment process has been <b>successfully completed</b>. "
+                "We appreciate your trust in RAFI-EJACC and wish you continued good health."
+            ),
+            "Rejected": (
+                "We regret to inform you that your cancer treatment request has been <b>rejected</b>. "
+                "If you believe this decision was made in error or would like to reapply, please contact our support team."
+                + (f"<br><br><b>Remarks:</b> {remarks}" if remarks else "")
+            ),
+        }
+
+        message_body = status_messages.get(
+            status, "Your treatment request status has been updated. Please check your account for more details."
+        )
+
+        # Badge color per status
+        status_colors = {
+            "Approved": "#28a745",
+            "Interview Process": "#17a2b8",
+            "Case Summary Generation": "#ffc107",
+            "Completed": "#007bff",
+            "Rejected": "#dc3545",
+        }
+        badge_color = status_colors.get(status, "#6c757d")
+
+        # Build email HTML
+        html_message = f"""
         <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
-            <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-                <!-- Header -->
-                <div style="background: #005baa; padding: 20px; text-align: center;">
-                    <img src="https://rafi.org.ph/wp-content/uploads/2021/03/RAFI-LOGO-1.png" alt="RAFI Logo" style="height: 50px; display: block; margin: 0 auto 10px;">
-                    <h2 style="color: #fff; margin: 0; font-weight: normal;">Cancer Treatment Application Status Update</h2>
-                </div>
-                
-                <!-- Content -->
-                <div style="padding: 30px;">
-
-                    <p style="margin: 0 0 15px 0;">Dear <b>{patient.first_name} {patient.last_name}</b>,</p>
-                    
-                    <!-- Status Badge -->
-                    <div style="display: inline-block; background: {badge_color}; color: white; padding: 5px 12px; border-radius: 12px; font-size: 14px; margin-bottom: 15px;">
-                        {status}
-                    </div>
-
-                    <p style="font-size: 15px; line-height: 1.6; color: #333;">{message_body}</p>
-
-                    <!-- CTA Button --> <!-- settings.FRONTEND_URL -->
-                    <a href="/login" style="display: inline-block; margin-top: 20px; padding: 12px 20px; background: #005baa; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                        View Your Application Details
-                    </a>
-                </div>
-
-                <!-- Footer -->
-                <div style="background: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #777;"> <!-- settings.SUPPORT_EMAIL --> <!-- settings.SUPPORT_EMAIL --> 
-                    <p>If you have any questions, please contact our support team at <a href="mailto:no-reply@gmail.com" style="color: #005baa;">no-reply@gmail.com</a>.</p>
-                    <p>This is an automated message from RAFI-EJACC. Please do not reply directly to this email.</p>
-                </div>
+          <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+            
+            <!-- Header -->
+            <div style="background: #005baa; padding: 20px; text-align: center;">
+              <img src="https://rafi.org.ph/wp-content/uploads/2021/03/RAFI-LOGO-1.png"
+                   alt="RAFI Logo"
+                   style="height: 50px; display: block; margin: 0 auto 10px;">
+              <h2 style="color: #fff; margin: 0; font-weight: normal;">Cancer Treatment Request Update</h2>
             </div>
+
+            <!-- Body -->
+            <div style="padding: 30px;">
+              <p style="margin: 0 0 15px 0;">Dear <b>{first_name} {last_name}</b>,</p>
+
+              <!-- Status badge -->
+              <div style="display: inline-block; background: {badge_color}; color: white; padding: 5px 12px; border-radius: 12px; font-size: 14px; margin-bottom: 15px;">
+                {status}
+              </div>
+
+              <p style="font-size: 15px; line-height: 1.6; color: #333;">{message_body}</p>
+
+              <!-- CTA -->
+              <a href="/login"
+                 style="display: inline-block; margin-top: 20px; padding: 12px 20px; background: #005baa; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                View Your Application Details
+              </a>
+            </div>
+
+            <!-- Footer -->
+            <div style="background: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+              <p>If you have any questions, please contact our support team at
+                <a href="#" style="color: #005baa;">cares_platform@gmail.com</a>.
+              </p>
+              <p>This is an automated message from RAFI-EJACC. Please do not reply directly to this email.</p>
+            </div>
+          </div>
         </div>
-      """
-    )
-    return True
-  except Exception as e:
-    return str(e)
+        """
+
+        # Send the email
+        send_mail(
+            subject="RAFI-EJACC: Cancer Treatment Request Status Update",
+            message="Your cancer treatment request status has been updated.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[recipient_email],
+            fail_silently=False,
+            html_message=html_message,
+        )
+
+        return True
+
+    except Exception as e:
+        return str(e)
 
 def send_return_remarks_email(patient, remarks):
   try:

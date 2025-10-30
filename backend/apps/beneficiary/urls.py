@@ -34,6 +34,7 @@ urlpatterns = [
   path('cancer-treatment/submit/', views.CancerTreatmentSubmissionView.as_view(), name='cancer_treatment_submission'),
   path('cancer-treatment/list/', views.CancerManagementListView.as_view(), name='cancer_management_list_view'),
   path('cancer-treatment/details/', views.CancerManagementDetailedView.as_view(), name='detailed_view'),
+  path('cancer-treatment/update/<str:id>/', views.CancerManagementUpdateView.as_view(), name='update_view'),
   path('cancer-treatment/case-summary/upload/<str:id>/', views.CaseSummaryUploadView.as_view(), name='case_summary_upload_view'),
   path('cancer-treatment/result/upload/<str:id>/', views.TreatmentResultUploadView.as_view(), name='result_upload_view'),
 
