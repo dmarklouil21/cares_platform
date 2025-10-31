@@ -1,7 +1,6 @@
-// src/pages/treatment/AdminPreCancerous.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { Printer, FileText, FileDown } from "lucide-react";
+import { Printer, CheckCircle, X, Trash2 } from "lucide-react";
 import {
   adminListPreCancerousMeds,
   adminVerifyPreCancerousMeds,
@@ -9,54 +8,15 @@ import {
   adminDonePreCancerousMeds,
 } from "src/api/precancerous";
 
-// ⬇️ PRINT TEMPLATE
-import PreCancerousPrint from "./generate/generate";
+import RemarksModal from "src/components/Modal/RemarksModal";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import Notification from "src/components/Notification";
+import SystemLoader from "src/components/SystemLoader";
 
+import PreCancerousPrint from "./generate/generate";
 import api from "src/api/axiosInstance";
 
-// ----- ui bits -----
-function ConfirmationModal({ open, text, onConfirm, onCancel }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px]">
-      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
-        <p className="mb-6 text-base font-semibold text-gray-800">{text}</p>
-        <div className="flex gap-4">
-          <button
-            className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/70"
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-          <button
-            className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-400"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Notification({ message }) {
-  if (!message) return null;
-  return (
-    <div className="fixed top-2 left-1/2 -translate-x-1/2 z-50 transition-all duration-500">
-      <div className="bg-gray2 text-white px-4 py-2 rounded shadow-lg flex items-center gap-2">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="Rafi Logo"
-          className="h-[20px]"
-        />
-        <span className="text-sm">{message}</span>
-      </div>
-    </div>
-  );
-}
-
-// Lightweight inline calendar with month navigation and min-date support (YYYY-MM-DD)
+// Lightweight inline calendar with month navigation and min-date support
 function MiniCalendar({ selected, min, onSelect }) {
   const parse = (s) => (s ? new Date(s + "T00:00:00") : null);
   const fmt = (d) => {
@@ -71,14 +31,14 @@ function MiniCalendar({ selected, min, onSelect }) {
 
   const init = sel || today;
   const [y, setY] = useState(init.getFullYear());
-  const [m, setM] = useState(init.getMonth()); // 0-11
+  const [m, setM] = useState(init.getMonth());
 
   const first = new Date(y, m, 1);
-  const startWeekday = (first.getDay() + 6) % 7; // Mon=0 ... Sun=6
+  const startWeekday = (first.getDay() + 6) % 7;
   const daysInMonth = new Date(y, m + 1, 0).getDate();
 
   const weeks = [];
-  let day = 1 - startWeekday; // start from Monday before the 1st
+  let day = 1 - startWeekday;
   for (let w = 0; w < 6; w++) {
     const row = [];
     for (let d = 0; d < 7; d++, day++) {
@@ -98,7 +58,7 @@ function MiniCalendar({ selected, min, onSelect }) {
 
   const canGoPrev = (() => {
     if (!minStr) return true;
-    const prevLastStr = fmt(new Date(y, m, 0)); // last day prev month
+    const prevLastStr = fmt(new Date(y, m, 0));
     return prevLastStr >= minStr;
   })();
 
@@ -208,13 +168,16 @@ function VerifyModal({ open, onClose, onConfirm, value, onChange, loading }) {
   const [openCal, setOpenCal] = useState(false);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px]">
-      <div className="bg-white rounded-lg shadow-lg p-8 min-w-[340px] flex flex-col gap-3">
-        <p className="text-base font-semibold text-gray-800">
-          Set release date to verify this request
+      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          Set Release Date
+        </h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Set the release date to verify this medication request.
         </p>
         <div className="relative">
-          <label className="text-sm text-gray-700" htmlFor="releaseDate">
-            Release date of meds
+          <label className="text-sm text-gray-700 font-medium" htmlFor="releaseDate">
+            Release Date
           </label>
           <div className="mt-1 flex items-center gap-2">
             <input
@@ -222,18 +185,17 @@ function VerifyModal({ open, onClose, onConfirm, value, onChange, loading }) {
               type="text"
               readOnly
               placeholder="YYYY-MM-DD"
-              className="w-full border border-gray-300 rounded px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               value={value || ""}
               onClick={() => setOpenCal((v) => !v)}
               autoFocus
             />
             <button
               type="button"
-              className="p-2 rounded border border-gray-300 hover:bg-gray-50"
+              className="p-2 rounded-md border border-gray-300 hover:bg-gray-50 transition-colors"
               onClick={() => setOpenCal((v) => !v)}
               aria-label="Open calendar"
             >
-              {/* inline calendar icon */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -244,7 +206,7 @@ function VerifyModal({ open, onClose, onConfirm, value, onChange, loading }) {
               </svg>
             </button>
           </div>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-500 mt-1 block">
             Pick a date from the calendar. Past dates are disabled.
           </span>
 
@@ -262,7 +224,7 @@ function VerifyModal({ open, onClose, onConfirm, value, onChange, loading }) {
                 <div className="mt-2 flex items-center justify-between gap-2">
                   <button
                     type="button"
-                    className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    className="px-3 py-1 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-sm"
                     onClick={() => {
                       onChange(today);
                       setOpenCal(false);
@@ -272,7 +234,7 @@ function VerifyModal({ open, onClose, onConfirm, value, onChange, loading }) {
                   </button>
                   <button
                     type="button"
-                    className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    className="px-3 py-1 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-sm"
                     onClick={() => onChange("")}
                   >
                     Clear
@@ -282,16 +244,16 @@ function VerifyModal({ open, onClose, onConfirm, value, onChange, loading }) {
             </div>
           )}
         </div>
-        <div className="flex gap-3 justify-end">
+        <div className="flex gap-3 justify-end mt-6">
           <button
-            className="px-4 py-1.5 rounded bg-gray-200 text-gray-700"
+            className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors text-sm font-medium"
             onClick={onClose}
             disabled={loading}
           >
             Cancel
           </button>
           <button
-            className={`px-4 py-1.5 rounded text-white ${
+            className={`px-4 py-2 rounded-md text-white text-sm font-medium transition-colors ${
               value
                 ? "bg-primary hover:bg-primary/80"
                 : "bg-gray-400 cursor-not-allowed"
@@ -311,7 +273,8 @@ const PreCancerous = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // data
+  // Data
+  const [modalDesc, setModalDesc] = useState("Confirm before proceeding");
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -332,17 +295,15 @@ const PreCancerous = () => {
   };
 
   useEffect(() => {
-    // Initial load → ALL (no status param)
     loadList();
   }, []);
 
-  // flash message from Add page (show once, then clear)
+  // Notification
   const [notification, setNotification] = useState("");
   useEffect(() => {
     const flash = location.state?.flash;
     if (flash) {
       setNotification(flash);
-      // clear the route state so message doesn't reappear on refresh/back
       navigate(location.pathname, { replace: true, state: {} });
       const t = setTimeout(() => setNotification(""), 3000);
       return () => clearTimeout(t);
@@ -355,28 +316,28 @@ const PreCancerous = () => {
     return () => clearTimeout(t);
   }, [notification]);
 
-  // filters & paging
+  // Filters & Pagination
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [dobFilter, setDobFilter] = useState(""); // YYYY-MM-DD
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
 
-  // modal & pending action
+  // Modals
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
-  const [pendingAction, setPendingAction] = useState(null); // { id, action }
+  const [pendingAction, setPendingAction] = useState(null);
 
-  // verify modal states
+  // Verify Modal
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [verifyDate, setVerifyDate] = useState("");
   const [verifyId, setVerifyId] = useState(null);
   const [verifyLoading, setVerifyLoading] = useState(false);
-  const [recordDateFilter, setRecordDateFilter] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
-  const [monthFilter, setMonthFilter] = useState("");
-  const [yearFilter, setYearFilter] = useState("");
-  const [dayFilter, setDayFilter] = useState("");
+
+  const [remarksModalOpen, setRemarksModalOpen] = useState(false);
+  const [remarks, setRemarks] = useState("");
 
   const filteredResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -409,8 +370,7 @@ const PreCancerous = () => {
       const recordDay = recordDateObj.getDate();
 
       const matchesDay = !dayFilter || recordDay === parseInt(dayFilter);
-      const matchesMonth =
-        !monthFilter || recordMonth === parseInt(monthFilter);
+      const matchesMonth = !monthFilter || recordMonth === parseInt(monthFilter);
       const matchesYear = !yearFilter || recordYear === parseInt(yearFilter);
 
       return (
@@ -446,7 +406,7 @@ const PreCancerous = () => {
   const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
   useEffect(
     () => setCurrentPage(1),
-    [recordsPerPage, searchQuery, statusFilter, dobFilter, totalRecords]
+    [recordsPerPage, searchQuery, statusFilter, totalRecords]
   );
 
   const paginated = filteredResults.slice(
@@ -454,11 +414,10 @@ const PreCancerous = () => {
     currentPage * recordsPerPage
   );
 
-  // actions
+  // Actions
   const openConfirm = (id, action) => {
     if (action === "verify") {
       setVerifyId(id);
-      // Prefill with today's date (YYYY-MM-DD)
       const d = new Date();
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -533,9 +492,17 @@ const PreCancerous = () => {
     navigate(`/admin/treatment-assistance/view/${id}`);
   };
 
+  const statusColors = {
+    Pending: "bg-yellow-100 text-yellow-700",
+    Verified: "bg-green-100 text-green-700",
+    Rejected: "bg-red-100 text-red-700",
+    Done: "bg-blue-100 text-blue-700",
+    Completed: "bg-green-100 text-green-700",
+    Default: "bg-gray-100 text-gray-700",
+  };
+
   return (
     <>
-      {/* --- Print rules: only show the print template during print --- */}
       <style>{`
         :root { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         @media print {
@@ -551,20 +518,21 @@ const PreCancerous = () => {
         .master-table, .master-table th, .master-table td, .master-table tr { border: 0 !important; }
       `}</style>
 
-      {/* --- PRINT-ONLY CONTENT --- */}
+      {/* PRINT CONTENT */}
       <div id="print-root">
-        {/* Pass ALL filtered rows (not paginated) */}
         <PreCancerousPrint rows={filteredResults} />
       </div>
 
-      {/* --- SCREEN CONTENT --- */}
+      {/* SCREEN CONTENT */}
       <div id="precancerous-root">
         <ConfirmationModal
           open={modalOpen}
-          text={modalText}
+          title={modalText}
+          desc={modalDesc}
           onConfirm={doAction}
           onCancel={cancelAction}
         />
+        
         <VerifyModal
           open={verifyOpen}
           onClose={() => {
@@ -579,320 +547,305 @@ const PreCancerous = () => {
           onChange={setVerifyDate}
           loading={verifyLoading}
         />
+        
         <Notification message={notification} />
+        <RemarksModal 
+          open={remarksModalOpen}
+          title="Remarks"
+          placeholder="Enter your remarks here..."
+          value={remarks}
+          onChange={(e) => setRemarks(e.target.value)}
+          onCancel={() => setRemarksModalOpen(false)}
+          // onConfirm={handleReject}
+          confirmText="Confirm"
+        />
 
-        <div className="h-screen w-full flex p-5 gap-3 flex-col justify-start items-center bg-gray">
+        {loading && <SystemLoader />}
+
+        <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
+          {/* Header */}
           <div className="flex justify-between items-center w-full">
-            <h2 className="text-xl font-bold text-left w-full pl-1">
+            <h2 className="text-xl font-bold text-gray-800">
               Pre-Cancerous Medication Request
             </h2>
-
-            <div className="flex gap-2">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => window.print()}
+                disabled={loading}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors ${
+                  loading ? "bg-primary/60 cursor-not-allowed" : "bg-primary hover:bg-primary/90"
+                }`}
+                title={loading ? "Loading data..." : "Print current list"}
+              >
+                <Printer className="w-4 h-4" />
+                Print
+              </button>
               <Link
                 to="/admin/treatment-assistance/add-pre-cancerous"
-                className="bg-yellow px-5 py-1 rounded-sm text-white"
+                className="bg-yellow hover:bg-yellow/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
               >
-                Add
+                Add New
               </Link>
             </div>
           </div>
 
-          <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
-            <p className="text-md font-semibold text-yellow">
-              Manage Pre-Cancerous Medication Request
-            </p>
-
-            {/* filters */}
-            <div className="flex justify-between flex-wrap gap-3">
-              <input
-                type="text"
-                placeholder="Search by patient no, first name, or last name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
-              />
-
-              <select
-                className="border border-gray-200 rounded-md p-2 bg-white"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="all">All</option>
-                <option value="Pending">Pending</option>
-                <option value="Verified">Verified</option>
-                <option value="Rejected">Rejected</option>
-                <option value="Done">Done</option>
-              </select>
-
-              {/* Day Filter (1–31) */}
-              <select
-                className="border border-gray-200 py-2 px-3 rounded-md"
-                value={dayFilter}
-                onChange={(e) => setDayFilter(e.target.value)}
-              >
-                <option value="">All Days</option>
-                {[...Array(31)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {i + 1}
-                  </option>
-                ))}
-              </select>
-
-              {/* Month Filter */}
-              <select
-                className="border border-gray-200 py-2 px-3 rounded-md"
-                value={monthFilter}
-                onChange={(e) => setMonthFilter(e.target.value)}
-              >
-                <option value="">All Months</option>
-                {[...Array(12)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {new Date(0, i).toLocaleString("en", { month: "long" })}
-                  </option>
-                ))}
-              </select>
-
-              {/* Year Filter */}
-              <select
-                className="border border-gray-200 py-2 px-3 rounded-md"
-                value={yearFilter}
-                onChange={(e) => setYearFilter(e.target.value)}
-              >
-                <option value="">All Years</option>
-                {Array.from(
-                  new Set(
-                    tableData.map((p) =>
-                      new Date(p.created_at || p.date_submitted).getFullYear()
-                    )
-                  )
-                )
-                  .filter((y) => !isNaN(y))
-                  .sort((a, b) => b - a)
-                  .map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-              </select>
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setStatusFilter("all");
-                  setDayFilter("");
-                  setMonthFilter("");
-                  setYearFilter("");
-                }}
-                className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
-              >
-                Clear
-              </button>
-              {/* <button
-                className="px-7 rounded-md text-sm bg-[#C5D7E5]"
-                onClick={() => loadList(statusFilter)}
-                title="Fetch from server using selected status"
-              >
-                Filter
-              </button> */}
-              <button
-                onClick={() => window.print()}
-                disabled={loading}
-                className={`px-3 font-bold rounded-md text-sm text-white cursor-pointer ${
-                  loading ? "bg-primary/60 cursor-not-allowed" : "bg-primary"
-                }`}
-                title={loading ? "Loading data..." : "Print current list"}
-              >
-                {/* Generate */}
-                <Printer className="w-4 h-4" />
-              </button>
+          {/* Main Content Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full">
+            {/* Card Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-yellow-600">
+                Manage Pre-Cancerous Medication Request
+              </h3>
             </div>
 
-            {/* table header */}
-            <div className="bg-white shadow">
-              <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
-                <thead>
-                  <tr className="bg-lightblue">
-                    <th className="w-[14%] text-center text-sm py-3 !bg-lightblue">
-                      Patient ID
-                    </th>
-                    <th className="w-[18%] text-center text-sm py-3">
-                      Patient Name
-                    </th>
-                    <th className="w-[18%] text-center text-sm py-3">
-                      Requested To
-                    </th>
-                    <th className="w-[15%] text-center text-sm py-3">
-                      Date Submitted
-                    </th>
-                    <th className="w-[11%] text-center text-sm py-3">Status</th>
-                    <th className="w-[24%] text-center text-sm py-3">Action</th>
-                  </tr>
-                </thead>
-              </table>
+            {/* Filters Section */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex flex-wrap gap-3 items-center">
+                <input
+                  type="text"
+                  placeholder="Search by patient ID or name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-64 text-sm"
+                />
 
-              {/* table body */}
-              <div className="max-h-[240px] min-h-[240px] overflow-auto">
-                <table className="min-w-full divide-y divide-gray-200 master-table border-separate border-spacing-0">
-                  <colgroup>
-                    <col className="w-[14%]" />
-                    <col className="w-[18%]" />
-                    <col className="w-[18%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[11%]" />
-                    <col className="w-[24%]" />
-                  </colgroup>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {loading && (
-                      <tr>
-                        <td colSpan="6" className="text-center py-4">
-                          Loading...
-                        </td>
-                      </tr>
-                    )}
-                    {!loading &&
-                      paginated.map((p) => (
-                        <tr key={p.id}>
-                          <td className="text-center text-sm py-3 text-gray-800">
+                <select
+                  className="border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="all">All Status</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Verified">Verified</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Done">Done</option>
+                </select>
+
+                {/* Date Filters */}
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={dayFilter}
+                  onChange={(e) => setDayFilter(e.target.value)}
+                >
+                  <option value="">All Days</option>
+                  {[...Array(31)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {i + 1}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={monthFilter}
+                  onChange={(e) => setMonthFilter(e.target.value)}
+                >
+                  <option value="">All Months</option>
+                  {[...Array(12)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {new Date(0, i).toLocaleString("en", { month: "long" })}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={yearFilter}
+                  onChange={(e) => setYearFilter(e.target.value)}
+                >
+                  <option value="">All Years</option>
+                  {Array.from(
+                    new Set(
+                      tableData.map((p) =>
+                        new Date(p.created_at || p.date_submitted).getFullYear()
+                      )
+                    )
+                  )
+                    .filter((y) => !isNaN(y))
+                    .sort((a, b) => b - a)
+                    .map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                </select>
+
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setStatusFilter("all");
+                    setDayFilter("");
+                    setMonthFilter("");
+                    setYearFilter("");
+                  }}
+                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+
+            {/* Table Section */}
+            <div className="px-6 py-4">
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                {/* Table Header */}
+                <div className="bg-lightblue px-4 py-3">
+                  <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
+                    <div className="col-span-2 text-center">Patient ID</div>
+                    <div className="col-span-3 text-center">Patient Name</div>
+                    <div className="col-span-2 text-center">Requested To</div>
+                    <div className="col-span-2 text-center">Date Submitted</div>
+                    <div className="col-span-2 text-center">Status</div>
+                    <div className="col-span-1 text-center">Actions</div>
+                  </div>
+                </div>
+
+                {/* Table Body */}
+                <div className="max-h-96 overflow-auto">
+                  {loading ? (
+                    <div className="text-center py-8 text-gray-500">
+                      Loading records...
+                    </div>
+                  ) : paginated.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No records found matching your filters.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-200">
+                      {paginated.map((p) => (
+                        <div
+                          key={p.id}
+                          className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
+                        >
+                          <div 
+                            className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
+                            onClick={() => handleView(p.id) }
+                          >
                             {p.patient.patient_id}
-                          </td>
-                          <td className="text-center text-sm py-3 text-gray-800">
+                          </div>
+                          <div className="col-span-3 text-center text-gray-800">
                             {p.patient.full_name}
-                          </td>
-                          <td className="text-center text-sm py-3 text-gray-800">
+                          </div>
+                          <div className="col-span-2 text-center text-gray-800">
                             {p.request_destination === "Rural Health Unit"
                               ? "RHU - "
                               : ""}
                             {p.destination_name}
-                          </td>
-                          <td className="text-center text-sm py-3 text-gray-800">
+                          </div>
+                          <div className="col-span-2 text-center text-gray-800">
                             {p.patient.date_of_birth
                               ? new Date(
                                   p.patient.date_of_birth
                                 ).toLocaleDateString("en-US", {
                                   year: "numeric",
-                                  month: "long",
+                                  month: "short",
                                   day: "numeric",
                                 })
                               : ""}
-                          </td>
-                          <td className="text-center text-sm py-3">
+                          </div>
+                          <div className="col-span-2 text-center">
                             <span
-                              className={`px-3 py-1 inline-flex text-xs font-semibold rounded-md ${
-                                p.status === "Verified"
-                                  ? "bg-green-50 text-green-600"
-                                  : p.status === "Done"
-                                  ? "bg-blue-50 text-blue-600"
-                                  : p.status === "Rejected"
-                                  ? "bg-rose-50 text-rose-600"
-                                  : "bg-amber-50 text-amber-600"
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                                statusColors[p.status] || statusColors.Default
                               }`}
                             >
                               {p.status}
                             </span>
-                          </td>
-                          <td className="text-center text-sm py-3">
-                            <div className="flex gap-2 justify-center">
-                              <button
-                                onClick={() => handleView(p.id)}
-                                className="text-white py-1 px-3 rounded-[5px] shadow bg-primary"
-                              >
-                                View
-                              </button>
-                              {p.status === "Pending" && (
-                                <>
-                                  {/* <button
-                                    onClick={() => openConfirm(p.id, "verify")}
-                                    className="text-white py-1 px-3 rounded-[5px] shadow bg-green-500"
-                                  >
-                                    Approve
-                                  </button> */}
-                                  <button
-                                    onClick={() => openConfirm(p.id, "reject")}
-                                    className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
-                                  >
-                                    Reject
-                                  </button>
-                                </>
-                              )}
-                              {p.status !== "Pending" && (
+                          </div>
+                          <div className="col-span-1 flex justify-center gap-2">
+                            {p.status === "Pending" ? (
+                              <>
+                                <button
+                                  onClick={() => openConfirm(p.id, "verify")}
+                                  className="bg-primary cursor-pointer text-white py-1.5 px-2 rounded transition-colors"
+                                  title="Verify"
+                                >
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => setRemarksModalOpen(true)}
+                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded transition-colors"
+                                  title="Reject"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            ) : p.status === "Rejected" ||
+                                p.status === "Completed" ? (
                                 <button
                                   onClick={() => openConfirm(p.id, "delete")}
-                                  className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500"
+                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
                                 >
-                                  Delete
+                                  {/* Delete */}
+                                  <Trash2 className="w-3.5 h-3.5"/>
                                 </button>
-                              )}
-                              {/* {p.status === "Verified" && (
-                                <button
-                                  onClick={() => openConfirm(p.id, "done")}
-                                  className="text-white py-1 px-3 rounded-[5px] shadow bg-blue-600"
-                                >
-                                  Mark done
-                                </button>
-                              )} */}
-                            </div>
-                          </td>
-                        </tr>
+                            ) : (
+                              <button
+                                onClick={() => openConfirm(p.id, "delete")}
+                                className="bg-red-500 hover:bg-red-600 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
+                              >
+                                {/* Delete */}
+                                <X className="w-3.5 h-3.5"/>
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       ))}
-                    {!loading && paginated.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan="6"
-                          className="text-center py-4 text-gray-500"
-                        >
-                          No records found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* pagination */}
-            <div className="flex justify-end items-center py-2 gap-5">
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor="recordsPerPage"
-                  className="text-sm text-gray-700"
-                >
-                  Records per page:
-                </label>
-                <select
-                  id="recordsPerPage"
-                  className="w-16 rounded-md shadow-sm"
-                  value={recordsPerPage}
-                  onChange={(e) => setRecordsPerPage(Number(e.target.value))}
-                >
-                  <option>10</option>
-                  <option>20</option>
-                  <option>50</option>
-                </select>
-              </div>
-              <div className="flex gap-3 items-center">
-                <span className="text-sm text-gray-700">
-                  {Math.min(
-                    (currentPage - 1) * recordsPerPage + 1,
-                    totalRecords
-                  )}{" "}
-                  – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                  {totalRecords}
-                </span>
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="text-gray-600"
-                >
-                  ←
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="text-gray-600"
-                >
-                  →
-                </button>
+              {/* Pagination */}
+              <div className="flex justify-between items-center mt-4 px-2">
+                <div className="text-sm text-gray-600">
+                  Showing {paginated.length} of {totalRecords} records
+                </div>
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                      Records per page:
+                    </label>
+                    <select
+                      id="recordsPerPage"
+                      className="border border-gray-300 rounded-md p-1 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                      value={recordsPerPage}
+                      onChange={(e) => setRecordsPerPage(Number(e.target.value))}
+                    >
+                      <option>10</option>
+                      <option>20</option>
+                      <option>50</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>
+                      {Math.min(
+                        (currentPage - 1) * recordsPerPage + 1,
+                        totalRecords
+                      )}{" "}
+                      – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
+                      {totalRecords}
+                    </span>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
+                      >
+                        ←
+                      </button>
+                      <button
+                        onClick={() =>
+                          setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        }
+                        disabled={currentPage === totalPages}
+                        className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
+                      >
+                        →
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
