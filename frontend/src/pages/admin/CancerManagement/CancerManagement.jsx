@@ -1,7 +1,7 @@
 // src/pages/cancer-management/AdminCancerManagement.jsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { Printer, FileText, FileDown } from "lucide-react";
+import { Printer, Info, CheckCircle, X, Trash2 } from "lucide-react";
 
 import api from "src/api/axiosInstance";
 
@@ -9,18 +9,16 @@ import RemarksModal from "src/components/Modal/RemarksModal";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import Notification from "src/components/Notification";
-import LoadingModal from "src/components/Modal/LoadingModal";
 import SystemLoader from "src/components/SystemLoader";
-import { Info } from "lucide-react";
+import LoadingModal from "src/components/Modal/LoadingModal";
 
-// ⬇️ PRINT TEMPLATE
 import CancerManagementPrint from "./generate/generate";
 
 const AdminCancerManagement = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ---------- State & Notifications ----------
+  // State & Notifications
   const [statusFilter, setStatusFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("");
@@ -46,14 +44,14 @@ const AdminCancerManagement = () => {
   const [modalText, setModalText] = useState("");
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
-
   const [remarksModalOpen, setRemarksModalOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
 
-  const [recordDateFilter, setRecordDateFilter] = useState("");
+  // Date filters
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [dayFilter, setDayFilter] = useState("");
+
   useEffect(() => {
     if (notificationType && notificationMessage) {
       setNotification(notificationMessage);
@@ -76,46 +74,34 @@ const AdminCancerManagement = () => {
     fetchData();
   }, []);
 
-  // ---------- Filters ----------
-  // ---------- Filters ----------
+  // Filters
   const filteredData = tableData.filter((record) => {
-    const createdDate = new Date(record.date_submitted || record.created_at);
-    const createdYear = createdDate.getFullYear();
-    const createdMonth = createdDate.getMonth() + 1; // month index fix
-    const createdDay = createdDate.getDate();
-
-    // ✅ Status Filter
     const statusMatch =
       statusFilter === "All" || record.status === statusFilter;
 
-    // ✅ Search Filter
     const searchMatch =
       !searchQuery ||
       record.patient.patient_id
-        ?.toLowerCase()
+        .toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
       record.patient.full_name
-        ?.toLowerCase()
+        .toLowerCase()
         .includes(searchQuery.toLowerCase());
+    
+    const recordDate = new Date(record.date_submitted);
+    const recordDay = recordDate.getDate();
+    const recordMonth = recordDate.getMonth() + 1;
+    const recordYear = recordDate.getFullYear();
 
-    // ✅ Exact Date Filter
-    const dateMatch =
-      !dateFilter ||
-      new Date(record.date_submitted).toISOString().slice(0, 10) === dateFilter;
+    const dayMatch = !dayFilter || recordDay === parseInt(dayFilter);
+    const monthMatch = !monthFilter || recordMonth === parseInt(monthFilter);
+    const yearMatch = !yearFilter || recordYear === parseInt(yearFilter);
 
-    // ✅ Day Filter
-    const dayMatch = !dayFilter || createdDay === Number(dayFilter);
-
-    // ✅ Month Filter
-    const monthMatch = !monthFilter || createdMonth === Number(monthFilter);
-
-    // ✅ Year Filter
-    const yearMatch = !yearFilter || createdYear === Number(yearFilter);
-
+    // const dateMatch = !dateFilter || record.date_submitted === dateFilter;
     return statusMatch && searchMatch && dayMatch && monthMatch && yearMatch;
   });
 
-  // ---------- Handlers ----------
+  // Handlers
   const handleViewClick = (id) => {
     const selected = tableData.find((item) => item.id === id);
     navigate(`/admin/cancer-management/view/${id}`, {
@@ -205,20 +191,19 @@ const AdminCancerManagement = () => {
     setModalOpen(true);
   };
 
-  // ---------- Status badge colors (normalized keys) ----------
+  // Status badge colors
   const statusColors = {
-    Pending: "text-yellow-700",
-    "Interview Process": "text-blue-700",
-    Approved: "text-indigo-700",
-    "Case Summary Generation": "text-yellow-700",
-    Completed: "text-green-700",
-    Rejected: "text-red-700",
-    Default: "text-gray-700",
+    Pending: "bg-yellow-100 text-yellow-700",
+    "Interview Process": "bg-blue-100 text-blue-700",
+    Approved: "bg-indigo-100 text-indigo-700",
+    "Case Summary Generation": "bg-yellow-100 text-yellow-700",
+    Completed: "bg-green-100 text-green-700",
+    Rejected: "bg-red-100 text-red-700",
+    Default: "bg-gray-100 text-gray-700",
   };
 
   return (
     <>
-      {/* --- Print rules: show only print template during print --- */}
       <style>{`
         :root { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
@@ -232,17 +217,16 @@ const AdminCancerManagement = () => {
           #print-root { display: none !important; }
         }
 
-        /* Screen table tweak to avoid double borders in the scrollable body */
         .master-table { border-collapse: collapse; }
         .master-table, .master-table th, .master-table td, .master-table tr { border: 0 !important; }
       `}</style>
 
-      {/* --- PRINT-ONLY CONTENT (all filtered rows, not paginated) --- */}
+      {/* PRINT CONTENT */}
       <div id="print-root">
         <CancerManagementPrint rows={filteredData} />
       </div>
 
-      {/* --- SCREEN CONTENT --- */}
+      {/* SCREEN CONTENT */}
       <div id="cancermanagement-root">
         <ConfirmationModal
           open={modalOpen}
@@ -255,6 +239,7 @@ const AdminCancerManagement = () => {
             setModalText("");
           }}
         />
+        
         <NotificationModal
           show={showModal}
           type={modalInfo.type}
@@ -262,7 +247,9 @@ const AdminCancerManagement = () => {
           message={modalInfo.message}
           onClose={() => setShowModal(false)}
         />
+        
         <Notification message={notification} type={notificationType} />
+
         <RemarksModal 
           open={remarksModalOpen}
           title="Remarks"
@@ -276,290 +263,308 @@ const AdminCancerManagement = () => {
         {loading && <SystemLoader />}
         {/* <LoadingModal open={loading} text="Submitting changes..." /> */}
 
-        <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
+        <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
+          {/* Header */}
           <div className="flex justify-between items-center w-full">
-            <h2 className="text-xl font-bold text-left w-full pl-1">
+            <h2 className="text-xl font-bold text-gray-800">
               Cancer Management
             </h2>
-            <Link
-              to="/admin/cancer-management/add"
-              className="bg-yellow px-5 py-1 rounded-sm text-white"
-            >
-              Add
-            </Link>
-          </div>
-
-          <div className="flex flex-col bg-white rounded-md w-full shadow-md px-5 py-5 gap-3">
-            <p className="text-md font-semibold text-yellow">
-              Service Treatment Application List
-            </p>
-
-            {/* Filters + Generate */}
-            <div className="flex justify-between flex-wrap gap-3">
-              <input
-                type="text"
-                placeholder="Search by patient ID or name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
-              />
-
-              {/* UPDATED FILTER OPTIONS */}
-              <select
-                className="border border-gray-200 rounded-md p-2 bg-white w-[100px]"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="All">All</option>
-                <option value="Pending">Pending</option>
-                <option value="Interview Process">Interview Process</option>
-                <option value="Case Summary Generation">
-                  Case Summary Generation
-                </option>
-                <option value="Approved">Approved</option>
-                {/* <option value="In Progress">In Progress</option> */}
-                <option value="Completed">Completed</option>
-                {/* <option value="Rejected">Rejected</option> */}
-              </select>
-              {/* Day Filter (1–31) */}
-              <select
-                className="border border-gray-200 py-2 px-3 rounded-md"
-                value={dayFilter}
-                onChange={(e) => setDayFilter(e.target.value)}
-              >
-                <option value="">All Days</option>
-                {[...Array(31)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {i + 1}
-                  </option>
-                ))}
-              </select>
-
-              {/* Month Filter */}
-              <select
-                className="border border-gray-200 py-2 px-3 rounded-md"
-                value={monthFilter}
-                onChange={(e) => setMonthFilter(e.target.value)}
-              >
-                <option value="">All Months</option>
-                {[...Array(12)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {new Date(0, i).toLocaleString("en", { month: "long" })}
-                  </option>
-                ))}
-              </select>
-
-              {/* Year Filter */}
-              <select
-                className="border border-gray-200 py-2 px-3 rounded-md"
-                value={yearFilter}
-                onChange={(e) => setYearFilter(e.target.value)}
-              >
-                <option value="">All Years</option>
-                {Array.from(
-                  new Set(
-                    tableData.map((p) =>
-                      new Date(p.created_at || p.date_submitted).getFullYear()
-                    )
-                  )
-                )
-                  .filter((y) => !isNaN(y))
-                  .sort((a, b) => b - a)
-                  .map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-              </select>
-              <button
-                onClick={() => {
-                  setDayFilter("");
-                  setMonthFilter("");
-                  setYearFilter("");
-                  setStatusFilter("All");
-                  setSearchQuery("");
-                }}
-                className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
-              >
-                Clear
-              </button>
-              {/* ⬇️ Generate button with cursor-pointer */}
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => window.print()}
-                className="px-3 font-bold rounded-md text-sm text-white bg-primary cursor-pointer"
-                title="Print current list"
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
               >
-                {/* Generate */}
                 <Printer className="w-4 h-4" />
+                Print
               </button>
-              {/* <div className="flex gap-2">
-                <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
-                  Filter
-                </button>
-              </div> */}
+              <Link
+                to="/admin/cancer-management/add"
+                className="bg-yellow hover:bg-yellow/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
+              >
+                Add New
+              </Link>
+            </div>
+          </div>
+
+          {/* Main Content Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full">
+            {/* Card Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-yellow-600">
+                Service Treatment Application List
+              </h3>
             </div>
 
-            <div className="bg-white shadow overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr className="bg-lightblue">
-                    <th className="w-[13%] text-center text-sm py-3 !bg-lightblue">
-                      Patient ID
-                    </th>
-                    <th className="w-[20%] text-sm py-3">Name</th>
-                    <th className="w-[15%] text-center text-sm py-3">
-                      Service Requested
-                    </th>
-                    <th className="w-[15%] text-center text-sm py-3">
-                      Date Submitted
-                    </th>
-                    <th className="w-[13.4%] text-center text-sm py-3">
-                      Status
-                    </th>
-                    <th className="w-[22%] text-center text-sm py-3">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-              </table>
+            {/* Filters Section */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex flex-wrap gap-3 items-center">
+                <input
+                  type="text"
+                  placeholder="Search by patient ID or name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-64 text-sm"
+                />
 
-              <div className="max-h-[200px] min-h-[200px] overflow-auto">
-                <table className="min-w-full divide-y divide-gray-200 master-table">
-                  <colgroup>
-                    <col className="w-[13%]" />
-                    <col className="w-[20%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[13.4%]" />
-                    <col className="w-[22%]" />
-                  </colgroup>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredData.map((item) => (
-                      <tr key={item.id}>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {item.patient.patient_id}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {item.patient.full_name}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {item.service_type}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {new Date(item.date_submitted).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            }
-                          )}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          <span
-                            className={`px-3 py-1 inline-flex items-center gap-1 text-xs font-semibold rounded-md ${
-                              statusColors[item.status] || statusColors.Default
-                            }`}
-                          >
-                            {item.status}
-                            <span
-                              title={
-                                item.has_patient_response
-                                  ? item.response_description
-                                  : "Info icon."
-                              }
-                              className="cursor-pointer"
-                            >
-                              <Info
-                                size={14}
-                                className={
-                                  item.has_patient_response
-                                    ? "text-blue-500"
-                                    : "text-gray-300"
-                                }
-                              />
-                            </span>
-                          </span>
-                        </td>
-                        <td className="text-center text-sm py-4 flex gap-2 justify-center">
-                          <button
+                <select
+                  className="border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="All">All Status</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Interview Process">Interview Process</option>
+                  <option value="Case Summary Generation">
+                    Case Summary Gen...
+                  </option>
+                  <option value="Approved">Approved</option>
+                  <option value="Completed">Completed</option>
+                </select>
+
+                {/* <input
+                  type="date"
+                  className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                /> */}
+
+                {/* Date Filters */}
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={dayFilter}
+                  onChange={(e) => setDayFilter(e.target.value)}
+                >
+                  <option value="">All Days</option>
+                  {[...Array(31)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {i + 1}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={monthFilter}
+                  onChange={(e) => setMonthFilter(e.target.value)}
+                >
+                  <option value="">All Months</option>
+                  {[...Array(12)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {new Date(0, i).toLocaleString("en", { month: "long" })}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={yearFilter}
+                  onChange={(e) => setYearFilter(e.target.value)}
+                >
+                  <option value="">All Years</option>
+                  {Array.from(
+                    new Set(
+                      tableData.map((p) =>
+                        new Date(p.created_at || p.date_submitted).getFullYear()
+                      )
+                    )
+                  )
+                    .filter((y) => !isNaN(y))
+                    .sort((a, b) => b - a)
+                    .map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                </select>
+
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setStatusFilter("All");
+                    setDateFilter("");
+                  }}
+                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+
+            {/* Table Section */}
+            <div className="px-6 py-4">
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                {/* Table Header */}
+                <div className="bg-lightblue px-4 py-3">
+                  <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
+                    <div className="col-span-2 text-center">Patient ID</div>
+                    <div className="col-span-3 text-center">Name</div>
+                    <div className="col-span-2 text-center">Service Requested</div>
+                    <div className="col-span-2 text-center">Date Submitted</div>
+                    <div className="col-span-2 text-center">Status</div>
+                    <div className="col-span-1 text-center">Actions</div>
+                  </div>
+                </div>
+
+                {/* Table Body */}
+                <div className="max-h-96 overflow-auto">
+                  {filteredData.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No records found matching your filters.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-200">
+                      {filteredData.map((item) => (
+                        <div
+                          key={item.id}
+                          className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
+                        >
+                          <div 
+                            className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
                             onClick={() => handleViewClick(item.id)}
-                            className="text-white py-1 px-3 rounded-[5px] shadow bg-primary cursor-pointer"
                           >
-                            View
-                          </button>
-                          {item.status === "Pending" ? (
-                            <button
-                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
-                              onClick={() => {
-                                setModalAction({
-                                  status: "Rejected",
-                                  id: item.id,
-                                });
-                                setRemarksModalOpen(true);
-                              }}
+                            <div className="flex items-center justify-center gap-1">
+                              {item.patient.patient_id}
+                              {item.has_patient_response && (
+                                <span
+                                  title={
+                                    item.has_patient_response
+                                      ? item.response_description
+                                      : "No additional information"
+                                  }
+                                  className="cursor-pointer flex items-center"
+                                >
+                                  <Info
+                                    size={14}
+                                    className={
+                                      item.has_patient_response
+                                        ? "text-yellow"
+                                        : "text-gray-300"
+                                    }
+                                  />
+                                </span>
+                                )}
+                            </div>
+                          </div>
+                          <div className="col-span-3 text-center text-gray-800">
+                            {item.patient.full_name}
+                          </div>
+                          <div className="col-span-2 text-center text-gray-800">
+                            {item.service_type}
+                          </div>
+                          <div className="col-span-2 text-center text-gray-800">
+                            {new Date(item.date_submitted).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              }
+                            )}
+                          </div>
+                          <div className="col-span-2 text-center">
+                            <span
+                              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold max-w-[120px] truncate ${
+                                statusColors[item.status] || statusColors.Default
+                              }`}
                             >
-                              Reject
-                            </button>
-                          ) : item.status === "Rejected" ||
-                              item.status === "Completed" ? (
-                            <button
-                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
-                              onClick={() => handleDelete(item.id, "delete")}
-                            >
-                              Delete
-                            </button>
+                              {item.status}
+                            </span>
+                          </div>
+                          <div className="col-span-1 flex justify-center gap-2">
+                            {item.status === "Pending" ? (
+                              <>
+                                <button
+                                  onClick={() => handleViewClick(item.id)}
+                                  className="bg-primary cursor-pointer hover:bg-primary/90 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                >
+                                  {/* View */}
+                                  <CheckCircle className="w-3.5 h-3.5"/>
+                                </button>
+                                <button
+                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                  onClick={() => {
+                                    setModalAction({
+                                      status: "Rejected",
+                                      id: item.id,
+                                    });
+                                    setRemarksModalOpen(true);
+                                  }}
+                                >
+                                  {/* Reject */}
+                                  <X className="w-3.5 h-3.5"/>
+                                </button>
+                              </>
+                            ) : item.status === "Rejected" ||
+                                item.status === "Completed" ? (
+                                <button
+                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                  onClick={() => handleDelete(item.id, "delete")}
+                                >
+                                  {/* Delete */}
+                                  <Trash2 className="w-3.5 h-3.5"/>
+                                </button>
                           ) : (
                             <button
-                              className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
+                              className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               onClick={() => handleDelete(item.id, "delete")}
                             >
-                              Cancel
+                              {/* Cancel */}
+                              <X className="w-3.5 h-3.5"/>
                             </button>
                             )}
-                        </td>
-                      </tr>
-                    ))}
-
-                    {filteredData.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan="6"
-                          className="text-center py-4 text-gray-500"
-                        >
-                          No records found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                            {/* <button
+                              // onClick={() => handleViewClick(item.id)}
+                              className="bg-primary hover:bg-primary/90 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                            >
+                              {/* View *s/}
+                              <CheckCircle className="w-3.5 h-3.5"/>
+                            </button>
+                            <button
+                              className="bg-red-500 hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                              onClick={() => handleDelete(item.id, "delete")}
+                            >
+                              {/* Delete *s/}
+                              <Trash2 className="w-3.5 h-3.5"/>
+                            </button> */}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Footer Pagination (static demo) */}
-            <div className="flex justify-end items-center py-2 gap-5">
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor="recordsPerPage"
-                  className="text-sm text-gray-700"
-                >
-                  Record per page:
-                </label>
-                <select
-                  id="recordsPerPage"
-                  className="w-16 rounded-md shadow-sm"
-                >
-                  <option>10</option>
-                  <option>20</option>
-                  <option>50</option>
-                </select>
-              </div>
-              <div className="flex gap-3 items-center">
-                <span className="text-sm text-gray-700">
-                  1 – 10 of {filteredData.length}
-                </span>
-                <button className="text-gray-600">←</button>
-                <button className="text-gray-600">→</button>
+              {/* Footer */}
+              <div className="flex justify-between items-center mt-4 px-2">
+                <div className="text-sm text-gray-600">
+                  Showing {filteredData.length} of {tableData.length} records
+                </div>
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                      Record per page:
+                    </label>
+                    <select 
+                      id="recordsPerPage" 
+                      className="border border-gray-300 rounded-md p-1 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                    >
+                      <option>10</option>
+                      <option>20</option>
+                      <option>50</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>1 – {Math.min(10, filteredData.length)} of {filteredData.length}</span>
+                    <div className="flex gap-1">
+                      <button className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors">
+                        ←
+                      </button>
+                      <button className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors">
+                        →
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

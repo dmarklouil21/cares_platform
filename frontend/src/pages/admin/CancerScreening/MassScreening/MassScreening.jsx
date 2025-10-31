@@ -1,21 +1,26 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
-import { Printer, FileText, FileDown } from "lucide-react";
+import { Printer, CheckCircle, X, Trash2 } from "lucide-react";
 
 import {
   listAdminMassScreenings,
   setAdminMassScreeningStatus,
-} from "../../../../api/massScreening";
-import Notification from "src/components/Notification";
+} from "src/api/massScreening";
 
-// ⬇️ NEW: print component
+import RemarksModal from "src/components/Modal/RemarksModal";
+import Notification from "src/components/Notification";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+
 import GeneratePrintTemplate from "./generate/generate";
 
 const AdminMassScreening = () => {
-  /* ----------------------------- Data ----------------------------- */
+  // Data
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [remarksModalOpen, setRemarksModalOpen] = useState(false);
+  const [remarks, setRemarks] = useState("");
 
   const loadItems = async () => {
     try {
@@ -26,8 +31,9 @@ const AdminMassScreening = () => {
         id: d.id,
         rhuName: d.rhu_lgu,
         privateName: d.institution_name,
-        date: d.date, // YYYY-MM-DD
-        status: d.status, // Pending | Verified | Rejected | Done
+        date: d.date,
+        venue: d.venue,
+        status: d.status,
         attachments: d.attachments || [],
       }));
       setItems(normalized);
@@ -46,17 +52,14 @@ const AdminMassScreening = () => {
     loadItems();
   }, []);
 
-  /* ----------------------------- Filters ------------------------------ */
+  // Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
-  // ⬇️ New date filters
-  const [dateFilter, setDateFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [dayFilter, setDayFilter] = useState("");
 
-  /* ----------------------------- Pagination --------------------------- */
+  // Pagination
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -67,7 +70,6 @@ const AdminMassScreening = () => {
       const matchesStatus =
         statusFilter === "all" ? true : (it.status ?? "") === statusFilter;
 
-      // Skip invalid or missing date values
       if (!it.date) return false;
       const recordDate = new Date(it.date);
       if (isNaN(recordDate)) return false;
@@ -76,10 +78,8 @@ const AdminMassScreening = () => {
       const recordMonth = recordDate.getMonth() + 1;
       const recordYear = recordDate.getFullYear();
 
-      // ✅ Now includes day filter
       const matchesDay = !dayFilter || recordDay === parseInt(dayFilter);
-      const matchesMonth =
-        !monthFilter || recordMonth === parseInt(monthFilter);
+      const matchesMonth = !monthFilter || recordMonth === parseInt(monthFilter);
       const matchesYear = !yearFilter || recordYear === parseInt(yearFilter);
 
       const matchesSearch =
@@ -114,9 +114,9 @@ const AdminMassScreening = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, dateFilter]);
+  }, [searchQuery, statusFilter, dayFilter, monthFilter, yearFilter]);
 
-  /* ----------------------------- View / Actions ------------------------------ */
+  // View / Actions
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -128,7 +128,30 @@ const AdminMassScreening = () => {
   };
 
   const [confirm, setConfirm] = useState({ open: false, action: "", id: null });
-  const askConfirm = (action, id) => setConfirm({ open: true, action, id });
+  const askConfirm = (action, id) => {
+    let title = "";
+    let desc = "Please confirm your action.";
+    
+    switch (action) {
+      case "verify":
+        title = "Verify this request?";
+        desc = "Are you sure you want to verify this request?";
+        break;
+      case "reject":
+        title = "Reject this request?";
+        desc = "Are you sure you want to reject this request?";
+        break;
+      case "done":
+        title = "Mark as done?";
+        desc = "Are you sure you want to mark this request as done?";
+        break;
+      default:
+        title = "Confirm action?";
+    }
+    
+    setConfirm({ open: true, action, id, title, desc });
+  };
+  
   const closeConfirm = () => setConfirm({ open: false, action: "", id: null });
 
   const [notification, setNotification] = useState("");
@@ -159,7 +182,7 @@ const AdminMassScreening = () => {
     closeConfirm();
     try {
       if (!id || !action) return;
-      await setAdminMassScreeningStatus(id, action); // verify | reject | done
+      await setAdminMassScreeningStatus(id, action);
       await loadItems();
 
       let msg = "";
@@ -183,14 +206,21 @@ const AdminMassScreening = () => {
     const d = new Date(iso + "T00:00:00");
     return d.toLocaleDateString(undefined, {
       year: "numeric",
-      month: "long",
+      month: "short",
       day: "numeric",
     });
   };
 
+  const statusColors = {
+    Pending: "bg-yellow-100 text-yellow-700",
+    Verified: "bg-green-100 text-green-700",
+    Rejected: "bg-red-100 text-red-700",
+    Done: "bg-blue-100 text-blue-700",
+    Default: "bg-gray-100 text-gray-700",
+  };
+  
   return (
     <>
-      {/* --- Print rules: only show GeneratePrintTemplate during print --- */}
       <style>{`
         @media print {
           #mass-root { display: none !important; }
@@ -203,336 +233,320 @@ const AdminMassScreening = () => {
         .mass-table, .mass-table th, .mass-table td, .mass-table tr { border: 0 !important; }
       `}</style>
 
-      {/* --- PRINT-ONLY CONTENT (all filtered rows, not paginated) --- */}
+      {/* PRINT CONTENT */}
       <div id="print-root">
         <GeneratePrintTemplate rows={filteredData} />
       </div>
 
-      <div
-        id="mass-root"
-        className="h-screen p-5 gap-3 w-full flex flex-col justify-start items-center bg-gray"
-      >
+      {/* SCREEN CONTENT */}
+      <div id="mass-root">
         <Notification message={notification} type={notificationType} />
 
-        <div className="flex justify-between px-1 items-center w-full">
-          <h2 className="text-xl font-bold text-left w-full">Mass Screening</h2>
-          <Link
-            to="/admin/cancer-screening/add/mass"
-            className="bg-yellow px-5 py-1 rounded-sm text-white"
-          >
-            Add
-          </Link>
-        </div>
+        <ConfirmationModal
+          open={confirm.open}
+          title={confirm.title}
+          desc={confirm.desc}
+          onConfirm={doConfirm}
+          onCancel={closeConfirm}
+        />
+        
+        <RemarksModal 
+          open={remarksModalOpen}
+          title="Remarks"
+          placeholder="Enter your remarks here..."
+          value={remarks}
+          onChange={(e) => setRemarks(e.target.value)}
+          onCancel={() => setRemarksModalOpen(false)}
+          // onConfirm={handleReject}
+          confirmText="Confirm"
+        />
 
-        <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-5">
-          <p className="text-lg font-semibold text-yellow">
-            Manage Mass Screening Requests
-          </p>
-
-          {/* Filters */}
-          <div className="flex flex-wrap  items-center justify-between">
-            <input
-              type="text"
-              placeholder="Search by request ID or RHU name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-200 py-2 px-5 rounded-md w-[360px]"
-            />
-            {/* Status Filter */}
-            <select
-              className="border border-gray-200 rounded-md p-2 bg-white"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">Filter by Status</option>
-              <option value="Pending">Pending</option>
-              <option value="Verified">Verified</option>
-              <option value="Rejected">Rejected</option>
-              <option value="Done">Done</option>
-            </select>
-            {/* Day Filter (1–31) */}
-            <select
-              className="border border-gray-200 py-2 px-3 rounded-md"
-              value={dayFilter}
-              onChange={(e) => setDayFilter(e.target.value)}
-            >
-              <option value="">All Days</option>
-              {[...Array(31)].map((_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {i + 1}
-                </option>
-              ))}
-            </select>
-
-            {/* Month Filter */}
-            <select
-              className="border border-gray-200 rounded-md p-2 bg-white"
-              value={monthFilter}
-              onChange={(e) => setMonthFilter(e.target.value)}
-            >
-              <option value="">All Months</option>
-              {[...Array(12)].map((_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {new Date(0, i).toLocaleString("default", { month: "long" })}
-                </option>
-              ))}
-            </select>
-
-            {/* Year Filter */}
-            <select
-              className="border border-gray-200 rounded-md p-2 bg-white"
-              value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
-            >
-              <option value="">All Years</option>
-              {Array.from(
-                new Set(
-                  items
-                    .map((p) => new Date(p.date).getFullYear())
-                    .filter((y) => !isNaN(y))
-                )
-              )
-                .sort((a, b) => b - a)
-                .map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-            </select>
-
-            {/* Clear Filters */}
-            <button
-              onClick={() => {
-                setDayFilter("");
-                setMonthFilter("");
-                setYearFilter("");
-                setStatusFilter("all");
-                setSearchQuery("");
-              }}
-              className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
-            >
-              Clear
-            </button>
-
-            {/* Print */}
-            <button
-              onClick={() => window.print()}
-              className="bg-primary px-3 py-3 rounded-sm text-white cursor-pointer"
-            >
-              <Printer className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Table */}
-          <div className="bg-white shadow overflow-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr className="bg-lightblue">
-                  <th className="w-[14%] text-left text-sm py-3 pl-4 !bg-lightblue">
-                    Request ID
-                  </th>
-                  <th className="w-[26%] text-left text-sm py-3">
-                    RHU/Private name
-                  </th>
-                  <th className="w-[18%] text-left text-sm py-3">Date</th>
-                  <th className="w-[14%] text-left text-sm py-3">Documents</th>
-                  <th className="w-[12%] text-left text-sm py-3">Status</th>
-                  <th className="w-[16%] text-center text-sm py-3">Actions</th>
-                </tr>
-              </thead>
-            </table>
-
-            <div className="max-h-[260px] min-h-[200px] overflow-auto">
-              <table className="min-w-full divide-y divide-gray-200 border-spacing-0 mass-table">
-                <colgroup>
-                  <col className="w-[14%]" />
-                  <col className="w-[26%]" />
-                  <col className="w-[18%]" />
-                  <col className="w/[14%]" />
-                  <col className="w-[12%]" />
-                  <col className="w-[16%]" />
-                </colgroup>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedData.map((item) => {
-                    const status = item.status || "";
-                    const badge = (() => {
-                      switch (status) {
-                        case "Verified":
-                          return "bg-green-100 text-green-700";
-                        case "Rejected":
-                          return "bg-red-100 text-red-700";
-                        case "Done":
-                          return "bg-blue-100 text-blue-700";
-                        default:
-                          return "bg-yellow-100 text-yellow-700";
-                      }
-                    })();
-
-                    return (
-                      <tr key={item.id}>
-                        <td className="text-sm py-4 text-gray-800 pl-4">
-                          {item.id}
-                        </td>
-                        <td className="text-sm py-4 text-gray-800">
-                          {/* {item.rhuName || "—"} */}
-                          {item.rhuName ? item.rhuName : item.privateName}
-                        </td>
-                        <td className="text-sm py-4 text-gray-800">
-                          {formatDate(item.date)}
-                        </td>
-                        <td className="text-sm py-4">
-                          {Array.isArray(item.attachments) &&
-                          item.attachments.length > 0 ? (
-                            <span className="text-gray-700">
-                              {item.attachments.length} file(s)
-                            </span>
-                          ) : (
-                            <span className="text-gray-400">—</span>
-                          )}
-                        </td>
-                        <td className="text-sm py-4">
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${badge}`}
-                          >
-                            {status || "—"}
-                          </span>
-                        </td>
-                        <td className="text-sm py-4">
-                          <div className="flex gap-2 justify-center">
-                            <button
-                              onClick={() => handleViewClick(item.id)}
-                              className="text-white py-1 px-3 rounded-md shadow bg-slate-500"
-                            >
-                              View
-                            </button>
-
-                            {status === "Pending" && (
-                              <>
-                                <button
-                                  onClick={() => askConfirm("verify", item.id)}
-                                  className="text-white py-1 px-3 rounded-md shadow bg-green-600"
-                                >
-                                  Verify
-                                </button>
-                                <button
-                                  onClick={() => askConfirm("reject", item.id)}
-                                  className="text-white py-1 px-3 rounded-md shadow bg-red-600"
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            )}
-                            {(status === "Verified" ||
-                              status === "Rejected") && (
-                              <button
-                                onClick={() => askConfirm("done", item.id)}
-                                className="text-white py-1 px-3 rounded-md shadow bg-green-600"
-                              >
-                                Done
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-
-                  {paginatedData.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan="6"
-                        className="text-center py-4 text-gray-500"
-                      >
-                        No records found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Footer Pagination */}
-          <div className="flex justify-end items-center py-2 gap-5">
-            <div className="flex items-center gap-2">
-              <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
-                Record per page:
-              </label>
-              <select
-                id="recordsPerPage"
-                className="w-16 rounded-md shadow-sm"
-                value={recordsPerPage}
-                onChange={handleRecordsPerPageChange}
-              >
-                <option>10</option>
-                <option>20</option>
-                <option>50</option>
-              </select>
-            </div>
-            <div className="flex gap-3 items-center">
-              <span className="text-sm text-gray-700">
-                {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
-                – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                {totalRecords}
-              </span>
+        <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
+          {/* Header */}
+          <div className="flex justify-between items-center w-full">
+            <h2 className="text-xl font-bold text-gray-800">
+              Mass Screening
+            </h2>
+            <div className="flex items-center gap-3">
               <button
-                onClick={handlePrev}
-                disabled={currentPage === 1}
-                className="text-gray-600"
+                onClick={() => window.print()}
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
               >
-                ←
+                <Printer className="w-4 h-4" />
+                Print
               </button>
-              <button
-                onClick={handleNext}
-                disabled={currentPage === totalPages}
-                className="text-gray-600"
+              <Link
+                to="/admin/cancer-screening/add/mass"
+                className="bg-yellow hover:bg-yellow/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
               >
-                →
-              </button>
+                Add New
+              </Link>
             </div>
           </div>
-        </div>
 
-        {/* ---------------- Confirmation Modal ---------------- */}
-        {confirm.open && (
-          <div className="fixed inset-0 z-40 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/40" />
-            <div className="relative bg-white w-[min(420px,92vw)] rounded-xl shadow-xl p-6 z-50 text-center">
-              <h4 className="text-lg font-semibold mb-2">
-                {confirm.action === "verify"
-                  ? "Verify this request?"
-                  : confirm.action === "reject"
-                  ? "Reject this request?"
-                  : "Delete this record?"}
-              </h4>
-              <p className="text-sm text-gray2 mb-6">
-                {confirm.action === "delete"
-                  ? "This action cannot be undone."
-                  : "Please confirm your action."}
-              </p>
-              <div className="flex justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={closeConfirm}
-                  className="px-4 py-2 rounded-md border border-gray2"
+          {/* Main Content Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full">
+            {/* Card Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-yellow-600">
+                Manage Mass Screening Requests
+              </h3>
+            </div>
+
+            {/* Filters Section */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex flex-wrap gap-3 items-center">
+                <input
+                  type="text"
+                  placeholder="Search by request ID or RHU name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-64 text-sm"
+                />
+
+                <select
+                  className="border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={doConfirm}
-                  className={`px-4 py-2 rounded-md text-white font-semibold ${
-                    confirm.action === "reject" || confirm.action === "delete"
-                      ? "bg-red-600"
-                      : "bg-green-600"
-                  }`}
+                  <option value="all">All Status</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Verified">Verified</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Done">Done</option>
+                </select>
+
+                {/* Date Filters */}
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={dayFilter}
+                  onChange={(e) => setDayFilter(e.target.value)}
                 >
-                  Confirm
+                  <option value="">All Days</option>
+                  {[...Array(31)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {i + 1}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={monthFilter}
+                  onChange={(e) => setMonthFilter(e.target.value)}
+                >
+                  <option value="">All Months</option>
+                  {[...Array(12)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {new Date(0, i).toLocaleString("default", { month: "long" })}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={yearFilter}
+                  onChange={(e) => setYearFilter(e.target.value)}
+                >
+                  <option value="">All Years</option>
+                  {Array.from(
+                    new Set(
+                      items
+                        .map((p) => new Date(p.date).getFullYear())
+                        .filter((y) => !isNaN(y))
+                    )
+                  )
+                    .sort((a, b) => b - a)
+                    .map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                </select>
+
+                <button
+                  onClick={() => {
+                    setDayFilter("");
+                    setMonthFilter("");
+                    setYearFilter("");
+                    setStatusFilter("all");
+                    setSearchQuery("");
+                  }}
+                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+                >
+                  Clear Filters
                 </button>
               </div>
             </div>
+
+            {/* Table Section */}
+            <div className="px-6 py-4">
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                {/* Table Header */}
+                <div className="bg-lightblue px-4 py-3">
+                  <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
+                    <div className="col-span-2 text-center">Request ID</div>
+                    <div className="col-span-3 text-center">RHU/Private Name</div>
+                    <div className="col-span-2 text-center">Date</div>
+                    <div className="col-span-2 text-center">Venue</div>
+                    <div className="col-span-2 text-center">Status</div>
+                    <div className="col-span-1 text-center">Actions</div>
+                  </div>
+                </div>
+
+                {/* Table Body */}
+                <div className="max-h-96 overflow-auto">
+                  {paginatedData.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No records found matching your filters.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-200">
+                      {paginatedData.map((item) => (
+                        <div
+                          key={item.id}
+                          className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
+                        >
+                          <div 
+                            className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
+                            onClick={() => handleViewClick(item.id)}
+                          >
+                            {item.id}
+                          </div>
+                          <div className="col-span-3 text-center text-gray-800">
+                            {item.rhuName ? item.rhuName : item.privateName}
+                          </div>
+                          <div className="col-span-2 text-center text-gray-800">
+                            {formatDate(item.date)}
+                          </div>
+                          <div className="col-span-2 text-center text-gray-800">
+                            {item.venue}
+                            {/* {Array.isArray(item.attachments) &&
+                            item.attachments.length > 0 ? (
+                              <span className="text-gray-700">
+                                {item.attachments.length} file(s)
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )} */}
+                          </div>
+                          <div className="col-span-2 text-center">
+                            <span
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                                statusColors[item.status] || statusColors.Default
+                              }`}
+                            >
+                              {item.status || "—"}
+                            </span>
+                          </div>
+                          <div className="col-span-1 flex justify-center gap-2">
+                            {/* <button
+                              onClick={() => handleViewClick(item.id)}
+                              className="bg-primary hover:bg-primary/90 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
+                            >
+                              View
+                            </button> */}
+
+                            {item.status === "Pending" ? (
+                              <>
+                                <button
+                                  onClick={() => askConfirm("verify", item.id)}
+                                  className="bg-primary cursor-pointer text-white py-1.5 px-3 rounded text-xs font-medium"
+                                >
+                                  {/* Verify */}
+                                  <CheckCircle className="w-3.5 h-3.5"/>
+                                </button>
+                                <button
+                                  onClick={() => askConfirm("reject", item.id)}
+                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
+                                >
+                                  {/* Reject */}
+                                  <X className="w-3.5 h-3.5"/>
+                                </button>
+                              </>
+                            ) : item.status === "Rejected" ||
+                                item.status === "Completed" ? (
+                                <button
+                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                  onClick={() => handleActionClick(item.id, "delete")}
+                                >
+                                  {/* Delete */}
+                                  <Trash2 className="w-3.5 h-3.5"/>
+                                </button>
+                            ) : (
+                              <button
+                                className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                onClick={() => handleActionClick(item.id, "delete")}
+                              >
+                                {/* Cancel */}
+                                <X className="w-3.5 h-3.5"/>
+                              </button>
+                            )}
+                            {/* {(item.status === "Verified" || item.status === "Rejected") && (
+                              <button
+                                onClick={() => askConfirm("done", item.id)}
+                                className="bg-green-500 hover:bg-green-600 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
+                              >
+                                Done
+                              </button>
+                            )} */}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Pagination */}
+              <div className="flex justify-between items-center mt-4 px-2">
+                <div className="text-sm text-gray-600">
+                  Showing {paginatedData.length} of {totalRecords} records
+                </div>
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                      Records per page:
+                    </label>
+                    <select
+                      id="recordsPerPage"
+                      className="border border-gray-300 rounded-md p-1 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                      value={recordsPerPage}
+                      onChange={handleRecordsPerPageChange}
+                    >
+                      <option>10</option>
+                      <option>20</option>
+                      <option>50</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>
+                      {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
+                      – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
+                      {totalRecords}
+                    </span>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={handlePrev}
+                        disabled={currentPage === 1}
+                        className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
+                      >
+                        ←
+                      </button>
+                      <button
+                        onClick={handleNext}
+                        disabled={currentPage === totalPages}
+                        className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
+                      >
+                        →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </>
   );
