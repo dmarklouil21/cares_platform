@@ -6,7 +6,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
     model = User
     fields = [
       'email', 'first_name', 'last_name', 'date_of_birth', 'age',
-      'phone_number', 'is_resident_of_cebu', 'lgu', 'address',
+      'phone_number', 'is_resident_of_cebu', 'lgu', 'address', 'created_at',
     ]
     extra_kwargs = {
       'email': {'required': True},

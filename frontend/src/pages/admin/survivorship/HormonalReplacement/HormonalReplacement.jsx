@@ -1,15 +1,13 @@
 // src/pages/treatment/PostTreatment.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { Info } from "lucide-react";
-import { Printer, FileText, FileDown } from "lucide-react";
+import { Info, Printer, CheckCircle, X, Trash2 } from "lucide-react";
 
 import api from "src/api/axiosInstance";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import SystemLoader from "src/components/SystemLoader";
 import Notification from "src/components/Notification";
 
-// ⬇️ PRINT TEMPLATE
 import HormonalPrint from "./generate/generate";
 
 const HormonalReplacement = () => {
@@ -28,6 +26,7 @@ const HormonalReplacement = () => {
     currentPage: 1,
   });
 
+  const [modalDesc, setModalDesc] = useState("Please confirm before proceeding");
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState("");
   const [notificationType, setNotificationType] = useState(
@@ -40,11 +39,10 @@ const HormonalReplacement = () => {
     action: null,
   });
 
-  const [recordDateFilter, setRecordDateFilter] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [dayFilter, setDayFilter] = useState("");
+
   const fetchData = async () => {
     try {
       const { data } = await api.get(
@@ -52,7 +50,7 @@ const HormonalReplacement = () => {
       );
       setTableData(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error fetching post-treatment requests:", error);
+      console.error("Error fetching hormonal replacement requests:", error);
     }
   };
 
@@ -76,7 +74,7 @@ const HormonalReplacement = () => {
     return () => clearTimeout(timer);
   }, [notification]);
 
-  // ---------------- Filter (all rows) + Pagination (derived) ----------------
+  // Filter and Pagination
   const filteredAndPaginated = useMemo(() => {
     const searchQuery = filters.search.trim().toLowerCase();
     const { recordsPerPage, currentPage } = pagination;
@@ -92,29 +90,21 @@ const HormonalReplacement = () => {
       const createdMonth = createdDate.getMonth() + 1;
       const createdDay = createdDate.getDate();
 
-      // ✅ Search filter
       const matchesSearch =
         !searchQuery ||
         row.patient?.patient_id?.toLowerCase().includes(searchQuery) ||
         row.patient?.full_name?.toLowerCase().includes(searchQuery);
 
-      // ✅ Status filter
       const matchesStatus =
         filters.status === "all" ||
         (row.status || "").toLowerCase() === filters.status;
 
-      // ✅ Exact date filter
       const matchesDate =
         !filters.date ||
         new Date(dateValue).toISOString().slice(0, 10) === filters.date;
 
-      // ✅ Day filter
       const matchesDay = !dayFilter || createdDay === Number(dayFilter);
-
-      // ✅ Month filter
       const matchesMonth = !monthFilter || createdMonth === Number(monthFilter);
-
-      // ✅ Year filter
       const matchesYear = !yearFilter || createdYear === Number(yearFilter);
 
       return (
@@ -136,9 +126,8 @@ const HormonalReplacement = () => {
   }, [tableData, filters, pagination, dayFilter, monthFilter, yearFilter]);
 
   useEffect(() => {
-    // Reset to page 1 whenever filters change
     setPagination((p) => ({ ...p, currentPage: 1 }));
-  }, [filters.search, filters.status, filters.date]);
+  }, [filters.search, filters.status, filters.date, dayFilter, monthFilter, yearFilter]);
 
   const openConfirm = (id, action) => {
     const actionText =
@@ -183,9 +172,15 @@ const HormonalReplacement = () => {
   const handleView = (id) =>
     navigate(`/admin/survivorship/hormonal-replacement/view/${id}`);
 
+  const statusColors = {
+    Pending: "bg-yellow-100 text-yellow-700",
+    Approved: "bg-blue-100 text-blue-700",
+    Completed: "bg-green-100 text-green-700",
+    Default: "bg-gray-100 text-gray-700",
+  };
+
   return (
     <>
-      {/* --- Print rules: only show the print template during print --- */}
       <style>{`
         :root { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
@@ -199,345 +194,353 @@ const HormonalReplacement = () => {
           #print-root { display: none !important; }
         }
 
-        /* Screen table tweak to avoid double borders in the scrollable body */
         .master-table { border-collapse: collapse; }
         .master-table, .master-table th, .master-table td, .master-table tr { border: 0 !important; }
       `}</style>
 
-      {/* --- PRINT-ONLY CONTENT (all filtered rows, not paginated) --- */}
+      {/* PRINT CONTENT */}
       <div id="print-root">
         <HormonalPrint rows={filteredAndPaginated.filtered} />
       </div>
 
-      {/* --- SCREEN CONTENT --- */}
+      {/* SCREEN CONTENT */}
       <div id="hormonal-root">
         {loading && <SystemLoader />}
 
         <ConfirmationModal
           open={modal.open}
           title={modal.text}
+          desc={modalDesc}
           onConfirm={doAction}
           onCancel={() => setModal({ open: false, text: "", action: null })}
         />
 
         <Notification message={notification} type={notificationType} />
 
-        <div className="flex-1 w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray">
+        <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
+          {/* Header */}
           <div className="flex justify-between items-center w-full">
-            <h2 className="text-xl font-bold">Hormonal Replacement </h2>
-            <Link
-              to="/admin/survivorship/hormonal-replacement/add"
-              className="bg-yellow px-5 py-1 rounded-sm text-white"
-            >
-              Add
-            </Link>
-          </div>
-
-          <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
-            <p className="text-md font-semibold text-yellow">
-              Manage Hormonal Replacement Medication
-            </p>
-
-            {/* Filters */}
-            <div className="flex justify-between flex-wrap gap-3">
-              <input
-                type="text"
-                placeholder="Search by patient no, patient name..."
-                value={filters.search}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, search: e.target.value }))
-                }
-                className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
-              />
-
-              <select
-                className="border border-gray-200 rounded-md p-2 bg-white"
-                value={filters.status}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, status: e.target.value }))
-                }
-              >
-                <option value="all">All</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="completed">Completed</option>
-              </select>
-
-              {/* Day Filter (1–31) */}
-              <select
-                className="border border-gray-200 py-2 px-3 rounded-md"
-                value={dayFilter}
-                onChange={(e) => setDayFilter(e.target.value)}
-              >
-                <option value="">All Days</option>
-                {[...Array(31)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {i + 1}
-                  </option>
-                ))}
-              </select>
-
-              {/* Month Filter */}
-              <select
-                className="border border-gray-200 py-2 px-3 rounded-md"
-                value={monthFilter}
-                onChange={(e) => setMonthFilter(e.target.value)}
-              >
-                <option value="">All Months</option>
-                {[...Array(12)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {new Date(0, i).toLocaleString("en", { month: "long" })}
-                  </option>
-                ))}
-              </select>
-
-              {/* Year Filter */}
-              <select
-                className="border border-gray-200 py-2 px-3 rounded-md"
-                value={yearFilter}
-                onChange={(e) => setYearFilter(e.target.value)}
-              >
-                <option value="">All Years</option>
-                {Array.from(
-                  new Set(
-                    tableData.map((p) =>
-                      new Date(p.created_at || p.date_submitted).getFullYear()
-                    )
-                  )
-                )
-                  .filter((y) => !isNaN(y))
-                  .sort((a, b) => b - a)
-                  .map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-              </select>
-              <button
-                onClick={() => {
-                  setDateFilter("");
-                  setDayFilter("");
-                  setMonthFilter("");
-                setYearFilter("");
-                }}
-                className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
-              >
-                Clear
-              </button>
-              {/* ⬇️ Generate button with cursor-pointer */}
+            <h2 className="text-xl font-bold text-gray-800">
+              Hormonal Replacement
+            </h2>
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => window.print()}
                 disabled={loading}
-                className={`px-3 font-bold rounded-md text-sm text-white cursor-pointer ${
-                  loading ? "bg-primary/60 cursor-not-allowed" : "bg-primary"
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors ${
+                  loading ? "bg-primary/60 cursor-not-allowed" : "bg-primary hover:bg-primary/90"
                 }`}
                 title={loading ? "Loading data..." : "Print current list"}
               >
-                {/* Generate */}
                 <Printer className="w-4 h-4" />
+                Print
               </button>
+              <Link
+                to="/admin/survivorship/hormonal-replacement/add"
+                className="bg-yellow hover:bg-yellow/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
+              >
+                Add New
+              </Link>
+            </div>
+          </div>
+
+          {/* Main Content Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full">
+            {/* Card Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-yellow-600">
+                Manage Hormonal Replacement Medication
+              </h3>
             </div>
 
-            {/* Table */}
-            <div className="bg-white shadow">
-              <table className="min-w-full divide-y divide-gray-200 border-separate border-spacing-0">
-                <thead>
-                  <tr className="bg-lightblue">
-                    <th className="w-[15%] text-center text-sm py-3 !bg-lightblue">
-                      Patient ID
-                    </th>
-                    <th className="w-[20%] text-center text-sm py-3">
-                      Patient Name
-                    </th>
-                    <th className="w-[20%] text-center text-sm py-3">
-                      Diagnosis
-                    </th>
-                    <th className="w-[15%] text-center text-sm py-3">
-                      Date Submitted
-                    </th>
-                    <th className="w-[10%] text-center text-sm py-3">Status</th>
-                    <th className="w-[20%] text-center text-sm py-3">Action</th>
-                  </tr>
-                </thead>
-              </table>
+            {/* Filters Section */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex flex-wrap gap-3 items-center">
+                <input
+                  type="text"
+                  placeholder="Search by patient ID or name..."
+                  value={filters.search}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, search: e.target.value }))
+                  }
+                  className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-64 text-sm"
+                />
 
-              <div className="max-h-[240px] min-h-[240px] overflow-auto">
-                <table className="min-w-full divide-y divide-gray-200 master-table border-separate border-spacing-0">
-                  <colgroup>
-                    <col className="w-[15%]" />
-                    <col className="w-[20%]" />
-                    <col className="w-[20%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[10%]" />
-                    <col className="w-[20%]" />
-                  </colgroup>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredAndPaginated.paginatedData.map((p) => (
-                      <tr key={p.id}>
-                        <td className="text-center text-sm py-3">
-                          {p.patient?.patient_id}
-                        </td>
-                        <td className="text-center text-sm py-3">
-                          {p.patient?.full_name}
-                        </td>
-                        <td className="text-center text-sm py-3">
-                          {p.patient?.diagnosis?.[0]?.diagnosis || "N/A"}
-                        </td>
-                        <td className="text-center text-sm py-3">
-                          {new Date(p.date_submitted).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            }
-                          )}
-                        </td>
-                        <td className="text-center text-sm py-4">
-                          <span
-                            className={`px-3 py-1 inline-flex text-xs gap-1 font-semibold rounded-md ${
-                              p.status === "Approved"
-                                ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-                                : p.status === "Completed"
-                                ? "bg-green-100 text-green-700 border border-green-200"
-                                : "bg-amber-50 text-amber-600"
-                            }`}
+                <select
+                  className="border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={filters.status}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, status: e.target.value }))
+                  }
+                >
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="completed">Completed</option>
+                </select>
+
+                {/* Date Filters */}
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={dayFilter}
+                  onChange={(e) => setDayFilter(e.target.value)}
+                >
+                  <option value="">All Days</option>
+                  {[...Array(31)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {i + 1}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={monthFilter}
+                  onChange={(e) => setMonthFilter(e.target.value)}
+                >
+                  <option value="">All Months</option>
+                  {[...Array(12)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {new Date(0, i).toLocaleString("en", { month: "long" })}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={yearFilter}
+                  onChange={(e) => setYearFilter(e.target.value)}
+                >
+                  <option value="">All Years</option>
+                  {Array.from(
+                    new Set(
+                      tableData.map((p) =>
+                        new Date(p.created_at || p.date_submitted).getFullYear()
+                      )
+                    )
+                  )
+                    .filter((y) => !isNaN(y))
+                    .sort((a, b) => b - a)
+                    .map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                </select>
+
+                <button
+                  onClick={() => {
+                    setFilters({ status: "all", search: "", date: "" });
+                    setDayFilter("");
+                    setMonthFilter("");
+                    setYearFilter("");
+                  }}
+                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+
+            {/* Table Section */}
+            <div className="px-6 py-4">
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                {/* Table Header */}
+                <div className="bg-lightblue px-4 py-3">
+                  <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
+                    <div className="col-span-2 text-center">Patient ID</div>
+                    <div className="col-span-3 text-center">Patient Name</div>
+                    <div className="col-span-2 text-center">Diagnosis</div>
+                    <div className="col-span-2 text-center">Date Submitted</div>
+                    <div className="col-span-2 text-center">Status</div>
+                    <div className="col-span-1 text-center">Actions</div>
+                  </div>
+                </div>
+
+                {/* Table Body */}
+                <div className="max-h-96 overflow-auto">
+                  {filteredAndPaginated.paginatedData.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No records found matching your filters.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-200">
+                      {filteredAndPaginated.paginatedData.map((p) => (
+                        <div
+                          key={p.id}
+                          className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
+                        >
+                          <div 
+                            className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
+                            onClick={() => handleView(p.id)}
                           >
-                            {p.status}
-                            <Info
-                              size={14}
-                              title={
-                                p.has_patient_response
-                                  ? p.response_description
-                                  : "No patient response"
+                            <div className="flex items-center justify-center gap-1">
+                              {p.patient?.patient_id}
+                              {p.has_patient_response && (
+                              <span
+                                title={
+                                  p.has_patient_response
+                                    ? p.response_description
+                                    : "No additional information"
+                                }
+                                className="cursor-pointer flex items-center"
+                              >
+                                <Info
+                                  size={14}
+                                  className={
+                                    p.has_patient_response
+                                      ? "text-yellow"
+                                      : "text-gray-300"
+                                  }
+                                />
+                              </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="col-span-3 text-center text-gray-800">
+                            {p.patient?.full_name}
+                          </div>
+                          <div className="col-span-2 text-center text-gray-800">
+                            {p.patient?.diagnosis?.[0]?.diagnosis || "N/A"}
+                          </div>
+                          <div className="col-span-2 text-center text-gray-800">
+                            {new Date(p.date_submitted).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
                               }
-                              className={`cursor-pointer ${
-                                p.has_patient_response
-                                  ? "text-blue-500"
-                                  : "text-gray-300"
+                            )}
+                          </div>
+                          <div className="col-span-2 text-center">
+                            <span
+                              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
+                                statusColors[p.status] || statusColors.Default
                               }`}
-                            />
-                          </span>
-                        </td>
-                        <td className="text-center text-sm py-3">
-                          <div className="flex gap-2 justify-center">
-                            <button
+                            >
+                              {p.status}
+                            </span>
+                          </div>
+                          <div className="col-span-1 flex justify-center gap-2">
+                            {/* <button
                               onClick={() => handleView(p.id)}
-                              className="text-white py-1 px-2 rounded shadow bg-primary"
+                              className="bg-primary hover:bg-primary/90 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
                             >
                               View
-                            </button>
+                            </button> */}
                             {p.status === "Pending" ? (
                               <>
                                 <button
                                   onClick={() => openConfirm(p.id, "accept")}
-                                  className="text-white py-1 px-2 rounded shadow bg-green-500"
+                                  className="bg-primary cursor-pointer text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
-                                  Approve
+                                  <CheckCircle className="w-3.5 h-3.5"/>
                                 </button>
                                 <button
                                   onClick={() => openConfirm(p.id, "reject")}
-                                  className="text-white py-1 px-2 rounded shadow bg-red-500"
+                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
-                                  Reject
+                                  <X className="w-3.5 h-3.5"/>
                                 </button>
                               </>
+                            ) : p.status === "Rejected" ||
+                                p.status === "Completed" ? (
+                                <button
+                                  onClick={() => openConfirm(p.id, "delete")}
+                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                >
+                                  {/* Delete */}
+                                  <Trash2 className="w-3.5 h-3.5"/>
+                                </button>
                             ) : (
                               <button
                                 onClick={() => openConfirm(p.id, "delete")}
-                                className="text-white py-1 px-2 rounded shadow bg-red-500"
+                                className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
-                                Delete
+                                {/* Delete */}
+                                <X className="w-3.5 h-3.5"/>
                               </button>
                             )}
                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredAndPaginated.paginatedData.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="text-center py-4 text-gray-500"
-                        >
-                          No records found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Pagination */}
-            <div className="flex justify-end items-center py-2 gap-5">
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor="recordsPerPage"
-                  className="text-sm text-gray-700"
-                >
-                  Records per page:
-                </label>
-                <select
-                  id="recordsPerPage"
-                  className="w-16 rounded-md shadow-sm"
-                  value={pagination.recordsPerPage}
-                  onChange={(e) =>
-                    setPagination((prev) => ({
-                      ...prev,
-                      recordsPerPage: Number(e.target.value),
-                      currentPage: 1,
-                    }))
-                  }
-                >
-                  <option>10</option>
-                  <option>20</option>
-                  <option>50</option>
-                </select>
-              </div>
-              <div className="flex gap-3 items-center">
-                <span className="text-sm text-gray-700">
-                  {Math.min(
-                    (pagination.currentPage - 1) * pagination.recordsPerPage +
-                      1,
-                    filteredAndPaginated.totalRecords
-                  )}{" "}
-                  –{" "}
-                  {Math.min(
-                    pagination.currentPage * pagination.recordsPerPage,
-                    filteredAndPaginated.totalRecords
-                  )}{" "}
-                  of {filteredAndPaginated.totalRecords}
-                </span>
-                <button
-                  onClick={() =>
-                    setPagination((prev) => ({
-                      ...prev,
-                      currentPage: Math.max(1, prev.currentPage - 1),
-                    }))
-                  }
-                  disabled={pagination.currentPage === 1}
-                  className="text-gray-600"
-                >
-                  ←
-                </button>
-                <button
-                  onClick={() =>
-                    setPagination((prev) => ({
-                      ...prev,
-                      currentPage: Math.min(
-                        filteredAndPaginated.totalPages,
-                        prev.currentPage + 1
-                      ),
-                    }))
-                  }
-                  disabled={
-                    pagination.currentPage === filteredAndPaginated.totalPages
-                  }
-                  className="text-gray-600"
-                >
-                  →
-                </button>
+              {/* Pagination */}
+              <div className="flex justify-between items-center mt-4 px-2">
+                <div className="text-sm text-gray-600">
+                  Showing {filteredAndPaginated.paginatedData.length} of {filteredAndPaginated.totalRecords} records
+                </div>
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                      Records per page:
+                    </label>
+                    <select
+                      id="recordsPerPage"
+                      className="border border-gray-300 rounded-md p-1 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                      value={pagination.recordsPerPage}
+                      onChange={(e) =>
+                        setPagination((prev) => ({
+                          ...prev,
+                          recordsPerPage: Number(e.target.value),
+                          currentPage: 1,
+                        }))
+                      }
+                    >
+                      <option>10</option>
+                      <option>20</option>
+                      <option>50</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>
+                      {Math.min(
+                        (pagination.currentPage - 1) * pagination.recordsPerPage + 1,
+                        filteredAndPaginated.totalRecords
+                      )}{" "}
+                      –{" "}
+                      {Math.min(
+                        pagination.currentPage * pagination.recordsPerPage,
+                        filteredAndPaginated.totalRecords
+                      )}{" "}
+                      of {filteredAndPaginated.totalRecords}
+                    </span>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() =>
+                          setPagination((prev) => ({
+                            ...prev,
+                            currentPage: Math.max(1, prev.currentPage - 1),
+                          }))
+                        }
+                        disabled={pagination.currentPage === 1}
+                        className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
+                      >
+                        ←
+                      </button>
+                      <button
+                        onClick={() =>
+                          setPagination((prev) => ({
+                            ...prev,
+                            currentPage: Math.min(
+                              filteredAndPaginated.totalPages,
+                              prev.currentPage + 1
+                            ),
+                          }))
+                        }
+                        disabled={pagination.currentPage === filteredAndPaginated.totalPages}
+                        className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
+                      >
+                        →
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -86,6 +86,7 @@ class RegistrationLoginAPIView(APIView):
         'is_private': getattr(user, 'is_private', False),
         'is_superuser': user.is_superuser,
         'is_active': user.is_active,
+        'created_at': user.created_at,
       },
       'message': 'Login successful.' if user.is_active else 'Account is not yet active. Please wait for admin approval.'
     }

@@ -1,7 +1,7 @@
 // src/pages/user-management/UserManagement.jsx
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Printer, FileText, FileDown } from "lucide-react";
+import { Printer, Info, CheckCircle, X, Trash2, Pencil } from "lucide-react";
 import {
   fetchUsers,
   deleteUser,
@@ -9,54 +9,9 @@ import {
 } from "../../../services/userManagementService";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
-import SystemLoader from "src/components/SystemLoader";
 import Notification from "src/components/Notification";
 
-// ⬇️ PRINT TEMPLATE
 import UserManagementPrint from "./generate/generate";
-
-// Modal component for confirmation
-// function ConfirmationModal({ open, text, onConfirm, onCancel }) {
-//   if (!open) return null;
-//   return (
-//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
-//       <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
-//         <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
-//         <div className="flex gap-4">
-//           <button
-//             className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
-//             onClick={onConfirm}
-//           >
-//             Confirm
-//           </button>
-//           <button
-//             className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
-//             onClick={onCancel}
-//           >
-//             Cancel
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// Notification component for showing popup messages
-// function Notification({ message, onClose }) {
-//   if (!message) return null;
-//   return (
-//     <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
-//       <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-//         <img
-//           src="/images/logo_white_notxt.png"
-//           alt="Rafi Logo"
-//           className="h-[25px]"
-//         />
-//         <span>{message}</span>
-//       </div>
-//     </div>
-//   );
-// }
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -65,58 +20,50 @@ const UserManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const [notification, setNotification] = useState("");
-  const [notificationType, setNotificationType] = useState(
-    location.state?.type || ""
-  );
+  const [notificationType, setNotificationType] = useState("");
+
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
-  const [modalAction, setModalAction] = useState(null); // {id, action}
+  const [modalAction, setModalAction] = useState(null);
   const [modalDesc, setModalDesc] = useState(
     "Are you sure you want to proceed with this action?"
   );
 
+  // Date filters
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
+
   // Status filter state
   const [statusFilter, setStatusFilter] = useState("all");
+  const navigate = useNavigate();
 
-  // Print-only: style rules
-  // (Hide the screen UI while printing, show print template; plus table border tweaks)
-  const printStyles = (
-    <style>{`
-      :root { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-
-      @media print {
-        #um-root { display: none !important; }
-        #print-root { display: block !important; }
-        @page { size: Letter; margin: 0 !important; }
-        html, body { margin: 0 !important; }
-      }
-      @media screen {
-        #print-root { display: none !important; }
-      }
-
-      /* Screen table tweak to avoid double borders in the scrollable body */
-      .master-table { border-collapse: collapse; }
-      .master-table, .master-table th, .master-table td, .master-table tr { border: 0 !important; }
-    `}</style>
-  );
-
-  // Fix: Use first_name + last_name for display and search
   const filteredResults = users.filter((user) => {
     const query = searchQuery.trim().toLowerCase();
-    const fullName = `${user.first_name || ""} ${user.last_name || ""}`
-      .trim()
-      .toLowerCase();
+    const fullName = user.full_name?.trim().toLowerCase();
+
     const matchesSearch =
       !query ||
       user.id?.toString().includes(query) ||
-      fullName.includes(query) ||
+      fullName?.includes(query) ||
       (user.email || "").toLowerCase().includes(query);
+
     const matchesStatus =
       statusFilter === "all" ||
       (statusFilter === "active" && user.is_active) ||
       (statusFilter === "inactive" && !user.is_active);
-    return matchesSearch && matchesStatus;
+    
+    // 📅 Date filter logic
+    const userDate = user.created_at ? new Date(user.created_at) : null;
+    const userDay = userDate ? userDate.getDate() : null;
+    const userMonth = userDate ? userDate.getMonth() + 1 : null; // months are 0-based
+    const userYear = userDate ? userDate.getFullYear() : null;
+
+    const matchesDay = !dayFilter || userDay === parseInt(dayFilter);
+    const matchesMonth = !monthFilter || userMonth === parseInt(monthFilter);
+    const matchesYear = !yearFilter || userYear === parseInt(yearFilter);
+    return matchesSearch && matchesStatus && matchesDay  && matchesMonth && matchesYear;
   });
 
   const totalRecords = filteredResults.length;
@@ -125,7 +72,7 @@ const UserManagement = () => {
     (currentPage - 1) * recordsPerPage,
     currentPage * recordsPerPage
   );
-
+  
   const handleRecordsPerPageChange = (e) => {
     setRecordsPerPage(Number(e.target.value));
     setCurrentPage(1);
@@ -146,6 +93,7 @@ const UserManagement = () => {
       setUsers(data);
     } catch (error) {
       setNotification("Failed to fetch users");
+      setNotificationType("error");
       setTimeout(() => setNotification(""), 3500);
     }
   }, []);
@@ -182,28 +130,18 @@ const UserManagement = () => {
     setModalText("");
   };
 
-  // Modal cancel handler (just close modal, no action)
-  const handleModalCancel = () => {
-    setModalOpen(false);
-    setModalAction(null);
-    setModalText("");
-  };
-
   // Show modal for delete/reject
   const handleActionClick = (id, action) => {
     if (action === "delete") {
       setModalText("Are you sure you want to delete this user?");
+      setModalDesc("This action cannot be undone.");
       setModalAction({ id, action });
       setModalOpen(true);
     } else if (action === "reject") {
       setModalText("Are you sure you want to reject this user?");
+      setModalDesc("This user will be deactivated.");
       setModalAction({ id, action });
       setModalOpen(true);
-    } else {
-      setNotification(
-        `${action.charAt(0).toUpperCase() + action.slice(1)} user successfully`
-      );
-      setTimeout(() => setNotification(""), 3500);
     }
   };
 
@@ -212,9 +150,11 @@ const UserManagement = () => {
     try {
       await updateUser(id, { is_active: true });
       setNotification("User accepted and activated");
+      setNotificationType("success");
       loadUsers();
     } catch (error) {
       setNotification("Failed to accept user");
+      setNotificationType("error");
     }
     setTimeout(() => setNotification(""), 3500);
   };
@@ -224,15 +164,15 @@ const UserManagement = () => {
     try {
       await updateUser(id, { is_active: false });
       setNotification("User rejected and deactivated");
+      setNotificationType("success");
       loadUsers();
     } catch (error) {
       setNotification("Failed to reject user");
+      setNotificationType("error");
     }
     setTimeout(() => setNotification(""), 3500);
   };
 
-  const navigate = useNavigate();
-  // Fix: View button logic
   const handleViewClick = (id) => {
     const user = users.find((u) => u.id === id);
     if (user) {
@@ -250,32 +190,45 @@ const UserManagement = () => {
     }
   };
 
-  // Fix: Edit button logic
   const handleEditClick = (id) => {
     const user = users.find((u) => u.id === id);
     if (user) {
-      // Pass the full user object, including id
       navigate("edit", { state: { user } });
     }
   };
 
+  const statusColors = {
+    active: "bg-green-100 text-green-700",
+    inactive: "bg-red-100 text-red-700",
+    Default: "bg-gray-100 text-gray-700",
+  };
+
   return (
     <>
-      {printStyles}
+      <style>{`
+        :root { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-      {/* --- PRINT-ONLY CONTENT (all filtered rows, not paginated) --- */}
+        @media print {
+          #um-root { display: none !important; }
+          #print-root { display: block !important; }
+          @page { size: Letter; margin: 0 !important; }
+          html, body { margin: 0 !important; }
+        }
+        @media screen {
+          #print-root { display: none !important; }
+        }
+
+        .master-table { border-collapse: collapse; }
+        .master-table, .master-table th, .master-table td, .master-table tr { border: 0 !important; }
+      `}</style>
+
+      {/* PRINT CONTENT */}
       <div id="print-root">
         <UserManagementPrint rows={filteredResults} />
       </div>
 
-      {/* --- SCREEN CONTENT --- */}
+      {/* SCREEN CONTENT */}
       <div id="um-root">
-        {/* <ConfirmationModal
-          open={modalOpen}
-          text={modalText}
-          onConfirm={handleModalConfirm}
-          onCancel={handleModalCancel}
-        /> */}
         <ConfirmationModal
           open={modalOpen}
           title={modalText}
@@ -287,58 +240,75 @@ const UserManagement = () => {
             setModalText("");
           }}
         />
+        
         <Notification message={notification} type={notificationType} />
-        {/* <Notification
-          message={notification}
-          onClose={() => setNotification("")}
-        /> */}
 
-        <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
+        <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
+          {/* Header */}
           <div className="flex justify-between items-center w-full">
-            <h2 className="text-xl font-bold text-left w-full pl-1">
+            <h2 className="text-xl font-bold text-gray-800">
               User Management
             </h2>
-            <Link
-              to="/admin/user-management/add"
-              className="bg-yellow px-5 py-1 rounded-sm text-white"
-            >
-              Add
-            </Link>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => window.print()}
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
+                title="Print current list"
+              >
+                <Printer className="w-4 h-4" />
+                Print
+              </button>
+              <Link
+                to="/admin/user-management/add"
+                className="bg-yellow hover:bg-yellow/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
+              >
+                Add New
+              </Link>
+            </div>
           </div>
 
-          <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
-            <p className="text-md font-semibold text-yellow">
-              Manage all system users
-            </p>
+          {/* Main Content Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full">
+            {/* Card Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-yellow-600">
+                Manage All System Users
+              </h3>
+            </div>
 
-            {/* Filters + Generate */}
-            <div className="flex justify-between flex-wrap gap-3">
-              <input
-                type="text"
-                placeholder="Search by name, email, or ID..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
-              />
+            {/* Filters Section */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex flex-wrap gap-3 items-center">
+                <input
+                  type="text"
+                  placeholder="Search by name, email, or ID..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-64 text-sm"
+                />
 
+                <select
+                  className="border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+
+                {/* Date Filters */}
               <select
-                className="border border-gray-200 rounded-md p-2 bg-white"
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
+                className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={dayFilter}
+                onChange={(e) => setDayFilter(e.target.value)}
               >
-                <option value="all">All</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-
-              {/* Day Filter (1–31) */}
-              <select className="border border-gray-200 py-2 px-3 rounded-md">
                 <option value="">All Days</option>
                 {[...Array(31)].map((_, i) => (
                   <option key={i + 1} value={i + 1}>
@@ -347,8 +317,11 @@ const UserManagement = () => {
                 ))}
               </select>
 
-              {/* Month Filter */}
-              <select className="border border-gray-200 py-2 px-3 rounded-md">
+              <select
+                className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+              >
                 <option value="">All Months</option>
                 {[...Array(12)].map((_, i) => (
                   <option key={i + 1} value={i + 1}>
@@ -357,167 +330,162 @@ const UserManagement = () => {
                 ))}
               </select>
 
-              {/* Year Filter */}
-              <select className="border border-gray-200 py-2 px-3 rounded-md">
-                <option value="">All Years</option>
-              </select>
-              <button className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm">
-                Clear
-              </button>
-
-              {/*  
-              <button className="px-7 rounded-md text-sm bg-[#C5D7E5]">
-                Filter
-              </button>
-              */}
-
-              {/* ⬇️ Generate button with cursor-pointer */}
-              <button
-                onClick={() => window.print()}
-                className="px-3 font-bold rounded-md text-sm text-white bg-primary cursor-pointer"
-                title="Print current list"
+              <select
+                className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
               >
-                {/* Generate */}
-                <Printer className="w-4 h-4" />
-              </button>
+                <option value="">All Years</option>
+                {Array.from(
+                  new Set(
+                    filteredResults.map((p) =>
+                      new Date(p.created_at || p.date_submitted).getFullYear()
+                    )
+                  )
+                )
+                  .filter((y) => !isNaN(y))
+                  .sort((a, b) => b - a)
+                  .map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+              </select>
+
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setStatusFilter("all");
+                  }}
+                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+                >
+                  Clear Filters
+                </button>
+              </div>
             </div>
 
-            <div className="bg-white shadow overflow-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr className="bg-lightblue">
-                    <th className="w-[25%] text-center text-sm py-3 !bg-lightblue">
-                      Name
-                    </th>
-                    <th className="w-[25%] text-center text-sm py-3">Email</th>
-                    <th className="w-[12%] text-center text-sm py-3">Role</th>
-                    <th className="w-[13.4%] text-center text-sm py-3">
-                      Status
-                    </th>
-                    <th className="w-[23%] text-center text-sm py-3 ">
-                      Actions
-                    </th>
-                    {paginatedData.length >= 4 && (
-                      <th className="!bg-lightblue w-[1.6%] p-0 m-0"></th>
-                    )}
-                  </tr>
-                </thead>
-              </table>
+            {/* Table Section */}
+            <div className="px-6 py-4">
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                {/* Table Header */}
+                <div className="bg-lightblue px-4 py-3">
+                  <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
+                    <div className="col-span-4 text-center">Name</div>
+                    <div className="col-span-3 text-center">Email</div>
+                    <div className="col-span-1 text-center">Role</div>
+                    <div className="col-span-2 text-center">Status</div>
+                    <div className="col-span-1 text-center">Actions</div>
+                  </div>
+                </div>
 
-              <div className="max-h-[200px] min-h-[200px] overflow-auto">
-                <table className="min-w-full divide-y divide-gray-200 border-spacing-0 master-table">
-                  <colgroup>
-                    <col className="w-[25%]" />
-                    <col className="w-[25%]" />
-                    <col className="w-[12%]" />
-                    <col className="w-[13.4%]" />
-                    <col className="w-[23%]" />
-                  </colgroup>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {paginatedData.map((user) => (
-                      <tr key={user.id}>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {`${user.first_name || ""} ${
-                            user.last_name || ""
-                          }`.trim()}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {user.email}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {user.role}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          <span
-                            className={`px-3 py-1 inline-flex text-xs font-semibold rounded-md ${
-                              user.is_active
-                                ? "bg-green-100 text-green-600"
-                                : "bg-red-100 text-red-600"
-                            }`}
-                          >
-                            {user.is_active ? "Active" : "Inactive"}
-                          </span>
-                        </td>
-                        <td className="text-center text-sm py-4 flex gap-2 justify-center">
-                          <button
-                            onClick={() => handleViewClick(user.id)}
-                            className="text-white py-1 px-3 rounded-[5px] shadow bg-primary cursor-pointer"
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleEditClick(user.id)}
-                            className="text-white py-1 px-3 rounded-[5px] shadow bg-yellow-500 cursor-pointer"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleActionClick(user.id, "delete")}
-                            className="text-white py-1 px-3 rounded-[5px] shadow bg-red-500 cursor-pointer"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {paginatedData.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan="5"
-                          className="text-center py-4 text-gray-500"
+                {/* Table Body */}
+                <div className="max-h-96 overflow-auto">
+                  {paginatedData.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No records found matching your filters.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-200">
+                      {paginatedData.map((user) => (
+                        <div
+                          key={user.id}
+                          className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                         >
-                          No records found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                          <div className="col-span-4 text-center text-gray-800">
+                            {`${user.first_name || ""} ${
+                              user.last_name || ""
+                            }`.trim()}
+                          </div>
+                          <div 
+                            className="col-span-3 text-center cursor-pointer text-blue-500"
+                            onClick={() => handleViewClick(user.id)}
+                          >
+                            {user.email}
+                          </div>
+                          <div className="col-span-1 text-center text-gray-800">
+                            {user.role}
+                          </div>
+                          <div className="col-span-2 text-center">
+                            <span
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                                statusColors[user.is_active ? "active" : "inactive"] || statusColors.Default
+                              }`}
+                            >
+                              {user.is_active ? "Active" : "Inactive"}
+                            </span>
+                          </div>
+                          <div className="col-span-1 flex justify-center gap-2">
+                            {/* <button
+                              onClick={() => handleViewClick(user.id)}
+                              className="bg-primary hover:bg-primary/90 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
+                            >
+                              View
+                            </button> */}
+                            <button
+                              onClick={() => handleEditClick(user.id)}
+                              className="bg-yellow-500 cursor-pointer hover:bg-yellow-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                            >
+                              <Pencil className="w-3.5 h-3.5"/>
+                            </button>
+                            <button
+                              onClick={() => handleActionClick(user.id, "delete")}
+                              className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5"/>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Footer Pagination */}
-            <div className="flex justify-end items-center py-2 gap-5">
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor="recordsPerPage"
-                  className="text-sm text-gray-700"
-                >
-                  Record per page:
-                </label>
-                <select
-                  id="recordsPerPage"
-                  className="w-16 rounded-md shadow-sm"
-                  value={recordsPerPage}
-                  onChange={handleRecordsPerPageChange}
-                >
-                  <option>10</option>
-                  <option>20</option>
-                  <option>50</option>
-                </select>
-              </div>
-              <div className="flex gap-3 items-center">
-                <span className="text-sm text-gray-700">
-                  {Math.min(
-                    (currentPage - 1) * recordsPerPage + 1,
-                    totalRecords
-                  )}{" "}
-                  – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                  {totalRecords}
-                </span>
-                <button
-                  onClick={handlePrev}
-                  disabled={currentPage === 1}
-                  className="text-gray-600"
-                >
-                  ←
-                </button>
-                <button
-                  onClick={handleNext}
-                  disabled={currentPage === totalPages}
-                  className="text-gray-600"
-                >
-                  →
-                </button>
+              {/* Pagination */}
+              <div className="flex justify-between items-center mt-4 px-2">
+                <div className="text-sm text-gray-600">
+                  Showing {paginatedData.length} of {totalRecords} records
+                </div>
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                      Records per page:
+                    </label>
+                    <select
+                      id="recordsPerPage"
+                      className="border border-gray-300 rounded-md p-1 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                      value={recordsPerPage}
+                      onChange={handleRecordsPerPageChange}
+                    >
+                      <option>10</option>
+                      <option>20</option>
+                      <option>50</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>
+                      {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
+                      – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
+                      {totalRecords}
+                    </span>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={handlePrev}
+                        disabled={currentPage === 1}
+                        className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
+                      >
+                        ←
+                      </button>
+                      <button
+                        onClick={handleNext}
+                        disabled={currentPage === totalPages}
+                        className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
+                      >
+                        →
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
