@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { data, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
+import { RotateCcw } from "lucide-react";
 import api from "src/api/axiosInstance";
 
 import Notification from "src/components/Notification";
@@ -327,20 +328,33 @@ const PostTreatmentStatus = () => {
                           </span>
                         </td>
                         <td className="text-center text-sm py-4 flex gap-2 justify-center">
-                          {" "}
+                          {" "} {/* Stop here for now. */}
                           {/*flex py-2 gap-2 px-2 justify-around text-sm text-center text-[#333333]" */}
-                          {app.status !== "Pending" && (
+                          {app.status !== "Pending" && app.status !== "Rejected" && (
                             <button
                               type="button"
                               className="text-white py-1 px-3 rounded-md shadow bg-primary cursor-pointer"
                               onClick={() => handleView(app.id)}
                             >
                               {" "}
-                              {/*custom-shadow w-[50%] cursor-pointer text-white bg-primary py-[5px] rounded-md px-3 */}
                               View
                             </button>
                           )}
-                          {app.status !== "Complete" || app.status !== "Closed" && (
+                          {app.status === "Rejected" && (
+                            <button
+                              type="button"
+                              className="text-white py-1 px-3 rounded-md shadow bg-yellow cursor-pointer"
+                              onClick={() => {
+                                navigate("/beneficiary/services/cancer-management/apply/post-treatment", {
+                                  state: { id: app.id },
+                                });
+                              }}
+                            >
+                              {" "}
+                              <RotateCcw size={16} />
+                            </button>
+                          )}
+                          {app.status !== "Completed" && (
                             <button
                               type="button"
                               className="text-white py-1 px-3 rounded-md shadow bg-red-500 cursor-pointer"

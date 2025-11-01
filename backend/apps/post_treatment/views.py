@@ -137,7 +137,10 @@ class PostTreatmentUpdateView(APIView):
     patient = post_treatment.patient
     if serializer.is_valid():
       previous_status = post_treatment.status
-      serializer.save()
+      serializer.save(
+        has_patient_response = False,
+        response_description = ""
+      )
 
       # If status changed to 'Approve', set date_approved to today
       if previous_status != 'Approved' and serializer.validated_data.get('status') == 'Approved':
@@ -175,11 +178,15 @@ class PostTreatmentUpdateView(APIView):
             # Create new FollowupCheckup
             post_treatment.followup_checkups.create(**item)
       
+      remarks = request.data.get('remarks')
+      print('Status: ', post_treatment.status);
       email_status = send_post_treatment_status_email(
         patient=post_treatment.patient, 
         status=post_treatment.status, 
         lab_test_date=post_treatment.laboratory_test_date, 
+        remarks=remarks
       )
+
       if email_status is not True:
         logger.error(f"Email failed to send: {email_status}")
 

@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
@@ -17,9 +17,13 @@ const CheckIcon = ({ active }) => (
 );
 
 const PostTreatment = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
+  const id = location.state?.id || null;
+
+  const [isResubmitting, setIsResubmitting] = useState(!!id);
   // Form States
   const [procedureName, setProcedureName] = useState("");
 
@@ -73,6 +77,31 @@ const PostTreatment = () => {
   //   fetchScreeningData();
   // }, []);
 
+  useEffect(() => {
+    if (!id) return;
+    const fetchData = async () => {
+      try {
+        const { data } = await api.get(
+          `/beneficiary/post-treatment/details/${id}/`
+        );
+        setProcedureName(data.procedure_name || "");
+  
+        if (data.required_attachments) {
+          const mappedFiles = data.required_attachments.reduce((acc, doc) => {
+            acc[doc.doc_type] = doc;
+            return acc;
+          }, {});
+          setFiles(mappedFiles);
+        }
+
+      } catch (error) {
+        console.error("Error fetching post treatment data:", error);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
   // File Handlers
   const handleChooseFile = () => fileInputRef.current?.click();
 
@@ -109,13 +138,21 @@ const PostTreatment = () => {
         if (file) formData.append(`files.${key}`, file);
       });
 
-      await api.post(
-        `/beneficiary/post-treatment/laboratory-request/`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const endpoint = isResubmitting
+        ? `/beneficiary/post-treatment/update/${id}/`
+        : `/beneficiary/post-treatment/laboratory-request/`;
+      
+      const method = isResubmitting ? api.patch : api.post;
+
+      await method(endpoint, formData, { headers: { "Content-Type": "multipart/form-data" } });
+
+      // await api.post(
+      //   `/beneficiary/post-treatment/laboratory-request/`,
+      //   formData,
+      //   {
+      //     headers: { "Content-Type": "multipart/form-data" },
+      //   }
+      // );
 
       navigate("/beneficiary/success-application", {
         state: { okLink: "beneficiary/applications/post-treatment" },

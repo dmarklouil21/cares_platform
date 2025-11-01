@@ -1,4 +1,3 @@
-// src/pages/user-management/UserManagement.jsx
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Printer, Info, CheckCircle, X, Trash2, Pencil } from "lucide-react";

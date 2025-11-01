@@ -28,6 +28,7 @@ urlpatterns = [
   path('post-treatment/laboratory-request/', views.PostTreatmentRequestView.as_view(), name='post_treatment_request'),
   path('post-treatment/list/', views.PostTreatmentListView.as_view(), name='post_treatment_request_list_view'),
   path('post-treatment/details/<int:id>/', views.PostTreatmentDetailView.as_view(), name='post_treatment_request_view'),
+  path('post-treatment/update/<int:id>/', views.PostTreatmentUpdateView.as_view(), name='post_treatment_update_view'),
   path('post-treatment/result/upload/<str:id>/', views.PostTreatmentResultUploadView.as_view(), name='post_treatment_result_upload_view'),
   
   # Cancer Treatment & Management

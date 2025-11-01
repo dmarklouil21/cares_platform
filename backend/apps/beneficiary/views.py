@@ -527,7 +527,6 @@ class PostTreatmentRequestView(generics.CreateAPIView):
       with transaction.atomic():
         existing_request = PostTreatment.objects.filter(
           patient=self.request.user.patient, 
-          has_patient_response=True
         ).first()
 
         if existing_request:
@@ -539,8 +538,8 @@ class PostTreatmentRequestView(generics.CreateAPIView):
     
         instance = serializer.save(
           patient=self.request.user.patient,  # ensure patient is set
-          has_patient_response=True,
-          response_description='Submitted post treatment laboratory test request'
+          # has_patient_response=True,
+          # response_description='Submitted post treatment laboratory test request'
         )
 
         files_dict = {}
@@ -559,6 +558,56 @@ class PostTreatmentRequestView(generics.CreateAPIView):
     except Exception as e:
       logger.error(f"Error creating post treatment request: {str(e)}")
       raise e
+
+class PostTreatmentUpdateView(generics.UpdateAPIView):
+  queryset = PostTreatment.objects.all()
+  serializer_class = PostTreatmentSerializer
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def perform_update(self, serializer):
+    instance = self.get_object()
+
+    if instance.has_patient_response:
+      raise ValidationError({
+        'non_field_errors': [
+          "You already resubmitted your request. Please wait for its feedback before submitting again."
+        ]
+      })
+
+    try:
+      with transaction.atomic():
+        # Save the updated screening info
+        instance = serializer.save(
+          has_patient_response=True,
+          response_description='Resubmitted post treatment medication request',
+          status='Pending'
+        )
+
+        # Handle uploaded files
+        files_dict = {
+          key.split("files.")[1]: value
+          for key, value in self.request.FILES.items()
+          if key.startswith("files.")
+        }
+
+        for key, file in files_dict.items():
+          # Remove any existing attachment of the same type for this screening
+          RequiredAttachment.objects.filter(
+            post_treatment=instance,
+            doc_type=key
+          ).delete()
+          
+          RequiredAttachment.objects.create(
+            post_treatment=instance,
+            file=file,
+            doc_type=key
+          )
+
+    except Exception as e:
+      logger.error(f"Error during resubmission: {str(e)}")
+      raise ValidationError({"non_field_errors": ["An error occurred while resubmitting the request."]})
 
 class PostTreatmentDetailView(generics.RetrieveAPIView):
   queryset = PostTreatment.objects.all()
