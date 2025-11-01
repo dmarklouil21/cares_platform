@@ -20,6 +20,8 @@ class User(AbstractUser):
   # Check if the user logged in for the first time
   is_first_login = models.BooleanField(default=True)
 
+  created_at = models.DateField(auto_now_add=True)
+
   class Meta:
     verbose_name = 'User'
     verbose_name_plural = 'Users'

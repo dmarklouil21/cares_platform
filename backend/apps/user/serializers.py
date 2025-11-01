@@ -51,6 +51,7 @@ class LoginSerializer(TokenObtainPairSerializer):
       'is_private': self.user.is_private,
       'is_superuser': self.user.is_superuser,
       'is_active': self.user.is_active,
+      'created_at': self.user.created_at,
     }
     return data
 

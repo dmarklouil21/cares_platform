@@ -9,7 +9,7 @@ class UserAdminConfig(UserAdmin):
                     'date_of_birth', 'age', 'phone_number', 'is_resident_of_cebu', 
                     'lgu', 'address', 'is_rhu', 'is_private')
     fieldsets = UserAdmin.fieldsets + (
-        ('Additional Info', {'fields': ('date_of_birth', 'age', 'phone_number', 'is_resident_of_cebu', 
+        ('Additional Info', {'fields': ('date_of_birth', 'phone_number', 'is_resident_of_cebu', 
                            'lgu', 'address', 'avatar', 'is_rhu', 'is_private', 'is_first_login')}),
     )
 

@@ -1,32 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Printer, FileText, FileDown } from "lucide-react";
+import { Printer, Info, CheckCircle, X, Trash2, Pencil, Edit } from "lucide-react";
 
 import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
-import LoadingModal from "src/components/Modal/LoadingModal";
+import Notification from "src/components/Notification";
+import SystemLoader from "src/components/SystemLoader";
 
-// ⬇️ NEW: print template
 import GenerateMasterPrintTemplate from "./generate/generate";
-
-// Notification component for showing popup messages
-function Notification({ message, onClose }) {
-  if (!message) return null;
-  return (
-    <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
-      <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="Rafi Logo"
-          className="h-[25px]"
-        />
-        <span>{message}</span>
-      </div>
-    </div>
-  );
-}
 
 const PatientMasterList = () => {
   const [patients, setPatients] = useState([]);
@@ -37,23 +20,20 @@ const PatientMasterList = () => {
   const [statusFilter, setStatusFilter] = useState("active");
   const navigate = useNavigate();
 
-  // Notification Modal
+  // Modals
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState({
     type: "success",
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal
   const [loading, setLoading] = useState(false);
-  // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
-  // Date Filters for created_at
-  const [dateFilter, setDateFilter] = useState("");
+  // Date Filters
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [dayFilter, setDayFilter] = useState("");
@@ -62,7 +42,6 @@ const PatientMasterList = () => {
     try {
       const response = await api.get("/patient/list/");
       setPatients(response.data);
-      console.log("Responses: ", response.data);
     } catch (error) {
       console.error("Error fetching patient data:", error);
     }
@@ -70,7 +49,6 @@ const PatientMasterList = () => {
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line
   }, []);
 
   const filteredResults = patients.filter((patient) => {
@@ -95,7 +73,7 @@ const PatientMasterList = () => {
   });
 
   const filterByCreatedAt = (data) => {
-    if (!dateFilter && !dayFilter && !monthFilter && !yearFilter) return data;
+    if (!dayFilter && !monthFilter && !yearFilter) return data;
 
     return data.filter((record) => {
       if (!record.created_at) return false;
@@ -106,14 +84,12 @@ const PatientMasterList = () => {
       const recordDay = recordDate.getDate();
       const recordMonth = recordDate.getMonth() + 1;
       const recordYear = recordDate.getFullYear();
-      const recordDateString = recordDate.toISOString().split("T")[0];
 
-      const dateMatch = !dateFilter || recordDateString === dateFilter;
       const dayMatch = !dayFilter || recordDay === parseInt(dayFilter);
       const monthMatch = !monthFilter || recordMonth === parseInt(monthFilter);
       const yearMatch = !yearFilter || recordYear === parseInt(yearFilter);
 
-      return dateMatch && dayMatch && monthMatch && yearMatch;
+      return dayMatch && monthMatch && yearMatch;
     });
   };
 
@@ -183,7 +159,6 @@ const PatientMasterList = () => {
 
   return (
     <>
-      {/* --- Print rules: only show GenerateMasterPrintTemplate during print --- */}
       <style>{`
         @media print {
           #masterlist-root { display: none !important; }
@@ -192,18 +167,16 @@ const PatientMasterList = () => {
         @media screen {
           #print-root { display: none !important; }
         }
-        /* optional: remove borders like the pre-enroll list */
         .master-table { border-collapse: collapse; }
         .master-table, .master-table th, .master-table td, .master-table tr { border: 0 !important; }
       `}</style>
 
-      {/* --- PRINT-ONLY CONTENT --- */}
+      {/* PRINT CONTENT */}
       <div id="print-root">
-        {/* pass ALL filtered rows (not paginated) */}
         <GenerateMasterPrintTemplate rows={filteredResults} />
       </div>
 
-      {/* --- SCREEN CONTENT --- */}
+      {/* SCREEN CONTENT */}
       <ConfirmationModal
         open={modalOpen}
         title={modalText}
@@ -222,244 +195,246 @@ const PatientMasterList = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      <LoadingModal open={loading} text="Submitting changes..." />
+      {loading && <SystemLoader />}
+      <Notification message={notification} />
 
-      <div
-        id="masterlist-root"
-        className="h-screen w-full flex flex-col justify-start gap-3 p-5 items-center bg-gray"
-      >
+      <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
+        {/* Header */}
         <div className="flex justify-between items-center w-full">
-          <h2 className="text-xl font-bold text-left w-full pl-1">
+          <h2 className="text-xl font-bold text-gray-800">
             Patient Master List
           </h2>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
+            >
+              <Printer className="w-4 h-4" />
+              Print
+            </button>
             <Link
               to="/admin/patient/add/general-data"
-              className="bg-yellow px-5 py-1 rounded-sm text-white"
+              className="bg-yellow hover:bg-yellow/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
             >
-              Add
+              Add New
             </Link>
           </div>
         </div>
 
-        <div className="flex flex-col bg-white w-full rounded-md shadow-md px-5 py-5 gap-3">
-          <p className="text-md font-semibold text-yellow">
-            Manage All Patients
-          </p>
+        {/* Main Content Card */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full">
+          {/* Card Header */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-yellow-600">
+              Manage All Patients
+            </h3>
+          </div>
 
-          <div className="flex justify-between flex-wrap gap-3">
-            <input
-              type="text"
-              placeholder="Search by patient ID, name, or LGU..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
-            />
+          {/* Filters Section */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex flex-wrap gap-3 items-center">
+              <input
+                type="text"
+                placeholder="Search by patient ID, name, or LGU..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-64 text-sm"
+              />
 
-            {/* Day Filter (1–31) */}
-            <select
-              className="border border-gray-200 py-2 px-3 rounded-md"
-              value={dayFilter}
-              onChange={(e) => setDayFilter(e.target.value)}
-            >
-              <option value="">All Days</option>
-              {[...Array(31)].map((_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {i + 1}
-                </option>
-              ))}
-            </select>
+              <select
+                className="border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+              </select>
 
-            {/* Month Filter */}
-            <select
-              className="border border-gray-200 py-2 px-3 rounded-md"
-              value={monthFilter}
-              onChange={(e) => setMonthFilter(e.target.value)}
-            >
-              <option value="">All Months</option>
-              {[...Array(12)].map((_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {new Date(0, i).toLocaleString("en", { month: "long" })}
-                </option>
-              ))}
-            </select>
-
-            {/* Year Filter */}
-            <select
-              className="border border-gray-200 py-2 px-3 rounded-md"
-              value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
-            >
-              <option value="">All Years</option>
-              {Array.from(
-                new Set(
-                  patients
-                    .map((p) =>
-                      p.created_at ? new Date(p.created_at).getFullYear() : null
-                    )
-                    .filter((y) => y !== null)
-                )
-              )
-                .sort((a, b) => b - a)
-                .map((year) => (
-                  <option key={year} value={year}>
-                    {year}
+              {/* Date Filters */}
+              <select
+                className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={dayFilter}
+                onChange={(e) => setDayFilter(e.target.value)}
+              >
+                <option value="">All Days</option>
+                {[...Array(31)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
                   </option>
                 ))}
-            </select>
-
-            {/* Reset filters button */}
-            <button
-              onClick={() => {
-                setDateFilter("");
-                setDayFilter("");
-                setMonthFilter("");
-                setYearFilter("");
-              }}
-              className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
-            >
-              Clear
-            </button>
-
-            {/* ⬇️ NEW: Generate button mirrors the Pre-Enrollment page */}
-            <button
-              onClick={() => window.print()}
-              className="bg-primary px-3 py-1 rounded-sm text-white cursor-pointer"
-            >
-              <Printer className="w-4 h-4" />
-              {/* Generate */}
-            </button>
-          </div>
-
-          <div className="bg-white shadow overflow-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr className="bg-lightblue">
-                  <th className="w-[13%] text-center text-sm py-3 !bg-lightblue">
-                    Patient ID
-                  </th>
-                  <th className="w-[15%] text-center text-sm py-3">
-                    First Name
-                  </th>
-                  <th className="w-[15%] text-center text-sm py-3">
-                    Last Name
-                  </th>
-                  <th className="w-[15%] text-center text-sm py-3">
-                    Middle Name
-                  </th>
-                  <th className="w-[13%] text-center text-sm py-3">LGU</th>
-
-                  <th className="w-[21%] text-center text-sm py-3 ">Actions</th>
-                </tr>
-              </thead>
-            </table>
-
-            <div className="max-h-[200px] min-h-[200px] overflow-auto">
-              <table className="min-w-full divide-y divide-gray-200 border-spacing-0 master-table">
-                <colgroup>
-                  <col className="w-[13%]" />
-                  <col className="w-[15%]" />
-                  <col className="w-[15%]" />
-                  <col className="w-[15%]" />
-                  <col className="w-[13%]" />
-                  <col className="w-[21%]" />
-                </colgroup>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedData.map((patient) => (
-                    <tr key={patient.patient_id}>
-                      <td className="text-center text-sm py-4 text-gray-800">
-                        {patient.patient_id}
-                      </td>
-                      <td className="text-center text-sm py-4 text-gray-800">
-                        {patient.first_name}
-                      </td>
-                      <td className="text-center text-sm py-4 text-gray-800">
-                        {patient.last_name}
-                      </td>
-                      <td className="text-center text-sm py-4 text-gray-800">
-                        {patient.middle_name}
-                      </td>
-
-                      <td className="text-center text-sm py-4 text-gray-800">
-                        {patient.city}
-                      </td>
-
-                      <td className="text-center text-sm py-4 flex gap-2 justify-center">
-                        <button
-                          onClick={() => handleViewClick(patient.patient_id)}
-                          className="text-white py-1 px-2 rounded-md shadow bg-primary"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleEditClick(patient.patient_id)}
-                          className="text-white py-1 px-2 rounded-md shadow bg-yellow-500"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleActionClick(patient.patient_id, "delete")
-                          }
-                          className="text-white py-1 px-2 rounded-md shadow bg-red-500"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {paginatedData.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan="8"
-                        className="text-center py-4 text-gray-500"
-                      >
-                        No records found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Footer Pagination */}
-          <div className="flex justify-end items-center py-2 gap-5">
-            <div className="flex items-center gap-2">
-              <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
-                Record per page:
-              </label>
-              <select
-                id="recordsPerPage"
-                className="w-16 rounded-md shadow-sm"
-                value={recordsPerPage}
-                onChange={handleRecordsPerPageChange}
-              >
-                <option>10</option>
-                <option>20</option>
-                <option>50</option>
               </select>
+
+              <select
+                className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+              >
+                <option value="">All Months</option>
+                {[...Array(12)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {new Date(0, i).toLocaleString("en", { month: "long" })}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+              >
+                <option value="">All Years</option>
+                {Array.from(
+                  new Set(
+                    patients
+                      .map((p) =>
+                        p.created_at ? new Date(p.created_at).getFullYear() : null
+                      )
+                      .filter((y) => y !== null)
+                  )
+                )
+                  .sort((a, b) => b - a)
+                  .map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+              </select>
+
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setStatusFilter("active");
+                  setDayFilter("");
+                  setMonthFilter("");
+                  setYearFilter("");
+                }}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+              >
+                Clear Filters
+              </button>
             </div>
-            <div className="flex gap-3 items-center">
-              <span className="text-sm text-gray-700">
-                {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
-                – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                {totalRecords}
-              </span>
-              <button
-                onClick={handlePrev}
-                disabled={currentPage === 1}
-                className="text-gray-600"
-              >
-                ←
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={currentPage === totalPages}
-                className="text-gray-600"
-              >
-                →
-              </button>
+          </div>
+
+          {/* Table Section */}
+          <div className="px-6 py-4">
+            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              {/* Table Header */}
+              <div className="bg-lightblue px-4 py-3">
+                <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
+                  <div className="col-span-2 text-center">Patient ID</div>
+                  <div className="col-span-2 text-center">First Name</div>
+                  <div className="col-span-2 text-center">Last Name</div>
+                  <div className="col-span-2 text-center">Middle Name</div>
+                  <div className="col-span-2 text-center">LGU</div>
+                  <div className="col-span-2 text-center">Actions</div>
+                </div>
+              </div>
+
+              {/* Table Body */}
+              <div className="max-h-96 overflow-auto">
+                {paginatedData.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No records found matching your filters.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-200">
+                    {paginatedData.map((patient) => (
+                      <div
+                        key={patient.patient_id}
+                        className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
+                      >
+                        <div 
+                          className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
+                          onClick={() => handleViewClick(patient.patient_id)}
+                        >
+                          {patient.patient_id}
+                        </div>
+                        <div className="col-span-2 text-center text-gray-800">
+                          {patient.first_name}
+                        </div>
+                        <div className="col-span-2 text-center text-gray-800">
+                          {patient.last_name}
+                        </div>
+                        <div className="col-span-2 text-center text-gray-800">
+                          {patient.middle_name}
+                        </div>
+                        <div className="col-span-2 text-center text-gray-800">
+                          {patient.city}
+                        </div>
+                        <div className="col-span-2 flex justify-center gap-2">
+                          {/* <button
+                            onClick={() => handleViewClick(patient.patient_id)}
+                            className="bg-primary hover:bg-primary/90 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
+                          >
+                            View
+                          </button> */}
+                          <button
+                            onClick={() => handleEditClick(patient.patient_id)}
+                            className="bg-yellow-500 cursor-pointer hover:bg-yellow-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                          >
+                            <Pencil className="w-3.5 h-3.5"/>
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleActionClick(patient.patient_id, "delete")
+                            }
+                            className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5"/>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex justify-between items-center mt-4 px-2">
+              <div className="text-sm text-gray-600">
+                Showing {paginatedData.length} of {totalRecords} records
+              </div>
+              <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                    Records per page:
+                  </label>
+                  <select
+                    id="recordsPerPage"
+                    className="border border-gray-300 rounded-md p-1 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                    value={recordsPerPage}
+                    onChange={handleRecordsPerPageChange}
+                  >
+                    <option>10</option>
+                    <option>20</option>
+                    <option>50</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>
+                    {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
+                    – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
+                    {totalRecords}
+                  </span>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={handlePrev}
+                      disabled={currentPage === 1}
+                      className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
+                    >
+                      ←
+                    </button>
+                    <button
+                      onClick={handleNext}
+                      disabled={currentPage === totalPages}
+                      className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
+                    >
+                      →
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -153,6 +153,8 @@ class HormonalReplacementSerializer(serializers.ModelSerializer):
         'service_completed',
         'date_submitted',
         'medicines_requested',
+        'has_patient_response',
+        'response_description',
     ]
     read_only_fields = ['id', 'date_submitted', 'service_completed']
 

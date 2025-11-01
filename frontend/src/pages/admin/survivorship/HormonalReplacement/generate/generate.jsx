@@ -64,7 +64,7 @@ export default function HormonalReplacementPrint({ rows = [] }) {
       {/* Content */}
       <div className="flex-1 flex flex-col px-24 pt-32">
         <div className="py-5 w-full text-center">
-          <h1 className="font-bold text-xl">Home Visit Requests</h1>
+          <h1 className="font-bold text-xl">Hormonal Replacement Medication Requests</h1>
           <p className="text-[11px] text-gray-500 mt-1">
             Generated on {new Date().toLocaleString()}
           </p>

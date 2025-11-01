@@ -9,6 +9,7 @@ STATUS_CHOICES = [
   ('Pending', 'Pending'),
   ('Processing', 'Processing'),
   ('Recommendation', 'Recommendation'), # To be change to report generation
+  ('Completed', 'Complete'),
   ('Closed', 'Close'),
 ]
 

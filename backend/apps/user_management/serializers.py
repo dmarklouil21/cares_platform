@@ -11,7 +11,7 @@ class UserManagementSerializer(serializers.ModelSerializer):
     fields = [
       'id', 'email', 'first_name', 'last_name', 'is_active', 'is_superuser',
       'date_of_birth', 'age', 'phone_number', 'is_resident_of_cebu', 'lgu', 'address',
-      'password', 'role', 'input_role'
+      'password', 'role', 'input_role', 'created_at'
     ]
 
   def validate_email(self, value):
