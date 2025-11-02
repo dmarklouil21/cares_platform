@@ -1,4 +1,3 @@
-// src/pages/treatment/PostTreatment.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Info, Printer, CheckCircle, X, Trash2 } from "lucide-react";
@@ -28,6 +27,7 @@ const PostTreatment = () => {
     currentPage: 1,
   });
   const [modalDesc, setModalDesc] = useState("Confirm before proceeding");
+  const [modalAction, setModalAction] = useState(null);
   const [remarksModalOpen, setRemarksModalOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
 
@@ -128,6 +128,28 @@ const PostTreatment = () => {
     setModal({ open: true, text: actionText, action: { id, type: action } });
   };
 
+  const handleReject = async () => {
+    setLoading(true);
+    setRemarksModalOpen(false);
+    try {
+      let payload = {
+        status: modalAction?.status,
+        remarks: remarks,
+      };
+
+      await api.patch(`/post-treatment/update/${modalAction?.id}/`, payload);
+
+      setNotificationType("success");
+      setNotification(`Request has been rejected.`);
+      fetchData();
+    } catch {
+      setNotificationType("error");
+      setNotification("Something went wrong while rejecting request.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const doAction = async () => {
     if (!modal.action) return;
 
@@ -212,7 +234,7 @@ const PostTreatment = () => {
           value={remarks}
           onChange={(e) => setRemarks(e.target.value)}
           onCancel={() => setRemarksModalOpen(false)}
-          // onConfirm={handleReject}
+          onConfirm={handleReject}
           confirmText="Confirm"
         />
 
@@ -449,15 +471,15 @@ const PostTreatment = () => {
                                   onClick={() => openConfirm(p.id, "accept")}
                                   className="bg-primary cursor-pointer text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
-                                  {/* Approve */}
                                   <CheckCircle className="w-3.5 h-3.5"/>
                                 </button>
                                 <button
-                                  // onClick={() => openConfirm(p.id, "reject")}
-                                  onClick={() => setRemarksModalOpen(true)}
+                                  onClick={() => {
+                                    setModalAction({ status: "Rejected", id: p.id})
+                                    setRemarksModalOpen(true)
+                                  }}
                                   className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
-                                  {/* Reject */}
                                   <X className="w-3.5 h-3.5"/>
                                 </button>
                               </>

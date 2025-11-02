@@ -13,4 +13,5 @@ urlpatterns = [
   path('hormonal-replacement/list/', views.HormonalReplacementListView.as_view(), name='hormonal_replacement_list'),
   path('hormonal-replacement/view/<int:id>/', views.HormonalReplacementDetailView.as_view(), name='hormonal_replacement_view'),
   path('hormonal-replacement/update/<int:id>/', views.HormonalReplacementUpdateView.as_view(), name='hormonal_replacement_update'),
+  path('hormonal-replacement/delete/<int:id>/', views.HormonalReplacementDeleteView.as_view(), name='hormonal_replacement_delete'),
 ]

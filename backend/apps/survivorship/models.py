@@ -17,6 +17,7 @@ HORMONAL_STATUS_CHOICES = [
   ('Pending', 'Pending'),
   ('Approved', 'Approve'),
   ('Completed', 'Complete'),
+  ('Rejected', 'Reject'),
 ]
 class PatientHomeVisit(models.Model):
   patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='home_visit')

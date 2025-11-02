@@ -4,6 +4,7 @@ import { Printer, Info, CheckCircle, X, Trash2 } from "lucide-react";
 
 import api from "src/api/axiosInstance";
 
+import DateModal from "src/components/Modal/DateModal";
 import RemarksModal from "src/components/Modal/RemarksModal";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
@@ -42,6 +43,11 @@ const IndividualScreening = () => {
   const [modalAction, setModalAction] = useState(null);
   const [remarksModalOpen, setRemarksModalOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
+
+  // Screening Date Modal
+  const [screeningDate, setScreeningDate] = useState(null);
+  const [dateModalOpen, setDateModalOpen] = useState(false);
+  const [dateModalTitle, setDateModalTitle] = useState("Set Screening Date");
 
   // Date filters
   const [monthFilter, setMonthFilter] = useState("");
@@ -134,14 +140,15 @@ const IndividualScreening = () => {
   };
 
   const handleModalConfirm = async () => {
-    if (modalAction?.action === "delete" || modalAction?.action === "reject") {
+    if (modalAction?.action === "delete" || modalAction?.action === "cancel") {
       try {
         setModalOpen(false);
         setLoading(true);
         await api.delete(
           `/cancer-screening/individual-screening/delete/${modalAction.id}/`
         );
-        setNotificationMessage("Deleted Successfully.");
+        let notifMessage = modalAction?.action === "delete" ? "Deleted Successfully." : "Canceled Successfully."
+        setNotificationMessage(notifMessage);
         setNotificationType("success");
         setNotification(notificationMessage);
         setTimeout(() => setNotification(""), 2000);
@@ -163,22 +170,67 @@ const IndividualScreening = () => {
     setModalText("");
   };
 
+  const handleDateModalConfirm = async () => {
+    if (!screeningDate) {
+      alert("Please select a date before proceeding.");
+      return;
+    }
+    setDateModalOpen(false);
+    setLoading(true);
+    try {
+      const payload = { 
+        status: modalAction.status,
+        screening_date: screeningDate,
+      };
+
+      await api.patch(
+        `/cancer-screening/individual-screening/status-update/${modalAction.id}/`,
+        payload
+      );
+
+      setNotificationMessage("Approved Successfully.");
+      setNotificationType("success");
+      setNotification(notificationMessage);
+      setTimeout(() => setNotification(""), 2000);
+    } catch (error) {
+      setNotificationMessage("Something went wrong.");
+      setNotificationType("error");
+      setNotification(notificationMessage);
+      setTimeout(() => setNotification(""), 2000);
+      console.error(error);
+    } finally {
+      fetchData();
+      setLoading(false);
+    }
+    setModalAction(null);
+    setModalText("");
+  };
+
   const handleActionClick = (id, action) => {
     if (action === "delete") {
-      setModalText("Confirm delete?");
+      setModalText("Confirm Delete?");
       setModalDesc("This action cannot be undone.");
       setModalAction({ id, action });
       setModalOpen(true);
+    } else if (action === "cancel") {
+      setModalText("Cancel this application?")
+      setModalDesc("Please confirm before proceeding.")
+      setModalAction({ id, action});
+      setModalOpen(true);
+    } else if (action === "approve") {
+      setModalAction({id: id, status: "Approved"});
+      setDateModalOpen(true);
     }
   };
 
   const statusColors = {
     Pending: "bg-yellow-100 text-yellow-700",
+    Approved: "bg-blue-100 text-blue-700",
     Completed: "bg-green-100 text-green-700",
     Rejected: "bg-red-100 text-red-700",
     Default: "bg-gray-100 text-gray-700",
   };
-
+  
   return (
     <>
       {loading && <SystemLoader />}
@@ -211,6 +263,15 @@ const IndividualScreening = () => {
           setModalAction(null);
           setModalText("");
         }}
+      />
+
+      <DateModal
+        open={dateModalOpen}
+        title={dateModalTitle}
+        value={screeningDate}
+        onChange={setScreeningDate}
+        onConfirm={handleDateModalConfirm}
+        onCancel={() => setDateModalOpen(false)}
       />
       
       <NotificationModal
@@ -436,7 +497,7 @@ const IndividualScreening = () => {
                           {item.status === "Pending" ? (
                             <>
                               <button
-                                onClick={() => handleViewClick(item.id)}
+                                onClick={() => handleActionClick(item.id, "approve")}
                                 className="bg-primary cursor-pointer hover:bg-primary/90 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
                                 <CheckCircle className="w-3.5 h-3.5"/>
@@ -466,8 +527,8 @@ const IndividualScreening = () => {
                             </button>
                           ) : (
                             <button
-                              className="bg-red-500 hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
-                              onClick={() => handleActionClick(item.id, "delete")}
+                              className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                              onClick={() => handleActionClick(item.id, "cancel")}
                             >
                               {/* Cancel */}
                               <X className="w-3.5 h-3.5"/>

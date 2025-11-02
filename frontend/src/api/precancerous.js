@@ -19,9 +19,9 @@ export const getPreCancerousMedsDetail = async (id) => {
   return res.data;
 };
 
-// Cancel a Pre-cancerous Meds request
+// Cancel a Pre-cancerous Meds request precancerous-meds/cancel/<int:id>
 export const cancelPreCancerousMeds = async (id) => {
-  const res = await api.post(`/beneficiary/precancerous-meds/cancel/${id}/`);
+  const res = await api.delete(`/beneficiary/precancerous-meds/cancel/${id}/`);
   return res.data;
 };
 

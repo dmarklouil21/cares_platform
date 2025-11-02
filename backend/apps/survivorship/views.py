@@ -16,7 +16,8 @@ from .models import PatientHomeVisit, HormonalReplacement, HormonalReplacementRe
 from .serializers import HomevisitSerializer, HormonalReplacementSerializer
 
 from backend.utils.email import (
-  send_report_email
+  send_report_email,
+  send_hormonal_replacement_status_email
 )
 
 import logging
@@ -210,7 +211,11 @@ class HormonalReplacementUpdateView(generics.UpdateAPIView):
   lookup_field = "id"   # so you can update by /<id> in the URL
 
   def perform_update(self, serializer):
-    instance = serializer.save()
+    instance = serializer.save(
+      has_patient_response=False, 
+      response_description=''
+    )
+    request = self.request
 
     if instance.status == 'Approved':
       instance.date_approved = timezone.now().date()
@@ -225,4 +230,17 @@ class HormonalReplacementUpdateView(generics.UpdateAPIView):
         service_type = 'Hormonal Replacement',
         date_completed = timezone.now().date()
       )
+
+    remarks = request.data.get('remarks')
+    email_status = send_hormonal_replacement_status_email(
+      instance.patient, instance.status, instance.released_date, remarks
+    )
+    if email_status is not True:
+      logger.error(f"Email failed to send: {email_status}")
     # return super().perform_update(serializer)
+
+class HormonalReplacementDeleteView(generics.DestroyAPIView):
+  queryset = HormonalReplacement.objects.all()
+  lookup_field = 'id'
+
+  permission_classes = [IsAuthenticated, IsAdminUser]

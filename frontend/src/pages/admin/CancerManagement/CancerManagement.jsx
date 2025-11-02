@@ -1,4 +1,3 @@
-// src/pages/cancer-management/AdminCancerManagement.jsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Printer, Info, CheckCircle, X, Trash2 } from "lucide-react";
@@ -11,6 +10,7 @@ import NotificationModal from "src/components/Modal/NotificationModal";
 import Notification from "src/components/Notification";
 import SystemLoader from "src/components/SystemLoader";
 import LoadingModal from "src/components/Modal/LoadingModal";
+import DateModal from "src/components/Modal/DateModal";
 
 import CancerManagementPrint from "./generate/generate";
 
@@ -23,6 +23,10 @@ const AdminCancerManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [tableData, setTableData] = useState([]);
+
+  // Interview Date Modal
+  const [interviewModalOpen, setInterviewModalOpen] = useState(false);
+  const [interviewDate, setInterviewDate] = useState("");
 
   const [notification, setNotification] = useState("");
   const [notificationType, setNotificationType] = useState(
@@ -132,15 +136,6 @@ const AdminCancerManagement = () => {
       setNotificationType("success");
       setNotificationMessage("Request Rejected");
       fetchData();
-      // await api.patch(
-      //   `/cancer-screening/individual-screening/status-reject/${modalAction.id}/`,
-      //   { status: modalAction.newStatus, remarks }
-      // );
-      // navigate("/admin/cancer-screening", {
-      //   state: {
-      //     type: "success", message: "Request Rejected."
-      //   }
-      // });
     } catch {
       setModalInfo({
         type: "error",
@@ -154,19 +149,19 @@ const AdminCancerManagement = () => {
   };
 
   const handleModalConfirm = async () => {
-    if (modalAction?.action === "delete") {
+    if (modalAction?.action === "delete" || modalAction?.action === "cancel") {
       try {
         setModalOpen(false);
+        setModalAction(null);
         setLoading(true);
         await api.delete(
           `/cancer-management/cancer-treatment/delete/${modalAction?.id}/`
         );
-        setModalInfo({
-          type: "success",
-          title: "Success!",
-          message: "Deleted Successfully.",
-        });
-        setShowModal(true);
+        let notifMessage = modalAction?.action === "delete" ? "Deleted Successfully." : "Canceled Successfully."
+        setNotificationMessage(notifMessage);
+        setNotificationType("success");
+        setNotification(notificationMessage);
+        setTimeout(() => setNotification(""), 2000);
       } catch (error) {
         setModalInfo({
           type: "error",
@@ -179,15 +174,67 @@ const AdminCancerManagement = () => {
         fetchData();
         setLoading(false);
       }
+    } else if (modalAction?.action === "validate") {
+      setModalOpen(false);
+      setInterviewModalOpen(true);
+    }
+    setModalText("");
+  };
+
+  const handleDateModalConfirm = async () => {
+    if (!interviewDate) {
+      alert("Please select a date before proceeding.");
+      return;
+    }
+    setInterviewModalOpen(false);
+    setLoading(true);
+    try {
+      const payload = { 
+        status: "Interview Process",
+        interview_date: interviewDate,
+      };
+
+      await api.patch(
+        `/cancer-management/cancer-treatment/status-update/${modalAction.id}/`,
+        payload
+      );
+
+      setNotificationMessage("Updated Successfully.");
+      setNotificationType("success");
+      setNotification(notificationMessage);
+      setTimeout(() => setNotification(""), 2000);
+    } catch (error) {
+      setNotificationMessage("Something went wrong.");
+      setNotificationType("error");
+      setNotification(notificationMessage);
+      setTimeout(() => setNotification(""), 2000);
+      console.error(error);
+    } finally {
+      fetchData();
+      setLoading(false);
     }
     setModalAction(null);
     setModalText("");
+  };
+
+  const handleValidate = (id, action) => {
+    setModalText("Proceed to interview process?")
+    setModalDesc("Confirm before proceeding");
+    setModalAction({ id, action });
+    setModalOpen(true);
   };
 
   const handleDelete = (id, action) => {
     setModalText(`Confirm delete?`);
     setModalDesc("This record will be deleted permanently.");
     setModalAction({ id, action });
+    setModalOpen(true);
+  };
+
+  const handleCancel = (id, action) => {
+    setModalText("Cancel this application?");
+    setModalDesc("Please confirm before proceeding.");
+    setModalAction({ id: id, action: "cancel" });
     setModalOpen(true);
   };
 
@@ -238,6 +285,15 @@ const AdminCancerManagement = () => {
             setModalAction(null);
             setModalText("");
           }}
+        />
+
+        <DateModal
+          open={interviewModalOpen}
+          title="Set Interview Date"
+          value={interviewDate}
+          onChange={setInterviewDate}
+          onConfirm={handleDateModalConfirm}
+          onCancel={() => setInterviewModalOpen(false)}
         />
         
         <NotificationModal
@@ -474,10 +530,9 @@ const AdminCancerManagement = () => {
                             {item.status === "Pending" ? (
                               <>
                                 <button
-                                  onClick={() => handleViewClick(item.id)}
+                                  onClick={() => handleValidate(item.id, "validate")}
                                   className="bg-primary cursor-pointer hover:bg-primary/90 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
-                                  {/* View */}
                                   <CheckCircle className="w-3.5 h-3.5"/>
                                 </button>
                                 <button
@@ -490,7 +545,6 @@ const AdminCancerManagement = () => {
                                     setRemarksModalOpen(true);
                                   }}
                                 >
-                                  {/* Reject */}
                                   <X className="w-3.5 h-3.5"/>
                                 </button>
                               </>
@@ -500,15 +554,13 @@ const AdminCancerManagement = () => {
                                   className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                   onClick={() => handleDelete(item.id, "delete")}
                                 >
-                                  {/* Delete */}
                                   <Trash2 className="w-3.5 h-3.5"/>
                                 </button>
                           ) : (
                             <button
                               className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
-                              onClick={() => handleDelete(item.id, "delete")}
+                              onClick={() => handleCancel(item.id, "cancel")}
                             >
-                              {/* Cancel */}
                               <X className="w-3.5 h-3.5"/>
                             </button>
                             )}

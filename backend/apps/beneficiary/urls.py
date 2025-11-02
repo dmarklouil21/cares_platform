@@ -28,7 +28,9 @@ urlpatterns = [
   path('post-treatment/laboratory-request/', views.PostTreatmentRequestView.as_view(), name='post_treatment_request'),
   path('post-treatment/list/', views.PostTreatmentListView.as_view(), name='post_treatment_request_list_view'),
   path('post-treatment/details/<int:id>/', views.PostTreatmentDetailView.as_view(), name='post_treatment_request_view'),
+  path('post-treatment/update/<int:id>/', views.PostTreatmentUpdateView.as_view(), name='post_treatment_update_view'),
   path('post-treatment/result/upload/<str:id>/', views.PostTreatmentResultUploadView.as_view(), name='post_treatment_result_upload_view'),
+  path('post-treatment/cancel-request/<str:id>/', views.PostTreatmentCancelRequestView.as_view(), name='post_treatment_cancel_view'),
   
   # Cancer Treatment & Management
   path('cancer-treatment/submit/', views.CancerTreatmentSubmissionView.as_view(), name='cancer_treatment_submission'),
@@ -37,6 +39,7 @@ urlpatterns = [
   path('cancer-treatment/update/<str:id>/', views.CancerManagementUpdateView.as_view(), name='update_view'),
   path('cancer-treatment/case-summary/upload/<str:id>/', views.CaseSummaryUploadView.as_view(), name='case_summary_upload_view'),
   path('cancer-treatment/result/upload/<str:id>/', views.TreatmentResultUploadView.as_view(), name='result_upload_view'),
+  path('cancer-treatment/cancel-request/<str:id>/', views.CancerManagementCancelRequestView.as_view(), name='cancel_request_view'),
 
   # Home Visit 
   # path('post-treatment/laboratory-request/', views.PostTreatmentRequestView.as_view(), name='post_treatment_request'),
@@ -49,4 +52,6 @@ urlpatterns = [
   path('hormonal-replacement/request/', views.HormonalReplacementRequestView.as_view(), name='hormonal_replacement_request'),
   path('hormonal-replacement/details/<int:id>/', views.HormonalReplacementDetailView.as_view(), name='hormonal_replacement_request_view'),
   path('hormonal-replacement/list/', views.HormonalReplacementListView.as_view(), name='hormonal_replacement_request_list_view'),
+  path('hormonal-replacement/cancel-request/<int:id>/', views.HormonalReplacementCancelView.as_view(), name='hormonal_replacement_cancel_view'),
+  path('hormonal-replacement/update/<int:id>/', views.HormonalReplacementUpdateView.as_view(), name='hormonal_replacement_update_view'),
 ]

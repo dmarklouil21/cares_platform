@@ -43,7 +43,6 @@ const DetailedView = () => {
 
   // Screening Date Modal
   const [dateModalOpen, setDateModalOpen] = useState(false);
-  const [tempDate, setTempDate] = useState("");
   const [dateModalTitle, setDateModalTitle] = useState("Set Screening Date");
 
   // Remark Message Modal
@@ -104,11 +103,6 @@ const DetailedView = () => {
       return;
     }
     setModalAction((prev) => ({ ...prev, newScreeningDate: screeningDate }));
-    // setScreeningDate(tempDate);
-    // setModalText(`Screening date set to ${tempDate}?`);
-    // setModalDesc("Make sure the date is correct before proceeding.");
-    // setIsNewDate(true);
-    // setModalOpen(true);
     setDateModalOpen(false);
   };
 
