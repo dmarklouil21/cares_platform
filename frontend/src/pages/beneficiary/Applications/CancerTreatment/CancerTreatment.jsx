@@ -1,24 +1,26 @@
 import { useState, useEffect } from "react";
-import { data, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "src/context/AuthContext";
-import { RotateCcw, RefreshCcw, Upload, Repeat } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { RotateCcw, X } from "lucide-react";
 import api from "src/api/axiosInstance";
 
 import Notification from "src/components/Notification";
-
 import NotificationModal from "src/components/Modal/NotificationModal";
-import LoadingModal from "src/components/Modal/LoadingModal";
+import SystemLoader from "src/components/SystemLoader";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
-import BeneficiarySidebar from "src/components/navigation/Beneficiary";
 
 const CancerTreatmentApplication = () => {
   const location = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  
   const [tableData, setTableData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
-  // const [notification, setNotification] = useState("");
+
+  // Date filters
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
 
   // Notification
   const [notification, setNotification] = useState("");
@@ -29,31 +31,23 @@ const CancerTreatmentApplication = () => {
     location.state?.message || ""
   );
 
-  // Notification Modal
+  // Modals
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState({
     type: "success",
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
-  // Loading Modal
   const [loading, setLoading] = useState(false);
-  // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
-  const [modalAppId, setModalAppId] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (notificationType && notificationMessage) {
       setNotification(notificationMessage);
-
       navigate(location.pathname, { replace: true, state: {} });
-
       setTimeout(() => setNotification(""), 2000);
     }
   }, [notificationType, notificationMessage, navigate, location.pathname]);
@@ -61,25 +55,21 @@ const CancerTreatmentApplication = () => {
   const fetchData = async () => {
     try {
       const response = await api.get(`/beneficiary/cancer-treatment/list/`);
-      console.log("Response Data: ", response.data);
       setTableData(response.data);
     } catch (error) {
-      console.error("Error fetching pre-enrollment requests:", error);
+      console.error("Error fetching cancer treatment requests:", error);
     }
   };
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line
   }, []);
 
   const handleCancel = (id) => {
-    setModalText("Confirm Cancel?");
+    setModalText("Confirm Cancel");
     setModalDesc("Are you sure you want to cancel this application?");
     setModalAction({ type: "cancel", id: id });
     setModalOpen(true);
-    // setModalAppId(id);
-    // setModalOpen(true);
   };
 
   const handleModalConfirm = async () => {
@@ -87,86 +77,99 @@ const CancerTreatmentApplication = () => {
       try {
         setModalOpen(false);
         setLoading(true);
-        const response = await api.delete(
-          `/beneficiary/individual-screening/cancel-request/${modalAction.id}/`
+        await api.delete(
+          `/beneficiary/cancer-treatment/cancel-request/${modalAction.id}/`
         );
 
         setNotificationMessage("Canceled Successfully.");
         setNotificationType("success");
-        setNotification(notificationMessage);
+        setNotification("Canceled Successfully.");
         setTimeout(() => setNotification(""), 2000);
-        // setModalInfo({
-        //   type: "success",
-        //   title: "Success!",
-        //   message: "Canceled Successfully.",
-        // });
-        // setShowModal(true);
       } catch (error) {
         setNotificationMessage("Failed to cancel this request.");
         setNotificationType("error");
-        setNotification(notificationMessage);
+        setNotification("Failed to cancel this request.");
         setTimeout(() => setNotification(""), 2000);
-        // setModalInfo({
-        //   type: "error",
-        //   title: "Failed to delete this object",
-        //   message: "Something went wrong while submitting the request.",
-        // });
-        // setShowModal(true);
         console.error(error);
       } finally {
         fetchData();
         setLoading(false);
       }
     }
-    // setNotification(`Application ${modalAppId} cancelled successfully.`);
-    // setTimeout(() => setNotification(""), 3000);
-
     setModalOpen(false);
     setModalAction(null);
-    // setModalAppId(null);
-    setModalText("");
-  };
-
-  const handleModalCancel = () => {
-    setModalOpen(false);
-    setModalAppId(null);
     setModalText("");
   };
 
   const handleView = (id) => {
-    // console.log("Value Passed: ", app);
     navigate(`/beneficiary/applications/cancer-treatment/view/${id}`);
   };
 
   const filteredData = tableData.filter((record) => {
     const statusMatch =
-      statusFilter === "All" || record.status === statusFilter;
+      statusFilter === "all" || record.status === statusFilter;
     const searchMatch =
       !searchQuery ||
       record.patient.patient_id.includes(searchQuery) ||
       record.patient.full_name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
-    const recordDate = new Date(record.date_submitted)
-      .toISOString()
-      .split("T")[0];
-    const dateMatch = !dateFilter || recordDate === dateFilter;
 
-    return statusMatch && searchMatch && dateMatch;
+    // Date filtering
+    const recordDate = new Date(record.date_submitted);
+    if (isNaN(recordDate)) return false;
+
+    const recordDay = recordDate.getDate();
+    const recordMonth = recordDate.getMonth() + 1;
+    const recordYear = recordDate.getFullYear();
+    const recordDateString = recordDate.toISOString().split("T")[0];
+
+    const dateMatch = !dateFilter || recordDateString === dateFilter;
+    const dayMatch = !dayFilter || recordDay === parseInt(dayFilter);
+    const monthMatch = !monthFilter || recordMonth === parseInt(monthFilter);
+    const yearMatch = !yearFilter || recordYear === parseInt(yearFilter);
+
+    return statusMatch && searchMatch && dateMatch && dayMatch && monthMatch && yearMatch;
   });
-  // const filteredData = tableData;
-  console.log("Filtered Data:", filteredData);
+
+  const statusColors = {
+    Pending: "bg-yellow-100 text-yellow-700",
+    Approved: "bg-green-100 text-green-700",
+    Complete: "bg-blue-100 text-blue-700",
+    Rejected: "bg-red-100 text-red-700",
+    "Interview Process": "bg-purple-100 text-purple-700",
+    "Case Summary Generation": "bg-indigo-100 text-indigo-700",
+    Default: "bg-gray-100 text-gray-700",
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "--";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  // Get unique years from table data for year filter
+  const availableYears = Array.from(
+    new Set(
+      tableData
+        .map((item) => new Date(item.date_submitted).getFullYear())
+        .filter((year) => !isNaN(year))
+    )
+  ).sort((a, b) => b - a);
 
   return (
     <>
+      {loading && <SystemLoader />}
       <ConfirmationModal
         open={modalOpen}
         title={modalText}
         desc={modalDesc}
         onConfirm={handleModalConfirm}
-        onCancel={handleModalCancel}
+        onCancel={() => setModalOpen(false)}
       />
-      <Notification message={notification} type={notificationType} />
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -174,205 +177,201 @@ const CancerTreatmentApplication = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      <LoadingModal open={loading} text="Submitting your data..." />
-      {/* {notification && (
-        <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
-          <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-            <img
-              src="/images/logo_white_notxt.png"
-              alt="Rafi Logo"
-              className="h-[25px]"
-            />
-            <span>{notification}</span>
-          </div>
+      <Notification message={notification} type={notificationType} />
+
+      <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
+        {/* Header */}
+        <div className="flex justify-between items-center w-full">
+          <h2 className="text-xl font-bold text-gray-800">
+            Cancer Treatment
+          </h2>
         </div>
-      )} */}
-      <div className="w-full flex-1 py-2 flex flex-col justify-around px-5 overflow-auto bg-gray">
-        <h2 className="text-xl font-bold text-left w-full pl-1">
-          Cancer Treatment
-        </h2>
 
-        <div className="flex flex-col bg-white rounded-[4px] w-full shadow-md px-5 py-5 gap-3">
-          <p className="text-md font-semibold text-yellow mb-3">
-            Track the status of your cancer treatment applications here.
-          </p>
-          {/* <h2 className="text-xl font-bold text-left w-full pl-5">
-              Individual Screening
-            </h2> */}
-          {/* <hr className="border-2 border-[#749AB6]" /> */}
-
-          <div className="flex justify-between flex-wrap gap-3 mb-3">
-            <input
-              type="text"
-              placeholder="Search by application ID ..."
-              className="border border-gray-200 py-2 w-[48%] px-5 rounded-md text-[12px] md:text-[16px]"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <select
-              className="border border-gray-200 rounded-md p-2 bg-white"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="pending">Pending</option>
-              {/* <option value="requirements">Requirements</option> */}
-              <option value="approved">Approve</option>
-            </select>
-            <input
-              type="date"
-              className="border border-gray-200 py-2 px-5 rounded-md"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-            />
-            <button
-              className="px-7 rounded-md text-sm bg-[#C5D7E5]"
-              onClick={(e) => {
-                e.preventDefault();
-              }}
-            >
-              Filter
-            </button>
+        {/* Main Content Card */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full">
+          {/* Card Header */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-yellow-600">
+              Track the status of your cancer treatment applications here.
+            </h3>
           </div>
 
-          <div className="bg-white shadow overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <colgroup>
-                <col className="w-[18%]" />
-                <col className="w-[16%]" />
-                <col className="w-[16%]" />
-                <col className="w-[16%]" />
-                <col className="w-[17%]" />
-                <col className="w-[25%]" />
-              </colgroup>
-              <thead>
-                <tr className="bg-lightblue">
-                  <th
-                    scope="col"
-                    className=" text-center text-[10px] md:text-sm  py-3 !bg-lightblue"
-                  >
-                    Patient ID
-                  </th>
-                  <th
-                    scope="col"
-                    className="  py-3 text-center text-[10px] md:text-sm"
-                  >
-                    Service Requested
-                  </th>
-                  <th
-                    scope="col"
-                    className="  py-3 text-center text-[10px] md:text-sm"
-                  >
-                    Submission Date
-                  </th>
-                  <th
-                    scope="col"
-                    className="  py-3 text-center text-[10px] md:text-sm"
-                  >
-                    Date Approved
-                  </th>
-                  <th
-                    scope="col"
-                    className="  py-3 text-center text-[10px] md:text-sm"
-                  >
-                    Status
-                  </th>
-                  <th
-                    scope="col"
-                    className="   py-3 text-center text-[10px] md:text-sm tracking-wider"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-            </table>
-            <div className="max-h-[277px] min-h-[277px] overflow-auto">
-              <table className="min-w-full divide-y divide-gray-200 border-spacing-0">
-                <colgroup>
-                  <col className="w-[18%]" />
-                  <col className="w-[16%]" />
-                  <col className="w-[16%]" />
-                  <col className="w-[16%]" />
-                  <col className="w-[17%]" />
-                  <col className="w-[25%]" />
-                </colgroup>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredData.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan="6"
-                        className="text-center py-4 text-gray-500"
+          {/* Filters Section */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex flex-wrap gap-3 items-center">
+              <input
+                type="text"
+                placeholder="Search by patient ID or name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-64 text-sm"
+              />
+
+              <select
+                className="border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Interview Process">Interview Process</option>
+                <option value="Case Summary Generation">Case Summary Gen...</option>
+                <option value="Approved">Approved</option>
+                <option value="Complete">Complete</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+
+              {/* Date Filters */}
+              {/* <input
+                type="date"
+                className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+              /> */}
+
+              <select
+                className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={dayFilter}
+                onChange={(e) => setDayFilter(e.target.value)}
+              >
+                <option value="">All Days</option>
+                {[...Array(31)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+              >
+                <option value="">All Months</option>
+                {[...Array(12)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {new Date(0, i).toLocaleString("en", { month: "long" })}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+              >
+                <option value="">All Years</option>
+                {availableYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setStatusFilter("all");
+                  setDateFilter("");
+                  setDayFilter("");
+                  setMonthFilter("");
+                  setYearFilter("");
+                }}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+              >
+                Clear Filters
+              </button>
+            </div>
+          </div>
+
+          {/* Table Section */}
+          <div className="px-6 py-4">
+            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              {/* Table Header */}
+              <div className="bg-lightblue px-4 py-3">
+                <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
+                  <div className="col-span-2 text-center">Patient ID</div>
+                  <div className="col-span-2 text-center">Service Requested</div>
+                  <div className="col-span-2 text-center">Date Submitted</div>
+                  <div className="col-span-2 text-center">Date Approved</div>
+                  <div className="col-span-2 text-center">Status</div>
+                  <div className="col-span-2 text-center">Actions</div>
+                </div>
+              </div>
+
+              {/* Table Body */}
+              <div className="max-h-96 overflow-auto">
+                {filteredData.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No cancer treatment applications found matching your filters.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-200">
+                    {filteredData.map((app) => (
+                      <div
+                        key={app.id}
+                        className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                       >
-                        No records found.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredData.map((app) => (
-                      <tr key={app.id}>
-                        <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
+                        <div 
+                          className="col-span-2 cursor-pointer text-center text-blue-500 font-medium"
+                          onClick={() => handleView(app.id)}
+                        >
                           {app.patient.patient_id}
-                        </td>
-                        <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
+                        </div>
+                        <div className="col-span-2 text-center text-gray-800">
                           {app.service_type}
-                        </td>
-                        <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
-                          {app.date_submitted.split("T")[0]}
-                        </td>
-                        <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
-                          {app.date_approved
-                            ? app.date_approved.split("T")[0]
-                            : "--"}
-                        </td>
-                        <td className=" py-2 text-[12px] md:text-sm text-center text-[#333333]">
-                          <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full text-[#1976D2]">
+                        </div>
+                        <div className="col-span-2 text-center text-gray-800">
+                          {formatDate(app.date_submitted)}
+                        </div>
+                        <div className="col-span-2 text-center text-gray-800">
+                          {formatDate(app.date_approved)}
+                        </div>
+                        <div className="col-span-2 text-center">
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold max-w-[120px] truncate ${
+                              statusColors[app.status] || statusColors.Default
+                            }`}
+                          >
                             {app.status}
                           </span>
-                        </td>
-                        <td className="text-center text-sm py-4 flex gap-2 justify-center">
-                          {" "}
-                          {/*flex py-2 gap-2 px-2 justify-around text-sm text-center text-[#333333]" */}
-                          {app.status !== "Pending" || app.status !== "Rejected" && (
+                        </div>
+                        <div className="col-span-2 flex justify-center gap-2">
+                          {/* {(app.status !== "Pending" && app.status !== "Rejected") && (
                             <button
-                              type="button"
-                              className="text-white py-1 px-3 rounded-md shadow bg-primary cursor-pointer"
                               onClick={() => handleView(app.id)}
+                              className="bg-primary hover:bg-primary/90 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
                             >
-                              {" "}
-                              {/*custom-shadow w-[50%] cursor-pointer text-white bg-primary py-[5px] rounded-md px-3 */}
                               View
                             </button>
-                          )}
+                          )} */}
                           {app.status === "Rejected" && (
-                              <button
-                                type="button"
-                                className="text-white py-1 px-3 rounded-md shadow bg-yellow cursor-pointer"
-                                onClick={() => {
-                                  navigate("/beneficiary/services/cancer-management/apply/upload-documents", {
-                                    state: { id: app.id },
-                                  });
-                                }}
-                              >
-                                {" "}
-                                {/*custom-shadow w-[50%] cursor-pointer text-white bg-primary py-[5px] rounded-md px-3 */}
-                                {/* Resubmit */}
-                                <RotateCcw size={16} />
-                              </button>
-                            )}
-                          {app.status !== "Complete" && (
                             <button
-                              type="button"
-                              className="text-white py-1 px-3 rounded-md shadow bg-red-500 cursor-pointer"
-                              onClick={() => handleCancel(app.id)}
+                              onClick={() => {
+                                navigate("/beneficiary/services/cancer-management/apply/upload-documents", {
+                                  state: { id: app.id },
+                                });
+                              }}
+                              className="bg-yellow cursor-pointer hover:bg-yellow/90 text-white py-1.5 px-2 rounded transition-colors"
+                              title="Resubmit Application"
                             >
-                              Cancel
+                              <RotateCcw className="w-3.5 h-3.5" />
                             </button>
                           )}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                          {app.status !== "Complete" && (
+                            <button
+                              onClick={() => handleCancel(app.id)}
+                              className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

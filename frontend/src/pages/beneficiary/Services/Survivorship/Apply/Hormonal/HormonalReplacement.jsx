@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
@@ -18,10 +18,14 @@ const CheckIcon = ({ active }) => (
 
 const HormonalReplacement = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const id = location.state?.id || null;
   const fileInputRef = useRef(null);
 
   // Form States
   const [medicines, setMedicines] = useState("");
+
+  const [isResubmitting, setIsResubmitting] = useState(!!id);
 
   // File Handling
   const requiredDocs = REQUIRED_DOCS["Hormonal Replacement"] || [];
@@ -73,6 +77,30 @@ const HormonalReplacement = () => {
   //   fetchScreeningData();
   // }, []);
 
+  useEffect(() => {
+    if (!id) return;
+    const fetchData = async () => {
+      try {
+        const { data } = await api.get(
+          `/beneficiary/hormonal-replacement/details/${id}/`
+        );
+        setMedicines(data.medicines_requested || "");
+
+        if (data.required_attachments) {
+          const mappedFiles = data.required_attachments.reduce((acc, doc) => {
+            acc[doc.doc_type] = doc;
+            return acc;
+          }, {});
+          setFiles(mappedFiles);
+        }
+
+      } catch (error) {
+        console.error("Error fetching screening data:", error);
+      }
+    };
+
+    fetchData();
+  }, [id]);
   // File Handlers
   const handleChooseFile = () => fileInputRef.current?.click();
 
@@ -109,13 +137,21 @@ const HormonalReplacement = () => {
         if (file) formData.append(`files.${key}`, file);
       });
 
-      await api.post(
-        `/beneficiary/hormonal-replacement/request/`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const endpoint = isResubmitting
+        ? `/beneficiary/hormonal-replacement/update/${id}/`
+        : `/beneficiary/hormonal-replacement/request/`;
+      
+      const method = isResubmitting ? api.patch : api.post;
+
+      await method(endpoint, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      
+      // await api.post(
+      //   `/beneficiary/hormonal-replacement/request/`,
+      //   formData,
+      //   {
+      //     headers: { "Content-Type": "multipart/form-data" },
+      //   }
+      // );
 
       navigate("/beneficiary/success-application", {
         state: { okLink: "beneficiary/applications/individual-screening" },
@@ -304,7 +340,7 @@ const HormonalReplacement = () => {
                 {allUploaded ? (
                   <button
                     type="submit"
-                    className="bg-[#749AB6] text-white w-[40%] font-bold py-3 px-8 rounded-md border border-[#749AB6] hover:bg-[#C5D7E5] hover:border-[#C5D7E5 w-full md:w-[40%]]"
+                    className="bg-[#749AB6] text-white font-bold py-3 px-8 rounded-md border border-[#749AB6] hover:bg-[#C5D7E5] hover:border-[#C5D7E5] w-full md:w-[40%]"
                   >
                     Submit
                   </button>

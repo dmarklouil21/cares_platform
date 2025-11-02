@@ -546,110 +546,198 @@ def send_precancerous_meds_status_email(patient, status, release_date=None, rema
     return str(e)
 
 def send_post_treatment_status_email(patient, status, lab_test_date=None, remarks=None):
-    try:
-        first_name, last_name, recipient_email = _extract_contact_info(patient)
-        if not recipient_email:
-            raise ValueError("Recipient email not found for patient.")
+  try:
+      first_name, last_name, recipient_email = _extract_contact_info(patient)
+      if not recipient_email:
+        raise ValueError("Recipient email not found for patient.")
 
-        # Build message content based on status
-        if status == "Approved":
-            lab_date_str = lab_test_date.strftime("%B %d, %Y") if lab_test_date else "TBA"
-            message_body = (
-                f"Good news! Your post-treatment request has been <b>approved</b>. "
-                f"Your laboratory test is scheduled for <b>{lab_date_str}</b>. "
-                "Your Letter of Authority will be sent to you soon. "
-                "Please make sure to arrive at least <b>15 minutes early</b> and bring a valid ID for verification."
-            )
+      # Build message content based on status
+      if status == "Approved":
+        lab_date_str = lab_test_date.strftime("%B %d, %Y") if lab_test_date else "TBA"
+        message_body = (
+          f"Good news! Your post-treatment request has been <b>approved</b>. "
+          f"Your laboratory test is scheduled for <b>{lab_date_str}</b>. "
+          "Your Letter of Authority will be sent to you soon. "
+          "Please make sure to arrive at least <b>15 minutes early</b> and bring a valid ID for verification."
+        )
 
-        elif status == "Completed":
-            message_body = (
-                "Your post-treatment process has been <b>successfully completed</b>. "
-                "Please upload your laboratory results through your portal and wait for feedback from our medical team. "
-                "We appreciate your cooperation and prompt submission of results."
-            )
+      elif status == "Completed":
+        message_body = (
+          "Your post-treatment process has been <b>successfully completed</b>. "
+          "Please upload your laboratory results through your portal and wait for feedback from our medical team. "
+          "We appreciate your cooperation and prompt submission of results."
+        )
 
-        elif status == "Follow-up Required":
-            message_body = (
-                "After reviewing your recent results, a <b>follow-up check-up</b> is required. "
-                "We will notify you once the date for your next appointment has been confirmed. "
-                "Please ensure to arrive on time and bring your previous test results and valid identification."
-            )
+      elif status == "Follow-up Required":
+        message_body = (
+          "After reviewing your recent results, a <b>follow-up check-up</b> is required. "
+          "We will notify you once the date for your next appointment has been confirmed. "
+          "Please ensure to arrive on time and bring your previous test results and valid identification."
+        )
 
-        elif status == "Closed":
-            message_body = (
-                "Your post-treatment case has been <b>officially closed</b>. "
-                "Thank you for your cooperation and for taking an active role in maintaining your health. "
-                "Should you need further assistance, feel free to reach out to our support team."
-            )
+      elif status == "Closed":
+        message_body = (
+          "Your post-treatment case has been <b>officially closed</b>. "
+          "Thank you for your cooperation and for taking an active role in maintaining your health. "
+          "Should you need further assistance, feel free to reach out to our support team."
+        )
 
-        elif status == "Rejected":
-            message_body = (
-                "We regret to inform you that your post-treatment request has been <b>rejected</b>. "
-                "If you believe this decision was made in error or wish to reapply, please contact our support team for further assistance."
-            )
-            if remarks:
-                message_body += f"<br><br><b>Remarks:</b> {remarks}"
+      elif status == "Rejected":
+        message_body = (
+          "We regret to inform you that your post-treatment request has been <b>rejected</b>. "
+          "If you believe this decision was made in error or wish to reapply, please contact our support team for further assistance."
+        )
+        if remarks:
+          message_body += f"<br><br><b>Remarks:</b> {remarks}"
 
-        else:
-            message_body = (
-                "Your post-treatment status has been updated. "
-                "Please check your patient portal for the latest information and any additional requirements."
-            )
+      else:
+        message_body = (
+          "Your post-treatment status has been updated. "
+          "Please check your patient portal for the latest information and any additional requirements."
+        )
 
-        # Status badge colors
-        status_colors = {
-            "Approved": "#28a745",
-            "Completed": "#007bff",
-            "Follow-up Required": "#17a2b8",
-            "Closed": "#ffc107",
-            "Rejected": "#dc3545"
-        }
-        badge_color = status_colors.get(status, "#6c757d")
+      # Status badge colors
+      status_colors = {
+        "Approved": "#28a745",
+        "Completed": "#007bff",
+        "Follow-up Required": "#17a2b8",
+        "Closed": "#ffc107",
+        "Rejected": "#dc3545"
+      }
+      badge_color = status_colors.get(status, "#6c757d")
 
-        # Send formatted email
-        send_mail(
-            subject="RAFI-EJACC: Post-Treatment Status Update",
-            message="",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[recipient_email],
-            fail_silently=False,
-            html_message=f"""
-            <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
-                <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+      # Send formatted email
+      send_mail(
+        subject="RAFI-EJACC: Post-Treatment Status Update",
+        message="",
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[recipient_email],
+        fail_silently=False,
+        html_message=f"""
+        <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
+            <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
 
-                    <!-- Header -->
-                    <div style="background: #005baa; padding: 20px; text-align: center;">
-                        <img src="https://rafi.org.ph/wp-content/uploads/2021/03/RAFI-LOGO-1.png" alt="RAFI Logo" style="height: 50px; margin-bottom: 10px;">
-                        <h2 style="color: #fff; margin: 0;">Post-Treatment Status Update</h2>
+                <!-- Header -->
+                <div style="background: #005baa; padding: 20px; text-align: center;">
+                    <img src="https://rafi.org.ph/wp-content/uploads/2021/03/RAFI-LOGO-1.png" alt="RAFI Logo" style="height: 50px; margin-bottom: 10px;">
+                    <h2 style="color: #fff; margin: 0;">Post-Treatment Status Update</h2>
+                </div>
+
+                <!-- Content -->
+                <div style="padding: 30px;">
+                    <p style="margin: 0 0 15px 0;">Dear <b>{first_name} {last_name}</b>,</p>
+
+                    <!-- Status Badge -->
+                    <div style="display: inline-block; background: {badge_color}; color: white; padding: 6px 14px; border-radius: 12px; font-size: 14px; margin-bottom: 15px;">
+                        {status}
                     </div>
 
-                    <!-- Content -->
-                    <div style="padding: 30px;">
-                        <p style="margin: 0 0 15px 0;">Dear <b>{first_name} {last_name}</b>,</p>
+                    <p style="font-size: 15px; line-height: 1.6; color: #333;">{message_body}</p>
+                </div>
 
-                        <!-- Status Badge -->
-                        <div style="display: inline-block; background: {badge_color}; color: white; padding: 6px 14px; border-radius: 12px; font-size: 14px; margin-bottom: 15px;">
-                            {status}
-                        </div>
-
-                        <p style="font-size: 15px; line-height: 1.6; color: #333;">{message_body}</p>
-                    </div>
-
-                    <!-- Footer -->
-                    <div style="background: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #777;">
-                        <p>If you have any questions, please contact our support team at 
-                        <a href="mailto:no-reply@gmail.com" style="color: #005baa;">no-reply@gmail.com</a>.</p>
-                        <p>This is an automated message from RAFI-EJACC. Please do not reply directly to this email.</p>
-                    </div>
+                <!-- Footer -->
+                <div style="background: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+                    <p>If you have any questions, please contact our support team at 
+                    <a href="mailto:no-reply@gmail.com" style="color: #005baa;">no-reply@gmail.com</a>.</p>
+                    <p>This is an automated message from RAFI-EJACC. Please do not reply directly to this email.</p>
                 </div>
             </div>
-            """
+        </div>
+        """
+      )
+      return True
+
+  except Exception as e:
+    return f"Email failed to send: {e}"
+
+def send_hormonal_replacement_status_email(patient, status, release_date=None, remarks=None):
+  try:
+      first_name, last_name, recipient_email = _extract_contact_info(patient)
+      if not recipient_email:
+        raise ValueError("Recipient email not found for patient.")
+
+      # Build message content based on status
+      if status == "Approved":
+        lab_date_str = release_date.strftime("%B %d, %Y") if release_date else "TBA"
+        message_body = (
+          f"Good news! Your hormonal-replacement request has been <b>approved</b>. "
+          f"Your laboratory test is scheduled for <b>{lab_date_str}</b>. "
+          "Your Letter of Authority will be sent to you soon. "
+          "Please make sure to arrive at least <b>15 minutes early</b> and bring a valid ID for verification."
         )
-        return True
 
-    except Exception as e:
-        return f"Email failed to send: {e}"
+      elif status == "Completed":
+        message_body = (
+          "Your hormonal-replacement process has been <b>successfully completed</b>. "
+          "Please upload your laboratory results through your portal and wait for feedback from our medical team. "
+          "We appreciate your cooperation and prompt submission of results."
+        )
 
+      elif status == "Rejected":
+        message_body = (
+          "We regret to inform you that your hormonal-replacement request has been <b>rejected</b>. "
+          "If you believe this decision was made in error or wish to reapply, please contact our support team for further assistance."
+        )
+        if remarks:
+          message_body += f"<br><br><b>Remarks:</b> {remarks}"
+
+      else:
+        message_body = (
+          "Your hormonal-replacement status has been updated. "
+          "Please check your patient portal for the latest information and any additional requirements."
+        )
+
+      # Status badge colors
+      status_colors = {
+        "Approved": "#28a745",
+        "Completed": "#007bff",
+        "Rejected": "#dc3545"
+      }
+      badge_color = status_colors.get(status, "#6c757d")
+
+      # Send formatted email
+      send_mail(
+        subject="RAFI-EJACC: Hormonal Replacement Status Update",
+        message="",
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[recipient_email],
+        fail_silently=False,
+        html_message=f"""
+        <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
+            <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+
+                <!-- Header -->
+                <div style="background: #005baa; padding: 20px; text-align: center;">
+                    <img src="https://rafi.org.ph/wp-content/uploads/2021/03/RAFI-LOGO-1.png" alt="RAFI Logo" style="height: 50px; margin-bottom: 10px;">
+                    <h2 style="color: #fff; margin: 0;">Hormonal Replacement Status Update</h2>
+                </div>
+
+                <!-- Content -->
+                <div style="padding: 30px;">
+                    <p style="margin: 0 0 15px 0;">Dear <b>{first_name} {last_name}</b>,</p>
+
+                    <!-- Status Badge -->
+                    <div style="display: inline-block; background: {badge_color}; color: white; padding: 6px 14px; border-radius: 12px; font-size: 14px; margin-bottom: 15px;">
+                        {status}
+                    </div>
+
+                    <p style="font-size: 15px; line-height: 1.6; color: #333;">{message_body}</p>
+                </div>
+
+                <!-- Footer -->
+                <div style="background: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+                    <p>If you have any questions, please contact our support team at 
+                    <a href="mailto:no-reply@gmail.com" style="color: #005baa;">no-reply@gmail.com</a>.</p>
+                    <p>This is an automated message from RAFI-EJACC. Please do not reply directly to this email.</p>
+                </div>
+            </div>
+        </div>
+        """
+      )
+      return True
+
+  except Exception as e:
+    return f"Email failed to send: {e}"
 
 def send_report_email(recipient_email, file_obj, patient_name=None):
   try:

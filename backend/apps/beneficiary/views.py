@@ -394,6 +394,13 @@ class CancerManagementListView(generics.ListAPIView):
     patient = get_object_or_404(Patient, user=user)
     return CancerTreatment.objects.filter(patient=patient)
 
+class CancerManagementCancelRequestView(generics.DestroyAPIView):
+  queryset = CancerTreatment.objects.all()
+  serializer_class = CancerTreatmentSerializer
+  lookup_field = 'id'
+
+  permission_classes = [IsAuthenticated]
+
 class TreatmentResultUploadView(APIView):
   parser_classes = [MultiPartParser, FormParser]
   permission_classes = [IsAuthenticated]
@@ -496,22 +503,28 @@ class PreCancerousMedsDetailView(generics.RetrieveAPIView):
     patient = get_object_or_404(Patient, user=self.request.user)
     return PreCancerousMedsRequest.objects.filter(patient=patient)
 
-class PreCancerousMedsCancelView(APIView):
+class PreCancerousMedsCancelView(generics.DestroyAPIView):
+  queryset = PreCancerousMedsRequest.objects.all()
+  serializer_class = PreCancerousMedsRequestSerializer
+  lookup_field = 'id'
+
   permission_classes = [IsAuthenticated]
+# class PreCancerousMedsCancelView(APIView):
+#   permission_classes = [IsAuthenticated]
 
-  def post(self, request, id):
-    patient = get_object_or_404(Patient, user=request.user)
-    obj = get_object_or_404(PreCancerousMedsRequest, id=id, patient=patient)
+#   def post(self, request, id):
+#     patient = get_object_or_404(Patient, user=request.user)
+#     obj = get_object_or_404(PreCancerousMedsRequest, id=id, patient=patient)
 
-    if obj.status != 'Pending':
-      return Response({
-        'detail': 'Only Pending applications can be cancelled.'
-      }, status=status.HTTP_400_BAD_REQUEST)
+#     if obj.status != 'Pending':
+#       return Response({
+#         'detail': 'Only Pending applications can be cancelled.'
+#       }, status=status.HTTP_400_BAD_REQUEST)
 
-    obj.status = 'Cancelled'
-    obj.save(update_fields=['status'])
+#     obj.status = 'Cancelled'
+#     obj.save(update_fields=['status'])
 
-    return Response(PreCancerousMedsRequestSerializer(obj).data, status=status.HTTP_200_OK)
+#     return Response(PreCancerousMedsRequestSerializer(obj).data, status=status.HTTP_200_OK)
 
 # -----------------------
 # Post Treatment Views
@@ -625,6 +638,13 @@ class PostTreatmentListView(generics.ListAPIView):
     # patient_id = self.kwargs.get("patient_id")
     return PostTreatment.objects.filter(patient=patient)
 
+class PostTreatmentCancelRequestView(generics.DestroyAPIView):
+  queryset = PostTreatment.objects.all()
+  serializer_class = PostTreatmentSerializer
+  lookup_field = 'id'
+
+  permission_classes = [IsAuthenticated]
+
 class PostTreatmentResultUploadView(APIView):
   parser_classes = [MultiPartParser, FormParser]
   permission_classes = [IsAuthenticated]
@@ -711,6 +731,63 @@ class HormonalReplacementListView(generics.ListAPIView):
     patient = get_object_or_404(Patient, user=user)
     # patient_id = self.kwargs.get("patient_id")
     return HormonalReplacement.objects.filter(patient=patient)
+
+class HormonalReplacementUpdateView(generics.UpdateAPIView):
+  queryset = HormonalReplacement.objects.all()
+  serializer_class = HormonalReplacementSerializer
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
+
+  def perform_update(self, serializer):
+    instance = self.get_object()
+
+    if instance.has_patient_response:
+      raise ValidationError({
+        'non_field_errors': [
+          "You already resubmitted your request. Please wait for its feedback before submitting again."
+        ]
+      })
+
+    try:
+      with transaction.atomic():
+        # Save the updated screening info
+        instance = serializer.save(
+          has_patient_response=True,
+          response_description='Resubmitted hormonal replacement medication request',
+          status='Pending'
+        )
+
+        # Handle uploaded files
+        files_dict = {
+          key.split("files.")[1]: value
+          for key, value in self.request.FILES.items()
+          if key.startswith("files.")
+        }
+
+        for key, file in files_dict.items():
+          # Remove any existing attachment of the same type for this screening
+          HormonalReplacementRequiredAttachment.objects.filter(
+            hormonal_replacement=instance,
+            doc_type=key
+          ).delete()
+          
+          HormonalReplacementRequiredAttachment.objects.create(
+            hormonal_replacement=instance,
+            file=file,
+            doc_type=key
+          )
+
+    except Exception as e:
+      logger.error(f"Error during resubmission: {str(e)}")
+      raise ValidationError({"non_field_errors": ["An error occurred while resubmitting the request."]})
+
+class HormonalReplacementCancelView(generics.DestroyAPIView):
+  queryset = HormonalReplacement.objects.all()
+  serializer_class = HormonalReplacementSerializer
+  lookup_field = 'id'
+
+  permission_classes = [IsAuthenticated]
 
 # -----------------------
 # Home Visit Views

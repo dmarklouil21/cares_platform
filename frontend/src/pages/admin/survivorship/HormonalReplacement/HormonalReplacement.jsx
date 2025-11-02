@@ -4,6 +4,8 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Info, Printer, CheckCircle, X, Trash2 } from "lucide-react";
 
 import api from "src/api/axiosInstance";
+import DateModal from "src/components/Modal/DateModal";
+import RemarksModal from "src/components/Modal/RemarksModal";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import SystemLoader from "src/components/SystemLoader";
 import Notification from "src/components/Notification";
@@ -32,12 +34,23 @@ const HormonalReplacement = () => {
   const [notificationType, setNotificationType] = useState(
     location.state?.type || ""
   );
+  const [notificationMessage, setNotificationMessage] = useState(
+    location.state?.message || ""
+  );
+
+  const [remarksModalOpen, setRemarksModalOpen] = useState(false);
+  const [remarks, setRemarks] = useState("");
 
   const [modal, setModal] = useState({
     open: false,
     text: "",
     action: null,
   });
+
+  // Released Date Modal
+  const [releaseDate, setReleaseDate] = useState(null);
+  const [dateModalOpen, setDateModalOpen] = useState(false);
+  const [dateModalTitle, setDateModalTitle] = useState("Set Medicine Release Date");
 
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
@@ -140,6 +153,11 @@ const HormonalReplacement = () => {
     setModal({ open: true, text: actionText, action: { id, type: action } });
   };
 
+  const handleApprove = (id) => {
+    setModal({ action: { id } });
+    setDateModalOpen(true);
+  };
+
   const doAction = async () => {
     if (!modal.action) return;
 
@@ -150,15 +168,22 @@ const HormonalReplacement = () => {
       setLoading(true);
 
       if (type === "accept") {
-        const payload = { status: "Approved" };
-        await api.patch(`post-treatment/approve/${id}/`, payload);
+        // const payload = { status: "Approved" };
+        let payload = {
+          status: "Approved",
+          released_date: releaseDate,
+        };
+  
+        await api.patch(`/survivorship/hormonal-replacement/update/${id}/`, payload);
+        // await api.patch(`post-treatment/approve/${id}/`, payload);
         setNotificationType("success");
         setNotification(`Request has been approved.`);
       } else {
-        await api.delete(`post-treatment/record/delete/${id}/`);
+        await api.delete(`/survivorship/hormonal-replacement/delete/${id}/`);
         setNotificationType("success");
         setNotification(`Request has been ${type} successfully.`);
-        setTableData((prev) => prev.filter((r) => r.id !== id));
+        // setTableData((prev) => prev.filter((r) => r.id !== id));
+        fetchData();
       }
     } catch (error) {
       console.error(`Failed to ${type} request:`, error);
@@ -169,6 +194,82 @@ const HormonalReplacement = () => {
     }
   };
 
+  const handleReject = async () => {
+    setLoading(true);
+    setRemarksModalOpen(false);
+    try {
+      const { id } = modal.action;
+      const payload = {
+        status: "Rejected",
+        remarks,
+      };
+      console.log("Did this get executed?");
+      await api.patch(
+        `/survivorship/hormonal-replacement/update/${id}/`,
+        payload
+      );
+      navigate("/admin/survivorship/hormonal-replacement", {
+        state: {
+          type: "success",
+          message: "Updated Successfully.",
+        },
+      });
+      setNotificationType("success");
+      setNotificationMessage("Request Rejected");
+      fetchData();
+    } catch (error) {
+      // setModalInfo({
+      //   type: "error",
+      //   title: "Failed",
+      //   message: "Something went wrong while rejecting request.",
+      // });
+      // setShowModal(true);
+      setNotificationType("error");
+      setNotificationMessage("Something went wrong while rejecting request.");
+      fetchData();
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDateModalConfirm = async () => {
+    if (!releaseDate) {
+      alert("Please select a date before proceeding.");
+      return;
+    }
+    setDateModalOpen(false);
+    setLoading(true);
+    try {
+      const { id } = modal.action;
+      const payload = { 
+        status: "Approved",
+        released_date: releaseDate,
+      };
+
+      await api.patch(
+        `/survivorship/hormonal-replacement/update/${id}/`,
+        payload
+      );
+
+      setNotificationMessage("Approved Successfully.");
+      setNotificationType("success");
+      setNotification(notificationMessage);
+      setTimeout(() => setNotification(""), 2000);
+    } catch (error) {
+      setNotificationMessage("Something went wrong.");
+      setNotificationType("error");
+      setNotification(notificationMessage);
+      setTimeout(() => setNotification(""), 2000);
+      console.error(error);
+    } finally {
+      fetchData();
+      setLoading(false);
+    }
+    setModalAction(null);
+    // setModalText("");
+  };
+
   const handleView = (id) =>
     navigate(`/admin/survivorship/hormonal-replacement/view/${id}`);
 
@@ -177,6 +278,7 @@ const HormonalReplacement = () => {
     Approved: "bg-blue-100 text-blue-700",
     Completed: "bg-green-100 text-green-700",
     Default: "bg-gray-100 text-gray-700",
+    Rejected: "bg-red-100 text-red-700",
   };
 
   return (
@@ -213,6 +315,26 @@ const HormonalReplacement = () => {
           desc={modalDesc}
           onConfirm={doAction}
           onCancel={() => setModal({ open: false, text: "", action: null })}
+        />
+
+        <DateModal
+          open={dateModalOpen}
+          title={dateModalTitle}
+          value={releaseDate}
+          onChange={setReleaseDate}
+          onConfirm={handleDateModalConfirm}
+          onCancel={() => setDateModalOpen(false)}
+        />
+
+        <RemarksModal 
+          open={remarksModalOpen}
+          title="Remarks"
+          placeholder="Enter your remarks here..."
+          value={remarks}
+          onChange={(e) => setRemarks(e.target.value)}
+          onCancel={() => setRemarksModalOpen(false)}
+          onConfirm={handleReject}
+          confirmText="Confirm"
         />
 
         <Notification message={notification} type={notificationType} />
@@ -423,22 +545,20 @@ const HormonalReplacement = () => {
                             </span>
                           </div>
                           <div className="col-span-1 flex justify-center gap-2">
-                            {/* <button
-                              onClick={() => handleView(p.id)}
-                              className="bg-primary hover:bg-primary/90 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
-                            >
-                              View
-                            </button> */}
                             {p.status === "Pending" ? (
                               <>
                                 <button
-                                  onClick={() => openConfirm(p.id, "accept")}
+                                  onClick={() => handleApprove(p.id)}
                                   className="bg-primary cursor-pointer text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
                                   <CheckCircle className="w-3.5 h-3.5"/>
                                 </button>
                                 <button
-                                  onClick={() => openConfirm(p.id, "reject")}
+                                  onClick={() => {
+                                    // setModal({action: p.id})
+                                    setModal({ action: { id: p.id } });
+                                    setRemarksModalOpen(true)
+                                  }}
                                   className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
                                   <X className="w-3.5 h-3.5"/>
