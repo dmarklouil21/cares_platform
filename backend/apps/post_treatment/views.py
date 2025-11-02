@@ -18,7 +18,7 @@ from backend.utils.email import (
 from apps.patient.models import Patient, HistoricalUpdate, ServiceReceived
 
 from . models import PostTreatment, FollowupCheckups, RequiredAttachment
-from . serializers import PostTreatmentSerializer, PostTreatmentAdminCreateSerializer
+from . serializers import PostTreatmentSerializer, PostTreatmentAdminCreateSerializer, RequiredAttachmentSerializer
 
 import logging
 logger = logging.getLogger(__name__)
@@ -192,6 +192,34 @@ class PostTreatmentUpdateView(APIView):
 
       return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class RequiredAttachmentUpdateView(APIView):
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def patch(self, request, id):
+    post_treatment = get_object_or_404(PostTreatment, id=id)
+    
+    files_dict = {}
+    for key, value in self.request.FILES.items():
+      if key.startswith("files."):
+        field_name = key.split("files.")[1] 
+        files_dict[field_name] = value
+
+    for key, file in files_dict.items():
+      RequiredAttachment.objects.create(
+        post_treatment=post_treatment,
+        file=file,
+        doc_type=key 
+      )
+
+    return Response({"message": "Attachments updated successfully."})
+  
+class AttachmentDeleteView(generics.DestroyAPIView):
+  queryset = RequiredAttachment.objects.all()
+  serializer_class = RequiredAttachmentSerializer
+  lookup_field = 'id'
+  permission_classes = [IsAuthenticated, IsAdminUser]
 
 class PostTreatmentCheckupUpdateView(APIView):
   # parser_classes = [MultiPartParser, FormParser]

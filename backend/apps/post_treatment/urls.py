@@ -13,4 +13,6 @@ urlpatterns = [
   path('cancel-schedule/<int:id>/', views.PostTreatmentScheduleCancelView.as_view(), name='cancel_schedule'),
   path('record/delete/<int:id>/', views.PostTreatmentDeleteView.as_view(), name='delete_record'),
   path('send-loa/', views.SendLOAView.as_view(), name='send_loa'),
+  path('attachments-delete/<int:id>/', views.AttachmentDeleteView.as_view(), name='post_treatment_attachments_delete'),
+  path('attachments-update/<int:id>/', views.RequiredAttachmentUpdateView.as_view(), name='post_treatment_attachments_update'),
 ]
