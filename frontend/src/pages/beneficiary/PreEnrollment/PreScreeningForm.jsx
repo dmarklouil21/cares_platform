@@ -6,7 +6,8 @@ import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
-import LoadingModal from "src/components/Modal/LoadingModal";
+import Notification from "src/components/Notification";
+import SystemLoader from "src/components/SystemLoader";
 
 const PreScreeningForm = () => {
   // Notification Modal
@@ -28,6 +29,15 @@ const PreScreeningForm = () => {
   const [modalText, setModalText] = useState("Confirm Status Change?");
   const [modalAction, setModalAction] = useState(null); 
   const [modalDesc, setModalDesc] = useState("Please confirm before proceeding.");
+
+  // Notification
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState(
+    location.state?.type || ""
+  );
+  const [notificationMessage, setNotificationMessage] = useState(
+    location.state?.message || ""
+  );
 
   const [errors, setErrors] = useState({});
 
@@ -60,6 +70,10 @@ const PreScreeningForm = () => {
       {
         name: "other_source_treatments",
         message: "Select 'None' if none received.",
+      },
+      {
+        name: "consentAgreement",
+        message: "Agree to the Data and privacy notice.",
       },
     ];
 
@@ -98,7 +112,7 @@ const PreScreeningForm = () => {
       { name: "final_diagnosis", message: "Final diagnosis is required." },
       { name: "final_diagnosis_icd10", message: "This field is required." },
       { name: "treatment_purpose", message: "This field is required." },
-      { name: "primary_assistance_by_ejacc", message: "This field is required." },
+      { name: "primary_assistance_by_ejacc", message: "Put 'None' if none recieved." },
     ];
 
     textFields.forEach((field) => {
@@ -107,6 +121,13 @@ const PreScreeningForm = () => {
         newErrors[field.name] = field.message;
       }
     });
+
+    if (formElements["date_of_consultation"].value > new Date().toISOString().split('T')[0])
+        newErrors["date_of_consultation"] = "Date should not be in the future.";
+    if (formElements["date_of_diagnosis"].value > new Date().toISOString().split('T')[0])
+        newErrors["date_of_diagnosis"] = "Date should not be in the future.";
+    if (formElements["date_of_assistance"].value > new Date().toISOString().split('T')[0])
+        newErrors["date_of_assistance"] = "Date should not be in the future.";
 
     // --- If any errors exist, stop submission ---
     if (Object.keys(newErrors).length > 0) {
@@ -154,6 +175,8 @@ const PreScreeningForm = () => {
               data.cancer_data[name] = value;
             } else if (type !== "checkbox" && type !== "radio") {
               data.cancer_data[name] = value;
+              if (!data.cancer_data["date_of_assistance"])
+                data.cancer_data["date_of_assistance"] = null
             }
           } else if (id) {
             data.cancer_data[id] = value;
@@ -173,7 +196,7 @@ const PreScreeningForm = () => {
           },
         });
 
-        navigate("/Beneficiary");
+        navigate("/beneficiary");
 
       } catch (error) {
         let errorMessage = "Something went wrong while submitting the form."; 
@@ -181,14 +204,23 @@ const PreScreeningForm = () => {
         if (error.response && error.response.data) {
           if (error.response.data.non_field_errors) {
             errorMessage = error.response.data.non_field_errors[0];
-          } 
+            // setNotificationMessage(error.response.data.non_field_errors[0])
+          } else if (error.response.data.detail) {
+            errorMessage = error.response.data.detail;
+          }
         }
-        setModalInfo({
-          type: "error",
-          title: "Submission Failed",
-          message: errorMessage,
-        });
-        setShowModal(true);
+        // setModalInfo({
+        //   type: "error",
+        //   title: "Submission Failed",
+        //   message: errorMessage,
+        // });
+        // setShowModal(true);
+
+        // setNotificationMessage(notificationMessage);
+        setNotification(errorMessage);
+        setNotificationType("error");
+        // navigate(location.pathname, { replace: true, state: {} });
+        setTimeout(() => setNotification(""), 2000);
         console.error("Error submitting form:", error);
       } finally {
         setLoading(false);
@@ -220,6 +252,7 @@ const PreScreeningForm = () => {
           setModalText("");
         }}
       />
+      <Notification message={notification} type={notificationType} />
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -227,7 +260,8 @@ const PreScreeningForm = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      <LoadingModal open={loading} text="Submitting your data..." />
+      {/* <LoadingModal open={loading} text="Submitting your data..." /> */}
+      {loading && <SystemLoader />}
       <div className="h-screen w-full lg:w-[75%] flex flex-col gap-3 md:gap-12 bg-gray py-12 px-5 overflow-auto">
         <form
           id="pre-screening-form"
@@ -242,7 +276,7 @@ const PreScreeningForm = () => {
             <br /> */}
             <div className="grid grid-cols-2 gap-x-10 gap-y-5">
               <div className="flex gap-2 flex-col">
-                <label>Referred From</label>
+                <label>Referred From <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   name="referred_from"
@@ -255,7 +289,7 @@ const PreScreeningForm = () => {
                 )}
               </div>
               <div className="flex gap-2 flex-col">
-                <label>Name of Referring Doctor / Facility</label>
+                <label>Name of Referring Doctor / Facility <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   name="referring_doctor_or_facility"
@@ -268,7 +302,7 @@ const PreScreeningForm = () => {
                 )}
               </div>
               <div className="flex gap-2 flex-col">
-                <label>Reason for Referral</label>
+                <label>Reason for Referral <span className="text-red-500">*</span></label>
                 <textarea
                   name="reason_for_referral"
                   className="border-[#6B7280] border-[1px] rounded-md p-2 resize-none h-28"
@@ -280,7 +314,7 @@ const PreScreeningForm = () => {
                 )}
               </div>
               <div className="flex gap-2 flex-col">
-                <label>Chief Complaint</label>
+                <label>Chief Complaint <span className="text-red-500">*</span></label>
                 <textarea
                   name="chief_complaint"
                   className="border-[#6B7280] border-[1px] rounded-md p-2 resize-none h-28"
@@ -292,7 +326,7 @@ const PreScreeningForm = () => {
                 )}
               </div>
               <div className="flex gap-2 flex-col">
-                <label>Date of Consultation / Admission</label>
+                <label>Date of Consultation / Admission <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <svg
@@ -324,7 +358,7 @@ const PreScreeningForm = () => {
                 )}
               </div>
               <div className="flex gap-2 flex-col">
-                <label>Date of Diagnosis</label>
+                <label>Date of Diagnosis <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <svg
@@ -360,10 +394,10 @@ const PreScreeningForm = () => {
           </div>
           <div className="flex flex-col gap-5">
             <h1 id="details_title" className="font-bold">
-              Diagnosis
+              Diagnosis <span className="text-red-500">*</span>
             </h1>
             <p className="text-[#6B7280]">
-              Most Valid Basis of Diagnosis {" "}
+              Most Valid Basis of Diagnosis <span className="text-red-500">*</span> {" "}
               {errors.diagnosis_basis && (
                 <span className="text-red-500 text-xs">
                   {errors.diagnosis_basis}
@@ -447,7 +481,7 @@ const PreScreeningForm = () => {
           </div>
           <div className="flex flex-col gap-5">
             <p className="text-[#6B7280]">
-              Multiple Primaries {" "}
+              Multiple Primaries <span className="text-red-500">*</span> {" "}
               {errors.multiple_primaries && (
                 <span className="text-red-500 text-xs">
                   {errors.multiple_primaries}
@@ -486,7 +520,7 @@ const PreScreeningForm = () => {
           </div>
           <div className="flex flex-col gap-5">
             <p className="text-[#6B7280]">
-              Primary Sites {" "}
+              Primary Sites <span className="text-red-500">*</span> {" "}
               {errors.primary_sites && (
                 <span className="text-red-500 text-xs">
                   {errors.primary_sites}
@@ -715,7 +749,7 @@ const PreScreeningForm = () => {
           </div>
           <div className="flex flex-col gap-5">
             <p className="text-[#6B7280]">
-              Laterality {" "}
+              Laterality <span className="text-red-500">*</span> {" "}
               {errors.laterality && (
                 <span className="text-red-500 text-xs">
                   {errors.laterality}
@@ -797,7 +831,7 @@ const PreScreeningForm = () => {
           </div>
           <div className="grid grid-cols-2 gap-x-10 gap-y-5">
             <div className="flex gap-2 col-span-2 flex-col">
-              <label className="text-[#6B7280]">Histology(Morphology)</label>
+              <label className="text-[#6B7280]">Histology(Morphology) <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 name="histology"
@@ -810,7 +844,7 @@ const PreScreeningForm = () => {
               )}
             </div>
             <div className="flex gap-2 flex-col">
-              <label className="">Staging</label>
+              <label className="">Staging <span className="text-red-500">*</span></label>
               <div className="relative">
                 <select
                   name="staging"
@@ -837,7 +871,7 @@ const PreScreeningForm = () => {
               )}
             </div>
             <div className="flex gap-2 flex-col">
-              <label className="text-[#6B7280] h-10">TNM System</label>
+              <label className="text-[#6B7280] h-10">TNM System <span className="text-red-500">*</span></label>
               <div className="flex gap-2 items-center">
                 T
                 <input
@@ -879,7 +913,7 @@ const PreScreeningForm = () => {
           </div>
           <div className="flex flex-col gap-5">
             <p className="text-[#6B7280]">
-              Sites of Distant Metastasis {" "}
+              Sites of Distant Metastasis <span className="text-red-500">*</span> {" "}
               {errors.distant_metastasis_sites && (
                 <span className="text-red-500 text-xs">
                   {errors.distant_metastasis_sites}
@@ -991,7 +1025,7 @@ const PreScreeningForm = () => {
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-5">
                 <label className="text-sm text-[#6B7280]">
-                  Final Diagnosis
+                  Final Diagnosis <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   name="final_diagnosis"
@@ -1005,7 +1039,7 @@ const PreScreeningForm = () => {
               </div>
               <div className="flex flex-col gap-5 w-[50%]">
                 <label className="text-sm text-[#6B7280]">
-                  Final Diagnosis: ICD-10 Code
+                  Final Diagnosis: ICD-10 Code <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -1023,7 +1057,7 @@ const PreScreeningForm = () => {
           <div className="flex flex-col gap-5">
             <h1 className="font-bold">Treatment</h1>
             <p className="text-[#6B7280] text-sm">
-              Treatment Purposes {" "}
+              Treatment Purposes <span className="text-red-500">*</span> {" "}
               {errors.treatment_purpose && (
                 <span className="text-red-500 text-xs">
                   {errors.treatment_purpose}
@@ -1088,7 +1122,7 @@ const PreScreeningForm = () => {
           <div className="flex gap-5 w-full">
             <div className="flex gap-2 flex-col w-full">
               <label className="text-[#6B7280] text-sm">
-                Primary Assistance given by RAFI-ELACC
+                Primary Assistance given by RAFI-ELACC <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -1129,12 +1163,17 @@ const PreScreeningForm = () => {
                   placeholder="Select date"
                 />
               </div>
+              {errors.date_of_assistance && (
+                <span className="text-red-500 text-xs">
+                  {errors.date_of_assistance}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex flex-col gap-4">
             <p className="text-sm text-[#6B7280]">
               Planned Additional/Adjuvant Treatment/s actually received from
-              RAFI-EJACC {" "}
+              RAFI-EJACC <span className="text-red-500">*</span> {" "}
               {errors.adjuvant_treatments_received && (
                 <span className="text-red-500 text-xs">
                   {errors.adjuvant_treatments_received}
@@ -1241,7 +1280,7 @@ const PreScreeningForm = () => {
           </div>
           <div className="flex flex-col gap-4">
             <p className="text-sm text-[#6B7280]">
-              Treatment/s received from other sources {" "}
+              Treatment/s received from other sources <span className="text-red-500">*</span> {" "}
               {errors.other_source_treatments && (
                 <span className="text-red-500 text-xs">
                   {errors.other_source_treatments}
@@ -1357,15 +1396,21 @@ const PreScreeningForm = () => {
           </div>
           <div className="flex flex-col items-start gap-5">
             <h1 className="font-bold">Consent and Privacy</h1>
-            <div className="flex justify-center items-center gap-5">
+            <div className="flex justify-center items-center gap-2">
               <input
                 type="checkbox"
                 name="consentAgreement"
                 className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
               />
               <label className="underline">
-                Form notice & Data privacy notice
+                Form notice & Data privacy notice 
               </label>
+              <span className="text-red-500">*</span>
+              {errors.consentAgreement && (
+                <span className="text-red-500 text-xs">
+                  {errors.consentAgreement}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex w-full justify-between gap-8">

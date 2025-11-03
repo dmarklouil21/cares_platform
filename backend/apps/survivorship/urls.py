@@ -14,4 +14,6 @@ urlpatterns = [
   path('hormonal-replacement/view/<int:id>/', views.HormonalReplacementDetailView.as_view(), name='hormonal_replacement_view'),
   path('hormonal-replacement/update/<int:id>/', views.HormonalReplacementUpdateView.as_view(), name='hormonal_replacement_update'),
   path('hormonal-replacement/delete/<int:id>/', views.HormonalReplacementDeleteView.as_view(), name='hormonal_replacement_delete'),
+  path('hormonal-replacement/attachments-delete/<int:id>/', views.AttachmentDeleteView.as_view(), name='hormonal_replacement_attachment_delete'),
+  path('hormonal-replacement/attachments-update/<int:id>/', views.RequiredAttachmentUpdateView.as_view(), name='hormonal_replacement_attachment_delete'),
 ]

@@ -13,7 +13,7 @@ from apps.patient.models import Patient, ServiceReceived
 from apps.cancer_management.models import CancerTreatment
 
 from .models import PatientHomeVisit, HormonalReplacement, HormonalReplacementRequiredAttachment
-from .serializers import HomevisitSerializer, HormonalReplacementSerializer
+from .serializers import HomevisitSerializer, HormonalReplacementSerializer, HormonalReplacementRequiredAttachmentSerializer
 
 from backend.utils.email import (
   send_report_email,
@@ -243,4 +243,32 @@ class HormonalReplacementDeleteView(generics.DestroyAPIView):
   queryset = HormonalReplacement.objects.all()
   lookup_field = 'id'
 
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+class RequiredAttachmentUpdateView(APIView):
+  parser_classes = [MultiPartParser, FormParser]
+  permission_classes = [IsAuthenticated, IsAdminUser]
+
+  def patch(self, request, id):
+    hormonal_replacement = get_object_or_404(HormonalReplacement, id=id)
+    
+    files_dict = {}
+    for key, value in self.request.FILES.items():
+      if key.startswith("files."):
+        field_name = key.split("files.")[1] 
+        files_dict[field_name] = value
+
+    for key, file in files_dict.items():
+      HormonalReplacementRequiredAttachment.objects.create(
+        hormonal_replacement=hormonal_replacement,
+        file=file,
+        doc_type=key 
+      )
+
+    return Response({"message": "Attachments updated successfully."})
+  
+class AttachmentDeleteView(generics.DestroyAPIView):
+  queryset = HormonalReplacementRequiredAttachment.objects.all()
+  serializer_class = HormonalReplacementRequiredAttachmentSerializer
+  lookup_field = 'id'
   permission_classes = [IsAuthenticated, IsAdminUser]

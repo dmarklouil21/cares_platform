@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.db import transaction
 from django.db.models.functions import TruncMonth
 from django.db.models import Count
 
@@ -19,43 +20,115 @@ import json
 # from .pagination import BeneficiaryPagination
 
 # Create your views here.
-
 class PreEnrollmentView(generics.CreateAPIView):
-  queryset = Patient.objects.all() 
+  queryset = Patient.objects.all()
   serializer_class = AdminPreEnrollmentSerializer
 
   def create(self, request, *args, **kwargs):
-    cancer_data = json.loads(request.data.get("cancer_data", "{}"))
-    general_data = json.loads(request.data.get("general_data", "{}"))
+    # --- Step 1: Extract and validate incoming data ---
+    try:
+      cancer_data_raw = request.data.get("cancer_data")
+      general_data_raw = request.data.get("general_data")
 
+      if not cancer_data_raw or not general_data_raw:
+        raise ValidationError({"detail": "Both 'Pre Screening Form' and 'Patient Profile' are required."})
+
+      cancer_data = json.loads(cancer_data_raw)
+      general_data = json.loads(general_data_raw)
+
+    except json.JSONDecodeError:
+      raise ValidationError({"detail": "Invalid JSON format in 'Pre Screening Form' or 'Patient Profile'."})
+
+    # --- Step 2: Check if patient already exists (PreEnrollment duplicate prevention) ---
+    # Adjust these fields depending on your Patient model
+    first_name = general_data.get("first_name")
+    last_name = general_data.get("last_name")
+    birth_date = general_data.get("date_of_birth")
+
+    if not all([first_name, last_name, birth_date]):
+      raise ValidationError({"detail": "Missing patient identifiers (first_name, last_name, or date_of_birth)."})
+
+    existing_patient = Patient.objects.filter(
+      first_name__iexact=first_name.strip(),
+      last_name__iexact=last_name.strip(),
+      date_of_birth=birth_date
+    ).first()
+
+    if existing_patient:
+      raise ValidationError(
+        {"non_field_errors": ["A pre-enrollment record for this patient already exists."]},
+      )
+
+    # --- Step 3: Validate and save via serializer ---
     serializer = self.get_serializer(
       data={"general_data": general_data, "cancer_data": cancer_data},
       context={"request": request}
     )
-
     serializer.is_valid(raise_exception=True)
-    result = serializer.save()
 
-    patient = result["general_data"] 
-    cancer_data = result["cancer_data"]
+    # --- Step 4: Save everything atomically ---
+    with transaction.atomic():
+      result = serializer.save()
 
-    CancerDiagnosis.objects.create(
-      patient=patient,
-      diagnosis=cancer_data.final_diagnosis,
-      date_diagnosed=cancer_data.date_of_diagnosis,
-      cancer_site=", ".join(cancer_data.primary_sites.values_list("name", flat=True)),
-      cancer_stage=cancer_data.staging,
-    )
+      patient = result["general_data"]
+      cancer_info = result["cancer_data"]
 
-    photo_url = self.request.FILES.get('photoUrl')
-    if photo_url:
-      patient.photo_url = photo_url
-      patient.save()
-    
+      # Create cancer diagnosis
+      CancerDiagnosis.objects.create(
+        patient=patient,
+        diagnosis=cancer_info.final_diagnosis,
+        date_diagnosed=cancer_info.date_of_diagnosis,
+        cancer_site=", ".join(cancer_info.primary_sites.values_list("name", flat=True)),
+        cancer_stage=cancer_info.staging,
+      )
+
+      # Optional photo upload
+      photo_file = request.FILES.get("photoUrl")
+      if photo_file:
+        patient.photo_url = photo_file
+        patient.save(update_fields=["photo_url"])
+
+    # --- Step 5: Return structured response ---
     return Response(
       self.get_serializer(result).data,
       status=status.HTTP_201_CREATED
     )
+# class PreEnrollmentView(generics.CreateAPIView):
+#   queryset = Patient.objects.all() 
+#   serializer_class = AdminPreEnrollmentSerializer
+
+#   def create(self, request, *args, **kwargs):
+#     cancer_data = json.loads(request.data.get("cancer_data", "{}"))
+#     general_data = json.loads(request.data.get("general_data", "{}"))
+
+#     serializer = self.get_serializer(
+#       data={"general_data": general_data, "cancer_data": cancer_data},
+#       context={"request": request}
+#     )
+
+#     serializer.is_valid(raise_exception=True)
+#     result = serializer.save()
+
+#     patient = result["general_data"] 
+#     cancer_data = result["cancer_data"]
+
+#     CancerDiagnosis.objects.create(
+#       patient=patient,
+#       diagnosis=cancer_data.final_diagnosis,
+#       date_diagnosed=cancer_data.date_of_diagnosis,
+#       cancer_site=", ".join(cancer_data.primary_sites.values_list("name", flat=True)),
+#       cancer_stage=cancer_data.staging,
+#     )
+
+#     photo_url = self.request.FILES.get('photoUrl')
+#     if photo_url:
+#       patient.photo_url = photo_url
+#       patient.save()
+    
+#     return Response(
+#       self.get_serializer(result).data,
+#       status=status.HTTP_201_CREATED
+#     )
 
 class PatientUpdateView(generics.UpdateAPIView):
   queryset = Patient.objects.all()
@@ -75,8 +148,6 @@ class PatientUpdateView(generics.UpdateAPIView):
     )
     serializer.is_valid(raise_exception=True)
     patient = serializer.save()
-
-    print("Request Data: ", request.data)
 
     cancer_data = patient.pre_screening_form
 

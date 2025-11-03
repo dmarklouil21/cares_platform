@@ -66,6 +66,7 @@ class PreScreeningFormSerializer(serializers.ModelSerializer):
   adjuvant_treatments_received = TreatmentOptionSerializer(many=True)
   other_source_treatments = TreatmentOptionSerializer(many=True)
 
+  date_of_assistance = serializers.DateField(required=False, allow_null=True)
   class Meta:
     model = PreScreeningForm
     fields = [

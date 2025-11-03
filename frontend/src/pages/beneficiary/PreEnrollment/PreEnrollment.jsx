@@ -102,6 +102,8 @@ export default function PatinetProfileForm() {
         newErrors[field] = message;
       }
     });
+    if (formData["date_of_birth"] > new Date().toISOString().split('T')[0])
+      newErrors["date_of_birth"] = "Date should not be in the future.";
 
     // Validate photo
     if (!photoUrl) {
@@ -310,7 +312,7 @@ export default function PatinetProfileForm() {
 
           <div className="grid grid-cols-2 md:gap-x-10 gap-3">
             <div className="flex gap-2 flex-col">
-              <label className="text-[12px] md:text-[16px]">First Name</label>
+              <label className="text-[12px] md:text-[16px]">First Name <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 name="first_name"
@@ -342,7 +344,7 @@ export default function PatinetProfileForm() {
             {/* Last Name */}
             <div className="flex gap-2 flex-col">
               <label className="text-black text-[12px] md:text-[16px]">
-                Last Name
+                Last Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -373,7 +375,7 @@ export default function PatinetProfileForm() {
             {/* Date of Birth */}
             <div className="flex gap-2 flex-col">
               <label className="text-black         text-[12px] md:text-[16px]">
-                Date of Birth
+                Date of Birth <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -416,7 +418,7 @@ export default function PatinetProfileForm() {
             {/* Sex */}
             <div className="flex gap-2 flex-col">
               <label className="text-black text-[12px] md:text-[16px]">
-                Sex
+                Sex <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <select
@@ -449,7 +451,7 @@ export default function PatinetProfileForm() {
             {/* Civil Status */}
             <div className="flex gap-2 flex-col">
               <label className="text-black      text-[12px] md:text-[16px]">
-                Civil Status
+                Civil Status <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <select
@@ -497,7 +499,7 @@ export default function PatinetProfileForm() {
                 value={formData.number_of_children}
                 onChange={handleChange}
                 className="text-[12px] md:text-[16px] border-black border-[1px] rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                min="0 "
+                min="0"
               />
             </div>
           </div>
@@ -510,7 +512,7 @@ export default function PatinetProfileForm() {
                 {/* Permanent Address */}
                 <div className="flex gap-2 flex-col col-span-2">
                   <label className="text-black    text-[12px] md:text-[16px]">
-                    Permanent Address (Number & Street)
+                    Permanent Address (Number & Street) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -529,7 +531,7 @@ export default function PatinetProfileForm() {
                 {/* City/Municipality */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    City/Municipality
+                    City/Municipality <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -571,7 +573,7 @@ export default function PatinetProfileForm() {
                 {/* Barangay */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black  text-[12px] md:text-[16px]">
-                    Barangay
+                    Barangay <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -612,7 +614,7 @@ export default function PatinetProfileForm() {
                 {/* Contact Number */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Landline Number/Mobile Number
+                    Landline Number/Mobile Number <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -639,7 +641,7 @@ export default function PatinetProfileForm() {
                 {/* Email */}
                 <div className="flex gap-2 flex-col justify-between">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Email
+                    Email <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -672,7 +674,7 @@ export default function PatinetProfileForm() {
                 <div className="flex gap-2 flex-col col-span-2">
                   <label className="text-black text-[12px] md:text-[16px]">
                     Source of Information (Where did you hear about
-                    RAFI-EJACC?):
+                    RAFI-EJACC?): <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     name="source_of_information"
@@ -709,7 +711,7 @@ export default function PatinetProfileForm() {
                 {/* Education */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Highest Educational Attainment
+                    Highest Educational Attainment <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -728,7 +730,7 @@ export default function PatinetProfileForm() {
                 {/* Occupation */}
                 <div className="flex gap-2 flex-col justify-between">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Occupation
+                    Occupation <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -747,7 +749,7 @@ export default function PatinetProfileForm() {
                 {/* Income Source */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]  ">
-                    Source of Income
+                    Source of Income <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -766,7 +768,7 @@ export default function PatinetProfileForm() {
                 {/* Income */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Income
+                    Income <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -791,7 +793,7 @@ export default function PatinetProfileForm() {
                 {/* Name */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Name
+                    Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -810,8 +812,8 @@ export default function PatinetProfileForm() {
                 {/* Address */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Address
-                  </label>
+                    Address <span className="text-red-500">*</span>
+                  </label> 
                   <input
                     type="text"
                     name="emergencyContact1.address"
@@ -829,7 +831,7 @@ export default function PatinetProfileForm() {
                 {/* Relationship */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Relationship to Patient
+                    Relationship to Patient <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -850,7 +852,7 @@ export default function PatinetProfileForm() {
                 {/* Email */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Email
+                    Email <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -900,7 +902,7 @@ export default function PatinetProfileForm() {
                 {/* Phone */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Phone Number
+                    Phone Number <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -933,7 +935,7 @@ export default function PatinetProfileForm() {
                 {/* Name */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Name
+                    Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -952,7 +954,7 @@ export default function PatinetProfileForm() {
                 {/* Address */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Address
+                    Address <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -971,7 +973,7 @@ export default function PatinetProfileForm() {
                 {/* Relationship */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Relationship to Patient
+                    Relationship to Patient <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -992,7 +994,7 @@ export default function PatinetProfileForm() {
                 {/* Email */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Email
+                    Email <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -1042,7 +1044,7 @@ export default function PatinetProfileForm() {
                 {/* Phone */}
                 <div className="flex gap-2 flex-col">
                   <label className="text-black text-[12px] md:text-[16px]">
-                    Phone Number
+                    Phone Number <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
