@@ -102,6 +102,8 @@ export default function PatinetProfileForm() {
         newErrors[field] = message;
       }
     });
+    if (formData["date_of_birth"] > new Date().toISOString().split('T')[0])
+      newErrors["date_of_birth"] = "Date should not be in the future.";
 
     // Validate photo
     if (!photoUrl) {

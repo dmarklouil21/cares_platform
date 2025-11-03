@@ -6,7 +6,8 @@ import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
-import LoadingModal from "src/components/Modal/LoadingModal";
+import Notification from "src/components/Notification";
+import SystemLoader from "src/components/SystemLoader";
 
 const PreScreeningForm = () => {
   // Notification Modal
@@ -28,6 +29,15 @@ const PreScreeningForm = () => {
   const [modalText, setModalText] = useState("Confirm Status Change?");
   const [modalAction, setModalAction] = useState(null); 
   const [modalDesc, setModalDesc] = useState("Please confirm before proceeding.");
+
+  // Notification
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState(
+    location.state?.type || ""
+  );
+  const [notificationMessage, setNotificationMessage] = useState(
+    location.state?.message || ""
+  );
 
   const [errors, setErrors] = useState({});
 
@@ -60,6 +70,10 @@ const PreScreeningForm = () => {
       {
         name: "other_source_treatments",
         message: "Select 'None' if none received.",
+      },
+      {
+        name: "consentAgreement",
+        message: "Agree to the Data and privacy notice.",
       },
     ];
 
@@ -108,6 +122,13 @@ const PreScreeningForm = () => {
       }
     });
 
+    if (formElements["date_of_consultation"].value > new Date().toISOString().split('T')[0])
+        newErrors["date_of_consultation"] = "Date should not be in the future.";
+    if (formElements["date_of_diagnosis"].value > new Date().toISOString().split('T')[0])
+        newErrors["date_of_diagnosis"] = "Date should not be in the future.";
+    if (formElements["date_of_assistance"].value > new Date().toISOString().split('T')[0])
+        newErrors["date_of_assistance"] = "Date should not be in the future.";
+
     // --- If any errors exist, stop submission ---
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -154,6 +175,8 @@ const PreScreeningForm = () => {
               data.cancer_data[name] = value;
             } else if (type !== "checkbox" && type !== "radio") {
               data.cancer_data[name] = value;
+              if (!data.cancer_data["date_of_assistance"])
+                data.cancer_data["date_of_assistance"] = null
             }
           } else if (id) {
             data.cancer_data[id] = value;
@@ -173,7 +196,7 @@ const PreScreeningForm = () => {
           },
         });
 
-        navigate("/Beneficiary");
+        navigate("/beneficiary");
 
       } catch (error) {
         let errorMessage = "Something went wrong while submitting the form."; 
@@ -181,14 +204,23 @@ const PreScreeningForm = () => {
         if (error.response && error.response.data) {
           if (error.response.data.non_field_errors) {
             errorMessage = error.response.data.non_field_errors[0];
-          } 
+            // setNotificationMessage(error.response.data.non_field_errors[0])
+          } else if (error.response.data.detail) {
+            errorMessage = error.response.data.detail;
+          }
         }
-        setModalInfo({
-          type: "error",
-          title: "Submission Failed",
-          message: errorMessage,
-        });
-        setShowModal(true);
+        // setModalInfo({
+        //   type: "error",
+        //   title: "Submission Failed",
+        //   message: errorMessage,
+        // });
+        // setShowModal(true);
+
+        // setNotificationMessage(notificationMessage);
+        setNotification(errorMessage);
+        setNotificationType("error");
+        // navigate(location.pathname, { replace: true, state: {} });
+        setTimeout(() => setNotification(""), 2000);
         console.error("Error submitting form:", error);
       } finally {
         setLoading(false);
@@ -220,6 +252,7 @@ const PreScreeningForm = () => {
           setModalText("");
         }}
       />
+      <Notification message={notification} type={notificationType} />
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -227,7 +260,8 @@ const PreScreeningForm = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      <LoadingModal open={loading} text="Submitting your data..." />
+      {/* <LoadingModal open={loading} text="Submitting your data..." /> */}
+      {loading && <SystemLoader />}
       <div className="h-screen w-full lg:w-[75%] flex flex-col gap-3 md:gap-12 bg-gray py-12 px-5 overflow-auto">
         <form
           id="pre-screening-form"
@@ -1129,6 +1163,11 @@ const PreScreeningForm = () => {
                   placeholder="Select date"
                 />
               </div>
+              {errors.date_of_assistance && (
+                <span className="text-red-500 text-xs">
+                  {errors.date_of_assistance}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex flex-col gap-4">
@@ -1357,7 +1396,7 @@ const PreScreeningForm = () => {
           </div>
           <div className="flex flex-col items-start gap-5">
             <h1 className="font-bold">Consent and Privacy</h1>
-            <div className="flex justify-center items-center gap-5">
+            <div className="flex justify-center items-center gap-2">
               <input
                 type="checkbox"
                 name="consentAgreement"
@@ -1366,6 +1405,11 @@ const PreScreeningForm = () => {
               <label className="underline">
                 Form notice & Data privacy notice
               </label>
+              {errors.consentAgreement && (
+                <span className="text-red-500 text-xs">
+                  {errors.consentAgreement}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex w-full justify-between gap-8">

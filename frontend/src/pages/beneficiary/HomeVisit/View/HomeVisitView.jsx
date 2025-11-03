@@ -10,7 +10,8 @@ const STATUS_TO_STEP = {
   Pending: 0,
   Processing: 1,
   Recommendation: 2,
-  Closed: 3,
+  Completed: 3,
+  // Closed: 4,
 };
 
 const getStepIndexByStatus = (status) => STATUS_TO_STEP[status] ?? 0;
@@ -90,7 +91,7 @@ export default function ViewHomeVisitStatus() {
           ),
       },
       {
-        title: "Closed",
+        title: "Completed",
         description:
           activeStep === 3 ? (
             <>
@@ -113,6 +114,30 @@ export default function ViewHomeVisitStatus() {
             </>
           ),
       },
+      // {
+      //   title: "Closed",
+      //   description:
+      //     activeStep === 3 ? (
+      //       <>
+      //         Your home visit case has been completed. Thank you for your cooperation and have a smooth recovery.
+      //         {/* <Link
+      //           to="/beneficiary/applications/individual-screening/upload-attachments"
+      //           state={{
+      //             home_visit: homeVisit,
+      //             purpose: "result_upload",
+      //           }}
+      //           className="text-blue-500 underline"
+      //         >
+      //           Click here to view or upload additional documents.
+      //         </Link> */}
+      //       </>
+      //     ) : (
+      //       <>
+      //         Once the recommendation has been finalized and shared, your case will
+      //         be marked as closed.
+      //       </>
+      //     ),
+      // },
     ],
     [activeStep, homeVisit]
   );

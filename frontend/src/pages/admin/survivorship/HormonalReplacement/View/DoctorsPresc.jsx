@@ -23,7 +23,7 @@ const LabRequest = () => {
   const { id } = useParams();
   const requiredDocs = REQUIRED_DOCS["Hormonal Replacement"] || [];
 
-  const [files, setFiles] = useState({}); // ✅ initialize as empty object
+  const [files, setFiles] = useState({}); 
   const [description, setDescription] = useState(
     record?.result_description || ""
   );
