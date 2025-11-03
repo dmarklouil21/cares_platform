@@ -134,6 +134,9 @@ const PatientMasterListAdd = () => {
       }
     });
 
+    if (form["date_of_birth"] > new Date().toISOString().split('T')[0])
+      newErrors["date_of_birth"] = "Date should not be in the future.";
+
     // Validate photo
     if (!photoUrl) {
       newErrors.photoUrl = "2×2 photo is required.";
@@ -149,6 +152,9 @@ const PatientMasterListAdd = () => {
       }
       if (!contact.address.trim()) {
         newErrors[`emergency_contact_${index}_address`] = "Address is required.";
+      }
+      if (!contact.email.trim()) {
+        newErrors[`emergency_contact_${index}_email`] = "Email is required.";
       }
       if (!contact.mobile_number.trim()) {
         newErrors[`emergency_contact_${index}_mobile_number`] = "Mobile number is required.";
@@ -202,116 +208,6 @@ const PatientMasterListAdd = () => {
     }
   };
 
-  // const handleDiagnosisChange = (index, e) => {
-  //   const { name, value } = e.target;
-  //   const updatedDiagnosis = [...diagnosis];
-  //   updatedDiagnosis[index] = {
-  //     ...updatedDiagnosis[index],
-  //     [name]: value,
-  //   };
-  //   setDiagnosis(updatedDiagnosis);
-  //   // setErrors((prev) => ({ ...prev, [`${name}_${index}`]: undefined }));
-  // };
-
-  // const handleHistoricalUpdateChange = (index, e) => {
-  //   const { name, value } = e.target;
-  //   const updatedUpdates = [...historicalUpdates];
-  //   updatedUpdates[index] = {
-  //     ...updatedUpdates[index],
-  //     [name]: value,
-  //   };
-  //   setHistoricalUpdates(updatedUpdates);
-  //   setErrors((prev) => ({ ...prev, [`${name}_${index}`]: undefined }));
-  // };
-
-  // const addHistoricalUpdate = () => {
-  //   setHistoricalUpdates([
-  //     ...historicalUpdates,
-  //     {
-  //       date: "",
-  //       note: "",
-  //     },
-  //   ]);
-  // };
-
-  // const removeHistoricalUpdate = (index) => {
-  //   if (historicalUpdates.length > 1) {
-  //     const updatedUpdates = historicalUpdates.filter((_, i) => i !== index);
-  //     setHistoricalUpdates(updatedUpdates);
-  //   }
-  // };
-
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   const validationErrors = validate();
-  //   // if (Object.keys(validationErrors).length > 0) {
-  //   //   setErrors(validationErrors);
-  //   //   return;
-  //   // }
-  //   // setForm(prev => ({
-  //   //   ...prev,
-  //   //   historical_updates: historicalUpdates,
-  //   // }));
-  //   if (diagnosis.length > 0) {
-  //     form.diagnosis = diagnosis.filter(
-  //       (d) => d.date_diagnosed && d.diagnosis && d.cancer_site && d.cancer_stage
-  //     );
-  //   }
-  //   if (historicalUpdates.length > 0) {
-  //       form.historical_updates = historicalUpdates.filter(
-  //       (h) => h.date && h.note
-  //     );
-  //   }
-
-  //   setModalText("Are you sure you want to add this data?");
-  //   setModalAction({ type: "submit" });
-  //   setModalOpen(true);
-  // };
-
-  // const handleModalConfirm = async () => {
-  //   if (modalAction?.type === "submit") {
-  //     try {
-  //       setModalOpen(false);
-  //       setLoading(true);
-  //       const response = await api.post("/patient/pre-enrollment/", form);
-  //       setModalInfo({
-  //         type: "success",
-  //         title: "Success!",
-  //         message: "Patient added successfully.",
-  //       });
-  //       setShowModal(true);
-  //       navigate("/Admin/patient/AdminPatientMasterList");
-  //     } catch (error) {
-  //       let errorMessage = "Something went wrong while submitting the form.";
-
-  //       if (error.response && error.response.data) {
-  //         // DRF ValidationError returns an object with arrays of messages
-  //         if (error.response.data.non_field_errors) {
-  //           errorMessage = error.response.data.non_field_errors[0];
-  //         }
-  //       }
-  //       setModalInfo({
-  //         type: "error",
-  //         title: "Submission Failed",
-  //         message: errorMessage,
-  //       });
-  //       setShowModal(true);
-  //       console.error("Error submitting form:", error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
-
-  //   setModalOpen(false);
-  //   setModalAction(null);
-  //   setModalText("");
-  // };
-
-  // to="/admin/patient/add/cancer-data"
-  //           state={{
-  //             formData: form,
-  //             photoUrl: imageFile
-  //           }}
   const handleNext = () => {
     const validationErrors = validate();
 
@@ -426,13 +322,6 @@ const PatientMasterListAdd = () => {
                   className="hidden"
                 />
               </label>
-              {/* <div className="w-[120px] h-[120px] border border-gray-300 rounded-lg overflow-hidden">
-                <img
-                  src={''}
-                  alt="2x2 ID"
-                  className="w-full h-full object-cover"
-                />
-              </div> */}
               {/* Logo */}
               <img
                 src="/images/logo_black_text.png"
@@ -453,7 +342,7 @@ const PatientMasterListAdd = () => {
             <div className="flex flex-col gap-3 w-1/2">
               <div className="w-full">
                 <label className="text-sm font-medium block mb-1">
-                  First Name:
+                  First Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -470,7 +359,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div className="w-full">
                 <label className="text-sm font-medium block mb-1">
-                  Middle Name:
+                  Middle Name
                 </label>
                 <input
                   type="text"
@@ -482,7 +371,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div className="w-full">
                 <label className="text-sm font-medium block mb-1">
-                  Birthdate:
+                  Birthdate <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -499,7 +388,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div className="w-full">
                 <label className="text-sm font-medium block mb-1">
-                  Civil Status:
+                  Civil Status <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="civil_status"
@@ -526,7 +415,7 @@ const PatientMasterListAdd = () => {
             <div className="flex flex-col gap-3 w-1/2">
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Last Name:
+                  Last Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -543,7 +432,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Suffix:
+                  Suffix
                 </label>
                 <input
                   type="text"
@@ -555,7 +444,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Number of Children:
+                  Number of Children
                 </label>
                 <input
                   type="text"
@@ -566,7 +455,7 @@ const PatientMasterListAdd = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Sex:</label>
+                <label className="text-sm font-medium block mb-1">Sex <span className="text-red-500">*</span></label>
                 <select
                   name="sex"
                   value={form.sex}
@@ -594,7 +483,7 @@ const PatientMasterListAdd = () => {
             <div className="flex flex-col gap-3 w-1/2">
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Permanent Address:
+                  Permanent Address <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -609,7 +498,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  City/Municipality:
+                  City/Municipality <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -624,7 +513,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Barangay:
+                  Barangay <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -644,7 +533,7 @@ const PatientMasterListAdd = () => {
             {/* Second Column */}
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Email:</label>
+                <label className="text-sm font-medium block mb-1">Email <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   name="email"
@@ -658,7 +547,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Mobile Number:
+                  Mobile Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -686,7 +575,7 @@ const PatientMasterListAdd = () => {
             <div className="flex flex-col gap-3 w-1/2">
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Source of Information (Where did you here about RAFI-EJACC?):
+                  Source of Information (Where did you here about RAFI-EJACC?) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -703,7 +592,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Other RAFI program you availed:
+                  Other RAFI program you availed
                 </label>
                 <input
                   type="text"
@@ -719,14 +608,14 @@ const PatientMasterListAdd = () => {
           {/* Socioeconomic Info Section */}
           <div className="mb-6 mt-8 border-b border-gray-200 px-5">
             <h2 className="text-md font-bold tracking-wide uppercase pb-1">
-              Socioeconomic Info
+              Socioeconomic Info 
             </h2>
           </div>
           <div className="flex flex-row gap-8 p-4">
             <div className="flex flex-col gap-3 w-1/2">
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Highest Educational Attainment:
+                  Highest Educational Attainment <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -743,7 +632,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Source of Income:
+                  Source of Income <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -764,7 +653,7 @@ const PatientMasterListAdd = () => {
             <div className="flex flex-col gap-3 w-1/2">
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Occupation:
+                  Occupation <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -781,7 +670,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Income:
+                  Income <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -803,7 +692,7 @@ const PatientMasterListAdd = () => {
           <div className="flex flex-row gap-8 p-4">
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Name:</label>
+                <label className="text-sm font-medium block mb-1">Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   name="emergencyContact1.name"
@@ -817,7 +706,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Relationship to Patient:
+                  Relationship to Patient <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -832,7 +721,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Landline Number:
+                  Landline Number
                 </label>
                 <input
                   type="text"
@@ -844,7 +733,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Address:
+                  Address <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -859,7 +748,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Email Address:
+                  Email Address <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -868,10 +757,13 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors[`emergency_contact_0_email`] && (
+                  <span className="text-red-500 text-xs">{errors[`emergency_contact_0_email`]}</span>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Mobile Number::
+                  Mobile Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -889,7 +781,7 @@ const PatientMasterListAdd = () => {
             {/* Second Column */}
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Name:</label>
+                <label className="text-sm font-medium block mb-1">Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   name="emergencyContact2.name"
@@ -903,7 +795,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Relationship to Patient:
+                  Relationship to Patient <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -918,7 +810,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Landline Number:
+                  Landline Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -930,7 +822,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Address:
+                  Address <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -945,7 +837,7 @@ const PatientMasterListAdd = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Email Address:
+                  Email Address <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -954,10 +846,13 @@ const PatientMasterListAdd = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
+                {errors[`emergency_contact_1_email`] && (
+                  <span className="text-red-500 text-xs">{errors[`emergency_contact_1_email`]}</span>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Mobile Number::
+                  Mobile Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"

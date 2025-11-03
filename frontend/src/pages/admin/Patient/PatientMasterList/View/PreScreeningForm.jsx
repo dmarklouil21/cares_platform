@@ -1048,16 +1048,16 @@ const PatientPreScreeningForm = () => {
                   <div className="flex items-center gap-2 w-fit">
                     <input
                       type="checkbox"
-                      id="unknown"
-                      name="unknownTreatment"
+                      id="none"
+                      name="noneTreatment"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "adjuvant_treatments_received",
-                        "Unknown"
+                        "None"
                       )}
                     />
-                    <label htmlFor="unknown" className="text-sm">
-                      Unknown
+                    <label htmlFor="none" className="text-sm">
+                      None
                     </label>
                   </div>
                 </div>
@@ -1155,13 +1155,13 @@ const PatientPreScreeningForm = () => {
                   <div className="flex items-center gap-2 w-fit">
                     <input
                       type="checkbox"
-                      id="unknownOther"
-                      name="unknownOther"
+                      id="noneOther"
+                      name="noneOther"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      checked={isChecked("other_source_treatments", "Unknown")}
+                      checked={isChecked("other_source_treatments", "None")}
                     />
-                    <label htmlFor="unknownOther" className="text-sm">
-                      Unknown
+                    <label htmlFor="noneOther" className="text-sm">
+                      None
                     </label>
                   </div>
                 </div>
