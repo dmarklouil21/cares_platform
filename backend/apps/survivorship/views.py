@@ -138,7 +138,7 @@ class HormonalReplacementCreateView(generics.CreateAPIView):
         if existing_record:
           raise ValidationError({
             'non_field_errors': [
-              "You already have an ongoing request. Please wait for its feedback before submitting another."
+              "An ongoing application for this patient currently exits."
             ]
           })
     

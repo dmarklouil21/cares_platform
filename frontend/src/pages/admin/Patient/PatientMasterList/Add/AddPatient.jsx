@@ -213,7 +213,6 @@ const PatientMasterListAdd = () => {
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      console.log("Validation errors:", validationErrors);
       return;
     }
 

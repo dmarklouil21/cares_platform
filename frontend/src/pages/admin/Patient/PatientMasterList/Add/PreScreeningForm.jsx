@@ -23,9 +23,7 @@ const ViewPreScreeningForm = () => {
   });
   // Notification
   const [notification, setNotification] = useState("");
-  const [notificationType, setNotificationType] = useState(
-    location.state?.type || ""
-  );
+  const [notificationType, setNotificationType] = useState("info");
   // Loading Modal
   const [loading, setLoading] = useState(false);
   // Confirmation Modal
@@ -37,12 +35,6 @@ const ViewPreScreeningForm = () => {
   const [historicalUpdates, setHistoricalUpdates] = useState([]);
 
   const [errors, setErrors] = useState({});
-
-  // useEffect(() => {
-  //   if (generalData) {
-  //     setHistoricalUpdates(generalData.historical_updates);
-  //   }
-  // }, [generalData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -135,12 +127,6 @@ const ViewPreScreeningForm = () => {
       return;
     }
 
-    // if (historicalUpdates.length > 0) {
-    //   generalData.historical_updates = historicalUpdates.filter(
-    //     (h) => h.date && h.note
-    //   );
-    // }
-
     setModalText("Submit Form?");
     setModalDesc("Make sure all your inputs are correct!");
     setModalAction({ type: "submit" });
@@ -214,12 +200,6 @@ const ViewPreScreeningForm = () => {
           } else if (error.response.data.detail)
             errorMessage = error.response.data.detail;
         }
-        // setModalInfo({
-        //   type: "error",
-        //   title: "Submission Failed",
-        //   message: errorMessage,
-        // });
-        // setShowModal(true);
         setNotification(errorMessage);
         setNotificationType("error");
         console.error("Error submitting form:", error);
