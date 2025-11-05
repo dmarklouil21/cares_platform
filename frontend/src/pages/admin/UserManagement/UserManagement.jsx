@@ -249,7 +249,31 @@ const UserManagement = () => {
       navigate("/admin/user-management/view", { state: { user: userDetails } });
     }
   };
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
 
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `User_Management_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   // Fix: Edit button logic
   const handleEditClick = (id) => {
     const user = users.find((u) => u.id === id);
@@ -373,7 +397,7 @@ const UserManagement = () => {
 
               {/* ⬇️ Generate button with cursor-pointer */}
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintReport}
                 className="px-3 font-bold rounded-md text-sm text-white bg-primary cursor-pointer"
                 title="Print current list"
               >

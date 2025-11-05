@@ -179,7 +179,31 @@ const HormonalReplacement = () => {
       setLoading(false);
     }
   };
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
 
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `Hormonal_Replacement_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   const handleView = (id) =>
     navigate(`/admin/survivorship/hormonal-replacement/view/${id}`);
 
@@ -318,7 +342,7 @@ const HormonalReplacement = () => {
                   setDateFilter("");
                   setDayFilter("");
                   setMonthFilter("");
-                setYearFilter("");
+                  setYearFilter("");
                 }}
                 className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
               >
@@ -326,7 +350,7 @@ const HormonalReplacement = () => {
               </button>
               {/* ⬇️ Generate button with cursor-pointer */}
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintReport}
                 disabled={loading}
                 className={`px-3 font-bold rounded-md text-sm text-white cursor-pointer ${
                   loading ? "bg-primary/60 cursor-not-allowed" : "bg-primary"

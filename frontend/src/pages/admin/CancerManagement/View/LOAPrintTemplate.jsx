@@ -8,7 +8,11 @@ const LOAPrintTemplate = ({ loaData }) => (
       @media print {
         @page { margin: 0 !important; }
         body { margin: 0 !important; }
-        #loa-print-content { margin: 0 !important; padding: 0 !important; }
+        #loa-print-content { 
+          margin: 0 !important; 
+          padding: 0 !important; 
+          height: 100vh; 
+        }
       }
     `}</style>
     <div
@@ -36,7 +40,8 @@ const LOAPrintTemplate = ({ loaData }) => (
       <div className="flex justify-between text-sm mb-10">
         <div>
           <p>
-            <span className="font-bold">Patient Name: </span> {loaData?.patient.full_name}
+            <span className="font-bold">Patient Name: </span>{" "}
+            {loaData?.patient.full_name}
           </p>
           <p>
             <span className="font-bold">Address: </span> {loaData?.patient.city}
@@ -45,10 +50,12 @@ const LOAPrintTemplate = ({ loaData }) => (
 
         <div className="text-left">
           <p>
-            <span className="font-bold">Date: </span> {new Date().toLocaleDateString()}
+            <span className="font-bold">Date: </span>{" "}
+            {new Date().toLocaleDateString()}
           </p>
           <p>
-            <span className="font-bold">Age: </span> {loaData?.patient.age} years old
+            <span className="font-bold">Age: </span> {loaData?.patient.age}{" "}
+            years old
           </p>
         </div>
       </div>
@@ -63,7 +70,9 @@ const LOAPrintTemplate = ({ loaData }) => (
             Diagnostic/ Treatment / Procedure:
             <span className="font-normal"> {loaData?.service_type}</span>
           </p>
-          <p className="italic pl-[39%]">(Excluding Doctor's Professional Fee)</p>
+          <p className="italic pl-[39%]">
+            (Excluding Doctor's Professional Fee)
+          </p>
         </div>
 
         <p className="font-semibold">

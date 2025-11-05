@@ -475,7 +475,31 @@ const PreCancerous = () => {
     setPendingAction({ id, action });
     setModalOpen(true);
   };
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
 
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `Pre_Cancerous_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   const doAction = async () => {
     if (!pendingAction) return;
     const { id, action } = pendingAction;
@@ -694,7 +718,7 @@ const PreCancerous = () => {
                 Filter
               </button> */}
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintReport}
                 disabled={loading}
                 className={`px-3 font-bold rounded-md text-sm text-white cursor-pointer ${
                   loading ? "bg-primary/60 cursor-not-allowed" : "bg-primary"

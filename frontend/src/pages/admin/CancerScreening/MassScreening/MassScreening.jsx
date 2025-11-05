@@ -177,7 +177,31 @@ const AdminMassScreening = () => {
       setNotification(msg);
     }
   };
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
 
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `Mass_Screening_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   const formatDate = (iso) => {
     if (!iso) return "—";
     const d = new Date(iso + "T00:00:00");
@@ -316,7 +340,7 @@ const AdminMassScreening = () => {
 
             {/* Print */}
             <button
-              onClick={() => window.print()}
+              onClick={handlePrintReport}
               className="bg-primary px-3 py-3 rounded-sm text-white cursor-pointer"
             >
               <Printer className="w-4 h-4" />

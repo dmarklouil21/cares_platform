@@ -116,7 +116,31 @@ const PatientMasterList = () => {
       return dateMatch && dayMatch && monthMatch && yearMatch;
     });
   };
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
 
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `Patient_Master_List_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   const handleViewClick = (patient_id) =>
     navigate(`/admin/patient/view/${patient_id}`);
   const handleEditClick = (id) => {
@@ -323,7 +347,7 @@ const PatientMasterList = () => {
 
             {/* ⬇️ NEW: Generate button mirrors the Pre-Enrollment page */}
             <button
-              onClick={() => window.print()}
+              onClick={handlePrintReport}
               className="bg-primary px-3 py-1 rounded-sm text-white cursor-pointer"
             >
               <Printer className="w-4 h-4" />
