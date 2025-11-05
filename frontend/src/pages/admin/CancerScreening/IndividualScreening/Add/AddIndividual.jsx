@@ -2,8 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
-import NotificationModal from "src/components/Modal/NotificationModal";
-import LoadingModal from "src/components/Modal/LoadingModal";
+import Notification from "src/components/Notification";
 import SystemLoader from "src/components/SystemLoader";
 
 import { REQUIRED_DOCS } from "src/constants/requiredDocs";
@@ -19,6 +18,7 @@ const SearchableSelect = ({
   options = [],
   value = null,
   onChange,
+  errors = {},
 }) => {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -44,7 +44,7 @@ const SearchableSelect = ({
 
   return (
     <div className="w-full" ref={ref}>
-      <label className="text-sm font-medium block mb-1">{label}</label>
+      <label className="text-sm font-medium block mb-1">{label} <span className="text-red-500">*</span></label>
       <div className="relative">
         <button
           type="button"
@@ -88,6 +88,11 @@ const SearchableSelect = ({
           </div>
         )}
       </div>
+      {errors.patient && !value && (
+        <span className="text-red-500 text-xs">
+          {errors.patient}
+        </span>
+      )}
       {value && (
         <p className="text-xs text-gray-500 mt-1">
           Selected: <span className="font-medium">{value.full_name}</span>{" "}
@@ -135,11 +140,9 @@ const AddIndividualScreening = () => {
     [files, requiredDocs]
   );
 
-  // Uploads
-  const [preScreeningForm, setPreScreeningForm] = useState(null);
-  // const [requiredDocs, setRequiredDocs] = useState([]); // multiple
-  const [labResults, setLabResults] = useState(null);
-  const [loaFile, setLoaFile] = useState(null); // LOA upload
+  // Notification
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState("info");
 
   // Global modals / UX
   const [loading, setLoading] = useState(false);
@@ -149,6 +152,8 @@ const AddIndividualScreening = () => {
     title: "Success!",
     message: "Record has been created.",
   });
+
+  const [errors, setErrors] = useState({});
 
   const handleChooseFile = () => inputRef.current?.click();
 
@@ -182,52 +187,39 @@ const AddIndividualScreening = () => {
     fetchData();
   }, []);
 
-  const handleRequiredDocsChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    setRequiredDocs(files);
-  };
-
-  const onFilePicked = (f) => {
-    if (!f) return;
-    const docKey = activeDoc.key;
-    setFiles((prev) => ({ ...prev, [docKey]: f }));
-  };
-
-  const handleInputChange = (e) => {
-    const f = e.target.files?.[0];
-    onFilePicked(f);
-    e.target.value = ""; // allow re-picking the same file
-  };
-
   const validate = () => {
-    if (!patient) {
-      setModalInfo({
-        type: "info",
-        title: "Missing Patient",
-        message: "Please select a patient.",
-      });
-    } else if (!procedureName.trim()) {
-      setModalInfo({
-        type: "info",
-        title: "Missing Procedure Name",
-        message: "Please enter the procedure name.",
-      });
-    } else if (!cancerSite.trim()) {
-      setModalInfo({
-        type: "info",
-        title: "Missing Cancer Site",
-        message: "Please enter the cancer site.",
-      });
-    } else {
-      return true;
+    const newErrors = {};
+
+    if (!patient)
+      newErrors["patient"] = "Select a patient."
+    if (!procedureName.trim())
+      newErrors["procedure_name"] = "Procedure name is required."
+    if (!cancerSite.trim())
+      newErrors["cancer_site"] = "Cancer site is required."
+    if (!procedureDetails.trim())
+      newErrors["procedure_details"] = "Procedure details is required."
+    if (!screeningDate)
+      newErrors["screening_date"] = "Screening date is required."
+
+    if (screeningDate && screeningDate < new Date().toISOString().split('T')[0])
+      newErrors["screening_date"] = "Date should not be in the past.";
+
+    return newErrors;
+  };
+
+  const handleSave = () => {
+    const validationErrors = validate();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
     }
-    setShowModal(true);
-    return false;
+
+    setErrors({});
+    setConfirmOpen(true);
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
-
     setConfirmOpen(false);
     setLoading(true);
     try {
@@ -255,39 +247,24 @@ const AddIndividualScreening = () => {
       navigate("/admin/cancer-screening", {
         state: { type: "success", message: "Created Successfully." },
       });
-      // navigate("/admin/cancer-screening");
-      // navigate("/admin/cancer-screening", {
-      //   state: { okLink: "beneficiary/applications/individual-screening" },
-      // });
     } catch (error) {
-      let message = "Something went wrong while submitting the form.";
-      if (error.response?.data?.non_field_errors) {
-        message = error.response.data.non_field_errors[0];
+      let errorMessage = "Something went wrong while submitting the form.";
+
+      if (error.response && error.response.data) {
+        console.log("1")
+        console.log(error.response)
+        if (error.response.data.non_field_errors) {
+          console.log("2")
+          errorMessage = error.response.data.non_field_errors[0];
+        }
       }
-
-      setNotification({
-        show: true,
-        type: "error",
-        title: "Submission Failed",
-        message,
-      });
-
+      setNotification(errorMessage);
+      setNotificationType("error");
+      setTimeout(() => setNotification(""), 3000);
       console.error("Error submitting a request:", error);
     } finally {
       setLoading(false);
     }
-
-    // setModalInfo({
-    //   type: "success",
-    //   title: "Created",
-    //   message: "The screening record was created successfully.",
-    // });
-    // setShowModal(true);
-
-    // optional: brief loading shimmer if you like
-    // setLoading(false);
-
-    // go to listing (can also pass state for a toast on the next page)
   };
 
   return (
@@ -302,14 +279,7 @@ const AddIndividualScreening = () => {
         onConfirm={handleSubmit}
         onCancel={() => setConfirmOpen(false)}
       />
-      <NotificationModal
-        show={showModal}
-        type={modalInfo.type}
-        title={modalInfo.title}
-        message={modalInfo.message}
-        onClose={() => setShowModal(false)}
-      />
-      {/* <LoadingModal open={loading} text="Creating record..." /> */}
+      <Notification message={notification} type={notificationType} />
 
       {/* Screen */}
       <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center bg-gray overflow-auto">
@@ -336,6 +306,7 @@ const AddIndividualScreening = () => {
                 options={patientTable}
                 value={patient}
                 onChange={setPatient}
+                errors={errors}
               />
 
               <div className="w-full">
@@ -346,16 +317,21 @@ const AddIndividualScreening = () => {
                   onChange={(e) => setStatus(e.target.value)}
                 >
                   <option value="Pending">Pending</option>
-                  <option value="Approve">Approve</option>
+                  <option value="Approved">Approve</option>
                   <option value="In Progress">In Progress</option>
-                  <option value="Complete">Complete</option>
-                  <option value="Reject">Reject</option>
+                  <option value="Completed">Complete</option>
+                  <option value="Rejected">Reject</option>
                 </select>
+                {/* {errors.first_name && (
+                  <span className="text-red-500 text-xs">
+                    {errors.first_name}
+                  </span>
+                )} */}
               </div>
 
               <div className="w-full">
                 <label className="text-sm font-medium block mb-1">
-                  Procedure Name
+                  Procedure Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -364,11 +340,16 @@ const AddIndividualScreening = () => {
                   onChange={(e) => setProcedureName(e.target.value)}
                   placeholder="e.g., Mammogram"
                 />
+                {errors.procedure_name && (
+                  <span className="text-red-500 text-xs">
+                    {errors.procedure_name}
+                  </span>
+                )}
               </div>
 
               <div className="w-full">
                 <label className="text-sm font-medium block mb-1">
-                  Cancer Site
+                  Cancer Site <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -377,11 +358,16 @@ const AddIndividualScreening = () => {
                   onChange={(e) => setCancerSite(e.target.value)}
                   placeholder="e.g., Breast"
                 />
+                {errors.cancer_site && (
+                  <span className="text-red-500 text-xs">
+                    {errors.cancer_site}
+                  </span>
+                )}
               </div>
 
               <div className="w-full">
                 <label className="text-sm font-medium block mb-1">
-                  Screening Date
+                  Screening Date <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -389,6 +375,11 @@ const AddIndividualScreening = () => {
                   value={screeningDate}
                   onChange={(e) => setScreeningDate(e.target.value)}
                 />
+                {errors.screening_date && (
+                  <span className="text-red-500 text-xs">
+                    {errors.screening_date}
+                  </span>
+                )}
               </div>
 
               <div className="w-full">
@@ -404,7 +395,7 @@ const AddIndividualScreening = () => {
 
               <div className="w-full md:col-span-2">
                 <label className="text-sm font-medium block mb-1">
-                  Procedure Details
+                  Procedure Details <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-white resize-none"
@@ -413,6 +404,11 @@ const AddIndividualScreening = () => {
                   onChange={(e) => setProcedureDetails(e.target.value)}
                   placeholder="Add notes or details about the procedure..."
                 />
+                {errors.procedure_details && (
+                  <span className="text-red-500 text-xs">
+                    {errors.procedure_details}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -487,31 +483,6 @@ const AddIndividualScreening = () => {
             />
           </div>
 
-          {/* LOA Actions — Upload only */}
-          {/* <div className="bg-white rounded-md shadow border border-black/10">
-            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">LOA Actions</h2>
-            </div>
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8">
-              <div className="w-full md:col-span-2 flex items-center justify-between md:justify-start md:gap-10">
-                <span className="font-medium">Upload LOA</span>
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  className="w-full md:w-auto border border-gray-300 rounded px-3 py-2 bg-white"
-                  onChange={(e) => setLoaFile(e.target.files?.[0] || null)}
-                />
-              </div>
-              {loaFile && (
-                <div className="md:col-span-2">
-                  <p className="text-xs text-gray-600 mt-1">
-                    Selected: {loaFile.name}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div> */}
-
           {/* Actions */}
           <div className="w-full flex justify-around pb-6">
             <Link
@@ -523,7 +494,7 @@ const AddIndividualScreening = () => {
             {allUploaded ? (
               <button
                 type="button"
-                onClick={() => setConfirmOpen(true)}
+                onClick={handleSave}
                 className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
               >
                 Save

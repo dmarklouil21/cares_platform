@@ -1,9 +1,8 @@
-// src/pages/treatment/AdminPostTreatmentAdd.jsx
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
-import NotificationModal from "src/components/Modal/NotificationModal";
+import Notification from "src/components/Notification";
 import LoadingModal from "src/components/Modal/LoadingModal";
 
 import SystemLoader from "src/components/SystemLoader";
@@ -21,6 +20,7 @@ const SearchableSelect = ({
   options = [],
   value = null,
   onChange,
+  errors = {}
 }) => {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -46,7 +46,7 @@ const SearchableSelect = ({
 
   return (
     <div className="w-full" ref={ref}>
-      <label className="text-sm font-medium block mb-1">{label}</label>
+      <label className="text-sm font-medium block mb-1">{label} <span className="text-red-500">*</span></label>
       <div className="relative">
         <button
           type="button"
@@ -90,6 +90,11 @@ const SearchableSelect = ({
           </div>
         )}
       </div>
+      {errors.patient && !value && (
+        <span className="text-red-500 text-xs">
+          {errors.patient}
+        </span>
+      )}
       {value && (
         <p className="text-xs text-gray-500 mt-1">
           Selected: <span className="font-medium">{value.full_name}</span>{" "}
@@ -119,7 +124,7 @@ const AdminHormonalReplacementAdd = () => {
   const [age, setAge] = useState("");
   const [patientAddress, setPatientAddress] = useState("");
   const [date, setDate] = useState("");
-  const [medicines, setMedicines] = useState();
+  const [medicines, setMedicines] = useState("");
   const [providerAddress, setProviderAddress] = useState("");
   const [diagnosis, setDiagnosis] = useState("");
   const [procedure, setProcedure] = useState("");
@@ -161,6 +166,12 @@ const AdminHormonalReplacementAdd = () => {
     title: "Success!",
     message: "Record has been created.",
   });
+
+  // Notification
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState("info");
+
+  const [errors, setErrors] = useState({});
 
   const fetchData = async () => {
     try {
@@ -237,16 +248,42 @@ const AdminHormonalReplacementAdd = () => {
     return false;
   };
 
-  const doSubmit = async () => {
-    if (!validateOrNotify()) return;
+  const validate = () => {
+    const newErrors = {};
 
+    if (!patient)
+      newErrors["patient"] = "Select a patient."
+    if (!medicines.trim())
+      newErrors["medicines_requested"] = "Please input the medicines."
+    if (!date)
+      newErrors["released_date"] = "Release date is required."
+
+    if (date && date < new Date().toISOString().split('T')[0])
+      newErrors["released_date"] = "Date should not be in the past.";
+
+    return newErrors;
+  };
+
+  const handleSave = () => {
+    const validationErrors = validate();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setErrors({});
+    setConfirmOpen(true);
+  };
+
+  const doSubmit = async () => {
     setConfirmOpen(false);
     setLoading(true);
 
     try {
       const formData = new FormData();
       formData.append("patient_id", patient.patient_id);
-      formData.append("status", status);
+      formData.append("status", "Approved");
       formData.append("medicines_requested", medicines);
       formData.append("released_date", date);
 
@@ -266,6 +303,21 @@ const AdminHormonalReplacementAdd = () => {
         state: { type: "success", message: "Created Successfully." },
       });
     } catch (error) {
+      let errorMessage = "Something went wrong while submitting the form.";
+      console.log("Error Response: ", error);
+      if (error.response && error.response.data) {
+        console.log("1")
+        console.log(error.response)
+        if (error.response.data.non_field_errors) {
+          console.log("2")
+          errorMessage = error.response.data.non_field_errors[0];
+        } else if (error.response.data.detail){
+          errorMessage = error.response.data.detail;
+        }
+      }
+      setNotification(errorMessage);
+      setNotificationType("error");
+      setTimeout(() => setNotification(""), 3000);
       console.error(error);
     } finally {
       setLoading(false);
@@ -288,72 +340,9 @@ const AdminHormonalReplacementAdd = () => {
         onConfirm={doSubmit}
         onCancel={() => setConfirmOpen(false)}
       />
-      <NotificationModal
-        show={notifyOpen}
-        type={notifyInfo.type}
-        title={notifyInfo.title}
-        message={notifyInfo.message}
-        onClose={() => setNotifyOpen(false)}
-      />
-
-      {/* <FileUploadModal
-        open={labRequestModal}
-        title="Upload Laboratory Request"
-        // recipient={data?.patient?.email}
-        onFileChange={setLabRequestFile}
-        // onConfirm={handleSendReport}
-        onCancel={() => setLabRequestModal(false)}
-      /> */}
-      {/* <LoadingModal open={loading} text="Creating record..." /> */}
-
-      {/* {labRequestModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Upload Laboratory Request</h2>
-            
-            {/* <p className="text-sm text-gray-600 mb-3">
-              Recipient: <span className="font-medium">{data?.patient?.email}</span>
-            </p> *s/}
-
-            <input
-              type="file"
-              accept="application/pdf"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none mb-4"
-              onChange={(e) => setLabRequestFile(e.target.files[0])}
-            />
-
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-5 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
-                onClick={() => setLabRequestModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors"
-                onClick={confirmSelectedFile}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )} */}
+      <Notification message={notification} type={notificationType} />
 
       <div className="h-screen w-full flex p-5 gap-4 flex-col justify-start items-center bg-gray overflow-auto">
-        {/* Header */}
-        {/* <div className="px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Add Post-Treatment Record</h1>
-          <Link to={LIST_PATH}>
-            <img
-              src="/images/back.png"
-              alt="Back"
-              className="h-6 cursor-pointer"
-            />
-          </Link>
-        </div>  */}
-
-        {/* LOA GENERATION FIRST */}
         <div className="bg-white w-full rounded-md shadow border border-black/10">
           <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
             <h2 className="text-lg font-semibold">Hormonal Replacement Medication</h2>
@@ -368,6 +357,7 @@ const AdminHormonalReplacementAdd = () => {
                 value={patient}
                 onChange={setPatient}
                 placeholder="Type to search by name or email..."
+                errors={errors}
               />
             </div>
 
@@ -381,7 +371,8 @@ const AdminHormonalReplacementAdd = () => {
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
                 value={patient?.diagnosis[0]?.diagnosis}
                 onChange={(e) => setDiagnosis(e.target.value)}
-                placeholder="e.g., Hypertension"
+                placeholder="Autofill field"
+                readOnly
               />
             </div>
 
@@ -396,9 +387,14 @@ const AdminHormonalReplacementAdd = () => {
                 onChange={(e) => setMedicines(e.target.value)}
                 placeholder="e.g., Biogesic, Neozep"
               />
+              {errors.medicines_requested && (
+                <span className="text-red-500 text-xs">
+                  {errors.medicines_requested}
+                </span>
+              )}
             </div>
 
-            <div className="w-full">
+            {/* <div className="w-full">
               <label className="text-sm font-medium block mb-1">Status</label>
               <select
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
@@ -409,9 +405,9 @@ const AdminHormonalReplacementAdd = () => {
                 <option value="Approved">Approve</option>
                 <option value="Completed">Complete</option>
                 <option value="Follow-up Required">Follow-up Required</option>
-                {/* <option value="Reject">Reject</option> */}
+                {/* <option value="Reject">Reject</option> *s/}
               </select>
-            </div>
+            </div> */}
 
             <div className="w-full">
               <label className="text-sm font-medium block mb-1">
@@ -423,104 +419,21 @@ const AdminHormonalReplacementAdd = () => {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
               />
+              {errors.released_date && (
+                <span className="text-red-500 text-xs">
+                  {errors.released_date}
+                </span>
+              )}
             </div>
-
-            {/* <div className="w-full">
-              <label className="text-sm font-medium block mb-1">Service Provider</label>
-              <select
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={status}
-                onChange={(e) => setMedicines(e.target.value)}
-              >
-                <option value="Chong Hua Hospital Mandaue">Chong Hua Hospital Mandaue</option>
-              </select>
-            </div> */}
-
-            {/* <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                Provider Address
-              </label>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={providerAddress}
-                onChange={(e) => setProviderAddress(e.target.value)}
-                placeholder="e.g., Cebu City"
-              />
-            </div> */}
-
-            {/* <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                Prepared by <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={preparedBy}
-                onChange={(e) => setPreparedBy(e.target.value)}
-                placeholder="e.g., Nurse Jane Rivera"
-              />
-            </div> */}
-
-           {/*  <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                Approved by <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={approvedBy}
-                onChange={(e) => setApprovedBy(e.target.value)}
-                placeholder="e.g., Dr. Ramon Cruz"
-              />
-            </div> */}
           </div>
         </div>
 
-        {/* REQUEST POST-TREATMENT LABS (second) */}
         <div className="bg-white w-full rounded-md shadow border border-black/10">
           <div className="border-b border-black/10 px-5 py-3">
             <h2 className="text-lg font-semibold">
               Requirements
             </h2>
           </div>
-
-          {/* <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Laboratory Request </span>
-                {labRequestFile && 
-                  <span
-                    // href={labRequestFile.url} 
-                    // target="_blank" 
-                    // rel="noopener noreferrer"
-                    className="text-blue-600"
-                  >
-                    {labRequestFile.name}
-                  </span>
-                }
-                {labRequestFile ? (
-                  <button 
-                    // to={"/admin/survivorship/add/well-being-form"}
-                    // state={patient}
-                    onClick={() => setLabRequestModal(true)}
-                    className="text-sm text-blue-700 cursor-pointer"
-                  >
-                    Edit
-                  </button>
-                ) : (
-                  <button 
-                    // to={"/admin/survivorship/add/well-being-form"}
-                    // state={patient}
-                    onClick={() => setLabRequestModal(true)}
-                    className="text-blue-700 cursor-pointer"
-                  >
-                    Add
-                  </button>
-                )}
-              </div>
-            </div>
-          </div> */}
            <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-6">
               {requiredDocs.map((d, idx) => {
                 const uploaded = !!files[d.key];
@@ -586,14 +499,28 @@ const AdminHormonalReplacementAdd = () => {
         </div>
 
         {/* Bottom actions */}
-        <div className="w-full flex flex-col md:flex-row gap-3 justify-between">
+        <div className="w-full flex justify-around pb-6">
           <Link
-            className="text-center bg-white text-black py-2 w-full md:w-[30%] border border-black/15 hover:border-black rounded-md"
+            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
             to={LIST_PATH}
           >
             Cancel
           </Link>
-          <button
+          {allUploaded ? (
+            <button
+              type="button"
+              onClick={handleSave}
+              className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+            >
+              Save
+            </button>
+            ) : (
+              <div className="text-[12px] md:text-sm text-gray-600 max-w-auto">
+                Please upload <span className="font-semibold">all</span>{" "}
+                required files to enable submit.
+              </div>
+          )}
+          {/* <button
             type="button"
             onClick={() => setConfirmOpen(true)}
             disabled={!isValid}
@@ -606,7 +533,7 @@ const AdminHormonalReplacementAdd = () => {
             title={!isValid ? "Complete required fields" : ""}
           >
             Save
-          </button>
+          </button> */}
         </div>
       </div>
     </>

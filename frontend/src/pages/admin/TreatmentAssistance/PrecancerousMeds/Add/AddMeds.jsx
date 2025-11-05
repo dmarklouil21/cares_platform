@@ -1,10 +1,8 @@
-// src/pages/treatment/AdminPostTreatmentAdd.jsx
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
-import NotificationModal from "src/components/Modal/NotificationModal";
-import LoadingModal from "src/components/Modal/LoadingModal";
+import Notification from "src/components/Notification";
 
 import SystemLoader from "src/components/SystemLoader";
 
@@ -21,6 +19,7 @@ const SearchableSelect = ({
   options = [],
   value = null,
   onChange,
+  errors = {},
 }) => {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -46,7 +45,7 @@ const SearchableSelect = ({
 
   return (
     <div className="w-full" ref={ref}>
-      <label className="text-sm font-medium block mb-1">{label}</label>
+      <label className="text-sm font-medium block mb-1">{label} <span className="text-red-500">*</span></label>
       <div className="relative">
         <button
           type="button"
@@ -90,6 +89,11 @@ const SearchableSelect = ({
           </div>
         )}
       </div>
+      {errors.patient && !value && (
+        <span className="text-red-500 text-xs">
+          {errors.patient}
+        </span>
+      )}
       {value && (
         <p className="text-xs text-gray-500 mt-1">
           Selected: <span className="font-medium">{value.full_name}</span>{" "}
@@ -100,7 +104,7 @@ const SearchableSelect = ({
   );
 };
 
-const LIST_PATH = "/rhu/treatment-assistance/pre-cancerous";
+const LIST_PATH = "/admin/treatment-assistance/pre-cancerous";
 
 const CheckIcon = ({ active }) => (
   <img
@@ -165,6 +169,12 @@ const AdminHormonalReplacementAdd = () => {
     message: "Record has been created.",
   });
 
+  // Notification
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState("info");
+
+  const [errors, setErrors] = useState({});
+
   const fetchData = async () => {
     try {
       const response = await api.get("/patient/list/");
@@ -175,19 +185,8 @@ const AdminHormonalReplacementAdd = () => {
     }
   };
 
-  // const fetchProfile = async () => {
-  //   try {
-  //     const {data} = await api.get("/rhu/profile/");
-  //     setDestinationName(data.rhu_name)
-  //     console.log("Representative Profile: ", data.rhu_name);
-  //   } catch (error) {
-  //     console.error("Error fetching representative profile", error);
-  //   }
-  // };
-
   useEffect(() => {
     fetchData();
-    // fetchProfile();
   }, []);
 
   const handleChooseFile = () => inputRef.current?.click();
@@ -199,24 +198,6 @@ const AdminHormonalReplacementAdd = () => {
     }
     e.target.value = ""; // allow reselecting the same file
   };
-
-  // Defaults for date/schedule
-  // useEffect(() => {
-  //   const today = new Date();
-  //   const yyyy = today.getFullYear();
-  //   const mm = String(today.getMonth() + 1).padStart(2, "0");
-  //   const dd = String(today.getDate()).padStart(2, "0");
-  //   if (!date) setDate(`${yyyy}-${mm}-${dd}`);
-  //   if (!schedule) setSchedule(`${yyyy}-${mm}-${dd}`);
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
-
-  // Auto-fill Age & Address when selecting a patient
-  // useEffect(() => {
-  //   if (!patient) return;
-  //   setAge(patient.age != null ? String(patient.age) : "");
-  //   setPatientAddress(patient.address || "");
-  // }, [patient]);
 
   const isValid = useMemo(() => {
     return (
@@ -247,24 +228,48 @@ const AdminHormonalReplacementAdd = () => {
     return false;
   };
 
-  const doSubmit = async () => {
-    // if (!validateOrNotify()) return;
+  const validate = () => {
+    const newErrors = {};
 
+    if (!patient)
+      newErrors["patient"] = "Select a patient."
+    if (!date)
+      newErrors["release_date_of_meds"] = "Release date is required."
+    if (!interpretationOfResult)
+      newErrors["interpretation_of_result"] = "Select one value."
+    if (!date)
+      newErrors["release_date_of_meds"] = "Release date is required."
+
+    if (date && date < new Date().toISOString().split('T')[0])
+      newErrors["release_date_of_meds"] = "Date should not be in the past.";
+
+    return newErrors;
+  };
+
+  const handleSave = () => {
+    const validationErrors = validate();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setErrors({});
+    setConfirmOpen(true);
+  };
+
+  const doSubmit = async () => {
     setConfirmOpen(false);
     setLoading(true);
 
     try { 
       const formData = new FormData();
       formData.append("patient_id", patient.patient_id);
-      formData.append("status", status);
+      formData.append("status", "Approved");
       formData.append("interpretation_of_result", interpretationOfResult);
       formData.append("release_date_of_meds", date);
       formData.append("request_destination", "Rafi - EJACC");
       formData.append("destination_name", destinationName);
-      console.log("Form Data Entries:");
-      for (let pair of formData.entries()) {
-        console.log(`${pair[0]}: ${pair[1]}`);
-      }
 
       await api.post(
         `/precancerous/create/`,
@@ -274,10 +279,23 @@ const AdminHormonalReplacementAdd = () => {
         }
       );
 
-      navigate("/rhu/treatment-assistance/pre-cancerous", {
+      navigate("/admin/treatment-assistance/pre-cancerous", {
         state: { type: "success", message: "Created Successfully." },
       });
     } catch (error) {
+      let errorMessage = "Something went wrong while submitting the form.";
+
+      if (error.response && error.response.data) {
+        console.log("1")
+        console.log(error.response)
+        if (error.response.data.non_field_errors) {
+          console.log("2")
+          errorMessage = error.response.data.non_field_errors[0];
+        }
+      }
+      setNotification(errorMessage);
+      setNotificationType("error");
+      setTimeout(() => setNotification(""), 3000);
       console.error(error);
     } finally {
       setLoading(false);
@@ -300,13 +318,7 @@ const AdminHormonalReplacementAdd = () => {
         onConfirm={doSubmit}
         onCancel={() => setConfirmOpen(false)}
       />
-      <NotificationModal
-        show={notifyOpen}
-        type={notifyInfo.type}
-        title={notifyInfo.title}
-        message={notifyInfo.message}
-        onClose={() => setNotifyOpen(false)}
-      />
+      <Notification message={notification} type={notificationType} />
 
       <div className="h-screen w-full flex p-5 gap-4 flex-col justify-start items-center bg-gray overflow-auto">
         <div className="bg-white w-full rounded-md shadow border border-black/10">
@@ -323,6 +335,7 @@ const AdminHormonalReplacementAdd = () => {
                 value={patient}
                 onChange={setPatient}
                 placeholder="Type to search by name or email..."
+                errors={errors}
               />
             </div>
 
@@ -336,12 +349,13 @@ const AdminHormonalReplacementAdd = () => {
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
                 value={patient?.diagnosis[0]?.diagnosis}
                 onChange={(e) => setDiagnosis(e.target.value)}
-                placeholder="e.g., Hypertension"
+                placeholder="Autofill field"
+                readOnly
               />
             </div>
 
             <div className="w-full">
-              <label className="text-sm font-medium block mb-1">Interpretation of Result</label>
+              <label className="text-sm font-medium block mb-1">Interpretation of Result <span className="text-red-500">*</span></label>
               <select
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
                 value={interpretationOfResult}
@@ -353,9 +367,14 @@ const AdminHormonalReplacementAdd = () => {
                 <option value="Unsatisfactory">Unsatisfactory</option>
                 {/* <option value="Reject">Reject</option> */}
               </select>
+              {errors.interpretation_of_result && (
+                <span className="text-red-500 text-xs">
+                  {errors.interpretation_of_result}
+                </span>
+              )}
             </div>
 
-            <div className="w-full">
+            {/* <div className="w-full">
               <label className="text-sm font-medium block mb-1">Status</label>
               <select
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
@@ -366,9 +385,9 @@ const AdminHormonalReplacementAdd = () => {
                 <option value="Approved">Approve</option>
                 <option value="Completed">Complete</option>
                 <option value="Follow-up Required">Follow-up Required</option>
-                {/* <option value="Reject">Reject</option> */}
+                <option value="Reject">Reject</option>
               </select>
-            </div>
+            </div> */}
 
             <div className="w-full">
               <label className="text-sm font-medium block mb-1">
@@ -380,19 +399,31 @@ const AdminHormonalReplacementAdd = () => {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
               />
+              {errors.release_date_of_meds && (
+                <span className="text-red-500 text-xs">
+                  {errors.release_date_of_meds}
+                </span>
+              )}
             </div>
           </div>
         </div>
 
         {/* Bottom actions */}
-        <div className="w-full flex flex-col md:flex-row gap-3 justify-between">
+        <div className="w-full flex justify-around pb-6">
           <Link
-            className="text-center bg-white text-black py-2 w-full md:w-[30%] border border-black/15 hover:border-black rounded-md"
+            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
             to={LIST_PATH}
           >
             Cancel
           </Link>
           <button
+            type="button"
+            onClick={handleSave}
+            className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+          >
+            Save
+          </button>
+          {/* <button
             type="button"
             onClick={() => setConfirmOpen(true)}
             // disabled={!isValid}
@@ -405,7 +436,7 @@ const AdminHormonalReplacementAdd = () => {
             title={!isValid ? "Complete required fields" : ""}
           >
             Save
-          </button>
+          </button> */}
         </div>
       </div>
     </>

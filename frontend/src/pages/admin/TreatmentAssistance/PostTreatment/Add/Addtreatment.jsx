@@ -1,11 +1,8 @@
-// src/pages/treatment/AdminPostTreatmentAdd.jsx
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
-import NotificationModal from "src/components/Modal/NotificationModal";
-import LoadingModal from "src/components/Modal/LoadingModal";
-
+import Notification from "src/components/Notification";
 import SystemLoader from "src/components/SystemLoader";
 
 import api from "src/api/axiosInstance";
@@ -21,6 +18,7 @@ const SearchableSelect = ({
   options = [],
   value = null,
   onChange,
+  errors = {},
 }) => {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -46,7 +44,7 @@ const SearchableSelect = ({
 
   return (
     <div className="w-full" ref={ref}>
-      <label className="text-sm font-medium block mb-1">{label}</label>
+      <label className="text-sm font-medium block mb-1">{label} <span className="text-red-500">*</span></label>
       <div className="relative">
         <button
           type="button"
@@ -90,6 +88,11 @@ const SearchableSelect = ({
           </div>
         )}
       </div>
+      {errors.patient && !value && (
+        <span className="text-red-500 text-xs">
+          {errors.patient}
+        </span>
+      )}
       {value && (
         <p className="text-xs text-gray-500 mt-1">
           Selected: <span className="font-medium">{value.full_name}</span>{" "}
@@ -144,23 +147,15 @@ const AdminPostTreatmentAdd = () => {
   );
   const inputRef = useRef(null);
 
-  // ===== Request Post-Treatment Labs (separate card) =====
-  // Send Report Modal
-  const [labRequestModal, setLabRequestModal] = useState(false);
-  const [labRequestFile, setLabRequestFile] = useState(null);
-  // const [labRequest, setLabRequest] = useState("");
-  const [labResult, setLabResult] = useState("");
-  const [schedule, setSchedule] = useState("");
-
   // ===== Global UX =====
   const [loading, setLoading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [notifyOpen, setNotifyOpen] = useState(false);
-  const [notifyInfo, setNotifyInfo] = useState({
-    type: "success",
-    title: "Success!",
-    message: "Record has been created.",
-  });
+
+  // Notification
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState("info");
+
+  const [errors, setErrors] = useState({});
 
   const fetchData = async () => {
     try {
@@ -186,91 +181,47 @@ const AdminPostTreatmentAdd = () => {
     e.target.value = ""; // allow reselecting the same file
   };
 
-  // Defaults for date/schedule
-  // useEffect(() => {
-  //   const today = new Date();
-  //   const yyyy = today.getFullYear();
-  //   const mm = String(today.getMonth() + 1).padStart(2, "0");
-  //   const dd = String(today.getDate()).padStart(2, "0");
-  //   if (!date) setDate(`${yyyy}-${mm}-${dd}`);
-  //   if (!schedule) setSchedule(`${yyyy}-${mm}-${dd}`);
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
+  const validate = () => {
+    const newErrors = {};
 
-  // Auto-fill Age & Address when selecting a patient
-  // useEffect(() => {
-  //   if (!patient) return;
-  //   setAge(patient.age != null ? String(patient.age) : "");
-  //   setPatientAddress(patient.address || "");
-  // }, [patient]);
+    if (!patient)
+      newErrors["patient"] = "Select a patient."
+    // if (!diagnosis.trim())
+    //   newErrors["diagnosis"] = "Diagnosis is required."
+    if (!procedure.trim())
+      newErrors["procedure_name"] = "Procedure is required."
+    if (!date.trim())
+      newErrors["laboratory_test_date"] = "Laboratory date is required."
 
-  const isValid = useMemo(() => {
-    return (
-      patient &&
-      date &&
-      providerName.trim() &&
-      procedure.trim()
-      // schedule &&
-      // preparedBy.trim() &&
-      // approvedBy.trim()
-    );
-  }, [
-    patient,
-    // age,
-    date,
-    providerName,
-    // diagnosis,
-    procedure
-    // schedule,
-    // preparedBy,
-    // approvedBy,
-  ]);
+    if (date && date < new Date().toISOString().split('T')[0])
+      newErrors["laboratory_test_date"] = "Date should not be in the past.";
 
-  const validateOrNotify = () => {
-    if (isValid) return true;
+    return newErrors;
+  };
 
-    const msg = !patient
-      ? "Please select a patient."
-      : !providerName.trim()
-      ? "Please enter Service Provider/Lab Name."
-      : !diagnosis.trim()
-      ? "Please enter Diagnosis."
-      : !procedure.trim()
-      ? "Please enter Procedure."
-      : !preparedBy.trim()
-      ? "Please enter Prepared by."
-      : !approvedBy.trim()
-      ? "Please enter Approved by."
-      : !date
-      ? "Please set Date."
-      : !schedule
-      ? "Please set Schedule."
-      : !inputRef
-      ? "Please upload the laboratory request."
-      : "Please complete all required fields.";
+  const handleSave = () => {
+    const validationErrors = validate();
 
-    setNotifyInfo({ type: "info", title: "Incomplete", message: msg });
-    setNotifyOpen(true);
-    return false;
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setErrors({});
+    setConfirmOpen(true);
   };
 
   const doSubmit = async () => {
-    if (!validateOrNotify()) return;
-
     setConfirmOpen(false);
     setLoading(true);
 
     try {
       const formData = new FormData();
       formData.append("patient_id", patient.patient_id);
-      formData.append("status", status);
+      formData.append("status", "Approved");
       formData.append("procedure_name", procedure);
       formData.append("laboratory_test_date", date);
       formData.append("service_provider", providerName);
-      console.log("Status: ", status)
-      console.log("Procedure: ", procedure)
-      console.log("Date: ", date)
-      console.log("Service Provider: ", providerName)
 
       Object.entries(files).forEach(([key, file]) => {
         if (file) formData.append(`files.${key}`, file);
@@ -288,15 +239,20 @@ const AdminPostTreatmentAdd = () => {
         state: { type: "success", message: "Created Successfully." },
       });
     } catch (error) {
+      let errorMessage = "Something went wrong while submitting the form.";
+
+      if (error.response && error.response.data) {
+        if (error.response.data.non_field_errors) {
+          errorMessage = error.response.data.non_field_errors[0];
+        }
+      }
+      setNotification(errorMessage);
+      setNotificationType("error");
+      setTimeout(() => setNotification(""), 3000);
       console.error(error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const confirmSelectedFile = () => {
-    setLabRequestModal(false);
-    console.log("Selected File: ", labRequestFile)
   };
 
   return (
@@ -310,72 +266,9 @@ const AdminPostTreatmentAdd = () => {
         onConfirm={doSubmit}
         onCancel={() => setConfirmOpen(false)}
       />
-      <NotificationModal
-        show={notifyOpen}
-        type={notifyInfo.type}
-        title={notifyInfo.title}
-        message={notifyInfo.message}
-        onClose={() => setNotifyOpen(false)}
-      />
-
-      {/* <FileUploadModal
-        open={labRequestModal}
-        title="Upload Laboratory Request"
-        // recipient={data?.patient?.email}
-        onFileChange={setLabRequestFile}
-        // onConfirm={handleSendReport}
-        onCancel={() => setLabRequestModal(false)}
-      /> */}
-      {/* <LoadingModal open={loading} text="Creating record..." /> */}
-
-      {/* {labRequestModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Upload Laboratory Request</h2>
-            
-            {/* <p className="text-sm text-gray-600 mb-3">
-              Recipient: <span className="font-medium">{data?.patient?.email}</span>
-            </p> *s/}
-
-            <input
-              type="file"
-              accept="application/pdf"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none mb-4"
-              onChange={(e) => setLabRequestFile(e.target.files[0])}
-            />
-
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-5 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
-                onClick={() => setLabRequestModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors"
-                onClick={confirmSelectedFile}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )} */}
+      <Notification message={notification} type={notificationType} />
 
       <div className="h-screen w-full flex p-5 gap-4 flex-col justify-start items-center bg-gray overflow-auto">
-        {/* Header */}
-        {/* <div className="px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Add Post-Treatment Record</h1>
-          <Link to={LIST_PATH}>
-            <img
-              src="/images/back.png"
-              alt="Back"
-              className="h-6 cursor-pointer"
-            />
-          </Link>
-        </div>  */}
-
-        {/* LOA GENERATION FIRST */}
         <div className="bg-white w-full rounded-md shadow border border-black/10">
           <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
             <h2 className="text-lg font-semibold">Post Treatment</h2>
@@ -390,13 +283,14 @@ const AdminPostTreatmentAdd = () => {
                 value={patient}
                 onChange={setPatient}
                 placeholder="Type to search by name or email..."
+                errors={errors}
               />
             </div>
 
             {/* Auto-filled (editable) */}
             <div className="w-full">
               <label className="text-sm font-medium block mb-1">
-                Diagnosis {/* <span className="text-red-500">*</span> */}
+                Diagnosis {/*<span className="text-red-500">*</span> */}
               </label>
               <input
                 type="text"
@@ -405,6 +299,11 @@ const AdminPostTreatmentAdd = () => {
                 onChange={(e) => setDiagnosis(e.target.value)}
                 placeholder="e.g., Hypertension"
               />
+              {/* {errors.diagnosis && (
+                <span className="text-red-500 text-xs">
+                  {errors.diagnosis}
+                </span>
+              )} */}
             </div>
 
             <div className="w-full">
@@ -418,9 +317,14 @@ const AdminPostTreatmentAdd = () => {
                 onChange={(e) => setProcedure(e.target.value)}
                 placeholder="e.g., Basic Metabolic Panel"
               />
+              {errors.procedure_name && (
+                <span className="text-red-500 text-xs">
+                  {errors.procedure_name}
+                </span>
+              )}
             </div>
 
-            <div className="w-full">
+            {/* <div className="w-full">
               <label className="text-sm font-medium block mb-1">Status</label>
               <select
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
@@ -431,9 +335,9 @@ const AdminPostTreatmentAdd = () => {
                 <option value="Approved">Approve</option>
                 <option value="Completed">Complete</option>
                 <option value="Follow-up Required">Follow-up Required</option>
-                {/* <option value="Reject">Reject</option> */}
+                <option value="Reject">Reject</option>
               </select>
-            </div>
+            </div> */}
 
             <div className="w-full">
               <label className="text-sm font-medium block mb-1">
@@ -445,6 +349,11 @@ const AdminPostTreatmentAdd = () => {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
               />
+              {errors.laboratory_test_date && (
+                <span className="text-red-500 text-xs">
+                  {errors.laboratory_test_date}
+                </span>
+              )}
             </div>
 
             <div className="w-full">
@@ -457,45 +366,6 @@ const AdminPostTreatmentAdd = () => {
                 <option value="Chong Hua Hospital Mandaue">Chong Hua Hospital Mandaue</option>
               </select>
             </div>
-
-            {/* <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                Provider Address
-              </label>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={providerAddress}
-                onChange={(e) => setProviderAddress(e.target.value)}
-                placeholder="e.g., Cebu City"
-              />
-            </div> */}
-
-            {/* <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                Prepared by <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={preparedBy}
-                onChange={(e) => setPreparedBy(e.target.value)}
-                placeholder="e.g., Nurse Jane Rivera"
-              />
-            </div> */}
-
-           {/*  <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                Approved by <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={approvedBy}
-                onChange={(e) => setApprovedBy(e.target.value)}
-                placeholder="e.g., Dr. Ramon Cruz"
-              />
-            </div> */}
           </div>
         </div>
 
@@ -507,42 +377,6 @@ const AdminPostTreatmentAdd = () => {
             </h2>
           </div>
 
-          {/* <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Laboratory Request </span>
-                {labRequestFile && 
-                  <span
-                    // href={labRequestFile.url} 
-                    // target="_blank" 
-                    // rel="noopener noreferrer"
-                    className="text-blue-600"
-                  >
-                    {labRequestFile.name}
-                  </span>
-                }
-                {labRequestFile ? (
-                  <button 
-                    // to={"/admin/survivorship/add/well-being-form"}
-                    // state={patient}
-                    onClick={() => setLabRequestModal(true)}
-                    className="text-sm text-blue-700 cursor-pointer"
-                  >
-                    Edit
-                  </button>
-                ) : (
-                  <button 
-                    // to={"/admin/survivorship/add/well-being-form"}
-                    // state={patient}
-                    onClick={() => setLabRequestModal(true)}
-                    className="text-blue-700 cursor-pointer"
-                  >
-                    Add
-                  </button>
-                )}
-              </div>
-            </div>
-          </div> */}
            <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-6">
               {requiredDocs.map((d, idx) => {
                 const uploaded = !!files[d.key];
@@ -608,14 +442,28 @@ const AdminPostTreatmentAdd = () => {
         </div>
 
         {/* Bottom actions */}
-        <div className="w-full flex flex-col md:flex-row gap-3 justify-between">
+        <div className="w-full flex justify-around pb-6">
           <Link
             className="text-center bg-white text-black py-2 w-full md:w-[30%] border border-black/15 hover:border-black rounded-md"
             to={LIST_PATH}
           >
             Cancel
           </Link>
-          <button
+          {allUploaded ? (
+            <button
+              type="button"
+              onClick={handleSave}
+              className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
+            >
+              Save
+            </button>
+          ) : (
+            <div className="text-[12px] md:text-sm text-gray-600 max-w-auto">
+              Please upload <span className="font-semibold">all</span>{" "}
+              required files to enable submit.
+            </div>
+          )}
+          {/* <button
             type="button"
             onClick={() => setConfirmOpen(true)}
             disabled={!isValid}
@@ -628,7 +476,7 @@ const AdminPostTreatmentAdd = () => {
             title={!isValid ? "Complete required fields" : ""}
           >
             Save
-          </button>
+          </button> */}
         </div>
       </div>
     </>

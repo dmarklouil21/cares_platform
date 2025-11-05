@@ -88,7 +88,7 @@ class IndividualScreeningCreateView(generics.CreateAPIView):
         patient = get_object_or_404(Patient, patient_id=self.request.data.get('patient_id'))
         existing_record = IndividualScreening.objects.filter(
           patient=patient,
-          status__in=['Pending', 'Approve']
+          status__in=['Pending', 'Approved']
         ).first()
 
         if existing_record:

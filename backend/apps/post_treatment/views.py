@@ -42,7 +42,7 @@ class PostTreatmentCreateView(generics.CreateAPIView):
         if existing_record:
           raise ValidationError({
             'non_field_errors': [
-              'There\'s an ongoing screening application for this patient.'
+              'There\'s an ongoing post treatment application for this patient.'
             ]
           })
 
