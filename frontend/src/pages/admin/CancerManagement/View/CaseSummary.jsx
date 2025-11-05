@@ -6,17 +6,17 @@ const CaseSummaryPlan = () => {
   const location = useLocation();
   const record = location.state;
   const { id } = useParams();
-  const [ additionalNotes, setAdditionalNotes ] = useState({
+  const [additionalNotes, setAdditionalNotes] = useState({
     medicalAbstractNotes: "",
-    socialCaseNotes: ""
-  })
-  const [ interventionPlan, setInterventionPlan ] = useState({
+    socialCaseNotes: "",
+  });
+  const [interventionPlan, setInterventionPlan] = useState({
     recommendedSupport: "",
     scopeCoverage: "",
     timelineMilestone: "",
     followUpMonitoring: "",
     poRemarks: "",
-  })
+  });
 
   const handleAdditionalNotesChange = (e) => {
     const { name, value } = e.target;
@@ -33,7 +33,31 @@ const CaseSummaryPlan = () => {
       [name]: value,
     }));
   };
+  // *** NEW FUNCTION ***
+  const handlePrint = () => {
+    if (!record || !record.patient) {
+      console.error("No record data to generate filename.");
+      window.print(); // Fallback to default print
+      return;
+    }
 
+    // 1. Save the current document title
+    const originalTitle = document.title;
+
+    // 2. Create the new title (filename)
+    const newTitle = `Case_Summary_${record.patient.patient_id}_${record.patient.full_name}`;
+
+    // 3. Set the new title
+    document.title = newTitle;
+
+    // 4. Trigger the print dialog
+    window.print();
+
+    // 5. Restore the original title after a short delay
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1 second delay
+  };
   return (
     <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
       {/* Header */}
@@ -52,7 +76,9 @@ const CaseSummaryPlan = () => {
           {/* Header Section */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
             <div className="flex flex-col gap-2">
-              <h1 className="text-xl font-bold uppercase tracking-wide">Case Summary</h1>
+              <h1 className="text-xl font-bold uppercase tracking-wide">
+                Case Summary
+              </h1>
               <p className="text-sm text-gray-600">
                 Case ID:{" "}
                 <span className="font-semibold">{record?.id || "N/A"}</span>
@@ -77,7 +103,9 @@ const CaseSummaryPlan = () => {
           <Section title="Patient Details">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Full Name</label>
+                <label className="text-sm font-medium block mb-1">
+                  Full Name
+                </label>
                 <input
                   type="text"
                   defaultValue={record?.patient.full_name || ""}
@@ -86,10 +114,14 @@ const CaseSummaryPlan = () => {
                 />
               </div>
               <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Age / Sex</label>
+                <label className="text-sm font-medium block mb-1">
+                  Age / Sex
+                </label>
                 <input
                   type="text"
-                  defaultValue={`${record?.patient.age || ""} / ${record?.patient.sex || ""}`}
+                  defaultValue={`${record?.patient.age || ""} / ${
+                    record?.patient.sex || ""
+                  }`}
                   readOnly
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
                 />
@@ -98,7 +130,9 @@ const CaseSummaryPlan = () => {
 
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Address</label>
+                <label className="text-sm font-medium block mb-1">
+                  Address
+                </label>
                 <input
                   type="text"
                   defaultValue={record?.patient.address || ""}
@@ -122,7 +156,9 @@ const CaseSummaryPlan = () => {
           <Section title="Medical Summary">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Diagnosis & Stage</label>
+                <label className="text-sm font-medium block mb-1">
+                  Diagnosis & Stage
+                </label>
                 <input
                   type="text"
                   defaultValue={record?.patient.diagnosis[0]?.diagnosis || ""}
@@ -141,11 +177,13 @@ const CaseSummaryPlan = () => {
               </div> */}
             </div>
             <div className="w-full">
-              <label className="text-sm font-medium block mb-1">Medical Abstract Notes</label>
-              <textarea 
+              <label className="text-sm font-medium block mb-1">
+                Medical Abstract Notes
+              </label>
+              <textarea
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white resize-none"
                 name="medicalAbstractNotes"
-                value={additionalNotes.medicalAbstractNotes} 
+                value={additionalNotes.medicalAbstractNotes}
                 onChange={handleAdditionalNotesChange}
               />
             </div>
@@ -155,10 +193,14 @@ const CaseSummaryPlan = () => {
           <Section title="Socioeconomic Assessment">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Employment / Income</label>
+                <label className="text-sm font-medium block mb-1">
+                  Employment / Income
+                </label>
                 <input
                   type="text"
-                  defaultValue={`${record?.patient.occupation || ""} / ${record?.patient.monthly_income || ""}`}
+                  defaultValue={`${record?.patient.occupation || ""} / ${
+                    record?.patient.monthly_income || ""
+                  }`}
                   readOnly
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
                 />
@@ -174,7 +216,9 @@ const CaseSummaryPlan = () => {
               </div> */}
             </div>
             <div className="w-full">
-              <label className="text-sm font-medium block mb-1">Social Case Notes</label>
+              <label className="text-sm font-medium block mb-1">
+                Social Case Notes
+              </label>
               <textarea
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white resize-none"
                 name="socialCaseNotes"
@@ -188,7 +232,9 @@ const CaseSummaryPlan = () => {
           <Section title="Intervention Plan">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Recommended Support</label>
+                <label className="text-sm font-medium block mb-1">
+                  Recommended Support
+                </label>
                 <input
                   type="text"
                   name="recommendedSupport"
@@ -198,7 +244,9 @@ const CaseSummaryPlan = () => {
                 />
               </div>
               <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Timeline & Milestones</label>
+                <label className="text-sm font-medium block mb-1">
+                  Timeline & Milestones
+                </label>
                 <input
                   type="text"
                   name="timelineMilestone"
@@ -210,8 +258,10 @@ const CaseSummaryPlan = () => {
             </div>
             <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Scope & Coverage</label>
-                <textarea 
+                <label className="text-sm font-medium block mb-1">
+                  Scope & Coverage
+                </label>
+                <textarea
                   name="scopeCoverage"
                   value={interventionPlan.scopeCoverage}
                   onChange={handleInterventionPlanChange}
@@ -219,8 +269,10 @@ const CaseSummaryPlan = () => {
                 />
               </div>
               <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Follow-up / Monitoring</label>
-                <textarea 
+                <label className="text-sm font-medium block mb-1">
+                  Follow-up / Monitoring
+                </label>
+                <textarea
                   name="followUpMonitoring"
                   value={interventionPlan.followUpMonitoring}
                   onChange={handleInterventionPlanChange}
@@ -229,7 +281,9 @@ const CaseSummaryPlan = () => {
               </div>
             </div>
             <div className="w-full">
-              <label className="text-sm font-medium block mb-1">PO Remarks</label>
+              <label className="text-sm font-medium block mb-1">
+                PO Remarks
+              </label>
               <textarea
                 name="poRemarks"
                 value={interventionPlan.poRemarks}
@@ -259,7 +313,7 @@ const CaseSummaryPlan = () => {
           </Link>
           <button
             type="button"
-            onClick={() => window.print()}
+            onClick={handlePrint}
             // onClick={handlePrint}
             className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
           >
@@ -268,7 +322,11 @@ const CaseSummaryPlan = () => {
         </div>
         <br />
       </div>
-      <CaseSummaryPrintTemplate caseData={record} additionalNotes={additionalNotes} interventionPlan={interventionPlan} />
+      <CaseSummaryPrintTemplate
+        caseData={record}
+        additionalNotes={additionalNotes}
+        interventionPlan={interventionPlan}
+      />
     </div>
   );
 };
@@ -277,7 +335,9 @@ const CaseSummaryPlan = () => {
 const Section = ({ title, children }) => (
   <div className="mb-8">
     <div className="mb-4 border-b border-gray-200">
-      <h2 className="text-md font-bold tracking-wide uppercase pb-1">{title}</h2>
+      <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+        {title}
+      </h2>
     </div>
     <div className="flex flex-col gap-4">{children}</div>
   </div>

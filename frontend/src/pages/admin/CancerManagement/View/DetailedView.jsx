@@ -29,7 +29,9 @@ const AdminCancerManagementView = () => {
   const [interviewModalOpen, setInterviewModalOpen] = useState(false);
   const [interviewDate, setInterviewDate] = useState("");
 
-  const [providerName, setProviderName] = useState("Chong Hua Hospital Mandaue");
+  const [providerName, setProviderName] = useState(
+    "Chong Hua Hospital Mandaue"
+  );
 
   // Notification Modal
   const [showModal, setShowModal] = useState(false);
@@ -233,68 +235,68 @@ const AdminCancerManagementView = () => {
 
   const handleModalConfirm = async () => {
     // if (modalAction?.newStatus) {
-      // setStatus(modalAction.newStatus);
-      setModalOpen(false);
-      setLoading(true);
-      try {
-        const payload = { 
-          status: modalAction.newStatus || status,
-          interview_date: modalAction.interviewDate || interviewDate,
-          treatment_date: modalAction.treatment_date || treatmentDate,
-          service_provider: modalAction.newProvider || providerName,
-          remarks: remarks || "",
-        };
+    // setStatus(modalAction.newStatus);
+    setModalOpen(false);
+    setLoading(true);
+    try {
+      const payload = {
+        status: modalAction.newStatus || status,
+        interview_date: modalAction.interviewDate || interviewDate,
+        treatment_date: modalAction.treatment_date || treatmentDate,
+        service_provider: modalAction.newProvider || providerName,
+        remarks: remarks || "",
+      };
 
-        // const payload = { status: modalAction.newStatus };
-        // if (treatmentDate) payload.treatment_date = treatmentDate;
-        // if (interviewDate) payload.interview_date = interviewDate;
+      // const payload = { status: modalAction.newStatus };
+      // if (treatmentDate) payload.treatment_date = treatmentDate;
+      // if (interviewDate) payload.interview_date = interviewDate;
 
-        await api.patch(
-          `/cancer-management/cancer-treatment/status-update/${record.id}/`,
-          payload
-        );
-        console.log(payload);
-        navigate("/admin/cancer-management", {
-          state: {
-            type: "success",
-            message: "Updated Successfully.",
-          },
-        });
-      } catch (error) {
-        setModalInfo({
-          type: "error",
-          title: "Update Failed",
-          message: "Something went wrong while submitting the form.",
-        });
-        setShowModal(true);
-      } finally {
-        setLoading(false);
-      }
-      // } else if (isNewDate) {
-      // setModalOpen(false);
-      // setLoading(true);
-      // try {
-      //   await api.patch(
-      //     `/cancer-management/cancer-treatment/status-update/${record.id}/`,
-      //     { treatment_date: treatmentDate }
-      //   );
+      await api.patch(
+        `/cancer-management/cancer-treatment/status-update/${record.id}/`,
+        payload
+      );
+      console.log(payload);
+      navigate("/admin/cancer-management", {
+        state: {
+          type: "success",
+          message: "Updated Successfully.",
+        },
+      });
+    } catch (error) {
+      setModalInfo({
+        type: "error",
+        title: "Update Failed",
+        message: "Something went wrong while submitting the form.",
+      });
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+    }
+    // } else if (isNewDate) {
+    // setModalOpen(false);
+    // setLoading(true);
+    // try {
+    //   await api.patch(
+    //     `/cancer-management/cancer-treatment/status-update/${record.id}/`,
+    //     { treatment_date: treatmentDate }
+    //   );
 
-      //   navigate("/admin/cancer-management", {
-      //     state: {
-      //       type: "success",
-      //       message: "Treatment date updated Successfully.",
-      //     },
-      //   });
-      // } catch (error) {
-      //   setModalInfo({
-      //     type: "error",
-      //     title: "Failed",
-      //     message: "Something went wrong while updating screening date.",
-      //   });
-      //   setShowModal(true);
-      // } finally {
-      //   setLoading(false);
-      // }
+    //   navigate("/admin/cancer-management", {
+    //     state: {
+    //       type: "success",
+    //       message: "Treatment date updated Successfully.",
+    //     },
+    //   });
+    // } catch (error) {
+    //   setModalInfo({
+    //     type: "error",
+    //     title: "Failed",
+    //     message: "Something went wrong while updating screening date.",
+    //   });
+    //   setShowModal(true);
+    // } finally {
+    //   setLoading(false);
+    // }
     // }
 
     setModalOpen(false);
@@ -372,11 +374,33 @@ const AdminCancerManagementView = () => {
       : "bg-yellow-100 text-yellow-700";
 
   if (!record) {
-    return (
-      <SystemLoader />
-    );
+    return <SystemLoader />;
   }
+  // *** NEW FUNCTION ***
+  const handlePrint = () => {
+    if (!record || !record.patient) {
+      console.error("No record data to generate filename.");
+      window.print(); // Fallback to default print
+      return;
+    }
 
+    // 1. Save the current document title
+    const originalTitle = document.title;
+
+    // 2. Create the new title (filename)
+    const newTitle = `LOA_${record.patient.patient_id}_${record.patient.full_name}`;
+
+    // 3. Set the new title
+    document.title = newTitle;
+
+    // 4. Trigger the print dialog
+    window.print();
+
+    // 5. Restore the original title after a short delay
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1 second delay
+  };
   return (
     <>
       {loading && <SystemLoader />}
@@ -419,7 +443,7 @@ const AdminCancerManagementView = () => {
       />
 
       {/* Return remarks Modal */}
-      <RemarksModal 
+      <RemarksModal
         open={remarksModalOpen}
         title="Remarks"
         placeholder="Enter your remarks here..."
@@ -567,14 +591,11 @@ const AdminCancerManagementView = () => {
                 <span className="font-medium w-40">Treatment Date</span>
                 <span className="text-gray-700">
                   {treatmentDate
-                    ? new Date(treatmentDate).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        }
-                      )
+                    ? new Date(treatmentDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
                     : "---"}
                 </span>
                 {status === "Approved" && treatmentDate && (
@@ -591,14 +612,11 @@ const AdminCancerManagementView = () => {
                 <span className="font-medium w-40">Interview Schedule</span>
                 <span className="text-gray-700">
                   {interviewDate
-                    ? new Date(interviewDate).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        }
-                      )
+                    ? new Date(interviewDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
                     : "---"}
                 </span>
                 {status === "Interview Process" && interviewDate && (
@@ -618,7 +636,9 @@ const AdminCancerManagementView = () => {
                   value={status}
                   onChange={(e) => setProviderName(e.target.value)}
                 >
-                  <option value="Chong Hua Hospital Mandaue">Chong Hua Hospital Mandaue</option>
+                  <option value="Chong Hua Hospital Mandaue">
+                    Chong Hua Hospital Mandaue
+                  </option>
                 </select>
               </div>
             </div>
@@ -665,7 +685,10 @@ const AdminCancerManagementView = () => {
               </div>
 
               <div className="flex gap-2">
-                <span className="font-medium w-40">Lab Results <span className="text-xs text-red-500">(Missing)</span></span>
+                <span className="font-medium w-40">
+                  Lab Results{" "}
+                  <span className="text-xs text-red-500">(Missing)</span>
+                </span>
                 <Link
                   className="text-blue-700"
                   to={`/admin/cancer-management/view/${record?.id}/results`}
@@ -698,7 +721,7 @@ const AdminCancerManagementView = () => {
                 <span className="font-medium w-40">Letter of Authority</span>
                 <span
                   className="text-blue-700 cursor-pointer"
-                  onClick={() => window.print()}
+                  onClick={handlePrint}
                 >
                   Download
                 </span>

@@ -91,7 +91,7 @@ const AdminCancerManagement = () => {
       record.patient.full_name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
-    
+
     const recordDate = new Date(record.date_submitted);
     const recordDay = recordDate.getDate();
     const recordMonth = recordDate.getMonth() + 1;
@@ -157,7 +157,10 @@ const AdminCancerManagement = () => {
         await api.delete(
           `/cancer-management/cancer-treatment/delete/${modalAction?.id}/`
         );
-        let notifMessage = modalAction?.action === "delete" ? "Deleted Successfully." : "Canceled Successfully."
+        let notifMessage =
+          modalAction?.action === "delete"
+            ? "Deleted Successfully."
+            : "Canceled Successfully.";
         setNotificationMessage(notifMessage);
         setNotificationType("success");
         setNotification(notificationMessage);
@@ -189,7 +192,7 @@ const AdminCancerManagement = () => {
     setInterviewModalOpen(false);
     setLoading(true);
     try {
-      const payload = { 
+      const payload = {
         status: "Interview Process",
         interview_date: interviewDate,
       };
@@ -218,7 +221,7 @@ const AdminCancerManagement = () => {
   };
 
   const handleValidate = (id, action) => {
-    setModalText("Proceed to interview process?")
+    setModalText("Proceed to interview process?");
     setModalDesc("Confirm before proceeding");
     setModalAction({ id, action });
     setModalOpen(true);
@@ -248,7 +251,31 @@ const AdminCancerManagement = () => {
     Rejected: "bg-red-100 text-red-700",
     Default: "bg-gray-100 text-gray-700",
   };
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
 
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `Cancer_Management_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   return (
     <>
       <style>{`
@@ -295,7 +322,7 @@ const AdminCancerManagement = () => {
           onConfirm={handleDateModalConfirm}
           onCancel={() => setInterviewModalOpen(false)}
         />
-        
+
         <NotificationModal
           show={showModal}
           type={modalInfo.type}
@@ -303,10 +330,10 @@ const AdminCancerManagement = () => {
           message={modalInfo.message}
           onClose={() => setShowModal(false)}
         />
-        
+
         <Notification message={notification} type={notificationType} />
 
-        <RemarksModal 
+        <RemarksModal
           open={remarksModalOpen}
           title="Remarks"
           placeholder="Enter your remarks here..."
@@ -327,7 +354,7 @@ const AdminCancerManagement = () => {
             </h2>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintReport}
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
               >
                 <Printer className="w-4 h-4" />
@@ -454,7 +481,9 @@ const AdminCancerManagement = () => {
                   <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
                     <div className="col-span-2 text-center">Patient ID</div>
                     <div className="col-span-3 text-center">Name</div>
-                    <div className="col-span-2 text-center">Service Requested</div>
+                    <div className="col-span-2 text-center">
+                      Service Requested
+                    </div>
                     <div className="col-span-2 text-center">Date Submitted</div>
                     <div className="col-span-2 text-center">Status</div>
                     <div className="col-span-1 text-center">Actions</div>
@@ -474,7 +503,7 @@ const AdminCancerManagement = () => {
                           key={item.id}
                           className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                         >
-                          <div 
+                          <div
                             className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
                             onClick={() => handleViewClick(item.id)}
                           >
@@ -498,7 +527,7 @@ const AdminCancerManagement = () => {
                                     }
                                   />
                                 </span>
-                                )}
+                              )}
                             </div>
                           </div>
                           <div className="col-span-3 text-center text-gray-800">
@@ -520,7 +549,8 @@ const AdminCancerManagement = () => {
                           <div className="col-span-2 text-center">
                             <span
                               className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold max-w-[120px] truncate ${
-                                statusColors[item.status] || statusColors.Default
+                                statusColors[item.status] ||
+                                statusColors.Default
                               }`}
                             >
                               {item.status}
@@ -530,10 +560,12 @@ const AdminCancerManagement = () => {
                             {item.status === "Pending" ? (
                               <>
                                 <button
-                                  onClick={() => handleValidate(item.id, "validate")}
+                                  onClick={() =>
+                                    handleValidate(item.id, "validate")
+                                  }
                                   className="bg-primary cursor-pointer hover:bg-primary/90 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
-                                  <CheckCircle className="w-3.5 h-3.5"/>
+                                  <CheckCircle className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
@@ -545,24 +577,24 @@ const AdminCancerManagement = () => {
                                     setRemarksModalOpen(true);
                                   }}
                                 >
-                                  <X className="w-3.5 h-3.5"/>
+                                  <X className="w-3.5 h-3.5" />
                                 </button>
                               </>
                             ) : item.status === "Rejected" ||
-                                item.status === "Completed" ? (
-                                <button
-                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
-                                  onClick={() => handleDelete(item.id, "delete")}
-                                >
-                                  <Trash2 className="w-3.5 h-3.5"/>
-                                </button>
-                          ) : (
-                            <button
-                              className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
-                              onClick={() => handleCancel(item.id, "cancel")}
-                            >
-                              <X className="w-3.5 h-3.5"/>
-                            </button>
+                              item.status === "Completed" ? (
+                              <button
+                                className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                onClick={() => handleDelete(item.id, "delete")}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            ) : (
+                              <button
+                                className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                onClick={() => handleCancel(item.id, "cancel")}
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
                             )}
                             {/* <button
                               // onClick={() => handleViewClick(item.id)}
@@ -593,11 +625,14 @@ const AdminCancerManagement = () => {
                 </div>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
-                    <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                    <label
+                      htmlFor="recordsPerPage"
+                      className="text-sm text-gray-700"
+                    >
                       Record per page:
                     </label>
-                    <select 
-                      id="recordsPerPage" 
+                    <select
+                      id="recordsPerPage"
                       className="border border-gray-300 rounded-md p-1 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
                     >
                       <option>10</option>
@@ -606,7 +641,10 @@ const AdminCancerManagement = () => {
                     </select>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span>1 – {Math.min(10, filteredData.length)} of {filteredData.length}</span>
+                    <span>
+                      1 – {Math.min(10, filteredData.length)} of{" "}
+                      {filteredData.length}
+                    </span>
                     <div className="flex gap-1">
                       <button className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors">
                         ←

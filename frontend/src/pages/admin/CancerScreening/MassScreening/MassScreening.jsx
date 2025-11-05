@@ -79,7 +79,8 @@ const AdminMassScreening = () => {
       const recordYear = recordDate.getFullYear();
 
       const matchesDay = !dayFilter || recordDay === parseInt(dayFilter);
-      const matchesMonth = !monthFilter || recordMonth === parseInt(monthFilter);
+      const matchesMonth =
+        !monthFilter || recordMonth === parseInt(monthFilter);
       const matchesYear = !yearFilter || recordYear === parseInt(yearFilter);
 
       const matchesSearch =
@@ -131,7 +132,7 @@ const AdminMassScreening = () => {
   const askConfirm = (action, id) => {
     let title = "";
     let desc = "Please confirm your action.";
-    
+
     switch (action) {
       case "verify":
         title = "Verify this request?";
@@ -148,10 +149,10 @@ const AdminMassScreening = () => {
       default:
         title = "Confirm action?";
     }
-    
+
     setConfirm({ open: true, action, id, title, desc });
   };
-  
+
   const closeConfirm = () => setConfirm({ open: false, action: "", id: null });
 
   const [notification, setNotification] = useState("");
@@ -218,7 +219,31 @@ const AdminMassScreening = () => {
     Done: "bg-blue-100 text-blue-700",
     Default: "bg-gray-100 text-gray-700",
   };
-  
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
+
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `Mass_Screening_Request_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   return (
     <>
       <style>{`
@@ -249,8 +274,8 @@ const AdminMassScreening = () => {
           onConfirm={doConfirm}
           onCancel={closeConfirm}
         />
-        
-        <RemarksModal 
+
+        <RemarksModal
           open={remarksModalOpen}
           title="Remarks"
           placeholder="Enter your remarks here..."
@@ -264,12 +289,10 @@ const AdminMassScreening = () => {
         <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
           {/* Header */}
           <div className="flex justify-between items-center w-full">
-            <h2 className="text-xl font-bold text-gray-800">
-              Mass Screening
-            </h2>
+            <h2 className="text-xl font-bold text-gray-800">Mass Screening</h2>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintReport}
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
               >
                 <Printer className="w-4 h-4" />
@@ -338,7 +361,9 @@ const AdminMassScreening = () => {
                   <option value="">All Months</option>
                   {[...Array(12)].map((_, i) => (
                     <option key={i + 1} value={i + 1}>
-                      {new Date(0, i).toLocaleString("default", { month: "long" })}
+                      {new Date(0, i).toLocaleString("default", {
+                        month: "long",
+                      })}
                     </option>
                   ))}
                 </select>
@@ -386,7 +411,9 @@ const AdminMassScreening = () => {
                 <div className="bg-lightblue px-4 py-3">
                   <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
                     <div className="col-span-2 text-center">Request ID</div>
-                    <div className="col-span-3 text-center">RHU/Private Name</div>
+                    <div className="col-span-3 text-center">
+                      RHU/Private Name
+                    </div>
                     <div className="col-span-2 text-center">Date</div>
                     <div className="col-span-2 text-center">Venue</div>
                     <div className="col-span-2 text-center">Status</div>
@@ -407,7 +434,7 @@ const AdminMassScreening = () => {
                           key={item.id}
                           className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                         >
-                          <div 
+                          <div
                             className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
                             onClick={() => handleViewClick(item.id)}
                           >
@@ -433,7 +460,8 @@ const AdminMassScreening = () => {
                           <div className="col-span-2 text-center">
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                                statusColors[item.status] || statusColors.Default
+                                statusColors[item.status] ||
+                                statusColors.Default
                               }`}
                             >
                               {item.status || "—"}
@@ -454,32 +482,36 @@ const AdminMassScreening = () => {
                                   className="bg-primary cursor-pointer text-white py-1.5 px-3 rounded text-xs font-medium"
                                 >
                                   {/* Verify */}
-                                  <CheckCircle className="w-3.5 h-3.5"/>
+                                  <CheckCircle className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={() => askConfirm("reject", item.id)}
                                   className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
                                 >
                                   {/* Reject */}
-                                  <X className="w-3.5 h-3.5"/>
+                                  <X className="w-3.5 h-3.5" />
                                 </button>
                               </>
                             ) : item.status === "Rejected" ||
-                                item.status === "Completed" ? (
-                                <button
-                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
-                                  onClick={() => handleActionClick(item.id, "delete")}
-                                >
-                                  {/* Delete */}
-                                  <Trash2 className="w-3.5 h-3.5"/>
-                                </button>
+                              item.status === "Completed" ? (
+                              <button
+                                className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                onClick={() =>
+                                  handleActionClick(item.id, "delete")
+                                }
+                              >
+                                {/* Delete */}
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             ) : (
                               <button
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
-                                onClick={() => handleActionClick(item.id, "delete")}
+                                onClick={() =>
+                                  handleActionClick(item.id, "delete")
+                                }
                               >
                                 {/* Cancel */}
-                                <X className="w-3.5 h-3.5"/>
+                                <X className="w-3.5 h-3.5" />
                               </button>
                             )}
                             {/* {(item.status === "Verified" || item.status === "Rejected") && (
@@ -505,7 +537,10 @@ const AdminMassScreening = () => {
                 </div>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
-                    <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                    <label
+                      htmlFor="recordsPerPage"
+                      className="text-sm text-gray-700"
+                    >
                       Records per page:
                     </label>
                     <select
@@ -521,9 +556,12 @@ const AdminMassScreening = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <span>
-                      {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
-                      – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                      {totalRecords}
+                      {Math.min(
+                        (currentPage - 1) * recordsPerPage + 1,
+                        totalRecords
+                      )}{" "}
+                      – {Math.min(currentPage * recordsPerPage, totalRecords)}{" "}
+                      of {totalRecords}
                     </span>
                     <div className="flex gap-1">
                       <button
