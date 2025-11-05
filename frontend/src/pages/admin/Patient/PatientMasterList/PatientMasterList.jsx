@@ -362,12 +362,6 @@ const PatientMasterList = () => {
                           {patient.city}
                         </div>
                         <div className="col-span-2 flex justify-center gap-2">
-                          {/* <button
-                            onClick={() => handleViewClick(patient.patient_id)}
-                            className="bg-primary hover:bg-primary/90 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
-                          >
-                            View
-                          </button> */}
                           <button
                             onClick={() => handleEditClick(patient.patient_id)}
                             className="bg-yellow-500 cursor-pointer hover:bg-yellow-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"

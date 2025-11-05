@@ -203,7 +203,6 @@ const HormonalReplacement = () => {
         status: "Rejected",
         remarks,
       };
-      console.log("Did this get executed?");
       await api.patch(
         `/survivorship/hormonal-replacement/update/${id}/`,
         payload
@@ -218,12 +217,6 @@ const HormonalReplacement = () => {
       setNotificationMessage("Request Rejected");
       fetchData();
     } catch (error) {
-      // setModalInfo({
-      //   type: "error",
-      //   title: "Failed",
-      //   message: "Something went wrong while rejecting request.",
-      // });
-      // setShowModal(true);
       setNotificationType("error");
       setNotificationMessage("Something went wrong while rejecting request.");
       fetchData();

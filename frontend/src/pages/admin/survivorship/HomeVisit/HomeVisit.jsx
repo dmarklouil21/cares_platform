@@ -5,6 +5,7 @@ import { Printer, Info, CheckCircle, X, Trash2 } from "lucide-react";
 
 import api from "src/api/axiosInstance";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import SystemLoader from "src/components/SystemLoader";
 import Notification from "src/components/Notification";
 
 import HomeVisitPrint from "./generate/generate";
@@ -21,7 +22,14 @@ const HomeVisit = () => {
   const [modalText, setModalText] = useState("");
   const [modalDesc, setModalDesc] = useState("Please confirm before proceeding");
   const [pendingAction, setPendingAction] = useState(null);
+
   const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState(
+    location.state?.type || ""
+  );
+  const [notificationMessage, setNotificationMessage] = useState(
+    location.state?.message || ""
+  );
 
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
@@ -39,6 +47,14 @@ const HomeVisit = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (notificationType && notificationMessage) {
+      setNotification(notificationMessage);
+      navigate(location.pathname, { replace: true, state: {} });
+      setTimeout(() => setNotification(""), 3000);
+    }
+  }, [notificationType, notificationMessage, navigate, location.pathname]);
 
   const filteredResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -103,12 +119,12 @@ const HomeVisit = () => {
   const openConfirm = (id, action) => {
     setPendingAction({ id, action });
     setModalText(
-      action === "accept" ? "Accept this request?" : "Cancel this request?"
+      action === "cancel" ? "Cancel this application?" : "Delete this application?" 
     );
     setModalOpen(true);
   };
 
-  const doAction = () => {
+  const doAction = async () => {
     if (!pendingAction) return;
     const { id, action } = pendingAction;
     if (action === "accept") {
@@ -116,9 +132,18 @@ const HomeVisit = () => {
         prev.map((r) => (r.id === id ? { ...r, status: "Approved" } : r))
       );
       setNotification(`Request ${id} has been approved.`);
-    } else if (action === "reject") {
-      setTableData((prev) => prev.filter((r) => r.id !== id));
-      setNotification(`Request ${id} has been cancelled and removed.`);
+    } else if (action === "cancel" || action === "delete") {
+        await api.delete(`/survivorship/home-visit/delete/${id}/`);
+
+        navigate("/admin/survivorship", {
+          state: {
+            type: "success",
+            message: `${action}d Successfully.`,
+          },
+        });
+        fetchData();
+        setNotificationType("success");
+        setNotificationMessage(`Application has been ${action}d successfully.`);
     }
     setModalOpen(false);
     setPendingAction(null);
@@ -175,7 +200,7 @@ const HomeVisit = () => {
           onCancel={cancelAction}
         />
         
-        <Notification message={notification} />
+        <Notification message={notification} type={notificationType}/>
 
         <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
           {/* Header */}
@@ -381,29 +406,23 @@ const HomeVisit = () => {
                             </span>
                           </div>
                           <div className="col-span-1 flex justify-center gap-2">
-                            {/* <button
-                              onClick={() => handleView(p.id)}
-                              className="bg-primary hover:bg-primary/90 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
-                            >
-                              View
-                            </button> */}
                             {p.status === "Pending" ? (
                               <button
-                                onClick={() => openConfirm(p.id, "reject")}
+                                onClick={() => openConfirm(p.id, "cancel")}
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
                                 <X className="w-3.5 h-3.5"/>
                               </button>
                             ) : p.status === "Completed" ?(
                               <button
-                                onClick={() => openConfirm(p.id, "reject")}
+                                onClick={() => openConfirm(p.id, "delete")}
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
                                 <Trash2 className="w-3.5 h-3.5"/>
                               </button>
                             ) : (
                               <button
-                                onClick={() => openConfirm(p.id, "reject")}
+                                onClick={() => openConfirm(p.id, "cancel")}
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
                                 <X className="w-3.5 h-3.5"/>
