@@ -55,6 +55,47 @@ const AdminCancerManagement = () => {
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [dayFilter, setDayFilter] = useState("");
+  const [weekFilter, setWeekFilter] = useState("");
+  const [availableWeeks, setAvailableWeeks] = useState([]);
+
+  // ✅ Automatically update available weeks when month/year changes
+  useEffect(() => {
+    if (monthFilter && yearFilter && tableData.length > 0) {
+      const weeksWithData = new Set();
+
+      tableData.forEach((record) => {
+        // ✅ Use whichever date field exists
+        const recordDate = new Date(record.date_submitted || record.created_at);
+        if (isNaN(recordDate)) return; // skip invalid dates
+
+        const recordMonth = recordDate.getMonth() + 1;
+        const recordYear = recordDate.getFullYear();
+
+        if (
+          recordMonth === parseInt(monthFilter) &&
+          recordYear === parseInt(yearFilter)
+        ) {
+          const weekNum = getWeekOfMonth(recordDate);
+          weeksWithData.add(weekNum);
+        }
+      });
+
+      // ✅ Sort and set (Week 1–4)
+      const sortedWeeks = Array.from(weeksWithData).sort((a, b) => a - b);
+      setAvailableWeeks(sortedWeeks);
+    } else {
+      setAvailableWeeks([]);
+      setWeekFilter("");
+    }
+  }, [monthFilter, yearFilter, tableData]);
+
+  // ✅ Function to get Week of Month (Week 1–4)
+  const getWeekOfMonth = (date) => {
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const firstDayOfWeek = firstDay.getDay() || 7; // Sunday=7
+    const adjustedDate = date.getDate() + firstDayOfWeek - 1;
+    return Math.ceil(adjustedDate / 7); // Week 1–4 or 5
+  };
 
   useEffect(() => {
     if (notificationType && notificationMessage) {
@@ -79,6 +120,7 @@ const AdminCancerManagement = () => {
   }, []);
 
   // Filters
+  // Filters (with week logic)
   const filteredData = tableData.filter((record) => {
     const statusMatch =
       statusFilter === "All" || record.status === statusFilter;
@@ -101,8 +143,18 @@ const AdminCancerManagement = () => {
     const monthMatch = !monthFilter || recordMonth === parseInt(monthFilter);
     const yearMatch = !yearFilter || recordYear === parseInt(yearFilter);
 
-    // const dateMatch = !dateFilter || record.date_submitted === dateFilter;
-    return statusMatch && searchMatch && dayMatch && monthMatch && yearMatch;
+    // ✅ Compute week of month (Week 1–4)
+    const recordWeek = getWeekOfMonth(recordDate);
+    const weekMatch = !weekFilter || recordWeek === parseInt(weekFilter);
+
+    return (
+      statusMatch &&
+      searchMatch &&
+      dayMatch &&
+      monthMatch &&
+      yearMatch &&
+      weekMatch
+    );
   });
 
   // Handlers
@@ -458,6 +510,19 @@ const AdminCancerManagement = () => {
                         {year}
                       </option>
                     ))}
+                </select>
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={weekFilter}
+                  onChange={(e) => setWeekFilter(e.target.value)}
+                  disabled={!monthFilter}
+                >
+                  <option value="">All Weeks</option>
+                  {availableWeeks.map((week) => (
+                    <option key={week} value={week}>
+                      Week {week}
+                    </option>
+                  ))}
                 </select>
 
                 <button
