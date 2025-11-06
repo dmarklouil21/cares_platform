@@ -297,7 +297,7 @@ const MassScreeningStatus = () => {
                               <X className="w-3.5 h-3.5" />
                             </button>
                           )}
-                          {item.status === "Rejected" && (
+                          {/* {item.status === "Rejected" && (
                             <button
                               onClick={() => handleDeleteClick(item.id)} // Resubmit
                               className="bg-yellow hover:bg-yellow/90 cursor-pointer text-white py-1.5 px-2 rounded transition-colors"
@@ -305,7 +305,7 @@ const MassScreeningStatus = () => {
                             >
                               <RotateCcw className="w-3.5 h-3.5" />
                             </button>
-                          )}
+                          )} */}
                           {item.status === "Completed" && (
                             <button
                               onClick={() => handleDeleteClick(item.id)}
