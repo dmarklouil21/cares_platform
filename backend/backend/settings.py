@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
     'rest_framework',  # Django REST Framework
     'corsheaders',  # CORS headers for API
     'apps.beneficiary',
@@ -61,6 +62,7 @@ INSTALLED_APPS = [
     'apps.survivorship',
     'apps.rhu',
     'apps.psychosocial_support',
+    'apps.notifications',
 ]
 
 MIDDLEWARE = [
@@ -137,6 +139,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
 

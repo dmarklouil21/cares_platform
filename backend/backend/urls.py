@@ -32,6 +32,7 @@ urlpatterns = [
     path('post-treatment/', include('apps.post_treatment.urls')),
     path('survivorship/', include('apps.survivorship.urls')),
     path('psychosocial-support/', include('apps.psychosocial_support.urls')),
+    path('notifications/', include('apps.notifications.urls')),
     path('api/registration/', include('apps.registration.urls')),
     path('api/user-management/', include('apps.user_management.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
