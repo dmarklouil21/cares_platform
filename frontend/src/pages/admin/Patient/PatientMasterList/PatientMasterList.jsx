@@ -45,6 +45,72 @@ const PatientMasterList = () => {
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [dayFilter, setDayFilter] = useState("");
+  const [weekFilter, setWeekFilter] = useState("");
+  const [availableWeeks, setAvailableWeeks] = useState([]);
+
+  // ✅ Helper: Get week number of a given date (Week 1–5, resets per month)
+  const getWeekOfMonth = (date) => {
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const firstWeekday = firstDay.getDay(); // 0 = Sunday
+    const offset = firstWeekday === 0 ? 6 : firstWeekday - 1; // start week on Monday
+    const dayOfMonth = date.getDate();
+    return Math.ceil((dayOfMonth + offset) / 7);
+  };
+
+  // ✅ Update available weeks whenever month or year changes
+  useEffect(() => {
+    if (monthFilter && yearFilter && patients.length > 0) {
+      const weeksWithData = new Set();
+
+      patients.forEach((record) => {
+        const recordDate = new Date(record.created_at);
+        if (isNaN(recordDate)) return;
+
+        const recordMonth = recordDate.getMonth() + 1;
+        const recordYear = recordDate.getFullYear();
+
+        if (
+          recordMonth === Number(monthFilter) &&
+          recordYear === Number(yearFilter)
+        ) {
+          const weekNum = getWeekOfMonth(recordDate);
+          weeksWithData.add(weekNum);
+        }
+      });
+
+      // ✅ Sort & limit weeks 1–5
+      const sortedWeeks = Array.from(weeksWithData)
+        .filter((w) => w >= 1 && w <= 5)
+        .sort((a, b) => a - b);
+
+      setAvailableWeeks(sortedWeeks);
+    } else {
+      setAvailableWeeks([]);
+      setWeekFilter("");
+    }
+  }, [monthFilter, yearFilter, patients]);
+
+  // ✅ Combine week logic into date filter
+  const filterByCreatedAtWithWeek = (data) => {
+    return data.filter((record) => {
+      if (!record.created_at) return false;
+
+      const recordDate = new Date(record.created_at);
+      if (isNaN(recordDate)) return false;
+
+      const recordDay = recordDate.getDate();
+      const recordMonth = recordDate.getMonth() + 1;
+      const recordYear = recordDate.getFullYear();
+      const recordWeek = getWeekOfMonth(recordDate);
+
+      const dayMatch = !dayFilter || recordDay === parseInt(dayFilter);
+      const monthMatch = !monthFilter || recordMonth === parseInt(monthFilter);
+      const yearMatch = !yearFilter || recordYear === parseInt(yearFilter);
+      const weekMatch = !weekFilter || recordWeek === parseInt(weekFilter);
+
+      return dayMatch && monthMatch && yearMatch && weekMatch;
+    });
+  };
 
   const fetchData = async () => {
     try {
@@ -108,7 +174,7 @@ const PatientMasterList = () => {
     if (patient) navigate(`/admin/patient/edit/${id}`);
   };
 
-  const filteredAndDateMatched = filterByCreatedAt(filteredResults);
+  const filteredAndDateMatched = filterByCreatedAtWithWeek(filteredResults);
 
   const totalRecords = filteredAndDateMatched.length;
   const totalPages = Math.ceil(totalRecords / recordsPerPage);
@@ -334,6 +400,19 @@ const PatientMasterList = () => {
                   ))}
               </select>
 
+              <select
+                className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={weekFilter}
+                onChange={(e) => setWeekFilter(e.target.value)}
+                disabled={!monthFilter}
+              >
+                <option value="">All Weeks</option>
+                {availableWeeks.map((week) => (
+                  <option key={week} value={week}>
+                    Week {week}
+                  </option>
+                ))}
+              </select>
               <button
                 onClick={() => {
                   setSearchQuery("");

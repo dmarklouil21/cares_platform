@@ -34,9 +34,55 @@ const UserManagement = () => {
   const [yearFilter, setYearFilter] = useState("");
   const [dayFilter, setDayFilter] = useState("");
 
+  const [weekFilter, setWeekFilter] = useState("");
+  const [availableWeeks, setAvailableWeeks] = useState([]);
+
   // Status filter state
   const [statusFilter, setStatusFilter] = useState("all");
   const navigate = useNavigate();
+
+  // ✅ Helper function: Get week of the month (Week 1–5)
+  const getWeekOfMonth = (date) => {
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const dayOfMonth = date.getDate();
+    const firstWeekday = firstDay.getDay(); // 0 = Sunday
+    const offset = firstWeekday === 0 ? 6 : firstWeekday - 1; // week starts Monday
+    return Math.ceil((dayOfMonth + offset) / 7);
+  };
+
+  // ✅ Determine which weeks are available for selected month/year
+  useEffect(() => {
+    if (monthFilter && yearFilter && users.length > 0) {
+      const weeksWithData = new Set();
+
+      users.forEach((user) => {
+        if (!user.created_at) return;
+        const recordDate = new Date(user.created_at);
+        if (isNaN(recordDate)) return;
+
+        const recordMonth = recordDate.getMonth() + 1;
+        const recordYear = recordDate.getFullYear();
+
+        if (
+          recordMonth === parseInt(monthFilter) &&
+          recordYear === parseInt(yearFilter)
+        ) {
+          const weekNum = getWeekOfMonth(recordDate);
+          weeksWithData.add(weekNum);
+        }
+      });
+
+      // Limit to weeks 1–5 and sort
+      const sortedWeeks = Array.from(weeksWithData)
+        .filter((w) => w >= 1 && w <= 5)
+        .sort((a, b) => a - b);
+
+      setAvailableWeeks(sortedWeeks);
+    } else {
+      setAvailableWeeks([]);
+      setWeekFilter("");
+    }
+  }, [monthFilter, yearFilter, users]);
 
   const filteredResults = users.filter((user) => {
     const query = searchQuery.trim().toLowerCase();
@@ -378,7 +424,19 @@ const UserManagement = () => {
                       </option>
                     ))}
                 </select>
-
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={weekFilter}
+                  onChange={(e) => setWeekFilter(e.target.value)}
+                  disabled={!monthFilter}
+                >
+                  <option value="">All Weeks</option>
+                  {availableWeeks.map((week) => (
+                    <option key={week} value={week}>
+                      Week {week}
+                    </option>
+                  ))}
+                </select>
                 <button
                   onClick={() => {
                     setSearchQuery("");

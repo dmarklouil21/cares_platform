@@ -59,6 +59,50 @@ const HormonalReplacement = () => {
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [dayFilter, setDayFilter] = useState("");
+  const [weekFilter, setWeekFilter] = useState("");
+  const [availableWeeks, setAvailableWeeks] = useState([]);
+
+  // ✅ Update available weeks whenever month/year changes
+  useEffect(() => {
+    if (monthFilter && yearFilter && tableData.length > 0) {
+      const weeksWithData = new Set();
+
+      tableData.forEach((record) => {
+        const recordDate = new Date(record.created_at || record.date_submitted);
+        const recordMonth = recordDate.getMonth() + 1;
+        const recordYear = recordDate.getFullYear();
+
+        if (
+          recordMonth === Number(monthFilter) &&
+          recordYear === Number(yearFilter)
+        ) {
+          const weekNum = getWeekOfMonth(recordDate);
+          weeksWithData.add(weekNum);
+        }
+      });
+
+      // ✅ Sort weeks and make sure they stay within 1–5 range
+      const sortedWeeks = Array.from(weeksWithData)
+        .filter((w) => w >= 1 && w <= 5)
+        .sort((a, b) => a - b);
+      setAvailableWeeks(sortedWeeks);
+    } else {
+      setAvailableWeeks([]);
+      setWeekFilter("");
+    }
+  }, [monthFilter, yearFilter, tableData]);
+
+  // ✅ Function to get Week of Month (Week 1–4)
+
+  const getWeekOfMonth = (date) => {
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const firstWeekday = firstDay.getDay(); // 0 = Sunday
+    const dayOfMonth = date.getDate();
+
+    // Adjust so that Sunday still counts in the same week
+    const offset = firstWeekday === 0 ? 6 : firstWeekday - 1; // Monday-start week
+    return Math.ceil((dayOfMonth + offset) / 7);
+  };
 
   const fetchData = async () => {
     try {
@@ -488,6 +532,20 @@ const HormonalReplacement = () => {
                         {year}
                       </option>
                     ))}
+                </select>
+
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={weekFilter}
+                  onChange={(e) => setWeekFilter(e.target.value)}
+                  disabled={!monthFilter}
+                >
+                  <option value="">All Weeks</option>
+                  {availableWeeks.map((week) => (
+                    <option key={week} value={week}>
+                      Week {week}
+                    </option>
+                  ))}
                 </select>
 
                 <button
