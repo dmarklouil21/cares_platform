@@ -170,7 +170,31 @@ const PreEnrollmentList = () => {
     rejected: "bg-red-100 text-red-700",
     Default: "bg-gray-100 text-gray-700",
   };
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
 
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `Pre_Enrollment_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   return (
     <>
       <style>
@@ -212,12 +236,10 @@ const PreEnrollmentList = () => {
         <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
           {/* Header */}
           <div className="flex justify-between items-center w-full">
-            <h2 className="text-xl font-bold text-gray-800">
-              Pre-Enrollment
-            </h2>
+            <h2 className="text-xl font-bold text-gray-800">Pre-Enrollment</h2>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintReport}
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
               >
                 <Printer className="w-4 h-4" />
@@ -347,7 +369,7 @@ const PreEnrollmentList = () => {
                           key={item.patient_id}
                           className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                         >
-                          <div 
+                          <div
                             className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
                             onClick={() => handleViewClick(item.patient_id)}
                           >
@@ -357,11 +379,14 @@ const PreEnrollmentList = () => {
                             {item.full_name}
                           </div>
                           <div className="col-span-2 text-center text-gray-800">
-                            {new Date(item.created_at).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
+                            {new Date(item.created_at).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              }
+                            )}
                           </div>
                           <div className="col-span-1 text-center text-gray-800">
                             {item.city}
@@ -369,7 +394,8 @@ const PreEnrollmentList = () => {
                           <div className="col-span-2 text-center">
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                                statusColors[item.status] || statusColors.Default
+                                statusColors[item.status] ||
+                                statusColors.Default
                               }`}
                             >
                               {item.status}
@@ -386,11 +412,14 @@ const PreEnrollmentList = () => {
                               <>
                                 <button
                                   onClick={() =>
-                                    handleActionClick(item.patient_id, "validate")
+                                    handleActionClick(
+                                      item.patient_id,
+                                      "validate"
+                                    )
                                   }
                                   className="bg-primary cursor-pointer text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
-                                  <CheckCircle className="w-3.5 h-3.5"/>
+                                  <CheckCircle className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={() =>
@@ -398,7 +427,7 @@ const PreEnrollmentList = () => {
                                   }
                                   className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
-                                  <X className="w-3.5 h-3.5"/>
+                                  <X className="w-3.5 h-3.5" />
                                 </button>
                               </>
                             )}
@@ -409,7 +438,7 @@ const PreEnrollmentList = () => {
                                 }
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
-                                <Trash2 className="w-3.5 h-3.5"/>
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>
@@ -427,7 +456,10 @@ const PreEnrollmentList = () => {
                 </div>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
-                    <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                    <label
+                      htmlFor="recordsPerPage"
+                      className="text-sm text-gray-700"
+                    >
                       Records per page:
                     </label>
                     <select
@@ -443,9 +475,12 @@ const PreEnrollmentList = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <span>
-                      {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
-                      – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                      {totalRecords}
+                      {Math.min(
+                        (currentPage - 1) * recordsPerPage + 1,
+                        totalRecords
+                      )}{" "}
+                      – {Math.min(currentPage * recordsPerPage, totalRecords)}{" "}
+                      of {totalRecords}
                     </span>
                     <div className="flex gap-1">
                       <button

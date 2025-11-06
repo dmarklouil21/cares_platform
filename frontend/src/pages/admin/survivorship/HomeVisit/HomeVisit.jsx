@@ -20,7 +20,9 @@ const HomeVisit = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
-  const [modalDesc, setModalDesc] = useState("Please confirm before proceeding");
+  const [modalDesc, setModalDesc] = useState(
+    "Please confirm before proceeding"
+  );
   const [pendingAction, setPendingAction] = useState(null);
 
   const [notification, setNotification] = useState("");
@@ -165,7 +167,31 @@ const HomeVisit = () => {
     Processing: "bg-blue-100 text-blue-700",
     Default: "bg-gray-100 text-gray-700",
   };
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
 
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `Patient_Home_Visit_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   return (
     <>
       <style>{`
@@ -210,7 +236,7 @@ const HomeVisit = () => {
             </h2>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintReport}
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
                 title="Print current list"
               >
@@ -356,7 +382,7 @@ const HomeVisit = () => {
                           key={p.id}
                           className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                         >
-                          <div 
+                          <div
                             className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
                             onClick={() => handleView(p.id)}
                           >
@@ -390,11 +416,14 @@ const HomeVisit = () => {
                             {p.patient?.diagnosis?.[0]?.diagnosis || "N/A"}
                           </div>
                           <div className="col-span-2 text-center text-gray-800">
-                            {new Date(p.created_at).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
+                            {new Date(p.created_at).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              }
+                            )}
                           </div>
                           <div className="col-span-2 text-center">
                             <span
@@ -411,21 +440,21 @@ const HomeVisit = () => {
                                 onClick={() => openConfirm(p.id, "cancel")}
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
-                                <X className="w-3.5 h-3.5"/>
+                                <X className="w-3.5 h-3.5" />
                               </button>
-                            ) : p.status === "Completed" ?(
+                            ) : p.status === "Completed" ? (
                               <button
                                 onClick={() => openConfirm(p.id, "delete")}
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
-                                <Trash2 className="w-3.5 h-3.5"/>
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             ) : (
                               <button
                                 onClick={() => openConfirm(p.id, "cancel")}
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
-                                <X className="w-3.5 h-3.5"/>
+                                <X className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>
@@ -443,7 +472,10 @@ const HomeVisit = () => {
                 </div>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
-                    <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                    <label
+                      htmlFor="recordsPerPage"
+                      className="text-sm text-gray-700"
+                    >
                       Records per page:
                     </label>
                     <select
@@ -466,12 +498,14 @@ const HomeVisit = () => {
                         (currentPage - 1) * recordsPerPage + 1,
                         totalRecords
                       )}{" "}
-                      – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                      {totalRecords}
+                      – {Math.min(currentPage * recordsPerPage, totalRecords)}{" "}
+                      of {totalRecords}
                     </span>
                     <div className="flex gap-1">
                       <button
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
                         disabled={currentPage === 1}
                         className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
                       >

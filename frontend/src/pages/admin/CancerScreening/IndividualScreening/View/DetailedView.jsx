@@ -57,7 +57,9 @@ const DetailedView = () => {
     const fetchData = async () => {
       try {
         // individual-screening/details/<int:id>
-        const { data } = await api.get(`/cancer-screening/individual-screening/details/${id}/`);
+        const { data } = await api.get(
+          `/cancer-screening/individual-screening/details/${id}/`
+        );
         console.log("Response Data: ", data);
         setRecord(data);
         setStatus(data.status);
@@ -119,17 +121,18 @@ const DetailedView = () => {
     }
     setSendLOAModalOpen(false);
     setLoaFile(null);
-    
+
     setLoading(true);
     try {
       const formData = new FormData();
       formData.append("file", loaFile);
-      formData.append("patient_name", record.patient.full_name); 
-      formData.append("email", record.patient.email); 
+      formData.append("patient_name", record.patient.full_name);
+      formData.append("email", record.patient.email);
 
       await api.post(
         `/cancer-screening/individual-screening/send-loa/`,
-        formData, {
+        formData,
+        {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -163,38 +166,38 @@ const DetailedView = () => {
 
   const handleModalConfirm = async () => {
     // if (modalAction?.newStatus) {
-      // setStatus(modalAction.newStatus);
-      setModalOpen(false);
-      setLoading(true);
-      try {
-        const payload = { 
-          status: modalAction.newStatus || status,
-          screening_date: modalAction.newScreeningDate || screeningDate,
-          remarks: remarks || "",
-        };
-        // if (screeningDate) payload.screening_date = screeningDate;
+    // setStatus(modalAction.newStatus);
+    setModalOpen(false);
+    setLoading(true);
+    try {
+      const payload = {
+        status: modalAction.newStatus || status,
+        screening_date: modalAction.newScreeningDate || screeningDate,
+        remarks: remarks || "",
+      };
+      // if (screeningDate) payload.screening_date = screeningDate;
 
-        await api.patch(
-          `/cancer-screening/individual-screening/status-update/${record.id}/`,
-          payload
-        );
-        navigate("/admin/cancer-screening", { 
-          state: { 
-            type: "success", message: "Updated Successfully." 
-          } 
-        });
-
-      } catch (error) {
-        setModalInfo({
-          type: "error",
-          title: "Update Failed",
-          message: "Something went wrong while submitting the form.",
-        });
-        setShowModal(true);
-      } finally {
-        setLoading(false);
-      }
-    // } 
+      await api.patch(
+        `/cancer-screening/individual-screening/status-update/${record.id}/`,
+        payload
+      );
+      navigate("/admin/cancer-screening", {
+        state: {
+          type: "success",
+          message: "Updated Successfully.",
+        },
+      });
+    } catch (error) {
+      setModalInfo({
+        type: "error",
+        title: "Update Failed",
+        message: "Something went wrong while submitting the form.",
+      });
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+    }
+    // }
     /* else if (isNewDate) {
       setModalOpen(false);
       setLoading(true);
@@ -237,10 +240,11 @@ const DetailedView = () => {
           { remarks }
         );
 
-        navigate("/admin/cancer-screening", { 
-          state: { 
-            type: "success", message: "Return remarks sent." 
-          } 
+        navigate("/admin/cancer-screening", {
+          state: {
+            type: "success",
+            message: "Return remarks sent.",
+          },
         });
       } catch {
         setModalInfo({
@@ -262,10 +266,11 @@ const DetailedView = () => {
           `/cancer-screening/individual-screening/status-reject/${record.id}/`,
           { status: modalAction.newStatus, remarks }
         );
-        navigate("/admin/cancer-screening", { 
-          state: { 
-            type: "success", message: "Request Rejected." 
-          } 
+        navigate("/admin/cancer-screening", {
+          state: {
+            type: "success",
+            message: "Request Rejected.",
+          },
         });
       } catch {
         setModalInfo({
@@ -281,11 +286,33 @@ const DetailedView = () => {
   };
 
   if (!record) {
-    return (
-      <SystemLoader />
-    );
+    return <SystemLoader />;
   }
+  // *** NEW FUNCTION ***
+  const handlePrint = () => {
+    if (!record || !record.patient) {
+      console.error("No record data to generate filename.");
+      window.print(); // Fallback to default print
+      return;
+    }
 
+    // 1. Save the current document title
+    const originalTitle = document.title;
+
+    // 2. Create the new title (filename)
+    const newTitle = `LOA_${record.patient.patient_id}_${record.patient.full_name}`;
+
+    // 3. Set the new title
+    document.title = newTitle;
+
+    // 4. Trigger the print dialog
+    window.print();
+
+    // 5. Restore the original title after a short delay
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1 second delay
+  };
   return (
     <>
       {/* Global Modals */}
@@ -322,7 +349,9 @@ const DetailedView = () => {
       {remarksModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Remarks</h2>
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Remarks
+            </h2>
             <textarea
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none mb-4 resize-none"
               rows={4}
@@ -352,10 +381,13 @@ const DetailedView = () => {
       {sendLOAModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Send LOA</h2>
-            
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Send LOA
+            </h2>
+
             <p className="text-sm text-gray-600 mb-3">
-              Recipient: <span className="font-medium">{record.patient.email}</span>
+              Recipient:{" "}
+              <span className="font-medium">{record.patient.email}</span>
             </p>
 
             <input
@@ -418,36 +450,42 @@ const DetailedView = () => {
               </div>
               <div className="flex gap-2">
                 <span className="font-medium w-40">Patient Name</span>
-                <span className="text-gray-700">{record.patient.full_name}</span>
+                <span className="text-gray-700">
+                  {record.patient.full_name}
+                </span>
               </div>
               <div className="flex gap-2">
                 <span className="font-medium w-40">Procedure Name</span>
-                <span className="text-gray-700">{record.procedure_name || "---"}</span>
+                <span className="text-gray-700">
+                  {record.procedure_name || "---"}
+                </span>
               </div>
               <div className="flex gap-2">
                 <span className="font-medium w-40">Procedure Details</span>
-                <span className="text-gray-700">{record.procedure_details || "---"}</span>
+                <span className="text-gray-700">
+                  {record.procedure_details || "---"}
+                </span>
               </div>
               <div className="flex gap-2">
                 <span className="font-medium w-40">Cancer Site</span>
-                <span className="text-gray-700">{record.cancer_site || "---"}</span>
+                <span className="text-gray-700">
+                  {record.cancer_site || "---"}
+                </span>
               </div>
               <div className="flex gap-2">
                 <span className="font-medium w-40">Date Submitted</span>
-                <span className="text-gray-700">{new Date(record.created_at).toLocaleDateString(
-                    "en-US",
-                    {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    }
-                  )}
+                <span className="text-gray-700">
+                  {new Date(record.created_at).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
                 </span>
               </div>
               <div className="flex gap-2">
                 <span className="font-medium w-40">Status</span>
                 <select
-                  className="-ml-1 outline-none focus:ring-0 text-gray-700" 
+                  className="-ml-1 outline-none focus:ring-0 text-gray-700"
                   value={status}
                   onChange={handleStatusChange}
                 >
@@ -497,7 +535,9 @@ const DetailedView = () => {
                   value={record?.service_provider || ""}
                   // onChange={handleStatusChange}
                 >
-                  <option value="Chong Hua Hospital Mandaue">Chong Hua Hospital Mandaue</option>
+                  <option value="Chong Hua Hospital Mandaue">
+                    Chong Hua Hospital Mandaue
+                  </option>
                 </select>
               </div>
             </div>
@@ -511,7 +551,7 @@ const DetailedView = () => {
             <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
               <div className="flex gap-2">
                 <span className="font-medium w-50">Pre-Screening Form</span>
-                <Link 
+                <Link
                   className="text-blue-700"
                   to="/admin/cancer-screening/view/pre-screening-form"
                   state={record}
@@ -521,7 +561,7 @@ const DetailedView = () => {
               </div>
               <div className="flex gap-2">
                 <span className="font-medium w-50">Required Documents</span>
-                <Link 
+                <Link
                   className="text-blue-700"
                   to={"/admin/cancer-screening/view/attachments"}
                   state={record}
@@ -530,8 +570,11 @@ const DetailedView = () => {
                 </Link>
               </div>
               <div className="flex gap-2">
-                <span className="font-medium w-50">Screening Results <span className="text-xs text-red-500">(Missing)</span></span>
-                <Link 
+                <span className="font-medium w-50">
+                  Screening Results{" "}
+                  <span className="text-xs text-red-500">(Missing)</span>
+                </span>
+                <Link
                   className="text-blue-700"
                   to={"/admin/cancer-screening/view/results"}
                   state={record}
@@ -543,7 +586,7 @@ const DetailedView = () => {
           </div>
 
           {/* Action Button */}
-          {record?.status !== "Pending" && 
+          {record?.status !== "Pending" && (
             <div className="bg-white rounded-md shadow border border-black/10">
               <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
                 <h2 className="text-lg font-semibold">LOA Actions</h2>
@@ -551,16 +594,16 @@ const DetailedView = () => {
               <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                 <div className="flex gap-2">
                   <span className="font-medium w-40">Generate LOA</span>
-                  <span 
+                  <span
                     className="text-blue-700 cursor-pointer"
-                    onClick={() => window.print()}
+                    onClick={handlePrint}
                   >
                     Download
                   </span>
                 </div>
                 <div className="flex gap-2">
                   <span className="font-medium w-40">Send LOA</span>
-                  <span 
+                  <span
                     className="text-blue-700 cursor-pointer"
                     onClick={() => setSendLOAModalOpen(true)}
                     state={record}
@@ -570,7 +613,7 @@ const DetailedView = () => {
                 </div>
               </div>
             </div>
-          }
+          )}
 
           <div className="flex justify-around print:hidden">
             <Link

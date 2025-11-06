@@ -147,7 +147,10 @@ const IndividualScreening = () => {
         await api.delete(
           `/cancer-screening/individual-screening/delete/${modalAction.id}/`
         );
-        let notifMessage = modalAction?.action === "delete" ? "Deleted Successfully." : "Canceled Successfully."
+        let notifMessage =
+          modalAction?.action === "delete"
+            ? "Deleted Successfully."
+            : "Canceled Successfully.";
         setNotificationMessage(notifMessage);
         setNotificationType("success");
         setNotification(notificationMessage);
@@ -178,7 +181,7 @@ const IndividualScreening = () => {
     setDateModalOpen(false);
     setLoading(true);
     try {
-      const payload = { 
+      const payload = {
         status: modalAction.status,
         screening_date: screeningDate,
       };
@@ -213,12 +216,12 @@ const IndividualScreening = () => {
       setModalAction({ id, action });
       setModalOpen(true);
     } else if (action === "cancel") {
-      setModalText("Cancel this application?")
-      setModalDesc("Please confirm before proceeding.")
-      setModalAction({ id, action});
+      setModalText("Cancel this application?");
+      setModalDesc("Please confirm before proceeding.");
+      setModalAction({ id, action });
       setModalOpen(true);
     } else if (action === "approve") {
-      setModalAction({id: id, status: "Approved"});
+      setModalAction({ id: id, status: "Approved" });
       setDateModalOpen(true);
     }
   };
@@ -230,11 +233,35 @@ const IndividualScreening = () => {
     Rejected: "bg-red-100 text-red-700",
     Default: "bg-gray-100 text-gray-700",
   };
-  
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
+
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `Individual_Screening_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   return (
     <>
       {loading && <SystemLoader />}
-      
+
       <style>{`
         @media print {
           #individual-root { display: none !important; }
@@ -273,7 +300,7 @@ const IndividualScreening = () => {
         onConfirm={handleDateModalConfirm}
         onCancel={() => setDateModalOpen(false)}
       />
-      
+
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -281,9 +308,9 @@ const IndividualScreening = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      
+
       <Notification message={notification} type={notificationType} />
-      <RemarksModal 
+      <RemarksModal
         open={remarksModalOpen}
         title="Remarks"
         placeholder="Enter your remarks here..."
@@ -297,7 +324,7 @@ const IndividualScreening = () => {
       <div
         id="individual-root"
         className="min-h-screen w-full p-5 gap-4 flex flex-col bg-gray"
-      > 
+      >
         {/* Header */}
         <div className="flex justify-between items-center w-full">
           <h2 className="text-xl font-bold text-gray-800">
@@ -305,7 +332,7 @@ const IndividualScreening = () => {
           </h2>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => window.print()}
+              onClick={handlePrintReport}
               className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
             >
               <Printer className="w-4 h-4" />
@@ -444,7 +471,7 @@ const IndividualScreening = () => {
                         key={item.id}
                         className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                       >
-                        <div 
+                        <div
                           className="col-span-2 text-center text-blue-500 font-medium cursor-pointer"
                           onClick={() => handleViewClick(item.id)}
                         >
@@ -468,18 +495,21 @@ const IndividualScreening = () => {
                                   }
                                 />
                               </span>
-                              )}
+                            )}
                           </div>
                         </div>
                         <div className="col-span-3 text-center text-gray-800">
                           {item.patient.full_name}
                         </div>
                         <div className="col-span-2 text-center text-gray-800">
-                          {new Date(item.created_at).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })}
+                          {new Date(item.created_at).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            }
+                          )}
                         </div>
                         <div className="col-span-2 text-center text-gray-800">
                           {item.patient.city}
@@ -497,12 +527,14 @@ const IndividualScreening = () => {
                           {item.status === "Pending" ? (
                             <>
                               <button
-                                onClick={() => handleActionClick(item.id, "approve")}
+                                onClick={() =>
+                                  handleActionClick(item.id, "approve")
+                                }
                                 className="bg-primary cursor-pointer hover:bg-primary/90 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
-                                <CheckCircle className="w-3.5 h-3.5"/>
+                                <CheckCircle className="w-3.5 h-3.5" />
                               </button>
-                               <button
+                              <button
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 onClick={() => {
                                   setModalAction({
@@ -513,25 +545,29 @@ const IndividualScreening = () => {
                                 }}
                               >
                                 {/* Reject */}
-                                <X className="w-3.5 h-3.5"/>
+                                <X className="w-3.5 h-3.5" />
                               </button>
                             </>
                           ) : item.status === "Rejected" ||
                             item.status === "Completed" ? (
                             <button
                               className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
-                              onClick={() => handleActionClick(item.id, "delete")}
+                              onClick={() =>
+                                handleActionClick(item.id, "delete")
+                              }
                             >
                               {/* Delete */}
-                              <Trash2 className="w-3.5 h-3.5"/>
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           ) : (
                             <button
                               className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
-                              onClick={() => handleActionClick(item.id, "cancel")}
+                              onClick={() =>
+                                handleActionClick(item.id, "cancel")
+                              }
                             >
                               {/* Cancel */}
-                              <X className="w-3.5 h-3.5"/>
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>

@@ -52,7 +52,7 @@ const UserManagement = () => {
       statusFilter === "all" ||
       (statusFilter === "active" && user.is_active) ||
       (statusFilter === "inactive" && !user.is_active);
-    
+
     // 📅 Date filter logic
     const userDate = user.created_at ? new Date(user.created_at) : null;
     const userDay = userDate ? userDate.getDate() : null;
@@ -62,7 +62,13 @@ const UserManagement = () => {
     const matchesDay = !dayFilter || userDay === parseInt(dayFilter);
     const matchesMonth = !monthFilter || userMonth === parseInt(monthFilter);
     const matchesYear = !yearFilter || userYear === parseInt(yearFilter);
-    return matchesSearch && matchesStatus && matchesDay  && matchesMonth && matchesYear;
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesDay &&
+      matchesMonth &&
+      matchesYear
+    );
   });
 
   const totalRecords = filteredResults.length;
@@ -71,7 +77,7 @@ const UserManagement = () => {
     (currentPage - 1) * recordsPerPage,
     currentPage * recordsPerPage
   );
-  
+
   const handleRecordsPerPageChange = (e) => {
     setRecordsPerPage(Number(e.target.value));
     setCurrentPage(1);
@@ -201,7 +207,31 @@ const UserManagement = () => {
     inactive: "bg-red-100 text-red-700",
     Default: "bg-gray-100 text-gray-700",
   };
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
 
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `User_Management_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   return (
     <>
       <style>{`
@@ -239,18 +269,16 @@ const UserManagement = () => {
             setModalText("");
           }}
         />
-        
+
         <Notification message={notification} type={notificationType} />
 
         <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
           {/* Header */}
           <div className="flex justify-between items-center w-full">
-            <h2 className="text-xl font-bold text-gray-800">
-              User Management
-            </h2>
+            <h2 className="text-xl font-bold text-gray-800">User Management</h2>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintReport}
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
                 title="Print current list"
               >
@@ -303,53 +331,53 @@ const UserManagement = () => {
                 </select>
 
                 {/* Date Filters */}
-              <select
-                className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                value={dayFilter}
-                onChange={(e) => setDayFilter(e.target.value)}
-              >
-                <option value="">All Days</option>
-                {[...Array(31)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {i + 1}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                value={monthFilter}
-                onChange={(e) => setMonthFilter(e.target.value)}
-              >
-                <option value="">All Months</option>
-                {[...Array(12)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {new Date(0, i).toLocaleString("en", { month: "long" })}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                value={yearFilter}
-                onChange={(e) => setYearFilter(e.target.value)}
-              >
-                <option value="">All Years</option>
-                {Array.from(
-                  new Set(
-                    filteredResults.map((p) =>
-                      new Date(p.created_at || p.date_submitted).getFullYear()
-                    )
-                  )
-                )
-                  .filter((y) => !isNaN(y))
-                  .sort((a, b) => b - a)
-                  .map((year) => (
-                    <option key={year} value={year}>
-                      {year}
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={dayFilter}
+                  onChange={(e) => setDayFilter(e.target.value)}
+                >
+                  <option value="">All Days</option>
+                  {[...Array(31)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {i + 1}
                     </option>
                   ))}
-              </select>
+                </select>
+
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={monthFilter}
+                  onChange={(e) => setMonthFilter(e.target.value)}
+                >
+                  <option value="">All Months</option>
+                  {[...Array(12)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {new Date(0, i).toLocaleString("en", { month: "long" })}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={yearFilter}
+                  onChange={(e) => setYearFilter(e.target.value)}
+                >
+                  <option value="">All Years</option>
+                  {Array.from(
+                    new Set(
+                      filteredResults.map((p) =>
+                        new Date(p.created_at || p.date_submitted).getFullYear()
+                      )
+                    )
+                  )
+                    .filter((y) => !isNaN(y))
+                    .sort((a, b) => b - a)
+                    .map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                </select>
 
                 <button
                   onClick={() => {
@@ -395,7 +423,7 @@ const UserManagement = () => {
                               user.last_name || ""
                             }`.trim()}
                           </div>
-                          <div 
+                          <div
                             className="col-span-3 text-center cursor-pointer text-blue-500"
                             onClick={() => handleViewClick(user.id)}
                           >
@@ -407,7 +435,9 @@ const UserManagement = () => {
                           <div className="col-span-2 text-center">
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                                statusColors[user.is_active ? "active" : "inactive"] || statusColors.Default
+                                statusColors[
+                                  user.is_active ? "active" : "inactive"
+                                ] || statusColors.Default
                               }`}
                             >
                               {user.is_active ? "Active" : "Inactive"}
@@ -424,13 +454,15 @@ const UserManagement = () => {
                               onClick={() => handleEditClick(user.id)}
                               className="bg-yellow-500 cursor-pointer hover:bg-yellow-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                             >
-                              <Pencil className="w-3.5 h-3.5"/>
+                              <Pencil className="w-3.5 h-3.5" />
                             </button>
                             <button
-                              onClick={() => handleActionClick(user.id, "delete")}
+                              onClick={() =>
+                                handleActionClick(user.id, "delete")
+                              }
                               className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                             >
-                              <Trash2 className="w-3.5 h-3.5"/>
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
@@ -447,7 +479,10 @@ const UserManagement = () => {
                 </div>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
-                    <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                    <label
+                      htmlFor="recordsPerPage"
+                      className="text-sm text-gray-700"
+                    >
                       Records per page:
                     </label>
                     <select
@@ -463,9 +498,12 @@ const UserManagement = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <span>
-                      {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
-                      – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                      {totalRecords}
+                      {Math.min(
+                        (currentPage - 1) * recordsPerPage + 1,
+                        totalRecords
+                      )}{" "}
+                      – {Math.min(currentPage * recordsPerPage, totalRecords)}{" "}
+                      of {totalRecords}
                     </span>
                     <div className="flex gap-1">
                       <button
