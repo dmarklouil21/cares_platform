@@ -197,12 +197,6 @@ const MassScreeningStatus = () => {
           <h2 className="text-xl font-bold text-gray-800">
             Mass Screening Requests
           </h2>
-          <Link
-            to="/rhu/application/mass-screening/add"
-            className="bg-yellow hover:bg-yellow/90 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
-          >
-            Add New
-          </Link>
         </div>
 
         {/* Main Content Card */}
@@ -361,7 +355,7 @@ const MassScreeningStatus = () => {
                           </button> */}
                           {item.status === "Pending" ? (
                             <button
-                              onClick={() => handleDeleteClick(item.id)}
+                              onClick={() => handleDeleteClick(item.id)} // Cancel
                               className="bg-red-500 hover:bg-red-600 cursor-pointer text-white py-1.5 px-2 rounded transition-colors"
                               title="Delete Request"
                             >
