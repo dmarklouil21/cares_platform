@@ -1,50 +1,53 @@
 import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
+import { Eye, Trash2, Plus, Pencil, X, RotateCcw} from "lucide-react";
 import {
   listMyMassScreenings,
   deleteMyMassScreening,
-} from "../../../../api/massScreening";
+} from "src/api/massScreening";
 
-import api from "src/api/axiosInstance";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import Notification from "src/components/Notification";
+import SystemLoader from "src/components/SystemLoader";
 
-/* Notification (no close button) */
-function Notification({ message }) {
-  if (!message) return null;
-  return (
-    <div className="fixed top-1 left-1/2 -translate-x-1/2 z-50 transition-all duration-500">
-      <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="Rafi Logo"
-          className="h-[25px]"
-        />
-        <span>{message}</span>
-      </div>
-    </div>
-  );
-}
+const MassScreeningStatus = () => {
+  const navigate = useNavigate();
 
-const applicationStatus = () => {
-  /* ----------------------------- Data ----------------------------- */
+  // Data state
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("");
+
+  // Notification
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState("");
+
+  // Modals
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("");
+  const [modalDesc, setModalDesc] = useState("");
+  const [modalAction, setModalAction] = useState(null);
+
+  // Pagination
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const loadItems = async () => {
     try {
       setLoading(true);
       setError("");
-      // const data = await listMyMassScreenings();
-      // data: [{ id, title, venue, date, beneficiaries, description, support_need, status, created_at, attachments }]
-      const { data } = await api.get(
-        "/partners/cancer-screening/mass-screening/request-list/"
-      );
+      const data = await listMyMassScreenings();
       const normalized = (Array.isArray(data) ? data : []).map((d) => ({
         id: d.id,
         title: d.title,
         date: d.date,
         beneficiaries: d.beneficiaries,
-        status: d.status, // Pending | Verified | Rejected | Done
+        status: d.status,
         description: d.description,
         supportNeed: d.support_need,
         attachments: d.attachments || [],
@@ -52,6 +55,9 @@ const applicationStatus = () => {
       setItems(normalized);
     } catch (e) {
       setError(e?.response?.data?.detail || "Failed to load applications.");
+      setNotification("Failed to load applications.");
+      setNotificationType("error");
+      setTimeout(() => setNotification(""), 2000);
     } finally {
       setLoading(false);
     }
@@ -61,55 +67,29 @@ const applicationStatus = () => {
     loadItems();
   }, []);
 
-  /* ----------------------------- Filters ------------------------------ */
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // all | Pending | Verified | Rejected | Done
-  const [dateFilter, setDateFilter] = useState("");
-
-  const [monthFilter, setMonthFilter] = useState("");
-  const [yearFilter, setYearFilter] = useState("");
-  const [dayFilter, setDayFilter] = useState("");
-  /* ----------------------------- Pagination --------------------------- */
-  const [recordsPerPage, setRecordsPerPage] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
-
+  // Filter data
   const filteredData = useMemo(() => {
-  const q = searchQuery.trim().toLowerCase();
-
-  return items.filter((it) => {
-    const dateObj = new Date(it.date);
-    const year = dateObj.getFullYear();
-    const month = dateObj.getMonth() + 1; // 1–12
-    const day = dateObj.getDate(); // 1–31
-
-    const matchesSearch =
-      !q ||
-      String(it.id ?? "")
-        .toLowerCase()
-        .includes(q) ||
-      (it.title ?? "").toLowerCase().includes(q) ||
-      (it.beneficiaries ?? "").toLowerCase().includes(q);
-
-    const matchesStatus =
-      statusFilter === "all" ? true : (it.status ?? "") === statusFilter;
-
-    const matchesDay = !dayFilter || day === Number(dayFilter);
-    const matchesMonth = !monthFilter || month === Number(monthFilter);
-    const matchesYear = !yearFilter || year === Number(yearFilter);
-
-    return (
-      matchesSearch &&
-      matchesStatus &&
-      matchesDay &&
-      matchesMonth &&
-      matchesYear
-    );
-  });
-}, [items, searchQuery, statusFilter, dayFilter, monthFilter, yearFilter]);
-
+    const q = searchQuery.trim().toLowerCase();
+    return items.filter((it) => {
+      const matchesSearch =
+        !q ||
+        String(it.id ?? "").toLowerCase().includes(q) ||
+        (it.title ?? "").toLowerCase().includes(q) ||
+        (it.beneficiaries ?? "").toLowerCase().includes(q);
+      const matchesStatus =
+        statusFilter === "all" ? true : (it.status ?? "") === statusFilter;
+      const matchesDate = !dateFilter ? true : (it.date ?? "") === dateFilter;
+      return matchesSearch && matchesStatus && matchesDate;
+    });
+  }, [items, searchQuery, statusFilter, dateFilter]);
 
   const totalRecords = filteredData.length;
   const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [recordsPerPage, searchQuery, statusFilter, dateFilter, totalRecords]);
+
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * recordsPerPage;
     return filteredData.slice(start, start + recordsPerPage);
@@ -122,342 +102,281 @@ const applicationStatus = () => {
     setCurrentPage(1);
   };
 
-  /* ----------------------------- View / Delete ------------------------------ */
-  const navigate = useNavigate();
-
+  // Action handlers
   const handleViewClick = (id) => {
     const record = items.find((x) => x.id === id);
-    navigate("/private/application/mass-screening/view", {
+    navigate("/rhu/application/view/applicationview", {
       state: record ?? { id },
     });
   };
 
-  // Delete confirmation modal state
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteTargetId, setDeleteTargetId] = useState(null);
-
-  // Notification state
-  const [notif, setNotif] = useState("");
-
-  useEffect(() => {
-    if (!notif) return;
-    const t = setTimeout(() => setNotif(""), 2500);
-    return () => clearTimeout(t);
-  }, [notif]);
-
   const handleDeleteClick = (id) => {
-    setDeleteTargetId(id);
-    setShowDeleteConfirm(true);
+    setModalText("Confirm Delete");
+    setModalDesc("Are you sure you want to delete this mass screening request? This action cannot be undone.");
+    setModalAction({ type: "delete", id });
+    setModalOpen(true);
   };
 
-  const confirmDelete = async () => {
-    try {
-      if (deleteTargetId == null) return;
-      // await deleteMyMassScreening(deleteTargetId);
-      await api.delete(
-        `/partners/cancer-screening/mass-screening/delete/${deleteTargetId}/`
-      );
-      setNotif("Record deleted successfully.");
-      await loadItems();
-    } catch (e) {
-      setNotif(e?.response?.data?.detail || "Failed to delete record.");
-    } finally {
-      setShowDeleteConfirm(false);
-      setDeleteTargetId(null);
+  const handleModalConfirm = async () => {
+    if (modalAction?.type === "delete") {
+      try {
+        setModalOpen(false);
+        setLoading(true);
+        await deleteMyMassScreening(modalAction.id);
+        
+        setNotification("Record deleted successfully.");
+        setNotificationType("success");
+        setTimeout(() => setNotification(""), 2000);
+        await loadItems();
+      } catch (e) {
+        setNotification(e?.response?.data?.detail || "Failed to delete record.");
+        setNotificationType("error");
+        setTimeout(() => setNotification(""), 2000);
+      } finally {
+        setLoading(false);
+      }
     }
+    setModalOpen(false);
+    setModalAction(null);
   };
 
-  const cancelDelete = () => {
-    setShowDeleteConfirm(false);
-    setDeleteTargetId(null);
+  const statusColors = {
+    Pending: "bg-yellow-100 text-yellow-700",
+    Verified: "bg-green-100 text-green-700",
+    Rejected: "bg-red-100 text-red-700",
+    Done: "bg-blue-100 text-blue-700",
+    Default: "bg-gray-100 text-gray-700",
   };
 
-  /* ------------------------------ Render ------------------------------ */
+  const formatDate = (dateString) => {
+    if (!dateString) return "--";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-gray relative">
-      {/* Notification */}
-      <Notification message={notif} />
+    <>
+      {loading && <SystemLoader />}
+      <ConfirmationModal
+        open={modalOpen}
+        title={modalText}
+        desc={modalDesc}
+        onConfirm={handleModalConfirm}
+        onCancel={() => setModalOpen(false)}
+      />
+      <Notification message={notification} type={notificationType} />
 
-      {/* Content */}
-      <div className="w-full flex-1 py-5 flex flex-col justify-start gap-5 px-5">
-        <h2 className="text-xl font-bold text-left w-full pl-5">
-          Mass Screening Requests
-        </h2>
+      <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
+        {/* Header */}
+        <div className="flex justify-between items-center w-full">
+          <h2 className="text-xl font-bold text-gray-800">
+            Mass Screening Requests
+          </h2>
+          {/* <Link
+            to="/rhu/application/mass-screening/add"
+            className="bg-yellow hover:bg-yellow/90 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+          >
+            Add New
+          </Link> */}
+        </div>
 
-        <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-3">
-          <p className="text-md font-semibold text-yellow">
-            Manage all mass screening requests
-          </p>
-
-          {/* Filters */}
-          <div className="flex justify-between flex-wrap gap-3">
-            <input
-              type="text"
-              placeholder="Search by Mass ID, title, or beneficiaries..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="border border-gray-200 py-2 w-[360px] px-5 rounded-md"
-            />
-            <select
-              className="border border-gray-200 rounded-md p-2 bg-white"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              <option value="all">All</option>
-              <option value="Pending">Pending</option>
-              <option value="Verified">Verified</option>
-              <option value="Rejected">Rejected</option>
-              <option value="Done">Done</option>
-            </select>
-            {/* Day Filter (1–31) */}
-            <select
-              className="border border-gray-200 py-2 px-3 rounded-md"
-              value={dayFilter}
-              onChange={(e) => setDayFilter(e.target.value)}
-            >
-              <option value="">All Days</option>
-              {[...Array(31)].map((_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {i + 1}
-                </option>
-              ))}
-            </select>
-
-            {/* Month Filter */}
-            <select
-              className="border border-gray-200 py-2 px-3 rounded-md"
-              value={monthFilter}
-              onChange={(e) => setMonthFilter(e.target.value)}
-            >
-              <option value="">All Months</option>
-              {[...Array(12)].map((_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {new Date(0, i).toLocaleString("en", { month: "long" })}
-                </option>
-              ))}
-            </select>
-
-            {/* Year Filter */}
-            <select
-              className="border border-gray-200 py-2 px-3 rounded-md"
-              value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
-            >
-              <option value="">All Years</option>
-              {Array.from(
-                new Set(items.map((p) => new Date(p.date).getFullYear()))
-              )
-                .filter((y) => !isNaN(y))
-                .sort((a, b) => b - a)
-                .map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-            </select>
-            <button
-              onClick={() => {
-                setDayFilter("");
-                setMonthFilter("");
-                setYearFilter("");
-                setStatusFilter("all");
-                setSearchQuery("");
-              }}
-              className="ml-2 px-3 py-2 hover:bg-lightblue bg-primary text-white cursor-pointer rounded-md text-sm"
-            >
-              Clear
-            </button>
+        {/* Main Content Card */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full">
+          {/* Card Header */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-yellow-600">
+              Manage all mass screening requests
+            </h3>
           </div>
 
-          {/* Table */}
-          <div className="bg-white shadow overflow-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr className="bg-lightblue">
-                  <th className="w-[10%] text-center text-sm py-3 !bg-lightblue">
-                    Mass ID
-                  </th>
-                  <th className="w-[24%] text-center text-sm py-3">Title</th>
-                  <th className="w-[14%] text-center text-sm py-3">Date</th>
-                  <th className="w-[18%] text-center text-sm py-3">
-                    Beneficiaries
-                  </th>
-                  <th className="w-[12%] text-center text-sm py-3">Status</th>
-                  <th className="w-[22%] text-center text-sm py-3">Actions</th>
-                </tr>
-              </thead>
-            </table>
+          {/* Filters Section */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex flex-wrap gap-3 items-center">
+              <input
+                type="text"
+                placeholder="Search by Mass ID, title, or beneficiaries..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-64 text-sm"
+              />
 
-            <div className="max-h-[200px] min-h-[200px] overflow-auto">
-              <table className="min-w-full divide-y divide-gray-200 border-spacing-0">
-                <colgroup>
-                  <col className="w-[10%]" />
-                  <col className="w-[24%]" />
-                  <col className="w-[14%]" />
-                  <col className="w-[18%]" />
-                  <col className="w-[12%]" />
-                  <col className="w-[22%]" />
-                </colgroup>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedData.map((item) => {
-                    const status = item.status || ""; // Pending | Verified | Rejected | Done
-                    const statusClasses = (() => {
-                      switch (status) {
-                        case "Verified":
-                          return "bg-green-100 text-green-700";
-                        case "Rejected":
-                          return "bg-red-100 text-red-700";
-                        case "Done":
-                          return "bg-blue-100 text-blue-700";
-                        default:
-                          return "bg-yellow-100 text-yellow-700"; // Pending or others
-                      }
-                    })();
+              <select
+                className="border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Verified">Verified</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Done">Done</option>
+              </select>
 
-                    return (
-                      <tr key={item.id}>
-                        <td className="text-center text-sm py-4 text-gray-800">
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+              />
+
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setStatusFilter("all");
+                  setDateFilter("");
+                }}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+              >
+                Clear Filters
+              </button>
+            </div>
+          </div>
+
+          {/* Table Section */}
+          <div className="px-6 py-4">
+            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              {/* Table Header */}
+              <div className="bg-lightblue px-4 py-3">
+                <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
+                  <div className="col-span-2 text-center">Mass ID</div>
+                  <div className="col-span-3 text-center">Title</div>
+                  <div className="col-span-2 text-center">Date</div>
+                  <div className="col-span-2 text-center">Beneficiaries</div>
+                  <div className="col-span-2 text-center">Status</div>
+                  <div className="col-span-1 text-center">Actions</div>
+                </div>
+              </div>
+
+              {/* Table Body */}
+              <div className="max-h-96 overflow-auto">
+                {paginatedData.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No mass screening requests found matching your filters.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-200">
+                    {paginatedData.map((item) => (
+                      <div
+                        key={item.id}
+                        className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
+                      >
+                        <div 
+                          className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
+                          onClick={() => handleViewClick(item.id)}
+                        >
                           {item.id || "—"}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
+                        </div>
+                        <div className="col-span-3 text-center text-gray-800">
                           {item.title || "—"}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
-                          {item.date || "—"}
-                        </td>
-                        <td className="text-center text-sm py-4 text-gray-800">
+                        </div>
+                        <div className="col-span-2 text-center text-gray-800">
+                          {formatDate(item.date)}
+                        </div>
+                        <div className="col-span-2 text-center text-gray-800">
                           {item.beneficiaries || "—"}
-                        </td>
-                        <td className="text-center text-sm py-4">
+                        </div>
+                        <div className="col-span-2 text-center">
                           <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${statusClasses}`}
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                              statusColors[item.status] || statusColors.Default
+                            }`}
                           >
-                            {status || "—"}
+                            {item.status || "—"}
                           </span>
-                        </td>
-                        <td className="text-center text-sm py-4">
-                          <div className="flex gap-2 justify-center">
+                        </div>
+                        <div className="col-span-1 flex justify-center gap-1">
+                          {item.status !== "Completed" && (
                             <button
-                              onClick={() => handleViewClick(item.id)}
-                              className="text-white py-1 px-2 rounded-md shadow bg-primary"
+                              onClick={() => handleDeleteClick(item.id)} // Cancel 
+                              className="bg-red-500 hover:bg-red-600 text-white py-1.5 px-2 rounded transition-colors"
+                              title="Delete Request"
                             >
-                              View
+                              <X className="w-3.5 h-3.5" />
                             </button>
-                            {/* <button
-                              onClick={() =>
-                                console.log("Edit/Update", item.id)
-                              }
-                              className="text-white py-1 px-2 rounded-md shadow bg-yellow-500"
+                          )}
+                          {item.status === "Rejected" && (
+                            <button
+                              onClick={() => handleDeleteClick(item.id)} // Resubmit
+                              className="bg-yellow hover:bg-yellow/90 cursor-pointer text-white py-1.5 px-2 rounded transition-colors"
+                              title="Resubmit Application"
                             >
-                              Edit
-                            </button> */}
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {item.status === "Completed" && (
                             <button
                               onClick={() => handleDeleteClick(item.id)}
-                              className="text-white py-1 px-2 rounded-md shadow bg-red-500"
+                              className="bg-red-500 hover:bg-red-600 text-white py-1.5 px-2 rounded transition-colors"
+                              title="Delete Request"
                             >
-                              Delete
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-
-                  {paginatedData.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan="6"
-                        className="text-center py-4 text-gray-500"
-                      >
-                        No records found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                          ) }
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Footer Pagination */}
-          <div className="flex justify-end items-center py-2 gap-5">
-            <div className="flex items-center gap-2">
-              <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
-                Record per page:
-              </label>
-              <select
-                id="recordsPerPage"
-                className="w-16 rounded-md shadow-sm"
-                value={recordsPerPage}
-                onChange={handleRecordsPerPageChange}
-              >
-                <option>10</option>
-                <option>20</option>
-                <option>50</option>
-              </select>
-            </div>
-            <div className="flex gap-3 items-center">
-              <span className="text-sm text-gray-700">
-                {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
-                – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                {totalRecords}
-              </span>
-              <button
-                onClick={handlePrev}
-                disabled={currentPage === 1}
-                className="text-gray-600"
-              >
-                ←
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={currentPage === totalPages}
-                className="text-gray-600"
-              >
-                →
-              </button>
+            {/* Pagination */}
+            <div className="flex justify-between items-center mt-4 px-2">
+              <div className="flex items-center gap-2">
+                <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                  Records per page:
+                </label>
+                <select
+                  id="recordsPerPage"
+                  className="border border-gray-300 rounded-md p-1 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                  value={recordsPerPage}
+                  onChange={handleRecordsPerPageChange}
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-700">
+                  {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)} -{" "}
+                  {Math.min(currentPage * recordsPerPage, totalRecords)} of {totalRecords}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={handlePrev}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded text-sm ${
+                      currentPage === 1
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded text-sm ${
+                      currentPage === totalPages
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* ----------------------- Delete Confirmation Modal ----------------------- */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center">
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/40" />
-          {/* Box */}
-          <div className="relative bg-white w-[min(420px,92vw)] rounded-xl shadow-xl p-6 z-50 text-center">
-            <h4 className="text-lg font-semibold mb-2">Delete this record?</h4>
-            <p className="text-sm text-gray2 mb-6">
-              This action cannot be undone.
-            </p>
-            <div className="flex justify-center gap-3">
-              <button
-                type="button"
-                onClick={cancelDelete}
-                className="px-4 py-2 rounded-md border border-gray2 "
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmDelete}
-                className="px-4 py-2 rounded-md bg-red-600 text-white font-semibold"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   );
 };
 
-export default applicationStatus;
+export default MassScreeningStatus;

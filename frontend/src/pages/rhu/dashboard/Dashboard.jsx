@@ -470,7 +470,7 @@ const Dashboard = () => {
     },
     {
       id: 3,
-      icon: "/src/assets/images/dashboard/home.svg",
+      icon: "/src/assets/images/dashboard/Home.svg",
       label: "Mass Screening Activities",
       value: dueForHomeVisit.toLocaleString(),
     },

@@ -103,7 +103,7 @@ class PreCancerousMedsDeleteView(generics.DestroyAPIView):
   queryset = PreCancerousMedsRequest.objects.all()
   lookup_field = 'id'
 
-  permission_classes = [IsAuthenticated, IsAdminUser]
+  permission_classes = [IsAuthenticated]
 
 # class AdminPreCancerousMedsSetReleaseDateView(generics.UpdateAPIView):
 #   queryset = PreCancerousMedsRequest.objects.all()

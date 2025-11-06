@@ -7,7 +7,8 @@ import api from "src/api/axiosInstance";
 const WellBeingForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { wellBeingData, patient } = location.state || {};
+  const { form, patient } = location.state || {};
+  const wellBeingData = form?.well_being_data;
   const { user } = useAuth();
   // const [ patient, setPatient ] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -16,19 +17,18 @@ const WellBeingForm = () => {
   const [improve, setImprove] = useState("");
 
   // simple form state for the header fields
-  const [form, setForm] = useState({
+  const [wellBeingForm, setWellBeingForm] = useState({
     name: "",
     address: "",
     diagnosis: "",
-    // serviceType: serviceType,
     generalStatus: "",
   });
 
-  console.log("Wellbeing Form: ", wellBeingData);
   console.log("Patient: ", patient);
+  console.log("State: ", location.state);
 
   const updateForm = (key) => (e) =>
-    setForm((p) => ({ ...p, [key]: e.target.value }));
+    setWellBeingForm((p) => ({ ...p, [key]: e.target.value }));
 
   const scale = [
     { value: 1, en: "Strongly Disagree", ceb: "Hugot nga di muuyon" },
@@ -41,7 +41,7 @@ const WellBeingForm = () => {
 
   useEffect(() => {
     if (patient) {
-      setForm((prev) => {
+      setWellBeingForm((prev) => {
         return {
           ...prev,
           name: patient.full_name,
@@ -52,21 +52,34 @@ const WellBeingForm = () => {
     }
   }, [patient]);
 
-  // useEffect(() => {
-  //   if (wellBeingData) {
-  //     const mapped = {};
-  //     wellBeingData.answers?.forEach((a) => {
-  //       mapped[a.question.id] = a.value; // or use a.question.id if needed
-  //     });
-  //     setAnswers(mapped);
-  //   }
-  // }, [wellBeingData]);
+  useEffect(() => {
+    if (Object.keys(wellBeingData).length !== 0) {
+      setWellBeingForm((prev) => {
+        return {
+          ...prev,
+          generalStatus: wellBeingData.generalStatus
+        }
+      })
 
-  // useEffect(() => {
-  //   if (wellBeingData?.improve) {
-  //     setImprove(wellBeingData.improve);
-  //   }
-  // }, [wellBeingData]);
+      const mapped = {};
+      console.log("Well Being Data Form: ", wellBeingData);
+      // wellBeingData.answers?.forEach((a) => {
+      //   mapped[a.question.id] = a.value; // or use a.question.id if needed
+      // });
+      Object.entries(wellBeingData.answers)?.forEach(([questionNum, answer]) => {
+        // console.log(`Question ${questionNum}: Answer ${answer}`);
+        mapped[questionNum] = answer;
+      });
+      setAnswers(mapped);
+    }
+
+  }, [wellBeingData]);
+
+  useEffect(() => {
+    if (wellBeingData?.improve) {
+      setImprove(wellBeingData.improve);
+    }
+  }, [wellBeingData]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -94,13 +107,25 @@ const WellBeingForm = () => {
 
   const handleDone = () => {
     const wellBeingData = {
-      ...form,
+      ...wellBeingForm,
       improve: improve.trim(),
       answers,
     };
 
     navigate("/admin/survivorship/add", {
-      state: { wellBeingData, patient },
+      state: { wellBeingData, patient, form },
+    });
+  };
+
+  const handleBack = () => {
+    const wellBeingData = {
+      ...wellBeingForm,
+      improve: improve.trim(),
+      answers,
+    };
+
+    navigate("/admin/survivorship/add", {
+      state: { wellBeingData, patient, form },
     });
   };
 
@@ -128,7 +153,7 @@ const WellBeingForm = () => {
                 </label>
                 <input
                   type="text"
-                  value={form.name}
+                  value={wellBeingForm.name}
                   className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
@@ -149,7 +174,7 @@ const WellBeingForm = () => {
                 </label>
                 <input
                   type="text"
-                  value={form.address}
+                  value={wellBeingForm.address}
                   className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
@@ -161,7 +186,7 @@ const WellBeingForm = () => {
                 </label>
                 <input
                   type="text"
-                  value={form.diagnosis}
+                  value={wellBeingForm.diagnosis}
                   className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
@@ -173,7 +198,7 @@ const WellBeingForm = () => {
                 </label>
                 <input
                   type="text"
-                  value={form.generalStatus}
+                  value={wellBeingForm.generalStatus}
                   onChange={updateForm("generalStatus")}
                   className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                 />
@@ -307,12 +332,13 @@ const WellBeingForm = () => {
           </div>
 
           <div className="flex w-full justify-between gap-8">
-            <Link
-              to="/admin/survivorship/add"
+            <button
+              // to="/admin/survivorship/add"
+              onClick={handleBack}
               className="border py-3 rounded-md text-center w-full hover:bg-black/10 hover:border-white"
             >
               Back
-            </Link>
+            </button>
             <button
               type="button"
               onClick={handleDone}

@@ -49,6 +49,26 @@ class PatientHomeVisitCreateView(generics.CreateAPIView):
     serializer_class = HomevisitSerializer
     permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+      request = self.request
+      patient_id = request.data.get("patient_id")
+      patient = get_object_or_404(Patient, patient_id=patient_id)
+
+      existing_record = PatientHomeVisit.objects.filter(
+          patient=patient,
+          status__in=['Pending', 'Approved']
+        ).first()
+      
+      if existing_record:
+        raise ValidationError({
+          'non_field_errors': [
+            "An ongoing application for this patient currently exists."
+          ]
+        })
+      
+      serializer.save()
+      # return super().perform_create(serializer)
+
 class PatientHomeVisitDetailView(generics.RetrieveAPIView):
   queryset = PatientHomeVisit.objects.all()
   serializer_class = HomevisitSerializer
@@ -91,6 +111,12 @@ class PatientHomeVisitUpdateView(generics.UpdateAPIView):
     #     date_completed = timezone.now().date()
     #   )
     # return super().perform_update(serializer)
+
+class PatientHomeVisitDeleteView(generics.DestroyAPIView):
+  queryset = PatientHomeVisit.objects.all()
+  lookup_field = 'id'
+
+  permission_classes = [IsAuthenticated, IsAdminUser]
 
 class SendReportView(APIView):
   permission_classes = [IsAuthenticated, IsAdminUser]

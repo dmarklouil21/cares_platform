@@ -852,18 +852,18 @@ const PreCancerous = () => {
                                 </button>
                               </>
                             ) : p.status === "Rejected" ||
-                              p.status === "Completed" ? (
-                              <button
-                                onClick={() => openConfirm(p.id, "delete")}
-                                className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
-                              >
-                                {/* Delete */}
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                                p.status === "Completed" ? (
+                                <button
+                                  onClick={() => openConfirm(p.id, "delete")}
+                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                >
+                                  {/* Delete */}
+                                  <Trash2 className="w-3.5 h-3.5"/>
+                                </button>
                             ) : (
                               <button
                                 onClick={() => openConfirm(p.id, "delete")}
-                                className="bg-red-500 hover:bg-red-600 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
+                                className="bg-red-500 hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
                                 {/* Delete */}
                                 <X className="w-3.5 h-3.5" />

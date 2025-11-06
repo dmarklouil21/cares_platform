@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import Notification from "src/components/Notification";
-import LoadingModal from "src/components/Modal/LoadingModal";
 
 import SystemLoader from "src/components/SystemLoader";
 
@@ -197,24 +196,6 @@ const AdminHormonalReplacementAdd = () => {
     e.target.value = ""; // allow reselecting the same file
   };
 
-  // Defaults for date/schedule
-  // useEffect(() => {
-  //   const today = new Date();
-  //   const yyyy = today.getFullYear();
-  //   const mm = String(today.getMonth() + 1).padStart(2, "0");
-  //   const dd = String(today.getDate()).padStart(2, "0");
-  //   if (!date) setDate(`${yyyy}-${mm}-${dd}`);
-  //   if (!schedule) setSchedule(`${yyyy}-${mm}-${dd}`);
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
-
-  // Auto-fill Age & Address when selecting a patient
-  // useEffect(() => {
-  //   if (!patient) return;
-  //   setAge(patient.age != null ? String(patient.age) : "");
-  //   setPatientAddress(patient.address || "");
-  // }, [patient]);
-
   const isValid = useMemo(() => {
     return (
       patient &&
@@ -227,26 +208,6 @@ const AdminHormonalReplacementAdd = () => {
     date,
     medicines,
   ]);
-
-  const validateOrNotify = () => {
-    if (isValid) return true;
-
-    const msg = !patient
-      ? "Please select a patient."
-      : !medicines.trim()
-      ? "Please enter Service Provider/Lab Name."
-      : !diagnosis.trim()
-      ? "Please enter Diagnosis."
-      : !date
-      ? "Please set Date."
-      : !inputRef
-      ? "Please upload the laboratory request."
-      : "Please complete all required fields.";
-
-    setNotifyInfo({ type: "info", title: "Incomplete", message: msg });
-    setNotifyOpen(true);
-    return false;
-  };
 
   const validate = () => {
     const newErrors = {};
@@ -304,12 +265,8 @@ const AdminHormonalReplacementAdd = () => {
       });
     } catch (error) {
       let errorMessage = "Something went wrong while submitting the form.";
-      console.log("Error Response: ", error);
       if (error.response && error.response.data) {
-        console.log("1")
-        console.log(error.response)
         if (error.response.data.non_field_errors) {
-          console.log("2")
           errorMessage = error.response.data.non_field_errors[0];
         } else if (error.response.data.detail){
           errorMessage = error.response.data.detail;

@@ -2,35 +2,11 @@ import React, { useState, useRef, useMemo, useEffect, use } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import Notification from "src/components/Notification";
 
 import api from "src/api/axiosInstance";
 
 import SystemLoader from "src/components/SystemLoader";
-
-// function ConfirmationModal({ open, text, onConfirm, onCancel }) {
-//   if (!open) return null;
-//   return (
-//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px] bg-opacity-30">
-//       <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] flex flex-col items-center">
-//         <p className="mb-6 text-xl font-semibold text-gray-800">{text}</p>
-//         <div className="flex gap-4">
-//           <button
-//             className="px-5 py-1.5 rounded bg-primary text-white font-semibold hover:bg-primary/50"
-//             onClick={onConfirm}
-//           >
-//             Confirm
-//           </button>
-//           <button
-//             className="px-5 py-1.5 rounded bg-red-500 text-white font-semibold hover:bg-red-200"
-//             onClick={onCancel}
-//           >
-//             Cancel
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
 
 /* =========================
    Searchable Select (inline)
@@ -41,6 +17,7 @@ const SearchableSelect = ({
   options = [],
   value = null,
   onChange,
+  errors = {}
 }) => {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -66,7 +43,7 @@ const SearchableSelect = ({
 
   return (
     <div className="w-full" ref={ref}>
-      <label className="text-sm font-medium block mb-1">{label}</label>
+      <label className="text-sm font-medium block mb-1">{label} <span className="text-red-500">*</span></label>
       <div className="relative">
         <button
           type="button"
@@ -110,6 +87,11 @@ const SearchableSelect = ({
           </div>
         )}
       </div>
+      {errors.patient && !value && (
+        <span className="text-red-500 text-xs">
+          {errors.patient}
+        </span>
+      )}
       {value && (
         <p className="text-xs text-gray-500 mt-1">
           Selected: <span className="font-medium">{value.full_name}</span>{" "}
@@ -128,12 +110,13 @@ function Input({
   type = "text",
   placeholder = "",
   rows,
-  error,
-  readOnly=false
+  errors = {},
+  readOnly=false,
+  required=false,
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium">{label}</label>
+      <label className="text-sm font-medium">{label} {required && <span className="text-red-500">*</span>}</label>
       {rows ? (
         <textarea
           name={name}
@@ -154,7 +137,11 @@ function Input({
           readOnly={readOnly}
         />
       )}
-      {error && <span className="text-xs text-red-500">{error}</span>}
+      {errors[name] && (
+        <span className="text-red-500 text-xs">
+          {errors[name]} 
+        </span>
+      )}
     </div>
   );
 }
@@ -162,13 +149,9 @@ function Input({
 const HomeVisitAdd = () => {
   const [form, setForm] = useState({
     patient_id: "",
-    // patientName: "",
-    // diagnosis: "",
-    // date: "",
-    // time: "",
     purpose_of_visit: "",
-    findings: "",
-    recommendations: "",
+    // findings: "",
+    // recommendations: "",
     prepared_by: "",
     approved_by: "",
     status: "Pending",
@@ -181,10 +164,14 @@ const HomeVisitAdd = () => {
   const [patientTable, setPatientTable] = useState([]);
   const [patient, setPatient] = useState(null); // from SAMPLE_PATIENTS
   const [errors, setErrors] = useState({});
-  const [notification, setNotification] = useState("");
+  
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [wellBeingData, setWellBeingData] = useState(null);
+
+  // Notification
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState("info");
 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -206,6 +193,9 @@ const HomeVisitAdd = () => {
   }, []);
 
   useEffect(() => {
+    if (record?.form) {
+      setForm(record.form);
+    }
     if (record?.wellBeingData) {
       // setWellBeingData(record.wellBeningData);
       setForm((prev) => {
@@ -220,13 +210,26 @@ const HomeVisitAdd = () => {
   console.log("Wellbeing Data: ", form.well_being_data);
   console.log("Record: ", record);
 
-  /* const validate = () => {
-    const e = {};
-    required.forEach((k) => {
-      if (!String(form[k] || "").trim()) e[k] = "Required";
+  const validate = () => {
+    const newErrors = {};
+    // Required fields
+    const requiredFields = {
+      prepared_by: "This field is required.",
+      approved_by: "This field is required.",
+      purpose_of_visit: "This field is required.",
+    };
+
+    // Validate form fields
+    Object.entries(requiredFields).forEach(([field, message]) => {
+      if (!form[field] || !form[field].toString().trim()) {
+        newErrors[field] = message;
+      }
     });
-    return e;
-  }; */
+    if (!patient)
+      newErrors["patient"] = "Select a patient."
+
+    return newErrors;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -241,6 +244,16 @@ const HomeVisitAdd = () => {
     //   setErrors(v);
     //   return;
     // }
+    const validationErrors = validate();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      console.log("Errors: ", validationErrors);
+      return;
+    }
+
+    setErrors({});
+    
     setForm((prev) => {
       return {
         ...prev,
@@ -259,17 +272,22 @@ const HomeVisitAdd = () => {
       await api.post("survivorship/home-visit/create/", form);
       navigate("/admin/survivorship");
     } catch (error) {
-      alert("Something went wrong");
+      let errorMessage = "Something went wrong while submitting the form.";
+      console.log("Errors: ", error)
+      if (error.response && error.response.data) {
+        if (error.response.data.non_field_errors) {
+          errorMessage = error.response.data.non_field_errors[0];
+        } else if (error.response.data.detail){
+          errorMessage = error.response.data.detail;
+        }
+      }
+      setNotification(errorMessage);
+      setNotificationType("error");
+      setTimeout(() => setNotification(""), 3000);
       console.error(error);
     } finally {
       setLoading(false);
     }
-    
-    // setNotification("Home visit added");
-    // setTimeout(() => {
-    //   setNotification("");
-    //   navigate("/admin/survivorship");
-    // }, 1500);
   };
 
   const handleModalCancel = () => {
@@ -279,9 +297,7 @@ const HomeVisitAdd = () => {
 
   const handleAddWellbeingForm = () => {
     navigate("/admin/survivorship/add/well-being-form", { 
-      state: { wellBeingData,
-        patient
-        }
+      state: { form, patient }
       }
     )
   };
@@ -295,19 +311,11 @@ const HomeVisitAdd = () => {
         desc="Please confirm before proceeding."
         onConfirm={handleModalConfirm}
         onCancel={handleModalCancel}
-        // onCancel={() =>
-        //   setConfirmation({ open: false, text: "", desc: "", action: null })
-        // }
       />
-      {/* <ConfirmationModal
-        open={modalOpen}
-        text={modalText}
-        
-        onConfirm={handleModalConfirm}
-        onCancel={handleModalCancel}
-      /> */}
+      <Notification message={notification} type={notificationType} />
+
       <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center bg-gray overflow-auto">
-        {notification && (
+        {/* {notification && (
           <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
             <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
               <img
@@ -318,7 +326,7 @@ const HomeVisitAdd = () => {
               <span>{notification}</span>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Add home visit</h1>
@@ -348,55 +356,16 @@ const HomeVisitAdd = () => {
                 options={patientTable}
                 value={patient}
                 onChange={setPatient}
+                errors={errors}
               />
-              {/* <Input
-                label="Status"
-                name="status"
-                value={"Pending"}
-                // onChange={handleChange}
-                placeholder="e.g., Lara Mendoza"
-                error={errors.patientName}
-              /> */}
-              {/* <Input
-                label="Date"
-                name="date"
-                value={form.date}
-                onChange={handleChange}
-                type="date"
-                error={errors.date}
-              /> */}
-              {/* <Input
-                label="Diagnosis"
-                name="diagnosis"
-                value={form.diagnosis}
-                onChange={handleChange}
-                placeholder="e.g., Breast CA post-op"
-                error={errors.diagnosis}
-              /> */}
-              {/* <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="Date"
-                  name="date"
-                  value={form.date}
-                  onChange={handleChange}
-                  type="date"
-                  error={errors.date}
-                />
-                <Input
-                  label="Time"
-                  name="time"
-                  value={form.time}
-                  onChange={handleChange}
-                  type="time"
-                  error={errors.time}
-                />
-              </div> */}
               <Input
                 label="Prepared by"
                 name="prepared_by"
                 value={form.prepared_by}
                 onChange={handleChange}
                 placeholder="e.g., Nurse Alma Cruz"
+                errors={errors}
+                required={true}
               />
               <Input
                 label="Approved by"
@@ -404,6 +373,8 @@ const HomeVisitAdd = () => {
                 value={form.approved_by}
                 onChange={handleChange}
                 placeholder="e.g., Dr. Thea Ramos"
+                errors={errors}
+                required={true}
               />
             </div>
           </div>
@@ -415,13 +386,15 @@ const HomeVisitAdd = () => {
             <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
               <Input
                 label="Purpose of Visit"
-                name="purpose"
-                value={form.purpose}
+                name="purpose_of_visit"
+                value={form.purpose_of_visit}
                 onChange={handleChange}
                 placeholder="Enter purpose"
                 rows={3}
+                errors={errors}
+                required={true}
               />
-              <Input
+              {/* <Input
                 label="Findings/Observation"
                 name="findings"
                 value={form.findings}
@@ -436,7 +409,7 @@ const HomeVisitAdd = () => {
                 onChange={handleChange}
                 placeholder="Enter recommendations"
                 rows={3}
-              />
+              /> */}
             </div>
           </div>
 
@@ -451,14 +424,17 @@ const HomeVisitAdd = () => {
                   // to={"/admin/survivorship/add/well-being-form"}
                   // state={patient}
                   onClick={handleAddWellbeingForm}
-                  className="text-blue-700"
+                  className="text-blue-700 cursor-pointer"
                 >
-                  Add
+                  {Object.keys(form.well_being_data).length === 0 ? (
+                    "Add"
+                  ) : "Edit"
+                  }
                 </button>
               </div>
             </div>
           </div>
-
+{/* Stop here for now */}
           <div className="w-full flex justify-around pb-6">
             <Link
               className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
