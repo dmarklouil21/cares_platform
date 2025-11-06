@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Printer, Info, CheckCircle, X, Trash2, Pencil, Edit } from "lucide-react";
+import {
+  Printer,
+  Info,
+  CheckCircle,
+  X,
+  Trash2,
+  Pencil,
+  Edit,
+} from "lucide-react";
 
 import api from "src/api/axiosInstance";
 
@@ -156,7 +164,31 @@ const PatientMasterList = () => {
       setModalOpen(true);
     }
   };
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
 
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `Patient_Master_List_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   return (
     <>
       <style>{`
@@ -206,7 +238,7 @@ const PatientMasterList = () => {
           </h2>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => window.print()}
+              onClick={handlePrintReport}
               className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
             >
               <Printer className="w-4 h-4" />
@@ -287,7 +319,9 @@ const PatientMasterList = () => {
                   new Set(
                     patients
                       .map((p) =>
-                        p.created_at ? new Date(p.created_at).getFullYear() : null
+                        p.created_at
+                          ? new Date(p.created_at).getFullYear()
+                          : null
                       )
                       .filter((y) => y !== null)
                   )
@@ -343,7 +377,7 @@ const PatientMasterList = () => {
                         key={patient.patient_id}
                         className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                       >
-                        <div 
+                        <div
                           className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
                           onClick={() => handleViewClick(patient.patient_id)}
                         >
@@ -372,7 +406,7 @@ const PatientMasterList = () => {
                             onClick={() => handleEditClick(patient.patient_id)}
                             className="bg-yellow-500 cursor-pointer hover:bg-yellow-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                           >
-                            <Pencil className="w-3.5 h-3.5"/>
+                            <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() =>
@@ -380,7 +414,7 @@ const PatientMasterList = () => {
                             }
                             className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                           >
-                            <Trash2 className="w-3.5 h-3.5"/>
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
@@ -397,7 +431,10 @@ const PatientMasterList = () => {
               </div>
               <div className="flex items-center gap-4 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
-                  <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                  <label
+                    htmlFor="recordsPerPage"
+                    className="text-sm text-gray-700"
+                  >
                     Records per page:
                   </label>
                   <select
@@ -413,7 +450,10 @@ const PatientMasterList = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span>
-                    {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)}{" "}
+                    {Math.min(
+                      (currentPage - 1) * recordsPerPage + 1,
+                      totalRecords
+                    )}{" "}
                     – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
                     {totalRecords}
                   </span>

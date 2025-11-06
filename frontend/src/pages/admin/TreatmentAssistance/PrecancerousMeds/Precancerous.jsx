@@ -176,7 +176,10 @@ function VerifyModal({ open, onClose, onConfirm, value, onChange, loading }) {
           Set the release date to verify this medication request.
         </p>
         <div className="relative">
-          <label className="text-sm text-gray-700 font-medium" htmlFor="releaseDate">
+          <label
+            className="text-sm text-gray-700 font-medium"
+            htmlFor="releaseDate"
+          >
             Release Date
           </label>
           <div className="mt-1 flex items-center gap-2">
@@ -370,7 +373,8 @@ const PreCancerous = () => {
       const recordDay = recordDateObj.getDate();
 
       const matchesDay = !dayFilter || recordDay === parseInt(dayFilter);
-      const matchesMonth = !monthFilter || recordMonth === parseInt(monthFilter);
+      const matchesMonth =
+        !monthFilter || recordMonth === parseInt(monthFilter);
       const matchesYear = !yearFilter || recordYear === parseInt(yearFilter);
 
       return (
@@ -501,7 +505,31 @@ const PreCancerous = () => {
     Completed: "bg-green-100 text-green-700",
     Default: "bg-gray-100 text-gray-700",
   };
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
 
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `Pre_Cancerous_Request_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   return (
     <>
       <style>{`
@@ -533,7 +561,7 @@ const PreCancerous = () => {
           onConfirm={doAction}
           onCancel={cancelAction}
         />
-        
+
         <VerifyModal
           open={verifyOpen}
           onClose={() => {
@@ -548,9 +576,9 @@ const PreCancerous = () => {
           onChange={setVerifyDate}
           loading={verifyLoading}
         />
-        
+
         <Notification message={notification} />
-        <RemarksModal 
+        <RemarksModal
           open={remarksModalOpen}
           title="Remarks"
           placeholder="Enter your remarks here..."
@@ -571,10 +599,12 @@ const PreCancerous = () => {
             </h2>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintReport}
                 disabled={loading}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors ${
-                  loading ? "bg-primary/60 cursor-not-allowed" : "bg-primary hover:bg-primary/90"
+                  loading
+                    ? "bg-primary/60 cursor-not-allowed"
+                    : "bg-primary hover:bg-primary/90"
                 }`}
                 title={loading ? "Loading data..." : "Print current list"}
               >
@@ -718,9 +748,9 @@ const PreCancerous = () => {
                           key={p.id}
                           className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                         >
-                          <div 
+                          <div
                             className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
-                            onClick={() => handleView(p.id) }
+                            onClick={() => handleView(p.id)}
                           >
                             {p.patient.patient_id}
                           </div>
@@ -772,21 +802,21 @@ const PreCancerous = () => {
                                 </button>
                               </>
                             ) : p.status === "Rejected" ||
-                                p.status === "Completed" ? (
-                                <button
-                                  onClick={() => openConfirm(p.id, "delete")}
-                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
-                                >
-                                  {/* Delete */}
-                                  <Trash2 className="w-3.5 h-3.5"/>
-                                </button>
+                              p.status === "Completed" ? (
+                              <button
+                                onClick={() => openConfirm(p.id, "delete")}
+                                className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
+                              >
+                                {/* Delete */}
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             ) : (
                               <button
                                 onClick={() => openConfirm(p.id, "delete")}
                                 className="bg-red-500 hover:bg-red-600 text-white py-1.5 px-3 rounded text-xs font-medium transition-colors"
                               >
                                 {/* Delete */}
-                                <X className="w-3.5 h-3.5"/>
+                                <X className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>
@@ -804,14 +834,19 @@ const PreCancerous = () => {
                 </div>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
-                    <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                    <label
+                      htmlFor="recordsPerPage"
+                      className="text-sm text-gray-700"
+                    >
                       Records per page:
                     </label>
                     <select
                       id="recordsPerPage"
                       className="border border-gray-300 rounded-md p-1 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
                       value={recordsPerPage}
-                      onChange={(e) => setRecordsPerPage(Number(e.target.value))}
+                      onChange={(e) =>
+                        setRecordsPerPage(Number(e.target.value))
+                      }
                     >
                       <option>10</option>
                       <option>20</option>
@@ -824,12 +859,14 @@ const PreCancerous = () => {
                         (currentPage - 1) * recordsPerPage + 1,
                         totalRecords
                       )}{" "}
-                      – {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
-                      {totalRecords}
+                      – {Math.min(currentPage * recordsPerPage, totalRecords)}{" "}
+                      of {totalRecords}
                     </span>
                     <div className="flex gap-1">
                       <button
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
                         disabled={currentPage === 1}
                         className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
                       >

@@ -101,7 +101,13 @@ const PostTreatment = () => {
       const matchesYear = !yearFilter || createdYear === Number(yearFilter);
       const matchesDay = !dayFilter || createdDay === Number(dayFilter);
 
-      return matchesSearch && matchesStatus && matchesMonth && matchesYear && matchesDay;
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesMonth &&
+        matchesYear &&
+        matchesDay
+      );
     });
 
     const totalRecords = filtered.length;
@@ -189,7 +195,31 @@ const PostTreatment = () => {
     Rejected: "bg-red-100 text-red-700",
     Default: "bg-gray-100 text-gray-700",
   };
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
 
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `Post_Treatment_Request_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   return (
     <>
       <style>{`
@@ -227,7 +257,7 @@ const PostTreatment = () => {
         />
 
         <Notification message={notification} type={notificationType} />
-        <RemarksModal 
+        <RemarksModal
           open={remarksModalOpen}
           title="Remarks"
           placeholder="Enter your remarks here..."
@@ -246,10 +276,12 @@ const PostTreatment = () => {
             </h2>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintReport}
                 disabled={loading}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors ${
-                  loading ? "bg-primary/60 cursor-not-allowed" : "bg-primary hover:bg-primary/90"
+                  loading
+                    ? "bg-primary/60 cursor-not-allowed"
+                    : "bg-primary hover:bg-primary/90"
                 }`}
                 title={loading ? "Loading data..." : "Print current list"}
               >
@@ -391,7 +423,7 @@ const PostTreatment = () => {
                           key={p.id}
                           className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                         >
-                          <div 
+                          <div
                             className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
                             onClick={() => handleView(p.id)}
                           >
@@ -415,7 +447,7 @@ const PostTreatment = () => {
                                     }
                                   />
                                 </span>
-                                )}
+                              )}
                             </div>
                           </div>
                           <div className="col-span-3 text-center text-gray-800">
@@ -425,11 +457,14 @@ const PostTreatment = () => {
                             {p.patient?.diagnosis?.[0]?.diagnosis || "N/A"}
                           </div>
                           <div className="col-span-2 text-center text-gray-800">
-                            {new Date(p.created_at).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
+                            {new Date(p.created_at).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              }
+                            )}
                           </div>
                           <div className="col-span-2 text-center">
                             <span
@@ -471,35 +506,38 @@ const PostTreatment = () => {
                                   onClick={() => openConfirm(p.id, "accept")}
                                   className="bg-primary cursor-pointer text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
-                                  <CheckCircle className="w-3.5 h-3.5"/>
+                                  <CheckCircle className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={() => {
-                                    setModalAction({ status: "Rejected", id: p.id})
-                                    setRemarksModalOpen(true)
+                                    setModalAction({
+                                      status: "Rejected",
+                                      id: p.id,
+                                    });
+                                    setRemarksModalOpen(true);
                                   }}
                                   className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
-                                  <X className="w-3.5 h-3.5"/>
+                                  <X className="w-3.5 h-3.5" />
                                 </button>
                               </>
                             ) : p.status === "Rejected" ||
-                                p.status === "Completed" ? (
-                                <button
-                                  onClick={() => openConfirm(p.id, "delete")}
-                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
-                                >
-                                  {/* Delete */}
-                                  <Trash2 className="w-3.5 h-3.5"/>
-                                </button>
+                              p.status === "Completed" ? (
+                              <button
+                                onClick={() => openConfirm(p.id, "delete")}
+                                className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                              >
+                                {/* Delete */}
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             ) : (
-                                <button
-                                  className="bg-red-500 hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
-                                  onClick={() => openConfirm(p.id, "delete")}
-                                >
-                                  {/* Cancel */}
-                                  <X className="w-3.5 h-3.5"/>
-                                </button>
+                              <button
+                                className="bg-red-500 hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                onClick={() => openConfirm(p.id, "delete")}
+                              >
+                                {/* Cancel */}
+                                <X className="w-3.5 h-3.5" />
+                              </button>
                             )}
                           </div>
                         </div>
@@ -512,11 +550,15 @@ const PostTreatment = () => {
               {/* Pagination */}
               <div className="flex justify-between items-center mt-4 px-2">
                 <div className="text-sm text-gray-600">
-                  Showing {filteredAndPaginated.paginatedData.length} of {filteredAndPaginated.totalRecords} records
+                  Showing {filteredAndPaginated.paginatedData.length} of{" "}
+                  {filteredAndPaginated.totalRecords} records
                 </div>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
-                    <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                    <label
+                      htmlFor="recordsPerPage"
+                      className="text-sm text-gray-700"
+                    >
                       Records per page:
                     </label>
                     <select
@@ -539,7 +581,9 @@ const PostTreatment = () => {
                   <div className="flex items-center gap-2">
                     <span>
                       {Math.min(
-                        (pagination.currentPage - 1) * pagination.recordsPerPage + 1,
+                        (pagination.currentPage - 1) *
+                          pagination.recordsPerPage +
+                          1,
                         filteredAndPaginated.totalRecords
                       )}{" "}
                       –{" "}
@@ -572,7 +616,10 @@ const PostTreatment = () => {
                             ),
                           }))
                         }
-                        disabled={pagination.currentPage === filteredAndPaginated.totalPages}
+                        disabled={
+                          pagination.currentPage ===
+                          filteredAndPaginated.totalPages
+                        }
                         className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
                       >
                         →

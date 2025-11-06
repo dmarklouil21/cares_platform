@@ -28,7 +28,9 @@ const HormonalReplacement = () => {
     currentPage: 1,
   });
 
-  const [modalDesc, setModalDesc] = useState("Please confirm before proceeding");
+  const [modalDesc, setModalDesc] = useState(
+    "Please confirm before proceeding"
+  );
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState("");
   const [notificationType, setNotificationType] = useState(
@@ -50,7 +52,9 @@ const HormonalReplacement = () => {
   // Released Date Modal
   const [releaseDate, setReleaseDate] = useState(null);
   const [dateModalOpen, setDateModalOpen] = useState(false);
-  const [dateModalTitle, setDateModalTitle] = useState("Set Medicine Release Date");
+  const [dateModalTitle, setDateModalTitle] = useState(
+    "Set Medicine Release Date"
+  );
 
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
@@ -140,7 +144,14 @@ const HormonalReplacement = () => {
 
   useEffect(() => {
     setPagination((p) => ({ ...p, currentPage: 1 }));
-  }, [filters.search, filters.status, filters.date, dayFilter, monthFilter, yearFilter]);
+  }, [
+    filters.search,
+    filters.status,
+    filters.date,
+    dayFilter,
+    monthFilter,
+    yearFilter,
+  ]);
 
   const openConfirm = (id, action) => {
     const actionText =
@@ -173,8 +184,11 @@ const HormonalReplacement = () => {
           status: "Approved",
           released_date: releaseDate,
         };
-  
-        await api.patch(`/survivorship/hormonal-replacement/update/${id}/`, payload);
+
+        await api.patch(
+          `/survivorship/hormonal-replacement/update/${id}/`,
+          payload
+        );
         // await api.patch(`post-treatment/approve/${id}/`, payload);
         setNotificationType("success");
         setNotification(`Request has been approved.`);
@@ -242,7 +256,7 @@ const HormonalReplacement = () => {
     setLoading(true);
     try {
       const { id } = modal.action;
-      const payload = { 
+      const payload = {
         status: "Approved",
         released_date: releaseDate,
       };
@@ -280,7 +294,31 @@ const HormonalReplacement = () => {
     Default: "bg-gray-100 text-gray-700",
     Rejected: "bg-red-100 text-red-700",
   };
+  const handlePrintReport = () => {
+    // 1. Save original title
+    const originalTitle = document.title;
 
+    // 2. Create new title
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    // You can change this title to whatever you like
+    const newTitle = `Hormonal_Replacement_Medication_Report - ${formattedDate}`;
+
+    // 3. Set new title
+    document.title = newTitle;
+
+    // 4. Call print
+    window.print();
+
+    // 5. Restore title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000); // 1-second delay
+  };
   return (
     <>
       <style>{`
@@ -326,7 +364,7 @@ const HormonalReplacement = () => {
           onCancel={() => setDateModalOpen(false)}
         />
 
-        <RemarksModal 
+        <RemarksModal
           open={remarksModalOpen}
           title="Remarks"
           placeholder="Enter your remarks here..."
@@ -347,10 +385,12 @@ const HormonalReplacement = () => {
             </h2>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintReport}
                 disabled={loading}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors ${
-                  loading ? "bg-primary/60 cursor-not-allowed" : "bg-primary hover:bg-primary/90"
+                  loading
+                    ? "bg-primary/60 cursor-not-allowed"
+                    : "bg-primary hover:bg-primary/90"
                 }`}
                 title={loading ? "Loading data..." : "Print current list"}
               >
@@ -492,30 +532,30 @@ const HormonalReplacement = () => {
                           key={p.id}
                           className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                         >
-                          <div 
+                          <div
                             className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
                             onClick={() => handleView(p.id)}
                           >
                             <div className="flex items-center justify-center gap-1">
                               {p.patient?.patient_id}
                               {p.has_patient_response && (
-                              <span
-                                title={
-                                  p.has_patient_response
-                                    ? p.response_description
-                                    : "No additional information"
-                                }
-                                className="cursor-pointer flex items-center"
-                              >
-                                <Info
-                                  size={14}
-                                  className={
+                                <span
+                                  title={
                                     p.has_patient_response
-                                      ? "text-yellow"
-                                      : "text-gray-300"
+                                      ? p.response_description
+                                      : "No additional information"
                                   }
-                                />
-                              </span>
+                                  className="cursor-pointer flex items-center"
+                                >
+                                  <Info
+                                    size={14}
+                                    className={
+                                      p.has_patient_response
+                                        ? "text-yellow"
+                                        : "text-gray-300"
+                                    }
+                                  />
+                                </span>
                               )}
                             </div>
                           </div>
@@ -551,35 +591,35 @@ const HormonalReplacement = () => {
                                   onClick={() => handleApprove(p.id)}
                                   className="bg-primary cursor-pointer text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
-                                  <CheckCircle className="w-3.5 h-3.5"/>
+                                  <CheckCircle className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={() => {
                                     // setModal({action: p.id})
                                     setModal({ action: { id: p.id } });
-                                    setRemarksModalOpen(true)
+                                    setRemarksModalOpen(true);
                                   }}
                                   className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
-                                  <X className="w-3.5 h-3.5"/>
+                                  <X className="w-3.5 h-3.5" />
                                 </button>
                               </>
                             ) : p.status === "Rejected" ||
-                                p.status === "Completed" ? (
-                                <button
-                                  onClick={() => openConfirm(p.id, "delete")}
-                                  className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
-                                >
-                                  {/* Delete */}
-                                  <Trash2 className="w-3.5 h-3.5"/>
-                                </button>
+                              p.status === "Completed" ? (
+                              <button
+                                onClick={() => openConfirm(p.id, "delete")}
+                                className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                              >
+                                {/* Delete */}
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             ) : (
                               <button
                                 onClick={() => openConfirm(p.id, "delete")}
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
                                 {/* Delete */}
-                                <X className="w-3.5 h-3.5"/>
+                                <X className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>
@@ -593,11 +633,15 @@ const HormonalReplacement = () => {
               {/* Pagination */}
               <div className="flex justify-between items-center mt-4 px-2">
                 <div className="text-sm text-gray-600">
-                  Showing {filteredAndPaginated.paginatedData.length} of {filteredAndPaginated.totalRecords} records
+                  Showing {filteredAndPaginated.paginatedData.length} of{" "}
+                  {filteredAndPaginated.totalRecords} records
                 </div>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
-                    <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                    <label
+                      htmlFor="recordsPerPage"
+                      className="text-sm text-gray-700"
+                    >
                       Records per page:
                     </label>
                     <select
@@ -620,7 +664,9 @@ const HormonalReplacement = () => {
                   <div className="flex items-center gap-2">
                     <span>
                       {Math.min(
-                        (pagination.currentPage - 1) * pagination.recordsPerPage + 1,
+                        (pagination.currentPage - 1) *
+                          pagination.recordsPerPage +
+                          1,
                         filteredAndPaginated.totalRecords
                       )}{" "}
                       –{" "}
@@ -653,7 +699,10 @@ const HormonalReplacement = () => {
                             ),
                           }))
                         }
-                        disabled={pagination.currentPage === filteredAndPaginated.totalPages}
+                        disabled={
+                          pagination.currentPage ===
+                          filteredAndPaginated.totalPages
+                        }
                         className="p-1 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
                       >
                         →
