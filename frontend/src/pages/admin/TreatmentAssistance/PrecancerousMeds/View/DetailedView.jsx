@@ -50,7 +50,6 @@ const PreCancerousView = () => {
 
   // Treatment Date Modal
   const [dateModalOpen, setDateModalOpen] = useState(false);
-  const [tempDate, setTempDate] = useState("");
   const [dateModalTitle, setDateModalTitle] = useState("Set Medicine Release Date");
 
   // fetch detail
