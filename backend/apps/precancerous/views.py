@@ -12,6 +12,8 @@ from backend.utils.email import send_precancerous_meds_status_email
 
 from apps.patient.models import Patient, ServiceReceived
 from apps.precancerous.models import PreCancerousMedsRequest
+
+from apps.notifications.utils import create_notification
 # Use local re-export to avoid cross-app dependency/cycles
 from apps.precancerous.serializers import (
   PreCancerousMedsRequestSerializer,
@@ -97,6 +99,9 @@ class AdminPreCancerousMedsUpdateView(generics.UpdateAPIView):
       )
       
     patient.save()
+    user = patient.user
+    if user:
+      create_notification(user, f'Pre Cancerous Medication {instance.status.title()}', f'Your pre cancerous medication request has been {instance.status}.')
     # return super().perform_update(serializer)
 
 class PreCancerousMedsDeleteView(generics.DestroyAPIView):

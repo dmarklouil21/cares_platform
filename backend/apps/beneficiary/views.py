@@ -124,44 +124,6 @@ class PreEnrollmentView(generics.CreateAPIView):
       status=status.HTTP_201_CREATED
     )
 
-# class PreEnrollmentView(generics.CreateAPIView):
-#   queryset = Patient.objects.all() 
-#   serializer_class = PreEnrollmentSerializer
-
-#   def create(self, request, *args, **kwargs):
-#     cancer_data = json.loads(request.data.get("cancer_data", "{}"))
-#     general_data = json.loads(request.data.get("general_data", "{}"))
-
-#     serializer = self.get_serializer(
-#       data={"general_data": general_data, "cancer_data": cancer_data},
-#       context={"request": request}
-#     )
-
-#     serializer.is_valid(raise_exception=True)
-#     result = serializer.save()
-
-#     patient = result["general_data"]  # extract patient
-#     cancer_data = result["cancer_data"]
-
-#     CancerDiagnosis.objects.create(
-#       patient=patient,
-#       diagnosis=cancer_data.final_diagnosis,
-#       date_diagnosed=cancer_data.date_of_diagnosis,
-#       cancer_site=", ".join(cancer_data.primary_sites.values_list("name", flat=True)),
-#       cancer_stage=cancer_data.staging,
-#     )
-
-#     photo_url = self.request.FILES.get('photoUrl')
-#     if photo_url:
-#       patient.photo_url = photo_url
-#       patient.save()
-    
-#     # serialize again to return structured data
-#     return Response(
-#       self.get_serializer(result).data,
-#       status=status.HTTP_201_CREATED
-#     )
-
 class PatientDetailView(generics.RetrieveAPIView):
   serializer_class = PatientSerializer
   permission_classes = [IsAuthenticated]
@@ -192,8 +154,9 @@ class IndividualScreeningRequestView(generics.CreateAPIView):
   def perform_create(self, serializer):
     try:
       with transaction.atomic():
+        patient = self.request.user.patient
         existing_request = IndividualScreening.objects.filter(
-          patient=self.request.user.patient, 
+          patient=patient, 
           status__in=['Pending', 'Approved'],
           # has_patient_response=True
         ).first()
@@ -206,7 +169,7 @@ class IndividualScreeningRequestView(generics.CreateAPIView):
           })
     
         instance = serializer.save(
-          patient=self.request.user.patient,  # ensure patient is set
+          patient=self.request.user.patient, 
           # has_patient_response=True,
           # response_description='Submitted screening procedure'
         )
@@ -223,6 +186,9 @@ class IndividualScreeningRequestView(generics.CreateAPIView):
             file=file,
             doc_type=key 
           )
+        
+        all_admin = User.objects.filter(is_superuser=True)
+        create_notification(all_admin, 'New Individual Screening Request', f'A new individual sceening request has been sent by {patient.full_name}.')
 
     except Exception as e:
       logger.error(f"Error creating screening procedure: {str(e)}")
@@ -237,7 +203,6 @@ class IndividualScreeningUpdateView(generics.UpdateAPIView):
 
   def perform_update(self, serializer):
     instance = self.get_object()
-
     if instance.has_patient_response:
       raise ValidationError({
         'non_field_errors': [
@@ -273,6 +238,9 @@ class IndividualScreeningUpdateView(generics.UpdateAPIView):
             file=file,
             doc_type=key
           )
+        
+        all_admin = User.objects.filter(is_superuser=True)
+        create_notification(all_admin, 'A Patient Resubmiited thier Individual Screening Request', f'Individual sceening request by {instance.patient.full_name} has been resubmitted.')
 
     except Exception as e:
       logger.error(f"Error during resubmission: {str(e)}")
@@ -346,6 +314,10 @@ class ResultAttachmentUploadView(APIView):
     individual_screening.response_description = 'Uploaded screening results.'
     individual_screening.save()
 
+    patient = individual_screening.patient
+    all_admin = User.objects.filter(is_superuser=True)
+    create_notification(all_admin, 'A Patient Uploaded the result of thier Screening Result', f'Patient {patient.patient_id} uploaded the result of his/her screening result.')
+
     return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
   
 # -----------------------
@@ -357,8 +329,10 @@ class CancerTreatmentSubmissionView(generics.CreateAPIView):
 
   def create(self, request, *args, **kwargs):
     try:
+      # patient = self.request.user.patient, 
+      # print("Patient: ", patient)
       existing_request = CancerTreatment.objects.filter(
-        patient=self.request.user.patient, 
+        patient=self.request.user.patient,
       ).first()
 
       if existing_request and existing_request.status != 'Completed':
@@ -386,6 +360,10 @@ class CancerTreatmentSubmissionView(generics.CreateAPIView):
       )
       serializer.is_valid(raise_exception=True)
       result = serializer.save()
+
+      all_admin = User.objects.filter(is_superuser=True)
+      create_notification(all_admin, 'Cancer Treatment Request', f'Patient {self.request.user.patient.patient_id} requested for a service treatment.')
+
       response_data = CancerTreatmentSerializer(result, context={"request": request}).data
 
       return Response({"message": "Success", "data": response_data}, status=status.HTTP_201_CREATED)
@@ -460,6 +438,9 @@ class CancerManagementUpdateView(generics.UpdateAPIView):
             file=file,
             doc_type=key
           )
+        
+        all_admin = User.objects.filter(is_superuser=True)
+        create_notification(all_admin, 'Cancer Treatment Resubmission', f'Patient {instance.patient.patient_id} has resubmitted thier cancer treatment request.')
 
     except Exception as e:
       logger.error(f"Error during resubmission: {str(e)}")
@@ -502,6 +483,9 @@ class TreatmentResultUploadView(APIView):
     cancer_treatment.response_description = 'Uploaded treatment results.'
     cancer_treatment.save()
 
+    all_admin = User.objects.filter(is_superuser=True)
+    create_notification(all_admin, 'Cancer Treatment Application Update', f'Patient {cancer_treatment.patient.patient_id} has uploaded the result of their treatment.')
+
     return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
   
 class CaseSummaryUploadView(APIView):
@@ -531,6 +515,9 @@ class CaseSummaryUploadView(APIView):
     cancer_treatment.response_description = 'Uploaded signed case summary & intervention plan.'
     cancer_treatment.save()
 
+    all_admin = User.objects.filter(is_superuser=True)
+    create_notification(all_admin, 'Cancer Treatment Application Update', f'Patient {cancer_treatment.patient.patient_id} has uploaded thier signed case summary.')
+
     return Response({"message": "Attachments updated successfully."}, status=status.HTTP_200_OK)
 
 # -----------------------
@@ -544,6 +531,7 @@ class PreCancerousMedsCreateView(generics.CreateAPIView):
   def perform_create(self, serializer):
     try:
       with transaction.atomic():
+        patient = self.request.user.patient
         existing_request = PreCancerousMedsRequest.objects.filter(
           patient=self.request.user.patient,
           status__in=['Pending', 'Approved']
@@ -557,10 +545,13 @@ class PreCancerousMedsCreateView(generics.CreateAPIView):
           })
     
         instance = serializer.save(
-          patient=self.request.user.patient,  # ensure patient is set
+          patient=patient,  # ensure patient is set
           # has_patient_response=True,
           # response_description='Submitted post treatment laboratory test request'
         )
+
+        all_admin = User.objects.filter(is_superuser=True)
+        create_notification(all_admin, 'New Pre Cancerous Medication Request', f'A new pre cancerous medication request has been sent by {patient.full_name}.')
 
     except Exception as e:
       logger.error(f"Error creating pre-cancerous meds request: {str(e)}")
@@ -618,6 +609,7 @@ class PostTreatmentRequestView(generics.CreateAPIView):
   def perform_create(self, serializer):
     try:
       with transaction.atomic():
+        patient = self.request.user.patient
         existing_request = PostTreatment.objects.filter(
           patient=self.request.user.patient, 
         ).first()
@@ -630,7 +622,7 @@ class PostTreatmentRequestView(generics.CreateAPIView):
           })
     
         instance = serializer.save(
-          patient=self.request.user.patient,  # ensure patient is set
+          patient=patient,  # ensure patient is set
           # has_patient_response=True,
           # response_description='Submitted post treatment laboratory test request'
         )
@@ -647,6 +639,9 @@ class PostTreatmentRequestView(generics.CreateAPIView):
             file=file,
             doc_type=key 
           )
+        
+        all_admin = User.objects.filter(is_superuser=True)
+        create_notification(all_admin, 'New Post Treatment Request', f'A new post treatment request has been sent by {patient.full_name}.')
 
     except Exception as e:
       logger.error(f"Error creating post treatment request: {str(e)}")
@@ -697,6 +692,8 @@ class PostTreatmentUpdateView(generics.UpdateAPIView):
             file=file,
             doc_type=key
           )
+        all_admin = User.objects.filter(is_superuser=True)
+        create_notification(all_admin, 'A Patient Resubmiited thier Post Treatment Request', f'Post treatment request by {instance.patient.full_name} has been resubmitted.')
 
     except Exception as e:
       logger.error(f"Error during resubmission: {str(e)}")
@@ -791,6 +788,9 @@ class HormonalReplacementRequestView(generics.CreateAPIView):
             file=file,
             doc_type=key 
           )
+        
+        all_admin = User.objects.filter(is_superuser=True)
+        create_notification(all_admin, 'Hormonal Replacement Request', f'Patient {instance.patient.patient_id} requested a hormonal replacement medication.')
 
     except Exception as e:
       logger.error(f"Error creating hormonal replacement request: {str(e)}")
@@ -857,6 +857,9 @@ class HormonalReplacementUpdateView(generics.UpdateAPIView):
             file=file,
             doc_type=key
           )
+        
+        all_admin = User.objects.filter(is_superuser=True)
+        create_notification(all_admin, 'Hormonal Replacement Resubmission', f'Patient {instance.patient.patient_id} resubmitted thier hormonal replacement medication application.')
 
     except Exception as e:
       logger.error(f"Error during resubmission: {str(e)}")
@@ -898,10 +901,14 @@ class HomeVisitUpdateView(generics.UpdateAPIView):
     #   has_patient_response=True,
     #   response_description='Submitted Well being form.'
     # )
-    serializer.save(
+    instance = serializer.save(
       has_patient_response=True,
       response_description='Submitted Well-being form.'
     )
+
+    all_admin = User.objects.filter(is_superuser=True)
+    create_notification(all_admin, 'A Patient Submitted thier Well Being Form', f'Patient  {instance.patient.patient_id} submitted thier well being form.')
+
     # return super().perform_update(serializer)
 
 def validate_attachment(file):

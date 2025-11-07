@@ -16,6 +16,7 @@ from backend.utils.email import (
 )
 
 from apps.patient.models import Patient, HistoricalUpdate, ServiceReceived
+from apps.notifications.utils import create_notification
 
 from . models import PostTreatment, FollowupCheckups, RequiredAttachment
 from . serializers import PostTreatmentSerializer, PostTreatmentAdminCreateSerializer, RequiredAttachmentSerializer
@@ -179,7 +180,11 @@ class PostTreatmentUpdateView(APIView):
             post_treatment.followup_checkups.create(**item)
       
       remarks = request.data.get('remarks')
-      print('Status: ', post_treatment.status);
+     
+      user = patient.user
+      if user:
+        create_notification(user, f'Post Treatment {post_treatment.status.title()}', f'Your post treatment request has been {post_treatment.status}.')
+
       email_status = send_post_treatment_status_email(
         patient=post_treatment.patient, 
         status=post_treatment.status, 

@@ -9,6 +9,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 
 from apps.patient.models import ServiceReceived, Patient
+from apps.notifications.utils import create_notification
 
 from .models import WellBeingQuestion, CancerTreatment, ServiceAttachment
 from .serializers import WellBeingQuestionSerializer, CancerTreatmentCreationSerializer, CancerTreatmentSerializer, ServiceAttachmentSerializer
@@ -175,6 +176,10 @@ class CancerTreatmentRequestStatusUpdateView(generics.UpdateAPIView):
     instance.save()
     patient.save()
     remarks = request.data.get('remarks')
+
+    user = patient.user
+    if user:
+      create_notification(user, f'Cancer Treatment Application Update {instance.status.title()}', f'Your cancer treatment request has been {instance.status}.')
 
     email_status = send_cancer_treatment_status_email(
       patient=instance.patient, 

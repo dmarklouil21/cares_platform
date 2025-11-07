@@ -12,9 +12,9 @@ import SystemLoader from "src/components/SystemLoader";
 // Map status to step index
 const STATUS_TO_STEP = {
   Pending: 0,
-  Approve: 1,
+  Approved: 1,
   // "In Progress": 2,
-  Complete: 2,
+  Completed: 2,
 };
 
 const getStepIndexByStatus = (status) => STATUS_TO_STEP[status] ?? 0;

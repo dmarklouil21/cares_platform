@@ -217,7 +217,7 @@ class PatientStatusUpdateView(APIView):
       create_notification(user, 'Pre Enrollment Approved', f'Your pre enrollement request has been approved.')
 
     return Response({"message": "Status updated successfully."}, status=status.HTTP_200_OK)
-  # Stop here for now
+
 class PatientDeleteView(generics.DestroyAPIView):
   queryset = Patient.objects.all()
   lookup_field = 'patient_id'
