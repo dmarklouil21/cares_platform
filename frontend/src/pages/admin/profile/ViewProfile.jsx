@@ -236,9 +236,9 @@ const ViewProfile = () => {
         onClose={() => setNotify((n) => ({ ...n, show: false }))}
       />
 
-      <div className="h-screen w-full flex flex-col gap-4 p-5 bg-gray overflow-auto">
-        <div className="flex items-center px-5 justify-between">
-          <div className="flex justitfy-center items-center gap-5">
+      <div className="h-screen w-full flex flex-col gap-3 p-5 bg-gray overflow-auto">
+        {/* <div className="flex items-center px-5 justify-between"> */}
+          {/* <div className="flex justitfy-center items-center gap-5">
             <h1 className="text-lg font-bold">View Profile</h1>
             {readOnly ? (
               <div className="flex gap-5 justify-center items-center">
@@ -265,10 +265,10 @@ const ViewProfile = () => {
                 </button>
               </div>
             )}
-          </div>
+          </div> */}
 
           {/* 🔙 Back to previous page (no Link) */}
-          <button
+          {/* <button
             type="button"
             onClick={handleBack}
             className="p-0 m-0 bg-transparent border-none"
@@ -280,11 +280,23 @@ const ViewProfile = () => {
               alt="Back"
               className="h-6 cursor-pointer"
             />
-          </button>
-        </div>
+          </button> */}
+        {/* </div> */}
 
-        <div className="bg-white rounded-2xl shadow border border-black/10 p-5 md:p-8">
-          <h2 className="text-lg font-semibold mb-4">Personal Details</h2>
+        <div className="bg-white rounded-md shadow border border-black/10 p-5 md:p-8">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold">Personal Details</h2>
+            <div className="flex items-center">
+              {readOnly ? (
+                <span onClick={handleEdit} className="text-sm text-yellow-500 cursor-pointer">Edit</span>
+              ): (
+                <div className="flex gap-3">
+                  <span onClick={handleCancel} className="text-sm text-red-500 cursor-pointer">Cancel</span>
+                  <span onClick={handleSave} className="text-sm text-primary cursor-pointer">Save</span>
+                </div>
+              )}
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
             <div className="h-auto w-full flex flex-col items-start gap-3 md:col-span-2 mt-5">

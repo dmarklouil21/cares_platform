@@ -12,6 +12,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from apps.patient.models import Patient, ServiceReceived
 from apps.cancer_management.models import CancerTreatment
 
+from apps.notifications.utils import create_notification
+
 from .models import PatientHomeVisit, HormonalReplacement, HormonalReplacementRequiredAttachment
 from .serializers import HomevisitSerializer, HormonalReplacementSerializer, HormonalReplacementRequiredAttachmentSerializer
 
@@ -67,6 +69,10 @@ class PatientHomeVisitCreateView(generics.CreateAPIView):
         })
       
       serializer.save()
+
+      user = patient.user
+      if user:
+        create_notification(user, f'Home Visit Designation', f'You have been assigned for a home visit, view your home visit status for more info.')
       # return super().perform_create(serializer)
 
 class PatientHomeVisitDetailView(generics.RetrieveAPIView):
@@ -99,6 +105,10 @@ class PatientHomeVisitUpdateView(generics.UpdateAPIView):
       has_patient_response=False,
       response_description='',
     )
+
+    user = instance.patient.user
+    if user:
+      create_notification(user, f'Home Visit Designation', f'Your home visit designation has been updated, view your home visit status for more info.')
 
     # if instance.status == 'Completed':
     #   patient = instance.patient
@@ -258,6 +268,11 @@ class HormonalReplacementUpdateView(generics.UpdateAPIView):
       )
 
     remarks = request.data.get('remarks')
+
+    user = instance.patient.user
+    if user:
+      create_notification(user, f'Hormonal Replacement Application Update', f'Your hormonal replacement medication request has been {instance.status}')
+    
     email_status = send_hormonal_replacement_status_email(
       instance.patient, instance.status, instance.released_date, remarks
     )

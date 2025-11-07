@@ -26,6 +26,8 @@ from apps.precancerous.models import PreCancerousMedsRequest
 from apps.precancerous.serializers import PreCancerousMedsRequestSerializer
 from apps.rhu.models import RHU, Representative, Rhuv2
 
+from apps.notifications.utils import create_notification
+
 from .models import IndividualScreening, MassScreeningRequest, MassScreeningAttachment, MassScreeningAttendanceEntry
 
 from .serializers import (
@@ -245,6 +247,11 @@ class IndividualScreeningStatusUpdateView(generics.UpdateAPIView):
     instance.save()
     patient.save()
     remarks = request.data.get('remarks')
+
+    user = patient.user
+    if user:
+      create_notification(user, f'Individual Screening {instance.status.title()}', f'Your individual screening request has been {instance.status}.')
+
     email_status = send_individual_screening_status_email(
       instance.patient, instance.status, instance.screening_date, remarks
     )

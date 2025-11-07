@@ -43,6 +43,8 @@ import BeneficiaryRoutes from "./routes/BeneficiaryRoutes";
 import RhuRoutes from "./routes/RhuRoutes";
 import PrivateRoutes from "./routes/PrivateRoutes";
 
+import NotificationsPage from "./pages/NotificationsPage";
+
 const App = () => {
   return (
     <AuthProvider>
@@ -106,6 +108,8 @@ const App = () => {
               element={<AccountNotSupported />}
             />
             <Route path="admin-registration" element={<AdminRegistration />} />
+
+            <Route path="notifications" element={<NotificationsPage />} />
           </Route>
 
           {/* Admin Route Group */}

@@ -9,6 +9,8 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.views import APIView
 
+from apps.notifications.utils import create_notification
+
 from apps.survivorship.models import PatientHomeVisit
 
 from .models import Patient, CancerDiagnosis
@@ -210,8 +212,12 @@ class PatientStatusUpdateView(APIView):
     patient.status = new_status
     patient.save()
 
+    user = patient.user
+    if user and new_status == 'validated':
+      create_notification(user, 'Pre Enrollment Approved', f'Your pre enrollement request has been approved.')
+
     return Response({"message": "Status updated successfully."}, status=status.HTTP_200_OK)
-  
+
 class PatientDeleteView(generics.DestroyAPIView):
   queryset = Patient.objects.all()
   lookup_field = 'patient_id'
