@@ -63,6 +63,43 @@ const AdminMassScreening = () => {
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const [weekFilter, setWeekFilter] = useState("");
+  const [availableWeeks, setAvailableWeeks] = useState([]);
+
+  // ✅ Function to get Week of Month (Week 1–4)
+  const getWeekOfMonth = (date) => {
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const firstDayOfWeek = firstDay.getDay() || 7; // Sunday=7
+    const adjustedDate = date.getDate() + firstDayOfWeek - 1;
+    return Math.ceil(adjustedDate / 7);
+  };
+  // ✅ Update week options dynamically per selected month and year
+  useEffect(() => {
+    if (monthFilter && yearFilter && items.length > 0) {
+      const weeksWithData = new Set();
+
+      items.forEach((record) => {
+        const recordDate = new Date(record.date);
+        const recordMonth = recordDate.getMonth() + 1;
+        const recordYear = recordDate.getFullYear();
+
+        if (
+          recordMonth === parseInt(monthFilter) &&
+          recordYear === parseInt(yearFilter)
+        ) {
+          const weekNum = getWeekOfMonth(recordDate);
+          weeksWithData.add(weekNum);
+        }
+      });
+
+      const sortedWeeks = Array.from(weeksWithData).sort((a, b) => a - b);
+      setAvailableWeeks(sortedWeeks);
+    } else {
+      setAvailableWeeks([]);
+      setWeekFilter("");
+    }
+  }, [monthFilter, yearFilter, items]);
+
   const filteredData = useMemo(() => {
     const s = searchQuery.trim().toLowerCase();
 
@@ -77,11 +114,13 @@ const AdminMassScreening = () => {
       const recordDay = recordDate.getDate();
       const recordMonth = recordDate.getMonth() + 1;
       const recordYear = recordDate.getFullYear();
+      const recordWeek = getWeekOfMonth(recordDate); // ✅ NEW
 
       const matchesDay = !dayFilter || recordDay === parseInt(dayFilter);
       const matchesMonth =
         !monthFilter || recordMonth === parseInt(monthFilter);
       const matchesYear = !yearFilter || recordYear === parseInt(yearFilter);
+      const matchesWeek = !weekFilter || recordWeek === parseInt(weekFilter); // ✅ NEW
 
       const matchesSearch =
         !s ||
@@ -94,10 +133,19 @@ const AdminMassScreening = () => {
         matchesSearch &&
         matchesDay &&
         matchesMonth &&
-        matchesYear
+        matchesYear &&
+        matchesWeek // ✅ NEW
       );
     });
-  }, [items, statusFilter, dayFilter, monthFilter, yearFilter, searchQuery]);
+  }, [
+    items,
+    statusFilter,
+    dayFilter,
+    monthFilter,
+    yearFilter,
+    weekFilter, // ✅ include dependency
+    searchQuery,
+  ]);
 
   const totalRecords = filteredData.length;
   const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
@@ -389,6 +437,19 @@ const AdminMassScreening = () => {
                     ))}
                 </select>
 
+                <select
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  value={weekFilter}
+                  onChange={(e) => setWeekFilter(e.target.value)}
+                  disabled={!monthFilter}
+                >
+                  <option value="">All Weeks</option>
+                  {availableWeeks.map((week) => (
+                    <option key={week} value={week}>
+                      Week {week}
+                    </option>
+                  ))}
+                </select>
                 <button
                   onClick={() => {
                     setDayFilter("");
