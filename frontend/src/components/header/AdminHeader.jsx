@@ -343,7 +343,7 @@ const AdminHeader = () => {
                   </button>
                 )}
               </div>
-              {/* Stop here for now */}
+
               <div className="max-h-96 overflow-y-auto">
                 {loading ? (
                   <div className="p-4 text-center text-gray-500">
@@ -365,11 +365,11 @@ const AdminHeader = () => {
                   </ul>
                 ) : (
                   <div className="p-4 text-center text-gray-400">
-                    <img 
+                    {/* <img 
                       src="/images/empty-notifications.svg" 
                       alt="No notifications" 
                       className="w-16 h-16 mx-auto mb-2 opacity-50"
-                    />
+                    /> */}
                     No new notifications
                   </div>
                 )}
