@@ -10,6 +10,9 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError
 
+from apps.user.models import User
+from apps.notifications.utils import create_notification
+
 from apps.patient.models import Patient, CancerDiagnosis
 from apps.patient.serializers import PreScreeningFormSerializer
 
@@ -112,6 +115,9 @@ class PreEnrollmentView(generics.CreateAPIView):
         patient.photo_url = photo_file
         patient.save(update_fields=["photo_url"])
 
+      all_admin = User.objects.filter(is_superuser=True)
+
+      create_notification(all_admin, 'New Pre Enrollment Request', f'A new beneficiary ({first_name}) sent a pre enrollment request.')
     # --- Step 5: Return structured response ---
     return Response(
       self.get_serializer(result).data,
