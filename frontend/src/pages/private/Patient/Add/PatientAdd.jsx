@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 
 import api from "src/api/axiosInstance";
 
+import barangayData from "../../../../constants/barangayData";
+
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
@@ -71,6 +73,11 @@ const PatientMasterListAdd = () => {
   // 2×2 photo preview (UI only; no data changes)
   const [photoUrl, setPhotoUrl] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+
+  const getBarangays = () => {
+    if (!form.city) return [];
+    return barangayData[form.city] || [];
+  };
 
   function handle2x2Change(e) {
     const file = e.target.files?.[0];
@@ -516,32 +523,54 @@ const PatientMasterListAdd = () => {
                   <span className="text-red-500 text-xs">{errors.address}</span>
                 )}
               </div>
+
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  City/Municipality:
+                  City/Municipality <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   name="city"
-                  value={form.city}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                >
+                  <option value="">Select City/Municipality</option>
+                  {Object.keys(barangayData).map((city) => (
+                    <option key={city} value={city}>
+                      {city
+                        .split("_")
+                        .map(
+                          (word) => word.charAt(0).toUpperCase() + word.slice(1)
+                        )
+                        .join(" ")}
+                    </option>
+                  ))}
+                </select>
+
                 {errors.city && (
                   <span className="text-red-500 text-xs">{errors.city}</span>
                 )}
               </div>
+
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Barangay:
+                  Barangay <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   name="barangay"
                   value={form.barangay}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                  disabled={!form.city}
+                >
+                  <option value="">
+                    {form.city ? "Select Barangay" : "Select City first"}
+                  </option>
+                  {getBarangays().map((barangay) => (
+                    <option key={barangay} value={barangay}>
+                      {barangay}
+                    </option>
+                  ))}
+                </select>
                 {errors.barangay && (
                   <span className="text-red-500 text-xs">
                     {errors.barangay}

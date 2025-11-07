@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 
 import api from "src/api/axiosInstance";
 
+import barangayData from "../../../../../constants/barangayData";
+
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
@@ -72,6 +74,11 @@ const PatientMasterListAdd = () => {
   const [photoUrl, setPhotoUrl] = useState(null);
   const [imageFile, setImageFile] = useState(null);
 
+  const getBarangays = () => {
+    if (!form.city) return [];
+    return barangayData[form.city] || [];
+  };
+
   function handle2x2Change(e) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -134,7 +141,7 @@ const PatientMasterListAdd = () => {
       }
     });
 
-    if (form["date_of_birth"] > new Date().toISOString().split('T')[0])
+    if (form["date_of_birth"] > new Date().toISOString().split("T")[0])
       newErrors["date_of_birth"] = "Date should not be in the future.";
 
     // Validate photo
@@ -145,19 +152,23 @@ const PatientMasterListAdd = () => {
     // Validate emergency contacts
     form.emergency_contacts.forEach((contact, index) => {
       if (!contact.name.trim()) {
-        newErrors[`emergency_contact_${index}_name`] = "Contact name is required.";
+        newErrors[`emergency_contact_${index}_name`] =
+          "Contact name is required.";
       }
       if (!contact.relationship_to_patient.trim()) {
-        newErrors[`emergency_contact_${index}_relationship`] = "Relationship is required.";
+        newErrors[`emergency_contact_${index}_relationship`] =
+          "Relationship is required.";
       }
       if (!contact.address.trim()) {
-        newErrors[`emergency_contact_${index}_address`] = "Address is required.";
+        newErrors[`emergency_contact_${index}_address`] =
+          "Address is required.";
       }
       if (!contact.email.trim()) {
         newErrors[`emergency_contact_${index}_email`] = "Email is required.";
       }
       if (!contact.mobile_number.trim()) {
-        newErrors[`emergency_contact_${index}_mobile_number`] = "Mobile number is required.";
+        newErrors[`emergency_contact_${index}_mobile_number`] =
+          "Mobile number is required.";
       }
     });
 
@@ -430,9 +441,7 @@ const PatientMasterListAdd = () => {
                 )}
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">
-                  Suffix
-                </label>
+                <label className="text-sm font-medium block mb-1">Suffix</label>
                 <input
                   type="text"
                   name="suffix"
@@ -454,7 +463,9 @@ const PatientMasterListAdd = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Sex <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium block mb-1">
+                  Sex <span className="text-red-500">*</span>
+                </label>
                 <select
                   name="sex"
                   value={form.sex}
@@ -495,44 +506,69 @@ const PatientMasterListAdd = () => {
                   <span className="text-red-500 text-xs">{errors.address}</span>
                 )}
               </div>
+
               <div>
                 <label className="text-sm font-medium block mb-1">
                   City/Municipality <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   name="city"
-                  value={form.city}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                >
+                  <option value="">Select City/Municipality</option>
+                  {Object.keys(barangayData).map((city) => (
+                    <option key={city} value={city}>
+                      {city
+                        .split("_")
+                        .map(
+                          (word) => word.charAt(0).toUpperCase() + word.slice(1)
+                        )
+                        .join(" ")}
+                    </option>
+                  ))}
+                </select>
+
                 {errors.city && (
                   <span className="text-red-500 text-xs">{errors.city}</span>
                 )}
               </div>
+
               <div>
                 <label className="text-sm font-medium block mb-1">
                   Barangay <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   name="barangay"
                   value={form.barangay}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
+                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                  disabled={!form.city}
+                >
+                  <option value="">
+                    {form.city ? "Select Barangay" : "Select City first"}
+                  </option>
+                  {getBarangays().map((barangay) => (
+                    <option key={barangay} value={barangay}>
+                      {barangay}
+                    </option>
+                  ))}
+                </select>
                 {errors.barangay && (
                   <span className="text-red-500 text-xs">
                     {errors.barangay}
                   </span>
                 )}
               </div>
+              
             </div>
 
             {/* Second Column */}
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Email <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium block mb-1">
+                  Email <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   name="email"
@@ -574,7 +610,8 @@ const PatientMasterListAdd = () => {
             <div className="flex flex-col gap-3 w-1/2">
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Source of Information (Where did you here about RAFI-EJACC?) <span className="text-red-500">*</span>
+                  Source of Information (Where did you here about RAFI-EJACC?){" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -607,14 +644,15 @@ const PatientMasterListAdd = () => {
           {/* Socioeconomic Info Section */}
           <div className="mb-6 mt-8 border-b border-gray-200 px-5">
             <h2 className="text-md font-bold tracking-wide uppercase pb-1">
-              Socioeconomic Info 
+              Socioeconomic Info
             </h2>
           </div>
           <div className="flex flex-row gap-8 p-4">
             <div className="flex flex-col gap-3 w-1/2">
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Highest Educational Attainment <span className="text-red-500">*</span>
+                  Highest Educational Attainment{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -691,7 +729,9 @@ const PatientMasterListAdd = () => {
           <div className="flex flex-row gap-8 p-4">
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Name <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium block mb-1">
+                  Name <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   name="emergencyContact1.name"
@@ -700,12 +740,15 @@ const PatientMasterListAdd = () => {
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
                 {errors[`emergency_contact_0_name`] && (
-                  <span className="text-red-500 text-xs">{errors[`emergency_contact_0_name`]}</span>
+                  <span className="text-red-500 text-xs">
+                    {errors[`emergency_contact_0_name`]}
+                  </span>
                 )}
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Relationship to Patient <span className="text-red-500">*</span>
+                  Relationship to Patient{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -715,7 +758,9 @@ const PatientMasterListAdd = () => {
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
                 {errors[`emergency_contact_0_relationship`] && (
-                  <span className="text-red-500 text-xs">{errors[`emergency_contact_0_relationship`]}</span>
+                  <span className="text-red-500 text-xs">
+                    {errors[`emergency_contact_0_relationship`]}
+                  </span>
                 )}
               </div>
               <div>
@@ -742,7 +787,9 @@ const PatientMasterListAdd = () => {
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
                 {errors[`emergency_contact_0_address`] && (
-                  <span className="text-red-500 text-xs">{errors[`emergency_contact_0_address`]}</span>
+                  <span className="text-red-500 text-xs">
+                    {errors[`emergency_contact_0_address`]}
+                  </span>
                 )}
               </div>
               <div>
@@ -757,7 +804,9 @@ const PatientMasterListAdd = () => {
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
                 {errors[`emergency_contact_0_email`] && (
-                  <span className="text-red-500 text-xs">{errors[`emergency_contact_0_email`]}</span>
+                  <span className="text-red-500 text-xs">
+                    {errors[`emergency_contact_0_email`]}
+                  </span>
                 )}
               </div>
               <div>
@@ -772,7 +821,9 @@ const PatientMasterListAdd = () => {
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
                 {errors[`emergency_contact_0_mobile_number`] && (
-                  <span className="text-red-500 text-xs">{errors[`emergency_contact_0_mobile_number`]}</span>
+                  <span className="text-red-500 text-xs">
+                    {errors[`emergency_contact_0_mobile_number`]}
+                  </span>
                 )}
               </div>
             </div>
@@ -780,7 +831,9 @@ const PatientMasterListAdd = () => {
             {/* Second Column */}
             <div className="flex flex-col gap-3 w-1/2">
               <div>
-                <label className="text-sm font-medium block mb-1">Name <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium block mb-1">
+                  Name <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   name="emergencyContact2.name"
@@ -789,12 +842,15 @@ const PatientMasterListAdd = () => {
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
                 {errors[`emergency_contact_1_name`] && (
-                  <span className="text-red-500 text-xs">{errors[`emergency_contact_1_name`]}</span>
+                  <span className="text-red-500 text-xs">
+                    {errors[`emergency_contact_1_name`]}
+                  </span>
                 )}
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">
-                  Relationship to Patient <span className="text-red-500">*</span>
+                  Relationship to Patient{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -804,7 +860,9 @@ const PatientMasterListAdd = () => {
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
                 {errors[`emergency_contact_1_relationship`] && (
-                  <span className="text-red-500 text-xs">{errors[`emergency_contact_1_relationship`]}</span>
+                  <span className="text-red-500 text-xs">
+                    {errors[`emergency_contact_1_relationship`]}
+                  </span>
                 )}
               </div>
               <div>
@@ -831,7 +889,9 @@ const PatientMasterListAdd = () => {
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
                 {errors[`emergency_contact_1_address`] && (
-                  <span className="text-red-500 text-xs">{errors[`emergency_contact_1_address`]}</span>
+                  <span className="text-red-500 text-xs">
+                    {errors[`emergency_contact_1_address`]}
+                  </span>
                 )}
               </div>
               <div>
@@ -846,7 +906,9 @@ const PatientMasterListAdd = () => {
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
                 {errors[`emergency_contact_1_email`] && (
-                  <span className="text-red-500 text-xs">{errors[`emergency_contact_1_email`]}</span>
+                  <span className="text-red-500 text-xs">
+                    {errors[`emergency_contact_1_email`]}
+                  </span>
                 )}
               </div>
               <div>
@@ -861,7 +923,9 @@ const PatientMasterListAdd = () => {
                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
                 />
                 {errors[`emergency_contact_1_mobile_number`] && (
-                  <span className="text-red-500 text-xs">{errors[`emergency_contact_1_mobile_number`]}</span>
+                  <span className="text-red-500 text-xs">
+                    {errors[`emergency_contact_1_mobile_number`]}
+                  </span>
                 )}
               </div>
             </div>
