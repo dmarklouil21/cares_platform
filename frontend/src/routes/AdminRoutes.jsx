@@ -19,6 +19,12 @@ import PychosocialSupport from "../pages/admin/psychosocialSupport/PsychosocialS
 
 //pyschosocialSupport add
 import PsychosocialSupportAdd from "../pages/admin/psychosocialSupport/add/add";
+import ViewPsychosocialActivity from "../pages/admin/psychosocialSupport/View/ViewActivity";
+
+//pyschosocialSupport edit
+import PsychosocialSupportEdit from "../pages/admin/psychosocialSupport/Edit/Edit";
+
+import ManageAttendee from "../pages/admin/psychosocialSupport/ManageAttendees";
 
 //views
 import PostTreatmentView from "../pages/admin/TreatmentAssistance/PostTreatment/View/TreatmentView";
@@ -234,7 +240,10 @@ const AdminRoutes = () => (
 
     <Route path="PychosocialSupport">
       <Route index element={<PychosocialSupport />} />
+      <Route path="view/:id" element={<ViewPsychosocialActivity />} />
+      <Route path=":id/manage-attendees" element={<ManageAttendee />} />
       <Route path="add" element={<PsychosocialSupportAdd />} />
+      <Route path="edit/:id" element={<PsychosocialSupportEdit />} />
     </Route>
   </Route>
 );

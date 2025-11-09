@@ -4,6 +4,12 @@ from .views import (
     AdminActivityDetailView,
     AdminPatientSuggestions,
     PublicActivityListView,
+
+    PyschosocialActivityDetailView,
+    PyschosocialActivityCreateView,
+    ActivityAttendeesView,
+    PyschosocialActivityListView,
+    PyschosocialActivityUpdateView
 )
 
 urlpatterns = [
@@ -15,4 +21,10 @@ urlpatterns = [
     path('admin/patient-suggestions/', AdminPatientSuggestions.as_view(), name='admin-patient-suggestions'),
     # Public/RHU/Beneficiary: list activities (read-only)
     path('public/activities/', PublicActivityListView.as_view(), name='public-activities-list'),
+
+    path('list-activity/', PyschosocialActivityListView.as_view(), name='list_pyschosocial'),
+    path('activity/<int:id>/', PyschosocialActivityDetailView.as_view(), name='view_psychosocial'),
+    path('create-activity/', PyschosocialActivityCreateView.as_view(), name='psychosocial_create'),
+    path('update-activity/<str:id>/', PyschosocialActivityUpdateView.as_view(), name='psychosocial_update'),
+    path('activity/<int:id>/attendees/', ActivityAttendeesView.as_view(), name='activity-attendees'), 
 ]

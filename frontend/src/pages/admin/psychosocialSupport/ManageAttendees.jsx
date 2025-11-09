@@ -31,26 +31,32 @@ const ManageAttendees = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+    //   path('activity/<int:id>/', PyschosocialActivityDetailView.as_view(), name='view_psychosocial'),
+    // path('create-activity/', PyschosocialActivityCreateView.as_view(), name='psychosocial_create'),
+    // path('activity/<int:id>/attendees/', ActivityAttendeesView.as_view(), name='activity-attendees'),
+
       const [activityResponse, attendeesResponse, patientsResponse] = await Promise.all([
-        api.get(`/partners/cancer-awareness/activity/${id}/`),
-        api.get(`/partners/cancer-awareness/activity/${id}/attendees/`),
-        api.get('/patient/list/', {
-          params: {
-            status: "validated",
-            registered_by: "rhu",
-          }
-        })
+        api.get(`/psychosocial-support/activity/${id}/`),
+        api.get(`/psychosocial-support/activity/${id}/attendees/`),
+        api.get('/patient/list/')
+        // api.get('/patient/list/', {
+        //   params: {
+        //     status: "validated",
+        //     // registered_by: "rhu",
+        //   }
+        // })
       ]);
       
       setActivity(activityResponse.data);
       setAttendees(attendeesResponse.data);
+      console.log("Attendees: ", attendeesResponse);
       setAvailablePatients(patientsResponse.data);
     } catch (error) {
       console.error("Error fetching data:", error);
       setNotification("Failed to load data.");
       setNotificationType("error");
       setTimeout(() => setNotification(""), 2000);
-      navigate('/rhu/cancer-awareness');
+      navigate('/admin/PychosocialSupport');
     } finally {
       setLoading(false);
     }
@@ -86,27 +92,29 @@ const ManageAttendees = () => {
     try {
       setSaving(true);
       const attendeeIds = attendees
-        .filter(attendee => !attendee.id.startsWith('temp-'))
+        .filter(attendee => attendee.patient)
         .map(attendee => attendee.patient.patient_id);
-      
+      console.log("Old attendees: ", attendeeIds);
       const newAttendeeIds = attendees
-        .filter(attendee => attendee.id.startsWith('temp-'))
+        .filter(attendee => !attendee.patient)
         .map(attendee => attendee.patient.patient_id);
 
       const allAttendeeIds = [...attendeeIds, ...newAttendeeIds];
       console.log("All Attendees: ", allAttendeeIds);
-      await api.post(`/partners/cancer-awareness/activity/${id}/attendees/`, {
+      // api.get(`/psychosocial-support/activity/${id}/attendees/`),
+      await api.post(`/psychosocial-support/activity/${id}/attendees/`, {
         patient_ids: allAttendeeIds
       });
 
       setNotification("Attendees updated successfully!");
       setNotificationType("success");
       setTimeout(() => {
-        navigate(`/rhu/cancer-awareness/view/${id}`);
+        navigate(`/admin/PychosocialSupport/view/${id}`);
       }, 1000);
     } catch (error) {
       setNotification("Failed to save attendees.");
       setNotificationType("error");
+      console.error(error);
     } finally {
       setSaving(false);
       setTimeout(() => setNotification(""), 2000);
@@ -287,7 +295,7 @@ const ManageAttendees = () => {
         </div>
         <div className="flex justify-around print:hidden">
           <Link
-            to={`/rhu/cancer-awareness`}
+            to={`/admin/PychosocialSupport/view/${id}`}
             className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md"
           >
             Back
