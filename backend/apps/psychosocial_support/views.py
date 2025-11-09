@@ -13,6 +13,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# New views for the new ui
 class PyschosocialActivityCreateView(generics.CreateAPIView):
   queryset = Activity.objects.all()
   serializer_class = ActivitySerializer
@@ -85,6 +86,7 @@ class PyschosocialActivityUpdateView(generics.UpdateAPIView):
   parser_classes = [MultiPartParser, FormParser]
   permission_classes = [IsAuthenticated]
   
+# Old views from the previous ui
 class AdminActivityListCreateView(generics.ListCreateAPIView):
     queryset = Activity.objects.all().order_by('-date', '-id')
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]

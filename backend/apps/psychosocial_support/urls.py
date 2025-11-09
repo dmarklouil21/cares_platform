@@ -13,6 +13,7 @@ from .views import (
 )
 
 urlpatterns = [
+  # Old urls 
     # Admin: list and create activities
     path('admin/activities/', AdminActivityListCreateView.as_view(), name='admin-activities-list-create'),
     # Admin: retrieve/update/delete
@@ -22,6 +23,7 @@ urlpatterns = [
     # Public/RHU/Beneficiary: list activities (read-only)
     path('public/activities/', PublicActivityListView.as_view(), name='public-activities-list'),
 
+  # New urls
     path('list-activity/', PyschosocialActivityListView.as_view(), name='list_pyschosocial'),
     path('activity/<int:id>/', PyschosocialActivityDetailView.as_view(), name='view_psychosocial'),
     path('create-activity/', PyschosocialActivityCreateView.as_view(), name='psychosocial_create'),
