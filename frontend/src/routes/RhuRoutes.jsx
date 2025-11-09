@@ -17,9 +17,17 @@ import Precancerous from "../pages/rhu/TreatmentAssistance/PrecancerousMeds/Prec
 
 // Views 
 import PrecancerousView from "../pages/rhu/TreatmentAssistance/PrecancerousMeds/View/DetailedView"
+import ViewActivity from "../pages/rhu/cancerawareness/View/ViewActivity";
+
+// Edit 
+import EditActivity from "../pages/rhu/cancerawareness/Edit/Edit";
+
+// Awareness Attendee 
+import Attendee from "../pages/rhu/cancerawareness/ManageAttendees";
 
 // Add 
 import AddMeds from "../pages/rhu/TreatmentAssistance/PrecancerousMeds/Add/AddMeds";
+import AddAwarenessActivity from "../pages/rhu/cancerawareness/Add/Add";
 
 // Apply 
 import ApplyMassScreening from "../pages/rhu/Services/CancerScreening/Apply/MassScreening/";
@@ -54,6 +62,10 @@ const RhuRoutes = () => (
 
     {/* Awareness */}
     <Route path="cancer-awareness" element={<CancerAwareness />} />
+    <Route path="cancer-awareness/view/:id" element={<ViewActivity />} />
+    <Route path="cancer-awareness/:id/manage-attendees" element={<Attendee />} />
+    <Route path="cancer-awareness/add" element={<AddAwarenessActivity />} />
+    <Route path="cancer-awareness/edit/:id" element={<EditActivity />} />
 
     <Route path="treatment-assistance">
       <Route path="pre-cancerous" element={<Precancerous />} />

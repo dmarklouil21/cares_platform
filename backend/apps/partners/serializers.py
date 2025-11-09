@@ -1,9 +1,12 @@
 from rest_framework import serializers
 
 from apps.user.models import User
-from apps.partners.models import CancerAwarenessActivity  # adjust path if needed
 
-from .models import Private, PrivateRepresentative
+from apps.patient.models import Patient
+from apps.patient.serializers import PatientSerializer
+# from apps.partners.models import CancerAwarenessActivity 
+
+from .models import Private, PrivateRepresentative, CancerAwarenessAttendance, CancerAwarenessActivity
 
 class CancerAwarenessActivitySerializer(serializers.ModelSerializer):
   uploader_name = serializers.CharField(source="uploader.fullname", read_only=True)
@@ -23,6 +26,53 @@ class CancerAwarenessActivitySerializer(serializers.ModelSerializer):
       # "updated_at",
     ]
     read_only_fields = ["id", "created_at", "uploader_name"]
+
+class AttendanceSerializer(serializers.ModelSerializer):
+    patient = PatientSerializer(read_only=True)
+    
+    class Meta:
+        model = CancerAwarenessAttendance
+        fields = ['id', 'patient', 'attended_at']
+
+class AttendanceCreateSerializer(serializers.ModelSerializer):
+    patient_ids = serializers.ListField(
+        child=serializers.CharField(),
+        write_only=True
+    )
+
+    class Meta:
+        model = CancerAwarenessAttendance
+        fields = ['patient_ids']
+    
+    def create(self, validated_data):
+        print("Context: ", self.context)
+        print("Validated Data: ", validated_data)
+        
+        # Get the activity object directly from context
+        activity = self.context.get('activity')
+        
+        if not activity:
+            raise serializers.ValidationError("Activity not found in context")
+        
+        patient_ids = validated_data['patient_ids']
+        
+        # Clear existing attendances and create new ones
+        CancerAwarenessAttendance.objects.filter(activity=activity).delete()
+        
+        attendances = []
+        for patient_id in patient_ids:
+            try:
+                patient = Patient.objects.get(patient_id=patient_id)
+                attendance = CancerAwarenessAttendance(
+                    activity=activity,
+                    patient=patient
+                )
+                attendances.append(attendance)
+            except Patient.DoesNotExist:
+                print(f"Patient with patient_id {patient_id} not found")
+                continue
+        
+        return CancerAwarenessAttendance.objects.bulk_create(attendances)
   
   # def create(self, validated_data):
   #   uploader = self.request.user
