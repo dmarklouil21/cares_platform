@@ -28,7 +28,13 @@ from apps.precancerous.serializers import (
 from backend.utils.email import send_precancerous_meds_status_email
 
 from .models import CancerAwarenessActivity, Private, PrivateRepresentative
-from .serializers import CancerAwarenessActivitySerializer, PrivateSerializer, PrivateRepresentativeSerializer
+from .serializers import (
+  CancerAwarenessActivitySerializer, 
+  PrivateSerializer, 
+  PrivateRepresentativeSerializer, 
+  AttendanceSerializer,
+  AttendanceCreateSerializer
+)
 
 import logging
 
@@ -82,6 +88,53 @@ class CancerAwarenessActivityCreateView(generics.CreateAPIView):
     # except Exception as e:
     #   logger.error(f"Error creating screening procedure: {str(e)}")
     #   raise e
+
+class ActivityAttendeesView(APIView):
+    def get(self, request, id):
+        try:
+            activity = CancerAwarenessActivity.objects.get(id=id)
+            attendances = activity.attendances.all()
+            serializer = AttendanceSerializer(attendances, many=True)
+            return Response(serializer.data)
+        except CancerAwarenessActivity.DoesNotExist:
+            return Response(
+                {"error": "Activity not found"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    def post(self, request, id):
+        try:
+            print(f"Received request for activity {id}")
+            print(f"Request data: {request.data}")
+            activity = CancerAwarenessActivity.objects.get(id=id)
+            
+            # Pass the activity object directly instead of just the ID
+            serializer = AttendanceCreateSerializer(
+                data=request.data, 
+                context={'activity': activity}  # Pass the object, not just ID
+            )
+            
+            print('Serializer: ', serializer)
+            
+            if serializer.is_valid():
+                serializer.save()
+                attendances = activity.attendances.all()
+                response_serializer = AttendanceSerializer(attendances, many=True)
+                return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+            
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        except CancerAwarenessActivity.DoesNotExist:
+            return Response(
+                {"error": "Activity not found"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+  
+class CancerAwarenessActivityDetailView(generics.RetrieveAPIView):
+  queryset = CancerAwarenessActivity.objects.all()
+  serializer_class = CancerAwarenessActivitySerializer
+  permission_classes = [IsAuthenticated]
+  lookup_field = 'id'
 
 class CancerAwarenessActivityUpdateView(generics.UpdateAPIView):
   queryset = CancerAwarenessActivity.objects.all()

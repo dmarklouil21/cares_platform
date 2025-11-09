@@ -1,9 +1,77 @@
 from rest_framework import serializers
-from .models import Activity
+from .models import Activity, PsychosocialAttendance
 import json
 from django.utils import timezone
 
+from apps.patient.models import Patient
+from apps.patient.serializers import PatientSerializer
 
+class ActivitySerializer(serializers.ModelSerializer):
+  # uploader_name = serializers.CharField(source="uploader.fullname", read_only=True)
+
+  class Meta:
+    model = Activity
+    fields = [
+      "id",
+      # "uploader",
+      # "uploader_name",
+      "title",
+      "description",
+      "date",
+      "photo",
+      "attachment",
+      "created_at",
+      # "updated_at",
+    ]
+    read_only_fields = ["id", "created_at"]
+
+class AttendanceSerializer(serializers.ModelSerializer):
+    patient = PatientSerializer(read_only=True)
+    
+    class Meta:
+        model = PsychosocialAttendance
+        fields = ['id', 'patient', 'attended_at']
+
+class AttendanceCreateSerializer(serializers.ModelSerializer):
+    patient_ids = serializers.ListField(
+        child=serializers.CharField(),
+        write_only=True
+    )
+
+    class Meta:
+        model = PsychosocialAttendance
+        fields = ['patient_ids']
+    
+    def create(self, validated_data):
+        print("Context: ", self.context)
+        print("Validated Data: ", validated_data)
+        
+        # Get the activity object directly from context
+        activity = self.context.get('activity')
+        
+        if not activity:
+            raise serializers.ValidationError("Activity not found in context")
+        
+        patient_ids = validated_data['patient_ids']
+        
+        # Clear existing attendances and create new ones
+        PsychosocialAttendance.objects.filter(activity=activity).delete()
+        
+        attendances = []
+        for patient_id in patient_ids:
+            try:
+                patient = Patient.objects.get(patient_id=patient_id)
+                attendance = PsychosocialAttendance(
+                    activity=activity,
+                    patient=patient
+                )
+                attendances.append(attendance)
+            except Patient.DoesNotExist:
+                print(f"Patient with patient_id {patient_id} not found")
+                continue
+        
+        return PsychosocialAttendance.objects.bulk_create(attendances)
+    
 class ActivityCreateSerializer(serializers.ModelSerializer):
     # Store as plain text; we'll coerce various inputs into a comma-separated string
     patients = serializers.CharField(allow_blank=True, required=False)
@@ -79,35 +147,35 @@ class ActivityCreateSerializer(serializers.ModelSerializer):
         return str(value)
 
 
-class ActivitySerializer(serializers.ModelSerializer):
-    # Simple serializer that exposes patients as plain text
-    photo_url = serializers.SerializerMethodField()
-    attachment_url = serializers.SerializerMethodField()
+# class ActivitySerializer(serializers.ModelSerializer):
+#     # Simple serializer that exposes patients as plain text
+#     photo_url = serializers.SerializerMethodField()
+#     attachment_url = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Activity
-        fields = [
-            'id', 'title', 'description', 'date',
-            'photo', 'attachment', 'photo_url', 'attachment_url',
-            'patients', 'created_at'
-        ]
+#     class Meta:
+#         model = Activity
+#         fields = [
+#             'id', 'title', 'description', 'date',
+#             'photo', 'attachment', 'photo_url', 'attachment_url',
+#             'patients', 'created_at'
+#         ]
 
-    def get_photo_url(self, obj):
-        try:
-            if obj.photo and hasattr(obj.photo, 'url'):
-                request = self.context.get('request')
-                url = obj.photo.url
-                return request.build_absolute_uri(url) if request else url
-        except Exception:
-            return None
-        return None
+#     def get_photo_url(self, obj):
+#         try:
+#             if obj.photo and hasattr(obj.photo, 'url'):
+#                 request = self.context.get('request')
+#                 url = obj.photo.url
+#                 return request.build_absolute_uri(url) if request else url
+#         except Exception:
+#             return None
+#         return None
 
-    def get_attachment_url(self, obj):
-        try:
-            if obj.attachment and hasattr(obj.attachment, 'url'):
-                request = self.context.get('request')
-                url = obj.attachment.url
-                return request.build_absolute_uri(url) if request else url
-        except Exception:
-            return None
-        return None
+#     def get_attachment_url(self, obj):
+#         try:
+#             if obj.attachment and hasattr(obj.attachment, 'url'):
+#                 request = self.context.get('request')
+#                 url = obj.attachment.url
+#                 return request.build_absolute_uri(url) if request else url
+#         except Exception:
+#             return None
+#         return None

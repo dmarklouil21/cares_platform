@@ -1,11 +1,10 @@
-// @ts-nocheck
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Download } from 'lucide-react';
+import { Download, Calendar, Search, Users, Pencil, Trash2, Eye, Plus } from 'lucide-react';
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
-import NotificationModal from "src/components/Modal/NotificationModal";
-import LoadingModal from "src/components/Modal/LoadingModal";
+import SystemLoader from "src/components/SystemLoader";
+import Notification from "src/components/Notification";
 import api from "src/api/axiosInstance";
 
 import {
@@ -14,62 +13,25 @@ import {
   adminDeletePsychosocialActivity,
 } from "src/api/psychosocialSupport";
 
-
-/* Data loads from backend; no UI-only seed needed */
-
 const PschosocialSupport = () => {
   // List from backend
   const [activities, setActivities] = useState([]);
-
-  // Global modals
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmText, setConfirmText] = useState("");
-  const [confirmAction, setConfirmAction] = useState(null); // { type: "submit"|"delete", id? }
-
-  const [notifyOpen, setNotifyOpen] = useState(false);
-  const [notifyInfo, setNotifyInfo] = useState({
-    type: "success",
-    title: "Success",
-    message: "Done.",
-  });
-
   const [loading, setLoading] = useState(false);
 
-  // Today's date (local) as YYYY-MM-DD for input[min]
-  const todayStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-    .toISOString()
-    .split("T")[0];
+  // Filters state
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch list on mount
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const data = await adminListPsychosocialActivities();
-        const normalized = (Array.isArray(data) ? data : []).map((a) => ({
-          ...a,
-          // Prefer absolute URLs from backend if available
-          photo: a.photo_url || a.photo,
-          attachment: a.attachment_url || a.attachment,
-          patients:
-            typeof a.patients === "string"
-              ? a.patients
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-              : Array.isArray(a.patients)
-              ? a.patients
-              : [],
-        }));
-        setActivities(normalized);
-      } catch (e) {
-        // optionally notify
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
+  // Notification
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState("");
+
+  // Confirmation modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("");
+  const [modalDesc, setModalDesc] = useState("");
+  const [modalAction, setModalAction] = useState(null); // { type: "submit"|"delete", id? }
 
   // Edit modal
   const [showModal, setShowModal] = useState(false);
@@ -91,40 +53,104 @@ const PschosocialSupport = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [patientList, setPatientList] = useState([]);
 
-  // Dynamic suggestions from backend
-  useEffect(() => {
-    let alive = true;
-    const load = async () => {
-      try {
-        const res = await api.get("/patient/list/");
-        const arr = Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res?.data?.results)
-          ? res.data.results
-          : [];
-        const names = (arr || [])
-          .map((d) => d.full_name || `${d.first_name || ""} ${d.last_name || ""}`.trim())
-          .filter(Boolean);
-        if (alive) setPatientList(names);
-      } catch {
-        if (alive) setPatientList([]);
-      }
-    };
-    load();
-    return () => {
-      alive = false;
-    };
-  }, []);
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
 
-  useEffect(() => {
-    if (!inputFocused) return setSuggestions([]);
-    const q = (patientQuery || "").trim().toLowerCase();
-    const exclude = new Set(form.patients.map((p) => String(p).toLowerCase()));
-    const base = patientList.filter((n) => !exclude.has(String(n).toLowerCase()));
-    if (!q) return setSuggestions(base.slice(0, 50));
-    const filtered = base.filter((n) => String(n).toLowerCase().includes(q));
-    setSuggestions(filtered.slice(0, 20));
-  }, [inputFocused, patientQuery, form.patients, patientList]);
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
+
+  // Today's date (local) as YYYY-MM-DD for input[min]
+  const todayStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T")[0];
+
+  const fetchData = async () => {
+  try {
+    setLoading(true);
+    const response = await api.get("/psychosocial-support/list-activity/");
+    setActivities(response.data);
+  } catch (error) {
+    console.error("Error fetching cancer awareness activities:", error);
+    setNotification("Failed to load activities.");
+    setNotificationType("error");
+    setTimeout(() => setNotification(""), 2000);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchData();
+}, []);
+
+  // Fetch list on mount
+  // useEffect(() => {
+  //   const load = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const data = await adminListPsychosocialActivities();
+  //       const normalized = (Array.isArray(data) ? data : []).map((a) => ({
+  //         ...a,
+  //         photo: a.photo_url || a.photo,
+  //         attachment: a.attachment_url || a.attachment,
+  //         patients:
+  //           typeof a.patients === "string"
+  //             ? a.patients
+  //                 .split(",")
+  //                 .map((s) => s.trim())
+  //                 .filter(Boolean)
+  //             : Array.isArray(a.patients)
+  //             ? a.patients
+  //             : [],
+  //       }));
+  //       setActivities(normalized);
+  //     } catch (e) {
+  //       setNotification("Failed to load activities.");
+  //       setNotificationType("error");
+  //       setTimeout(() => setNotification(""), 2000);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   load();
+  // }, []);
+
+  // Dynamic suggestions from backend
+  // useEffect(() => {
+  //   let alive = true;
+  //   const load = async () => {
+  //     try {
+  //       const res = await api.get("/patient/list/");
+  //       const arr = Array.isArray(res?.data)
+  //         ? res.data
+  //         : Array.isArray(res?.data?.results)
+  //         ? res.data.results
+  //         : [];
+  //       const names = (arr || [])
+  //         .map((d) => d.full_name || `${d.first_name || ""} ${d.last_name || ""}`.trim())
+  //         .filter(Boolean);
+  //       if (alive) setPatientList(names);
+  //     } catch {
+  //       if (alive) setPatientList([]);
+  //     }
+  //   };
+  //   load();
+  //   return () => {
+  //     alive = false;
+  //   };
+  // }, []);
+
+  // useEffect(() => {
+  //   if (!inputFocused) return setSuggestions([]);
+  //   const q = (patientQuery || "").trim().toLowerCase();
+  //   const exclude = new Set(form.patients.map((p) => String(p).toLowerCase()));
+  //   const base = patientList.filter((n) => !exclude.has(String(n).toLowerCase()));
+  //   if (!q) return setSuggestions(base.slice(0, 50));
+  //   const filtered = base.filter((n) => String(n).toLowerCase().includes(q));
+  //   setSuggestions(filtered.slice(0, 20));
+  // }, [inputFocused, patientQuery, form.patients, patientList]);
 
   const resetForm = () => {
     setForm({
@@ -145,15 +171,16 @@ const PschosocialSupport = () => {
     if (!n) return;
     const exists = patientList.some((p) => String(p).toLowerCase() === n.toLowerCase());
     if (!exists) {
-      setNotifyInfo({ type: "error", title: "Invalid Patient", message: "Select a patient from the list." });
-      setNotifyOpen(true);
+      setNotification("Select a patient from the list.");
+      setNotificationType("error");
+      setTimeout(() => setNotification(""), 2000);
       return;
     }
     if (!form.patients.some((p) => p.toLowerCase() === n.toLowerCase())) {
       setForm((f) => ({ ...f, patients: [...f.patients, n] }));
     }
     setPatientQuery("");
-    setInputFocused(false); // CLOSE suggestions after selecting/adding
+    setInputFocused(false);
   };
 
   const removePatient = (name) => {
@@ -184,27 +211,28 @@ const PschosocialSupport = () => {
     }
   };
 
-  // Submit/Delete (UI only)
+  // Submit/Delete
   const requestSubmit = () => {
-    // Only UPDATE path is relevant from Edit modal
     setShowModal(false);
-    setConfirmText("Confirm update?");
-    setConfirmAction({ type: "submit" });
-    setConfirmOpen(true);
+    setModalText("Confirm Update");
+    setModalDesc("Are you sure you want to update this activity?");
+    setModalAction({ type: "submit" });
+    setModalOpen(true);
   };
 
-  const requestDelete = (id) => {
-    setConfirmText("Confirm delete?");
-    setConfirmAction({ type: "delete", id });
-    setConfirmOpen(true);
+  const requestDelete = (id, title) => {
+    setModalText("Confirm Delete");
+    setModalDesc(`Are you sure you want to delete "${title}"? This action cannot be undone.`);
+    setModalAction({ type: "delete", id });
+    setModalOpen(true);
   };
 
-  const handleConfirm = async () => {
-    if (!confirmAction) return;
-    setConfirmOpen(false);
+  const handleModalConfirm = async () => {
+    if (!modalAction) return;
+    setModalOpen(false);
     setLoading(true);
     try {
-      if (confirmAction.type === "submit" && editing) {
+      if (modalAction.type === "submit" && editing) {
         const fd = new FormData();
         fd.append("title", form.title.trim());
         if (form.description) fd.append("description", form.description);
@@ -231,14 +259,14 @@ const PschosocialSupport = () => {
         }));
         setActivities(normalized);
 
-        setNotifyInfo({ type: "success", title: "Updated", message: "Activity updated." });
-        setNotifyOpen(true);
+        setNotification("Activity updated successfully!");
+        setNotificationType("success");
         resetForm();
-      } else if (confirmAction.type === "delete" && confirmAction.id) {
-        await adminDeletePsychosocialActivity(confirmAction.id);
-        setActivities((prev) => prev.filter((a) => a.id !== confirmAction.id));
-        setNotifyInfo({ type: "success", title: "Deleted", message: "Activity deleted." });
-        setNotifyOpen(true);
+      } else if (modalAction.type === "delete" && modalAction.id) {
+        await adminDeletePsychosocialActivity(modalAction.id);
+        setActivities((prev) => prev.filter((a) => a.id !== modalAction.id));
+        setNotification("Activity deleted successfully!");
+        setNotificationType("success");
       }
     } catch (e) {
       const msg = e?.response?.data
@@ -246,12 +274,12 @@ const PschosocialSupport = () => {
           ? e.response.data
           : JSON.stringify(e.response.data)
         : "Request failed.";
-      setNotifyInfo({ type: "error", title: "Error", message: msg });
-      setNotifyOpen(true);
+      setNotification(msg);
+      setNotificationType("error");
     } finally {
       setLoading(false);
-      setConfirmAction(null);
-      setConfirmText("");
+      setModalAction(null);
+      setTimeout(() => setNotification(""), 2000);
     }
   };
 
@@ -265,136 +293,223 @@ const PschosocialSupport = () => {
     return f;
   };
 
-  const confirmTitle = useMemo(() => {
-    if (!confirmAction) return "";
-    if (confirmAction.type === "delete") return "Delete Activity";
-    if (confirmAction.type === "submit") return "Update Activity";
-    return "Please Confirm";
-  }, [confirmAction]);
+  // Filter activities
+  const filteredActivities = activities.filter((activity) => {
+    if (!activity.date) return false;
+    
+    const activityDate = new Date(activity.date);
+    const monthMatches = selectedMonth === "" || (activityDate.getMonth() + 1) === parseInt(selectedMonth);
+    const yearMatches = selectedYear === "" || activityDate.getFullYear() === parseInt(selectedYear);
+    const searchMatches =
+      searchTerm === "" ||
+      activity.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      activity.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    return monthMatches && yearMatches && searchMatches;
+  });
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "--";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
   return (
     <>
-      {/* Modals */}
+      {loading && <SystemLoader />}
       <ConfirmationModal
-        open={confirmOpen}
-        title={confirmTitle}
-        desc={confirmText || "Are you sure?"}
-        onConfirm={handleConfirm}
-        onCancel={() => {
-          setConfirmOpen(false);
-          setConfirmAction(null);
-          setConfirmText("");
-        }}
+        open={modalOpen}
+        title={modalText}
+        desc={modalDesc}
+        onConfirm={handleModalConfirm}
+        onCancel={() => setModalOpen(false)}
       />
+      <Notification message={notification} type={notificationType} />
 
-      <NotificationModal
-        show={notifyOpen}
-        type={notifyInfo.type}
-        title={notifyInfo.title}
-        message={notifyInfo.message}
-        onClose={() => setNotifyOpen(false)}
-      />
-      <LoadingModal open={loading} text="Processing..." />
-
-      {/* Page */} 
-      {/* bg-gray w-full h-screen flex flex-col items-center */}
-      <div className="h-screen w-full flex p-5 gap-3 flex-col justify-start items-center bg-gray">
-        <div className="flex items-center justify-between w-full pl-1 pr-2">
-          <h2 className="text-xl font-bold text-left">
+      <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
+        {/* Header */}
+        <div className="flex justify-between items-center w-full">
+          <h2 className="text-xl font-bold text-gray-800">
             Psychosocial Support Activities
           </h2>
-
           <Link
             to="/admin/PychosocialSupport/add"
-            className="bg-yellow px-5 py-1 rounded-sm text-white"
+            className="bg-yellow hover:bg-yellow/90 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
           >
-            Add
+            {/* <Plus className="w-4 h-4" /> */}
+            Add Activity
           </Link>
         </div>
-        {/* w-full flex-1 py-3 gap-3 flex flex-col justify-start px-5 */}
-        <div className="flex flex-col bg-white rounded-md w-full shadow-md px-5 py-5 gap-3">
-          <div className="flex flex-col bg-white w-full rounded-md shadow-md gap-4 flex-1">
-            {activities.length === 0 ? (
-              <p className="text-gray-500 italic">
-                No activities yet. Use “Add Activity”.
-              </p>
+
+        {/* Main Content Card */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full">
+          {/* Card Header */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-yellow-600">
+              View, add, or manage psychosocial support activities for patients.
+            </h3>
+          </div>
+
+          {/* Filters Section */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex flex-wrap gap-3 items-center">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search activities..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="border border-gray-300 py-2 pl-10 pr-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-full text-sm"
+                />
+              </div>
+
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+              >
+                <option value="">All Months</option>
+                {months.map((month, index) => (
+                  <option key={index} value={index + 1}>
+                    {month}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+              >
+                <option value="">All Years</option>
+                {years.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedMonth("");
+                  setSelectedYear("");
+                }}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+              >
+                Clear Filters
+              </button>
+            </div>
+          </div>
+
+          {/* Activities Section */}
+          <div className="px-6 py-4">
+            {filteredActivities.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-gray-400 mb-4">
+                  <Calendar className="w-16 h-16 mx-auto" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                  No activities found
+                </h3>
+                <p className="text-gray-500 text-sm">
+                  {activities.length === 0 
+                    ? "Get started by adding your first psychosocial support activity."
+                    : "No activities match your current filters."}
+                </p>
+              </div>
             ) : (
-              <div className="flex flex-col gap-5 overflow-auto custom-rightspaceSB h-[420px]">
-                {activities.map((a) => (
+              <div className="grid gap-4 max-h-[500px] overflow-y-auto">
+                {filteredActivities.map((activity) => (
                   <div
-                    key={a.id}
-                    className="flex border-b-[1.5px] border-primary/70 pb-4 gap-5 justify-between"
+                    key={activity.id}
+                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
                   >
-                    <div className="flex flex-col gap-2">
-                      <h3 className="font-bold text-lg">{a.title}</h3>
-                      <p className="text-primary text-xs">
-                        {a.date} {" "}
-                        {a.attachment && (
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1 mr-4">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                          {activity.title}
+                        </h3>
+                        <div className="flex items-center text-sm text-gray-600 mb-2">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          <span>{formatDate(activity.date)}</span>
+                          <span className="mx-2">•</span>
+                          <Users className="w-4 h-4 mr-2" />
+                          <span>{activity.attendees_count || 0} attendees</span>
+                          {/* <span>{activity.patients?.length || 0} patients</span> */}
+                        </div>
+                        
+                        {activity.description && (
+                          <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                            {activity.description}
+                          </p>
+                        )}
+                        
+                        {activity.patients?.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {activity.patients.map((patient, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-1 text-xs rounded-full bg-lightblue/10 text-primary border border-lightblue/40"
+                              >
+                                {patient}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex gap-2 shrink-0">
+                        <Link
+                          to={`/admin/PychosocialSupport/view/${activity.id}`}
+                          className="bg-primary hover:bg-primary/90 text-white py-1.5 px-2 rounded transition-colors"
+                          title="Edit Activity"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </Link>
+                        <Link
+                          // onClick={() => startEdit(activity)}
+                          to={`/admin/PychosocialSupport/edit/${activity.id}`}
+                          className="bg-yellow hover:bg-yellow/90 text-white py-1.5 px-2 rounded transition-colors"
+                          title="Edit Activity"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Link>
+                        <button
+                          onClick={() => requestDelete(activity.id, activity.title)}
+                          className="bg-red-500 hover:bg-red-600 text-white py-1.5 px-2 rounded transition-colors"
+                          title="Delete Activity"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                        {activity.attachment && (
                           <a
-                            href={filePreviewUrl(a.attachment)}
+                            href={filePreviewUrl(activity.attachment)}
                             download
                             target="_blank"
                             rel="noreferrer"
-                            className="text-primary underline text-sm"
+                            className="bg-primary hover:bg-primary/90 text-white py-1.5 px-2 rounded transition-colors"
+                            title="Download Attachment"
                           >
-                            {/* Download */}
-                            <Download className="inline-block w-4 h-4 mr-1 ml-3" />
+                            <Download className="w-3.5 h-3.5" />
                           </a>
                         )}
-                      </p>
-                      {a.description && (
-                        <p className="text-sm">{a.description}</p>
-                      )}
-                      {a.photo && (
-                        <div className="mt-2">
-                          <img
-                            src={filePreviewUrl(a.photo)}
-                            alt={a.title}
-                            className="w-full max-w-sm h-32 object-cover rounded"
-                          />
-                        </div>
-                      )}
-                      {a.patients?.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {a.patients.map((p, i) => (
-                            <span
-                              key={p + i}
-                              className="px-2 py-0.5 text-xs rounded-full bg-lightblue/10 text-primary border border-lightblue/40"
-                            >
-                              {p}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col items-start gap-3">
-                      <div className="flex gap-2">
-                        <button
-                          className="bg-yellow-500 cursor-pointer px-4 py-1 text-sm text-white rounded-sm"
-                          onClick={() => startEdit(a)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="bg-red-500 border-[1.5px] border-red-500 px-3 py-1 text-sm text-white rounded-sm"
-                          onClick={() => requestDelete(a.id)}
-                        >
-                          Delete
-                        </button>
                       </div>
-                      {/* {a.attachment && (
-                        <a
-                          href={filePreviewUrl(a.attachment)}
-                          download
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-primary underline text-sm"
-                        >
-                          {/* Download *s/}
-                          <Download className="inline-block w-4 h-4 mr-1" />
-                        </a>
-                      )} */}
                     </div>
+                    
+                    {activity.photo && (
+                      <div className="mt-2">
+                        <img
+                          src={filePreviewUrl(activity.photo)}
+                          alt={activity.title}
+                          className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -402,27 +517,25 @@ const PschosocialSupport = () => {
           </div>
         </div>
 
-        {/* Edit Modal ONLY */}
+        {/* Edit Modal */}
         {showModal && editing && (
           <div className="fixed inset-0 bg-black/20 backdrop-blur-[3px] flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg flex flex-col justify-center items-center w-[60%] h-[80vh] overflow-y-auto">
+            <div className="bg-white p-6 rounded-lg flex flex-col w-[90%] max-w-4xl max-h-[90vh] overflow-y-auto">
               <h2 className="text-lg font-bold mb-4">Edit Activity</h2>
 
-              {/* ===== Inputs (same as old Add modal) ===== */}
-              <div className="flex w-full justify-between overflow-auto">
-                <div className="mb-6 space-y-3 w-[50%] pr-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left Column */}
+                <div className="space-y-4">
                   {/* Title */}
                   <div>
                     <label className="block text-sm font-semibold mb-1">
-                      Title
+                      Title *
                     </label>
                     <input
                       type="text"
                       value={form.title}
-                      onChange={(e) =>
-                        setForm({ ...form, title: e.target.value })
-                      }
-                      className="border w-full p-2 rounded"
+                      onChange={(e) => setForm({ ...form, title: e.target.value })}
+                      className="border border-gray-300 w-full p-2 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                       placeholder="e.g., Group Sharing Session"
                     />
                   </div>
@@ -434,31 +547,28 @@ const PschosocialSupport = () => {
                     </label>
                     <textarea
                       value={form.description}
-                      onChange={(e) =>
-                        setForm({ ...form, description: e.target.value })
-                      }
-                      className="border w-full p-2 rounded"
+                      onChange={(e) => setForm({ ...form, description: e.target.value })}
+                      className="border border-gray-300 w-full p-2 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                       placeholder="What is this session about?"
+                      rows={4}
                     />
                   </div>
 
                   {/* Date */}
                   <div>
                     <label className="block text-sm font-semibold mb-1">
-                      Date
+                      Date *
                     </label>
                     <input
                       type="date"
                       value={form.date}
-                      onChange={(e) =>
-                        setForm({ ...form, date: e.target.value })
-                      }
+                      onChange={(e) => setForm({ ...form, date: e.target.value })}
                       min={todayStr}
-                      className="border w-full p-2 rounded"
+                      className="border border-gray-300 w-full p-2 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
 
-                  {/* Photo (preview only) */}
+                  {/* Photo */}
                   <div>
                     <label className="block text-sm font-semibold mb-1">
                       Photo
@@ -466,18 +576,16 @@ const PschosocialSupport = () => {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) =>
-                        setForm({ ...form, photo: e.target.files?.[0] || null })
-                      }
-                      className="border w-full p-2 rounded"
+                      onChange={(e) => setForm({ ...form, photo: e.target.files?.[0] || null })}
+                      className="border border-gray-300 w-full p-2 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                     {form.photo && (
                       <div className="mt-2">
                         <img
                           src={filePreviewUrl(form.photo)}
                           alt="Preview"
-                          className="w-full h-32 object-cover rounded"
-                          />
+                          className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+                        />
                         <p className="text-xs text-gray-600 mt-1">
                           {form.photo instanceof File
                             ? `Selected image: ${form.photo.name}`
@@ -488,25 +596,20 @@ const PschosocialSupport = () => {
                   </div>
                 </div>
 
-                {/* ===== Right column: attachment + patients ===== */}
-                <div className="mb-6 w-[50%] pl-4">
-                  {/* Attachment (UI only) */}
+                {/* Right Column */}
+                <div className="space-y-4">
+                  {/* Attachment */}
                   <div>
                     <label className="block text-sm font-semibold mb-1">
                       Attachment
                     </label>
                     <input
                       type="file"
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          attachment: e.target.files?.[0] || null,
-                        })
-                      }
-                      className="border w-full p-2 rounded"
+                      onChange={(e) => setForm({ ...form, attachment: e.target.files?.[0] || null })}
+                      className="border border-gray-300 w-full p-2 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                     {form.attachment && (
-                      <p className="text-xs text-gray-600 mt-1 break-all whitespace-normal leading-snug">
+                      <p className="text-xs text-gray-600 mt-1 break-all">
                         {form.attachment instanceof File
                           ? `Selected file: ${form.attachment.name}`
                           : `Existing file: ${form.attachment}`}
@@ -514,90 +617,92 @@ const PschosocialSupport = () => {
                     )}
                   </div>
 
-                  <label className="block text-sm font-semibold mb-1 mt-3">
-                    Patients who attended
-                  </label>
+                  {/* Patients */}
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">
+                      Patients who attended *
+                    </label>
+                    
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={patientQuery}
+                        onChange={(e) => setPatientQuery(e.target.value)}
+                        onKeyDown={onPatientsKeyDown}
+                        onFocus={() => setInputFocused(true)}
+                        onClick={() => setInputFocused(true)}
+                        onBlur={() => setTimeout(() => setInputFocused(false), 120)}
+                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="Type a name, press Enter, or pick from options…"
+                      />
 
-                  {/* Input with suggestions (top) */}
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={patientQuery}
-                      onChange={(e) => setPatientQuery(e.target.value)}
-                      onKeyDown={onPatientsKeyDown}
-                      onFocus={() => setInputFocused(true)}
-                      onClick={() => setInputFocused(true)}
-                      onBlur={() =>
-                        setTimeout(() => setInputFocused(false), 120)
-                      }
-                      className="w-full p-2 border rounded"
-                      placeholder="Type a name, press Enter, or pick from options…"
-                    />
-
-                    {/* Suggestions dropdown */}
-                    {suggestions.length > 0 && (
-                      <div className="absolute left-0 right-0 mt-1 border rounded bg-white shadow max-h-40 overflow-auto z-10">
-                        {suggestions.map((name) => (
-                          <button
-                            key={name}
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => addPatient(name)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                          >
-                            {name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Added patients — vertical list with an × on the right (match Add page) */}
-                  <div className="mt-3 min-h-[40px]">
-                    {form.patients.length === 0 ? (
-                      <p className="text-xs text-gray-500 italic">
-                        No patients added yet.
-                      </p>
-                    ) : (
-                      <ul className="bg-gray rounded max-h-48 overflow-auto p-2 flex flex-col gap-1">
-                        {form.patients.map((p) => (
-                          <li
-                            key={p}
-                            className="flex items-center bg-white rounded-md justify-between px-3 py-2"
-                          >
-                            <span className="text-sm">{p}</span>
+                      {/* Suggestions dropdown */}
+                      {suggestions.length > 0 && (
+                        <div className="absolute left-0 right-0 mt-1 border border-gray-300 rounded-md bg-white shadow-lg max-h-40 overflow-auto z-10">
+                          {suggestions.map((name) => (
                             <button
+                              key={name}
                               type="button"
-                              onClick={() => removePatient(p)}
-                              className="text-gray-500 hover:text-red-600"
-                              aria-label={`Remove ${p}`}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => addPatient(name)}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
                             >
-                              ×
+                              {name}
                             </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Added patients */}
+                    <div className="mt-3 min-h-[40px]">
+                      {form.patients.length === 0 ? (
+                        <p className="text-xs text-gray-500 italic">
+                          No patients added yet.
+                        </p>
+                      ) : (
+                        <div className="bg-gray-50 rounded-md max-h-48 overflow-auto p-3 flex flex-col gap-2">
+                          {form.patients.map((patient) => (
+                            <div
+                              key={patient}
+                              className="flex items-center bg-white rounded-md justify-between px-3 py-2 border border-gray-200"
+                            >
+                              <span className="text-sm">{patient}</span>
+                              <button
+                                type="button"
+                                onClick={() => removePatient(patient)}
+                                className="text-gray-500 hover:text-red-600 text-lg"
+                                aria-label={`Remove ${patient}`}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end gap-2 w-full">
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
                 <button
                   onClick={() => {
                     setShowModal(false);
                     resetForm();
                   }}
-                  className="px-4 py-2 bg-gray-300 rounded"
+                  className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-md transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   disabled={!canSubmit}
                   onClick={requestSubmit}
-                  className={`px-4 py-2 text-white rounded ${
-                    canSubmit ? "bg-primary" : "bg-primary cursor-not-allowed"
+                  className={`px-4 py-2 text-white rounded-md transition-colors ${
+                    canSubmit 
+                      ? "bg-primary hover:bg-primary/90" 
+                      : "bg-gray-400 cursor-not-allowed"
                   }`}
                 >
                   Update Activity
