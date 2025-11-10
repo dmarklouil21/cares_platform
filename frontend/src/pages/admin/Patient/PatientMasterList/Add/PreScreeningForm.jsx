@@ -32,8 +32,6 @@ const ViewPreScreeningForm = () => {
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
-  const [historicalUpdates, setHistoricalUpdates] = useState([]);
-
   const [errors, setErrors] = useState({});
 
   const handleSubmit = async (e) => {
@@ -183,7 +181,7 @@ const ViewPreScreeningForm = () => {
 
         setModalOpen(false);
         setLoading(true);
-
+        console.log("General Data: ", generalData);
         const response = await api.post("/patient/pre-enrollment/", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -281,9 +279,9 @@ const ViewPreScreeningForm = () => {
                       name="referred_from"
                       className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                     />
-                    {errors.referring_doctor_or_facility && (
+                    {errors.referred_from && (
                       <span className="text-red-500 text-xs">
-                        {errors.referring_doctor_or_facility}
+                        {errors.referred_from}
                       </span>
                     )}
                   </div>

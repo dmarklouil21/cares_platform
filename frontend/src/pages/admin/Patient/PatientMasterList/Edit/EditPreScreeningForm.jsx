@@ -80,11 +80,6 @@ const PatientPreScreeningForm = () => {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    // if (historicalUpdates.length > 0) {
-    //   patient.historical_updates = historicalUpdates.filter(
-    //     (h) => h.date && h.note
-    //   );
-    // }
     const form = document.getElementById("pre-screening-form"); 
     const formElements = form.elements;
 
@@ -201,20 +196,8 @@ const PatientPreScreeningForm = () => {
             },
           }
         );
-        // setModalInfo({
-        //   type: "success",
-        //   title: "Success!",
-        //   message: "Your form was submitted.",
-        // });
-        // setShowModal(true);
         navigate("/admin/patient/master-list");
       } catch (error) {
-        // setModalInfo({
-        //   type: "error",
-        //   title: "Failed to save changes",
-        //   message: "Something went wrong while submitting the form.",
-        // });
-        // setShowModal(true);
         let errorMessage = "Something went wrong while submitting the form.";
 
         if (error.response && error.response.data) {
