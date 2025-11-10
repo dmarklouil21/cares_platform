@@ -62,7 +62,7 @@ class Patient(models.Model):
   monthly_income = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
   
   photo_url = models.ImageField(upload_to='patient/photo_url/', null=True, blank=True)
-  registered_by = models.CharField(max_length=20, choices=REGISTERED_BY)
+  registered_by = models.CharField(max_length=20, default='Self')
   created_at = models.DateTimeField(auto_now_add=True)
 
   class Meta:

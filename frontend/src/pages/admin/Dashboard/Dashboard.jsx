@@ -446,6 +446,7 @@ const Dashboard = () => {
       setActivePatients(data.active_patients);
       setPendingPreEnrollment(data.pending_pre_enrollment);
       setMonthlyData(data.monthly_data);
+      console.log("Monthly Data: ", data.monthly_data);
     } catch (error) {
       console.error("Error fetching patient stats:", error);
     }
@@ -505,6 +506,7 @@ const Dashboard = () => {
   ];
 
   const edgeProgress = useMountProgress(900);
+  console.log("Monthly Data: ", monthlyData);
 
   return (
     <div className="h-screen w-full bg-gray overflow-auto">

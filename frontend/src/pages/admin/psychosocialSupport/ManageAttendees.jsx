@@ -94,14 +94,13 @@ const ManageAttendees = () => {
       const attendeeIds = attendees
         .filter(attendee => attendee.patient)
         .map(attendee => attendee.patient.patient_id);
-      console.log("Old attendees: ", attendeeIds);
+    
       const newAttendeeIds = attendees
         .filter(attendee => !attendee.patient)
         .map(attendee => attendee.patient.patient_id);
 
       const allAttendeeIds = [...attendeeIds, ...newAttendeeIds];
-      console.log("All Attendees: ", allAttendeeIds);
-      // api.get(`/psychosocial-support/activity/${id}/attendees/`),
+      
       await api.post(`/psychosocial-support/activity/${id}/attendees/`, {
         patient_ids: allAttendeeIds
       });

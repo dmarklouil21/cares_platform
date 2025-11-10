@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import api from "src/api/axiosInstance";
 
-import barangayData from "../../../../../constants/barangayData";
+import barangayData from "src/constants/barangayData";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
@@ -53,22 +53,6 @@ const PatientMasterListAdd = () => {
     // diagnosis: [],
     // historical_updates: [],
   });
-
-  // const [diagnosis, setDiagnosis] = useState([
-  //   {
-  //     date_diagnosed: "",
-  //     diagnosis: "",
-  //     cancer_site: "",
-  //     cancer_stage: "",
-  //   },
-  // ]);
-
-  // const [historicalUpdates, setHistoricalUpdates] = useState([
-  //   {
-  //     date: "",
-  //     note: "",
-  //   },
-  // ]);
 
   // 2×2 photo preview (UI only; no data changes)
   const [photoUrl, setPhotoUrl] = useState(null);
@@ -255,32 +239,6 @@ const PatientMasterListAdd = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting your data..." />
-
-      {/* {notification && (
-        <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
-          <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-            <img
-              src="/images/logo_white_notxt.png"
-              alt="Rafi Logo"
-              className="h-[25px]"
-            />
-            <span>{notification}</span>
-          </div>
-        </div>
-      )} */}
-
-      {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
-        <h1 className="text-md font-bold">Add Patient</h1>
-        <div>
-          <Link to={"/admin/patient/master-list"}>
-            <img
-              src="/images/back.png"
-              alt="Back"
-              className="h-6 cursor-pointer"
-            />
-          </Link>
-        </div>
-      </div> */}
 
       <form
         // onSubmit={handleSubmit}

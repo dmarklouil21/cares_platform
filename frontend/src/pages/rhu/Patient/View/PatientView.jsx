@@ -637,15 +637,13 @@ const PatientView = () => {
         </div>
 
         <div className="w-full flex justify-around">
-          <button
-            type="button"
+          <Link
+            // type="button"
+            to={"/rhu/patients"}
             className="text-center bg-white text-black py-2 w-[35%] cursor-pointer border border-black rounded-md"
-            onClick={() => {
-              navigate(`/rhu/patients`);
-            }}
           >
             Back
-          </button>
+          </Link>
           <Link
             className="text-center bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
             to="/rhu/patients/view/cancer-data"

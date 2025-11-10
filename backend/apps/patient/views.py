@@ -182,21 +182,27 @@ class PatientListView(generics.ListAPIView):
   permission_classes = [IsAuthenticated]
 
   def get_queryset(self):
-    queryset = Patient.objects.all()
+    user = self.request.user
     request = self.request.query_params
 
-    status_param = request.get('status', None) # self.request.query_params.get('status', None)
+    queryset = Patient.objects.none()  # prevents "unbound" errors
+
+    # status_param = request.get('status', None) 
+    # registered_by_param = request.get('registered_by', None)
+
+    # if status_param:
+    #   queryset = queryset.filter(status=status_param)
+
+    # if registered_by_param:
+    #   queryset = queryset.filter(registered_by=registered_by_param)
+    if user.is_superuser:
+      queryset = Patient.objects.all()
+    else:
+      queryset = Patient.objects.filter(registered_by='Self')
+
     registered_by_param = request.get('registered_by', None)
-    city_param = request.get('city', None)
-
-    if status_param:
-      queryset = queryset.filter(status=status_param)
-
     if registered_by_param:
-      queryset = queryset.filter(registered_by=registered_by_param)
-
-    if city_param:
-      queryset = queryset.filter(city=city_param)
+      queryset = Patient.objects.filter(registered_by=registered_by_param)
 
     return queryset
 
@@ -222,7 +228,7 @@ class PatientDeleteView(generics.DestroyAPIView):
   queryset = Patient.objects.all()
   lookup_field = 'patient_id'
 
-  permission_classes = [IsAuthenticated, IsAdminUser]
+  permission_classes = [IsAuthenticated]
 
 class PatientStatsView(APIView):
   permission_classes = [IsAuthenticated]

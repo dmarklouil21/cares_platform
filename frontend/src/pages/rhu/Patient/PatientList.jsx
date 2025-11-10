@@ -13,6 +13,7 @@ const PatientMasterList = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [loggedRepresentative, setLoggedRepresentative] = useState(null);
   const [patients, setPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [recordsPerPage, setRecordsPerPage] = useState(10);
@@ -39,13 +40,20 @@ const PatientMasterList = () => {
   const [modalDesc, setModalDesc] = useState("Please confirm before proceeding.");
   const [modalAction, setModalAction] = useState(null);
 
+  const fetchProfile = async () => {
+    const { data } = await api.get("/rhu/profile/");
+    setLoggedRepresentative(data);
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
   const fetchData = async () => {
     try {
       const response = await api.get("/patient/list/", {
         params: {
-          status: "validated",
-          registered_by: "rhu",
-          city: user.city,
+          registered_by: loggedRepresentative?.rhu_name,
         },
       });
       setPatients(response.data);
@@ -56,7 +64,7 @@ const PatientMasterList = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [loggedRepresentative]);
 
   const filteredResults = patients.filter((patient) => {
     const query = searchQuery.trim().toLowerCase();

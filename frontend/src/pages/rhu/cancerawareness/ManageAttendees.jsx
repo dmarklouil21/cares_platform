@@ -11,6 +11,8 @@ import api from "src/api/axiosInstance";
 const ManageAttendees = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const [loggedRepresentative, setLoggedRepresentative] = useState(null);
   
   const [activity, setActivity] = useState(null);
   const [attendees, setAttendees] = useState([]);
@@ -22,11 +24,21 @@ const ManageAttendees = () => {
   const [notificationType, setNotificationType] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
 
+  const fetchProfile = async () => {
+    const { data } = await api.get("/rhu/profile/");
+    setLoggedRepresentative(data);
+    console.log("Profile: ", data);
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+  
   useEffect(() => {
     if (id) {
       fetchData();
     }
-  }, [id]);
+  }, [id, loggedRepresentative]);
 
   const fetchData = async () => {
     try {
@@ -36,8 +48,8 @@ const ManageAttendees = () => {
         api.get(`/partners/cancer-awareness/activity/${id}/attendees/`),
         api.get('/patient/list/', {
           params: {
-            status: "validated",
-            registered_by: "rhu",
+            // status: "validated",
+            registered_by: loggedRepresentative?.rhu_name,
           }
         })
       ]);
@@ -86,15 +98,15 @@ const ManageAttendees = () => {
     try {
       setSaving(true);
       const attendeeIds = attendees
-        .filter(attendee => !attendee.id.startsWith('temp-'))
+        .filter(attendee => attendee.patient)
         .map(attendee => attendee.patient.patient_id);
       
       const newAttendeeIds = attendees
-        .filter(attendee => attendee.id.startsWith('temp-'))
+        .filter(attendee => !attendee.patient)
         .map(attendee => attendee.patient.patient_id);
 
       const allAttendeeIds = [...attendeeIds, ...newAttendeeIds];
-      console.log("All Attendees: ", allAttendeeIds);
+    
       await api.post(`/partners/cancer-awareness/activity/${id}/attendees/`, {
         patient_ids: allAttendeeIds
       });

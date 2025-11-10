@@ -59,9 +59,7 @@ const PatientMasterListEdit = () => {
   const { patient_id } = useParams();
   const navigate = useNavigate();
 
-  // const [form, setForm] = useState(null);
   const [form, setForm] = useState({
-    // user_id: user.user_id,
     first_name: "",
     middle_name: "",
     last_name: "",
@@ -101,14 +99,6 @@ const PatientMasterListEdit = () => {
       },
     ],
   });
-  // const [historicalUpdates, setHistoricalUpdates] = useState([]);
-
-  const [newUpdate, setNewUpdate] = useState([
-    {
-      date: "",
-      note: "",
-    },
-  ]);
 
   // Notification Modal
   const [showModal, setShowModal] = useState(false);
@@ -218,38 +208,7 @@ const PatientMasterListEdit = () => {
     }));
   };
 
-  // const handleHistoricalUpdateChange = (index, e) => {
-  //   const { name, value } = e.target;
-  //   const updatedUpdates = [...newUpdate];
-  //   updatedUpdates[index] = {
-  //     ...updatedUpdates[index],
-  //     [name]: value,
-  //   };
-  //   setNewUpdate(updatedUpdates);
-  // };
-
-  // const addHistoricalUpdate = () => {
-  //   setNewUpdate((prev) => [
-  //     ...prev,
-  //     {
-  //       date: "",
-  //       note: "",
-  //     },
-  //   ]);
-  // };
-
-  // const removeNewHistoricalUpdate = (index) => {
-  //   setNewUpdate((prev) => prev.filter((_, i) => i !== index));
-  // };
-
-  // const removeHistoricalUpdate = (index) => {
-  //   setHistoricalUpdates((prev) => prev.filter((_, i) => i !== index));
-  // };
-
   const validate = () => {
-    // Add validation logic here if needed
-    // return true;
-    // Required fields
     const newErrors = {};
     const requiredFields = {
       first_name: "First name is required.",
@@ -307,25 +266,17 @@ const PatientMasterListEdit = () => {
   };
   
   const handleNext = () => {
-    // if (!validate()) return;
-
-    // const updatedUpdates =
-    //   Array.isArray(historicalUpdates) && historicalUpdates.length > 0
-    //     ? [...historicalUpdates, ...newUpdate]
-    //     : [...newUpdate];
-
-    // setHistoricalUpdates(updatedUpdates);
     const validationErrors = validate();
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
+
     navigate(`/admin/patient/edit/${form?.patient_id}/cancer-data`, {
       state: {
         formData: {
           ...form,
-          // historical_updates: updatedUpdates,
         },
         photoUrl: imageFile,
       },
