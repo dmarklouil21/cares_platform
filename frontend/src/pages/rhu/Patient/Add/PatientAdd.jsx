@@ -52,8 +52,6 @@ const PatientMasterListAdd = () => {
         mobile_number: "",
       },
     ],
-    // diagnosis: [],
-    // historical_updates: [],
   });
 
   // 2×2 photo preview (UI only; no data changes)
@@ -69,8 +67,6 @@ const PatientMasterListAdd = () => {
         registered_by: loggedRepresentative?.rhu_name
       }
     });
-
-    console.log("Profile: ", data);
   };
 
   useEffect(() => {

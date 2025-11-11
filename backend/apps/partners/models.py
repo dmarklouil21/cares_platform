@@ -6,7 +6,7 @@ from apps.user.models import User
 
 # Create your models here.
 class CancerAwarenessActivity(models.Model):
-  uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name="cancer_awareness_activities")
+  uploader = models.CharField(max_length=255)
   title = models.CharField(max_length=255)
   description = models.TextField()
   date = models.DateTimeField()

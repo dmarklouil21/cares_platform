@@ -44,7 +44,6 @@ const PatientPreScreeningForm = () => {
     if (record) {
       setPatient(record.formData);
       setPre_screening_form(record.formData.pre_screening_form);
-      // setHistoricalUpdates(record.formData.historical_updates);
     }
   }, [record]);
 
@@ -78,12 +77,6 @@ const PatientPreScreeningForm = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
-
-    // if (historicalUpdates.length > 0) {
-    //   patient.historical_updates = historicalUpdates.filter(
-    //     (h) => h.date && h.note
-    //   );
-    // }
 
     const form = document.getElementById("pre-screening-form"); 
     const formElements = form.elements;
@@ -166,8 +159,6 @@ const PatientPreScreeningForm = () => {
     
     if (!pre_screening_form.date_of_assistance) {
         setPre_screening_form({...pre_screening_form, date_of_assistance: null})
-      // if (!data.cancer_data["date_of_assistance"])
-      //           data.cancer_data["date_of_assistance"] = null
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -1462,7 +1453,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="surgery"
-                      name="surgery"
+                      name="adjuvant_treatments_received_surgery"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "adjuvant_treatments_received",
@@ -1483,7 +1474,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="radiotherapy"
-                      name="radiotherapy"
+                      name="adjuvant_treatments_received_radiotherapy"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "adjuvant_treatments_received",
@@ -1504,7 +1495,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="chemotherapy"
-                      name="chemotherapy"
+                      name="adjuvant_treatments_received_chemotherapy"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "adjuvant_treatments_received",
@@ -1528,7 +1519,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="immunotherapy"
-                      name="immunotherapy"
+                      name="adjuvant_treatments_received_immunotherapy"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "adjuvant_treatments_received",
@@ -1549,7 +1540,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="hormonal"
-                      name="hormonal"
+                      name="adjuvant_treatments_received_hormonal"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "adjuvant_treatments_received",
@@ -1616,7 +1607,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="surgeryOther"
-                      name="surgeryOther"
+                      name="other_source_treatments_surgeryOther"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("other_source_treatments", "Surgery")}
                       onChange={() =>
@@ -1634,7 +1625,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="radiotherapyOther"
-                      name="radiotherapyOther"
+                      name="other_source_treatments_radiotherapyOther"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "other_source_treatments",
@@ -1655,7 +1646,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="chemotherapyOther"
-                      name="chemotherapyOther"
+                      name="other_source_treatments_chemotherapyOther"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "other_source_treatments",
@@ -1679,7 +1670,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="immunotherapyOther"
-                      name="immunotherapyOther"
+                      name="other_source_treatments_immunotherapyOther"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "other_source_treatments",
@@ -1700,7 +1691,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="hormonalOther"
-                      name="hormonalOther"
+                      name="other_source_treatments_hormonalOther"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("other_source_treatments", "Hormonal")}
                       onChange={() =>

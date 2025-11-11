@@ -30,12 +30,6 @@ const ViewPreScreeningForm = () => {
 
   const [errors, setErrors] = useState({});
 
-  // useEffect(() => {
-  //   if (generalData) {
-  //     setHistoricalUpdates(generalData.historical_updates);
-  //   }
-  // }, [generalData]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 

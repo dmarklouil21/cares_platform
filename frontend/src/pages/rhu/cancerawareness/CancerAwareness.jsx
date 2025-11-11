@@ -17,6 +17,8 @@ const CancerAwarenessList = () => {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
 
+  const [loggedRepresentative, setLoggedRepresentative] = useState(null);
+
   // Data state
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -36,10 +38,23 @@ const CancerAwarenessList = () => {
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
+  const fetchProfile = async () => {
+      const { data } = await api.get("/rhu/profile/");
+      setLoggedRepresentative(data);
+    };
+  
+    useEffect(() => {
+      fetchProfile();
+    }, []);
+
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/partners/cancer-awareness/list-activity/");
+      const response = await api.get("/partners/cancer-awareness/list-activity/", {
+        params: {
+          uploader: loggedRepresentative?.rhu_name,
+        },
+      });
       setActivities(response.data);
     } catch (error) {
       console.error("Error fetching cancer awareness activities:", error);
@@ -53,7 +68,7 @@ const CancerAwarenessList = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [loggedRepresentative]);
 
   const handleDelete = (id, title) => {
     setModalText("Confirm Delete");

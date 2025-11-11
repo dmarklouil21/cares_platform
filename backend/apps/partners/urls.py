@@ -8,6 +8,7 @@ urlpatterns = [
   path('cancer-awareness/activity/<int:id>/attendees/', views.ActivityAttendeesView.as_view(), name='activity-attendees'),
   path('cancer-awareness/update-activity/<str:id>/', views.CancerAwarenessActivityUpdateView.as_view(), name='cancer_awareness_update'),
   path('cancer-awareness/delete-activity/<str:id>/', views.CancerAwarenessActivityDeleteView.as_view(), name='cancer_awareness_delete'),
+  
   path('private/profile/', views.PrivatePrepresentativeProfileAPIView.as_view(), name='private_profile'),
   path('private/list/', views.PrivateListView.as_view(), name='private_list'),
   path('pre-cancerous/list/', views.PreCancerousMedsListView.as_view(), name='pre_cancerous_meds_list'),
