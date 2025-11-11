@@ -187,14 +187,6 @@ class PatientListView(generics.ListAPIView):
 
     queryset = Patient.objects.none()  # prevents "unbound" errors
 
-    # status_param = request.get('status', None) 
-    # registered_by_param = request.get('registered_by', None)
-
-    # if status_param:
-    #   queryset = queryset.filter(status=status_param)
-
-    # if registered_by_param:
-    #   queryset = queryset.filter(registered_by=registered_by_param)
     if user.is_superuser:
       queryset = Patient.objects.all()
     else:

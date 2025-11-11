@@ -4,7 +4,7 @@ import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
-import LoadingModal from "src/components/Modal/LoadingModal";
+import SystemLoader from "src/components/SystemLoader";
 
 const ViewPreScreeningForm = () => {
   const location = useLocation();
@@ -12,10 +12,6 @@ const ViewPreScreeningForm = () => {
   const generalData = location.state?.formData;
   const photoUrl = location.state?.photoUrl;
   const record = location.state;
-  // const state = location.state;
-  // const record = location.state;
-  // const [patient, setPatient] = useState("");
-  // const [pre_screening_form, setPre_screening_form] = useState("");
 
   // Notification Modal
   const [showModal, setShowModal] = useState(false);
@@ -30,24 +26,102 @@ const ViewPreScreeningForm = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
   const [modalAction, setModalAction] = useState(null);
+  const [modalDesc, setModalDesc] = useState("Confirm before proceeding");
 
-  const [historicalUpdates, setHistoricalUpdates] = useState([]);
-
-  useEffect(() => {
-    if (generalData) {
-      setHistoricalUpdates(generalData.historical_updates);
-    }
-  }, [generalData]);
+  const [errors, setErrors] = useState({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (historicalUpdates.length > 0) {
-      generalData.historical_updates = historicalUpdates.filter(
-        (h) => h.date && h.note
+    const form = document.getElementById("pre-screening-form"); 
+    const formElements = form.elements;
+
+    const newErrors = {}; // collect all errors here
+
+    // --- Checkbox groups to validate ---
+    const checkboxGroupsInput = [
+      {
+        name: "diagnosis_basis",
+        message: "Select at least one diagnosis basis.",
+      },
+      {
+        name: "primary_sites",
+        message: "Select at least one primary site.",
+      },
+      {
+        name: "distant_metastasis_sites",
+        message: "Select 'None' if no distant metastasis.",
+      },
+      {
+        name: "adjuvant_treatments_received",
+        message: "Select 'None' if none received.",
+      },
+      {
+        name: "other_source_treatments",
+        message: "Select 'None' if none received.",
+      },
+    ];
+
+    checkboxGroupsInput.forEach((group) => {
+      const boxes = Array.from(formElements).filter(
+        (el) => el.name && el.name.startsWith(group.name) && el.type === "checkbox"
       );
+      const isChecked = boxes.some((el) => el.checked);
+      if (!isChecked) {
+        newErrors[group.name] = group.message;
+      }
+    });
+
+    // --- Text / textarea / date inputs to validate ---
+    const textFields = [
+      { name: "referred_from", message: "Referred from is required." },
+      {
+        name: "referring_doctor_or_facility",
+        message: "Name of referring doctor/facility is required.",
+      },
+      {
+        name: "reason_for_referral",
+        message: "Reason for referral is required.",
+      },
+      { name: "chief_complaint", message: "Chief complaint is required." },
+      {
+        name: "date_of_consultation",
+        message: "Date of consultation/admission is required.",
+      }, 
+      { name: "date_of_diagnosis", message: "Date of diagnosis is required." },
+      { name: "multiple_primaries", message: "This field is required." },
+      { name: "histology", message: "Histology is required." },
+      { name: "laterality", message: "This field is required." },
+      { name: "staging", message: "Staging is required." },
+      { name: "tnm_system", message: "This field is required." },
+      { name: "final_diagnosis", message: "Final diagnosis is required." },
+      { name: "final_diagnosis_icd10", message: "This field is required." },
+      { name: "treatment_purpose", message: "This field is required." },
+      { name: "primary_assistance_by_ejacc", message: "Put 'None' if none recieved." },
+    ];
+
+    textFields.forEach((field) => {
+      const input = formElements[field.name];
+      if (input && !input.value.trim()) {
+        newErrors[field.name] = field.message;
+      }
+    });
+
+    if (formElements["date_of_consultation"].value > new Date().toISOString().split('T')[0])
+        newErrors["date_of_consultation"] = "Date should not be in the future.";
+    if (formElements["date_of_diagnosis"].value > new Date().toISOString().split('T')[0])
+        newErrors["date_of_diagnosis"] = "Date should not be in the future.";
+    if (formElements["date_of_assistance"].value > new Date().toISOString().split('T')[0])
+        newErrors["date_of_assistance"] = "Date should not be in the future.";
+    
+    // --- If any errors exist, stop submission ---
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      console.log("Validation errors:", newErrors);
+      return;
     }
 
+    setErrors({});
     setModalText("Make sure all your inputs are correct!");
     setModalAction({ type: "submit" });
     setModalOpen(true);
@@ -89,6 +163,8 @@ const ViewPreScreeningForm = () => {
               data.cancer_data[name] = value;
             } else if (type !== "checkbox" && type !== "radio") {
               data.cancer_data[name] = value;
+              if (!data.cancer_data["date_of_assistance"])
+                data.cancer_data["date_of_assistance"] = null
             }
           } else if (id) {
             data.cancer_data[id] = value;
@@ -101,7 +177,7 @@ const ViewPreScreeningForm = () => {
 
         setModalOpen(false);
         setLoading(true);
-
+        console.log("General Data: ", generalData);
         const response = await api.post("/patient/pre-enrollment/", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -145,7 +221,8 @@ const ViewPreScreeningForm = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        text={modalText}
+        title={modalText}
+        desc={modalDesc}
         onConfirm={handleModalConfirm}
         onCancel={() => {
           setModalOpen(false);
@@ -160,7 +237,8 @@ const ViewPreScreeningForm = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      <LoadingModal open={loading} text="Submitting changes..." />
+      {loading && <SystemLoader />}
+      {/* <LoadingModal open={loading} text="Submitting changes..." /> */}
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
         {/* <div className=" px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Add Patient</h1>
@@ -192,30 +270,36 @@ const ViewPreScreeningForm = () => {
                 <div className="flex flex-col gap-3 w-1/2">
                   <div>
                     <label className="text-sm font-medium block mb-1">
-                      Referred From
+                      Referred From <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       name="referred_from"
                       className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                      // value={pre_screening_form?.referred_from}
-                      // onChange={handleInputChange}
                     />
+                    {errors.referred_from && (
+                      <span className="text-red-500 text-xs">
+                        {errors.referred_from}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium block mb-1">
-                      Reason for Referral
+                      Reason for Referral <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       name="reason_for_referral"
                       className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                      // value={pre_screening_form?.reason_for_referral}
-                      // onChange={handleInputChange}
                     ></textarea>
+                    {errors.reason_for_referral && (
+                      <span className="text-red-500 text-xs">
+                        {errors.reason_for_referral}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium block mb-1">
-                      Date of Consultation / Admission
+                      Date of Consultation / Admission <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -238,42 +322,49 @@ const ViewPreScreeningForm = () => {
                         type="date"
                         name="date_of_consultation"
                         className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50 pl-10"
-                        // className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
-                        placeholder="Select date"
-                        // value={pre_screening_form?.date_of_consultation}
-                        // onChange={handleInputChange}
                       />
                     </div>
+                    {errors.date_of_consultation && (
+                      <span className="text-red-500 text-xs">
+                        {errors.date_of_consultation}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-col gap-3 w-1/2">
                   <div>
                     <label className="text-sm font-medium block mb-1">
-                      Name of Referring Doctor / Facility
+                      Name of Referring Doctor / Facility <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       name="referring_doctor_or_facility"
                       className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                      // value={pre_screening_form?.referring_doctor_or_facility}
-                      // onChange={handleInputChange}
                     />
+                    {errors.referring_doctor_or_facility && (
+                      <span className="text-red-500 text-xs">
+                        {errors.referring_doctor_or_facility}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium block mb-1">
-                      Chief Complaint
+                      Chief Complaint <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       type="text"
                       name="chief_complaint"
                       className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                      // value={pre_screening_form?.chief_complaint}
-                      // onChange={handleInputChange}
                     ></textarea>
+                    {errors.chief_complaint && (
+                      <span className="text-red-500 text-xs">
+                        {errors.chief_complaint}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium block mb-1">
-                      Date of Diagnosis
+                      Date of Diagnosis <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -297,10 +388,13 @@ const ViewPreScreeningForm = () => {
                         name="date_of_diagnosis"
                         className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50 pl-10 pl-10"
                         placeholder="Select date"
-                        // value={pre_screening_form?.date_of_diagnosis}
-                        // onChange={handleInputChange}
                       />
                     </div>
+                    {errors.date_of_diagnosis && (
+                      <span className="text-red-500 text-xs">
+                        {errors.date_of_diagnosis}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -308,7 +402,14 @@ const ViewPreScreeningForm = () => {
                 <h1 id="details_title" className="text-md font-bold">
                   Diagnosis
                 </h1>
-                <p className="text-sm">Most Valid Basis of Diagnosis:</p>
+                <p className="text-sm">
+                  Most Valid Basis of Diagnosis <span className="text-red-500">*</span> {" "}
+                  {errors.diagnosis_basis && (
+                    <span className="text-red-500 text-xs">
+                      {errors.diagnosis_basis}
+                    </span>
+                  )}
+                </p>
                 <div className="grid grid-cols-3 gap-x-10 gap-y-5">
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
@@ -316,8 +417,6 @@ const ViewPreScreeningForm = () => {
                       name="diagnosis_basis_nonMicroscopic"
                       value="None Microscopic"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("diagnosis_basis", "None Microscopic")}
-                      // onChange={() => handleCheckboxChange("diagnosis_basis", "None Microscopic")}
                     />
                     <label className="text-sm">Non Microscopic</label>
                   </div>
@@ -327,8 +426,6 @@ const ViewPreScreeningForm = () => {
                       name="diagnosis_basis_deathCertificatesOnly"
                       value="Death Certificates Only"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("diagnosis_basis", "Death Certificates Only")}
-                      // onChange={() => handleCheckboxChange("diagnosis_basis", "Death Certificates Only")}
                     />
                     <label className=" text-sm">Death Certificates Only</label>
                   </div>
@@ -338,8 +435,6 @@ const ViewPreScreeningForm = () => {
                       name="diagnosis_basis_clinicalInvestigation"
                       value="Clinical Investigation"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("diagnosis_basis", "Clinical Investigation")}
-                      // onChange={() => handleCheckboxChange("diagnosis_basis", "Clinical Investigation")}
                     />
                     <label className=" text-sm">Clinical Investigation</label>
                   </div>
@@ -349,8 +444,6 @@ const ViewPreScreeningForm = () => {
                       name="diagnosis_basis_specificTumorMarkers"
                       value="Specific Tumor Markers"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("diagnosis_basis", "Specific Tumor Markers")}
-                      // onChange={() => handleCheckboxChange("diagnosis_basis", "Specific Tumor Markers")}
                     />
                     <label className=" text-sm">Specific Tumors Makers</label>
                   </div>
@@ -360,8 +453,6 @@ const ViewPreScreeningForm = () => {
                       name="diagnosis_basis_microscopic"
                       value="Microscopic"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("diagnosis_basis", "Microscopic")}
-                      // onChange={() => handleCheckboxChange("diagnosis_basis", "Microscopic")}
                     />
                     <label className=" text-sm">Microscopic</label>
                   </div>
@@ -371,8 +462,6 @@ const ViewPreScreeningForm = () => {
                       name="diagnosis_basis_cytologyHematology"
                       value="Cytology or Hematology"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("diagnosis_basis", "Cytology or Hermotology")}
-                      // onChange={() => handleCheckboxChange("diagnosis_basis", "Cytology or Hermotology")}
                     />
                     <label className=" text-sm">Cytology or Hermotology</label>
                   </div>
@@ -382,8 +471,6 @@ const ViewPreScreeningForm = () => {
                       name="diagnosis_basis_histologyMetastasis"
                       value="Histology of Metastasis"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("diagnosis_basis", "Histology of Metastasis")}
-                      // onChange={() => handleCheckboxChange("diagnosis_basis", "Histology of Metastasis")}
                     />
                     <label className=" text-sm">Histology of Metastasis</label>
                   </div>
@@ -393,15 +480,20 @@ const ViewPreScreeningForm = () => {
                       name="diagnosis_basis_histologyPrimary"
                       value="Histology of Primary"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("diagnosis_basis", "Histology of Primary")}
-                      // onChange={() => handleCheckboxChange("diagnosis_basis", "Histology of Primary")}
                     />
                     <label className=" text-sm">Histology of Primary</label>
                   </div>
                 </div>
               </div>
               <div className="flex flex-col gap-5">
-                <p className="text-sm">Multiple Primaries</p>
+                <p className="text-sm">
+                  Multiple Primaries <span className="text-red-500">*</span> {" "}
+                  {errors.multiple_primaries && (
+                    <span className="text-red-500 text-xs">
+                      {errors.multiple_primaries}
+                    </span>
+                  )}
+                </p>
                 <div className="grid grid-cols-3 gap-x-10 gap-y-5 w-fit">
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
@@ -409,8 +501,6 @@ const ViewPreScreeningForm = () => {
                       name="multiple_primaries"
                       value={1}
                       className="w-3.5 h-3.5"
-                      // checked={pre_screening_form?.multiple_primaries==1}
-                      // onChange={handleInputChange}
                     />
                     <label className=" text-sm">{1}</label>
                   </div>
@@ -420,8 +510,6 @@ const ViewPreScreeningForm = () => {
                       name="multiple_primaries"
                       value={2}
                       className="w-3.5 h-3.5"
-                      // checked={pre_screening_form?.multiple_primaries==2}
-                      // onChange={handleInputChange}
                     />
                     <label className=" text-sm">{2}</label>
                   </div>
@@ -431,15 +519,20 @@ const ViewPreScreeningForm = () => {
                       name="multiple_primaries"
                       value={3}
                       className="w-3.5 h-3.5"
-                      // checked={pre_screening_form?.multiple_primaries==3}
-                      // onChange={handleInputChange}
                     />
                     <label className=" text-sm">{3}</label>
                   </div>
                 </div>
               </div>
               <div className="flex flex-col gap-5">
-                <p className="text-sm">Primary Sites</p>
+                <p className="text-sm">
+                  Primary Sites <span className="text-red-500">*</span> {" "}
+                  {errors.primary_sites && (
+                    <span className="text-red-500 text-xs">
+                      {errors.primary_sites}
+                    </span>
+                  )}
+                </p>
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-10 gap-y-5">
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
@@ -447,8 +540,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_colon"
                       value="Colon"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Colon")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Colon")}
                     />
                     <label className=" text-sm">Colon</label>
                   </div>
@@ -458,8 +549,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_brain"
                       value="Brain"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Brain")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Brain")}
                     />
                     <label className=" text-sm">Brain</label>
                   </div>
@@ -469,8 +558,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_bladder"
                       value="Bladder"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Bladder")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Bladder")}
                     />
                     <label className=" text-sm">Bladder</label>
                   </div>
@@ -480,8 +567,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_skin"
                       value="Skin"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Skin")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Skin")}
                     />
                     <label className=" text-sm">Skin</label>
                   </div>
@@ -491,8 +576,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_kidney"
                       value="Kidney"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Kidney")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Kidney")}
                     />
                     <label className=" text-sm">Kidney</label>
                   </div>
@@ -502,8 +585,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_testis"
                       value="Testis"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Testis")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Testis")}
                     />
                     <label className=" text-sm">Testis</label>
                   </div>
@@ -513,8 +594,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_liver"
                       value="Liver"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Liver")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Liver")}
                     />
                     <label className=" text-sm">Liver</label>
                   </div>
@@ -524,8 +603,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_corpusUteri"
                       value="Corpus Uteri"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Corpus Uteri")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Corpus Uteri")}
                     />
                     <label className=" text-sm">Corpus Uteri</label>
                   </div>
@@ -535,8 +612,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_urinary"
                       value="Urinary"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Urinary")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Urinary")}
                     />
                     <label className=" text-sm">Urinary</label>
                   </div>
@@ -546,8 +621,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_prostate"
                       value="Prostate"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Prostate")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Prostate")}
                     />
                     <label className=" text-sm">Prostate</label>
                   </div>
@@ -557,8 +630,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_nasopharnyx"
                       value="Nasopharnyx"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Nasopharnyx")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Nasopharnyx")}
                     />
                     <label className=" text-sm">Nasopharnyx</label>
                   </div>
@@ -568,8 +639,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_oralCavity"
                       value="Oral Cavity"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Oral Cavity")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Oral Cavity")}
                     />
                     <label className=" text-sm">Oral Cavity</label>
                   </div>
@@ -579,8 +648,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_ovary"
                       value="Ovary"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Ovary")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Ovary")}
                     />
                     <label className=" text-sm">Ovary</label>
                   </div>
@@ -590,8 +657,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_lung"
                       value="Lung"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Lung")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Lung")}
                     />
                     <label className=" text-sm">Lung</label>
                   </div>
@@ -601,8 +666,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_gull"
                       value="Gull"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Gull")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Gull")}
                     />
                     <label className=" text-sm">Gull</label>
                   </div>
@@ -612,8 +675,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_thyroid"
                       value="Thyroid"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Thyroid")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Thyroid")}
                     />
                     <label className=" text-sm">Thyroid</label>
                   </div>
@@ -623,8 +684,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_rectum"
                       value="Rectum"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Rectum")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Rectum")}
                     />
                     <label className=" text-sm">Rectum</label>
                   </div>
@@ -634,8 +693,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_blood"
                       value="Blood"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Blood")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Blood")}
                     />
                     <label className=" text-sm">Blood</label>
                   </div>
@@ -645,8 +702,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_stomach"
                       value="Stomach"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Stomach")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Stomach")}
                     />
                     <label className=" text-sm">Stomach</label>
                   </div>
@@ -656,8 +711,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_pancreas"
                       value="Pancreas"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Pancreas")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Pancreas")}
                     />
                     <label className=" text-sm">Pancreas</label>
                   </div>
@@ -667,8 +720,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_esophagus"
                       value="Esophagus"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Esophagus")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Esophagus")}
                     />
                     <label className=" text-sm">Esophagus</label>
                   </div>
@@ -678,8 +729,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_breast"
                       value="Breast"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Breast")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Breast")}
                     />
                     <label className=" text-sm">Breast</label>
                   </div>
@@ -689,8 +738,6 @@ const ViewPreScreeningForm = () => {
                       name="primary_sites_uterineCervix"
                       value="Uterine Cervix"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("primary_sites", "Uterine Cervix")}
-                      // onChange={() => handleCheckboxChange("primary_sites", "Uterine Cervix")}
                     />
                     <label className=" text-sm">Uterine Cervix</label>
                   </div>
@@ -702,14 +749,19 @@ const ViewPreScreeningForm = () => {
                       type="text"
                       name="primary_sites_other"
                       className="border-b-[1px] focus:outline-none"
-                      // value={pre_screening_form?.primary_sites_other}
-                      // onChange={handleInputChange}
                     />
                   </p>
                 </div>
               </div>
               <div className="flex flex-col gap-5">
-                <p className="text-sm">Laterality</p>
+                <p className="text-sm">
+                  Laterality <span className="text-red-500">*</span> {" "}
+                  {errors.laterality && (
+                    <span className="text-red-500 text-xs">
+                      {errors.laterality}
+                    </span>
+                  )}
+                </p>
                 <div className="flex flex-col gap-3">
                   <div className="flex gap-3 items-center">
                     <input
@@ -718,8 +770,6 @@ const ViewPreScreeningForm = () => {
                       name="laterality"
                       className="peer hidden"
                       value="Left"
-                      // checked={pre_screening_form?.laterality === "Left"}
-                      // onChange={handleInputChange}
                     />
                     <label
                       htmlFor="left"
@@ -734,8 +784,6 @@ const ViewPreScreeningForm = () => {
                       name="laterality"
                       className="peer hidden"
                       value="Right"
-                      // checked={pre_screening_form?.laterality === "Right"}
-                      // onChange={handleInputChange}
                     />
                     <label
                       htmlFor="right"
@@ -750,8 +798,6 @@ const ViewPreScreeningForm = () => {
                       name="laterality"
                       className="peer hidden"
                       value="Not Stated"
-                      // checked={pre_screening_form?.laterality === "Not Stated"}
-                      // onChange={handleInputChange}
                     />
                     <label
                       htmlFor="notsated"
@@ -766,8 +812,6 @@ const ViewPreScreeningForm = () => {
                       name="laterality"
                       className="peer hidden"
                       value="Bilateral"
-                      // checked={pre_screening_form?.laterality === "Bilateral"}
-                      // onChange={handleInputChange}
                     />
                     <label
                       htmlFor="bilateral"
@@ -782,8 +826,6 @@ const ViewPreScreeningForm = () => {
                       name="laterality"
                       className="peer hidden"
                       value="Mild"
-                      // checked={pre_screening_form?.laterality === "Mild"}
-                      // onChange={handleInputChange}
                     />
                     <label
                       htmlFor="mild"
@@ -795,23 +837,24 @@ const ViewPreScreeningForm = () => {
               </div>
               <div className="grid grid-cols-2 gap-x-10 gap-y-5">
                 <div className="flex gap-2 col-span-2 flex-col">
-                  <label className="text-sm">Histology(Morphology)</label>
+                  <label className="text-sm">Histology(Morphology) <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     name="histology"
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                    // value={pre_screening_form?.histology}
-                    // onChange={handleInputChange}
                   />
+                  {errors.histology && (
+                    <span className="text-red-500 text-xs">
+                      {errors.histology}
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-2 flex-col">
-                  <label className="text-sm">Staging</label>
+                  <label className="text-sm">Staging <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <select
                       name="staging"
                       className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                      // value={pre_screening_form?.staging}
-                      // onChange={handleInputChange}
                     >
                       <option value="" disabled selected>
                         Select
@@ -829,9 +872,14 @@ const ViewPreScreeningForm = () => {
                       <option value="Unknown">Unknown</option>
                     </select>
                   </div>
+                  {errors.staging && (
+                    <span className="text-red-500 text-xs">
+                      {errors.staging}
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-2 flex-col">
-                  <label className="text-sm 700 h-8">TNM System</label>
+                  <label className="text-sm 700 h-8">TNM System <span className="text-red-500">*</span></label>
                   <div className="flex gap-2 items-center text-gray-700">
                     T
                     <input
@@ -841,8 +889,6 @@ const ViewPreScreeningForm = () => {
                       maxLength="1"
                       className="border-b outline-none px-2 w-[20%] text-center"
                       onInput={handleTNMInput}
-                      // value={pre_screening_form?.t_system}
-                      // onChange={handleInputChange}
                     />
                     N
                     <input
@@ -852,8 +898,6 @@ const ViewPreScreeningForm = () => {
                       maxLength="1"
                       className="border-b outline-none px-2 w-[20%] text-center"
                       onInput={handleTNMInput}
-                      // value={pre_screening_form?.n_system}
-                      // onChange={handleInputChange}
                     />
                     M
                     <input
@@ -863,14 +907,24 @@ const ViewPreScreeningForm = () => {
                       maxLength="1"
                       className="border-b outline-none px-2 w-[20%] text-center"
                       onInput={handleTNMInput}
-                      // value={pre_screening_form?.m_system}
-                      // onChange={handleInputChange}
                     />
                   </div>
+                  {errors.tnm_system && (
+                    <span className="text-red-500 text-xs">
+                      {errors.tnm_system}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-5">
-                <p className="text-sm">Distant Metastasis Sites</p>
+                <p className="text-sm">
+                  Distant Metastasis Sites <span className="text-red-500">*</span> {" "}
+                  {errors.distant_metastasis_sites && (
+                    <span className="text-red-500 text-xs">
+                      {errors.distant_metastasis_sites}
+                    </span>
+                  )}
+                </p>
                 <div className="grid grid-cols-3 gap-x-10 gap-y-5">
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
@@ -878,8 +932,6 @@ const ViewPreScreeningForm = () => {
                       name="distant_metastasis_sites_none"
                       value="None"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("distant_metastasis_sites", "None")}
-                      // onChange={() => handleCheckboxChange("distant_metastasis_sites", "None")}
                     />
                     <label className="text-sm">None</label>
                   </div>
@@ -889,8 +941,6 @@ const ViewPreScreeningForm = () => {
                       name="distant_metastasis_sites_distantLymphNodes"
                       value="Destant Lymph Nodes"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("distant_metastasis_sites", "Destant Lymph Nodes")}
-                      // onChange={() => handleCheckboxChange("distant_metastasis_sites", "Destant Lymph Nodes")}
                     />
                     <label className="text-sm">Distant Lymph Nodes</label>
                   </div>
@@ -900,8 +950,6 @@ const ViewPreScreeningForm = () => {
                       name="distant_metastasis_sites_bone"
                       value="Bone"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("distant_metastasis_sites", "Bone")}
-                      // onChange={() => handleCheckboxChange("distant_metastasis_sites", "Bone")}
                     />
                     <label className="text-sm">Bone</label>
                   </div>
@@ -911,8 +959,6 @@ const ViewPreScreeningForm = () => {
                       name="distant_metastasis_sites_liverPleura"
                       value="Liver(Pleura)"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("distant_metastasis_sites", "Liver(Pleura)")}
-                      // onChange={() => handleCheckboxChange("distant_metastasis_sites", "Liver(Pleura)")}
                     />
                     <label className="text-sm">Liver(Pleura)</label>
                   </div>
@@ -922,8 +968,6 @@ const ViewPreScreeningForm = () => {
                       name="distant_metastasis_sites_kidneyMetastasis"
                       value="Kidney"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("distant_metastasis_sites", "Kidney")}
-                      // onChange={() => handleCheckboxChange("distant_metastasis_sites", "Kidney")}
                     />
                     <label className="text-sm">Kidney</label>
                   </div>
@@ -933,8 +977,6 @@ const ViewPreScreeningForm = () => {
                       name="distant_metastasis_sites_brainMetastasis"
                       value="Brain"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("distant_metastasis_sites", "Brain")}
-                      // onChange={() => handleCheckboxChange("distant_metastasis_sites", "Brain")}
                     />
                     <label className="text-sm">Brain</label>
                   </div>
@@ -944,8 +986,6 @@ const ViewPreScreeningForm = () => {
                       name="distant_metastasis_sites_ovaryMetastasis"
                       value="Ovary"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("distant_metastasis_sites", "Ovary")}
-                      // onChange={() => handleCheckboxChange("distant_metastasis_sites", "Ovary")}
                     />
                     <label className="text-sm">Ovary</label>
                   </div>
@@ -955,8 +995,6 @@ const ViewPreScreeningForm = () => {
                       name="distant_metastasis_sites_skinMetastasis"
                       value="Skin"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("distant_metastasis_sites", "Skin")}
-                      // onChange={() => handleCheckboxChange("distant_metastasis_sites", "Skin")}
                     />
                     <label className="text-sm">Skin</label>
                   </div>
@@ -966,8 +1004,6 @@ const ViewPreScreeningForm = () => {
                       name="distant_metastasis_sites_prostateMetastasis"
                       value="Prostate"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("distant_metastasis_sites", "Prostate")}
-                      // onChange={() => handleCheckboxChange("distant_metastasis_sites", "Prostate")}
                     />
                     <label className="text-sm">Prostate</label>
                   </div>
@@ -977,8 +1013,6 @@ const ViewPreScreeningForm = () => {
                       name="distant_metastasis_sites_unknownMetastasis"
                       value="Unknown"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("distant_metastasis_sites", "Unknown")}
-                      // onChange={() => handleCheckboxChange("distant_metastasis_sites", "Unknown")}
                     />
                     <label className="text-sm">Unknown</label>
                   </div>
@@ -990,38 +1024,49 @@ const ViewPreScreeningForm = () => {
                       type="text"
                       name="distant_metastasis_sites_other"
                       className="border-b-[1px] focus:outline-none"
-                      // value={pre_screening_form?.distant_metastasis_sites_other}
-                      // onChange={handleInputChange}
                     />
                   </p>
                 </div>
                 <div className="flex flex-col gap-5">
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm">Final Diagnosis</label>
+                    <label className="text-sm">Final Diagnosis <span className="text-red-500">*</span></label>
                     <textarea
                       name="final_diagnosis"
                       className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                      // value={pre_screening_form?.final_diagnosis}
-                      // onChange={handleInputChange}
                     ></textarea>
+                    {errors.final_diagnosis && (
+                      <span className="text-red-500 text-xs">
+                        {errors.final_diagnosis}
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-sm">
-                      Final Diagnosis: ICD-10 Code
+                      Final Diagnosis: ICD-10 Code <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       name="final_diagnosis_icd10"
                       className="-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                      // value={pre_screening_form?.final_diagnosis_icd10}
-                      // onChange={handleInputChange}
                     />
+                    {errors.final_diagnosis_icd10 && (
+                      <span className="text-red-500 text-xs">
+                        {errors.final_diagnosis_icd10}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
               <div className="flex flex-col gap-5">
                 <h1 className="text-md font-bold">Treatment</h1>
-                <p className="text-sm">Treatment Purposes</p>
+                <p className="text-sm">
+                  Treatment Purposes <span className="text-red-500">*</span> {" "}
+                  {errors.treatment_purpose && (
+                    <span className="text-red-500 text-xs">
+                      {errors.treatment_purpose}
+                    </span>
+                  )}
+                </p>
                 <div className="flex flex-col gap-3">
                   <div className="flex gap-3 items-center">
                     <input
@@ -1030,8 +1075,6 @@ const ViewPreScreeningForm = () => {
                       name="treatment_purpose"
                       value="Curative-Complete"
                       className="peer hidden"
-                      // checked={pre_screening_form?.treatment_purpose === "Curative-Complete"}
-                      // onChange={handleInputChange}
                     />
                     <label
                       htmlFor="curativeComplete"
@@ -1046,8 +1089,6 @@ const ViewPreScreeningForm = () => {
                       name="treatment_purpose"
                       value="Curative-Incomplete"
                       className="peer hidden"
-                      // checked={pre_screening_form?.treatment_purpose === "Curative-Incomplete"}
-                      // onChange={handleInputChange}
                     />
                     <label
                       htmlFor="curativeIncomplete"
@@ -1062,8 +1103,6 @@ const ViewPreScreeningForm = () => {
                       name="treatment_purpose"
                       value="Palliative Only"
                       className="peer hidden"
-                      // checked={pre_screening_form?.treatment_purpose === "Palliative Only"}
-                      // onChange={handleInputChange}
                     />
                     <label
                       htmlFor="palliative"
@@ -1079,8 +1118,6 @@ const ViewPreScreeningForm = () => {
                       type="text"
                       name="treatment_purpose_other"
                       className="border-b-[1px] focus:outline-none"
-                      // value={pre_screening_form?.treatment_purpose_other}
-                      // onChange={handleInputChange}
                     />
                   </p>
                 </div>
@@ -1088,15 +1125,18 @@ const ViewPreScreeningForm = () => {
               <div className="flex gap-5 w-full">
                 <div className="flex gap-2 flex-col w-full">
                   <label className="text-sm">
-                    Primary Assistance by RAFI-ELACC
+                    Primary Assistance by RAFI-ELACC <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="primary_assistance_by_ejacc"
                     className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                    // value={pre_screening_form?.primary_assistance_by_ejacc}
-                    // onChange={handleInputChange}
                   />
+                  {errors.primary_assistance_by_ejacc && (
+                    <span className="text-red-500 text-xs">
+                      {errors.primary_assistance_by_ejacc}
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-2 flex-col w-full">
                   <label className="text-sm">Date of Assistance</label>
@@ -1121,18 +1161,25 @@ const ViewPreScreeningForm = () => {
                       type="date"
                       name="date_of_assistance"
                       className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50 pl-10"
-                      // className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
                       placeholder="Select date"
-                      // value={pre_screening_form?.date_of_assistance}
-                      // onChange={handleInputChange}
                     />
                   </div>
+                  {errors.date_of_assistance && (
+                    <span className="text-red-500 text-xs">
+                      {errors.date_of_assistance}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-4">
                 <p className="text-sm">
                   Planned Additional/Adjuvant Treatment/s actually received from
-                  RAFI-EJACC
+                  RAFI-EJACC <span className="text-red-500">*</span> {" "}
+                  {errors.adjuvant_treatments_received && (
+                    <span className="text-red-500 text-xs">
+                      {errors.adjuvant_treatments_received}
+                    </span>
+                  )}
                 </p>
 
                 <div className="flex flex-wrap gap-x-8 gap-y-3">
@@ -1143,8 +1190,6 @@ const ViewPreScreeningForm = () => {
                       name="adjuvant_treatments_received_surgery"
                       value="Surgery"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("adjuvant_treatments_received", "Surgery")}
-                      // onChange={() => handleCheckboxChange("adjuvant_treatments_received", "Surgery")}
                     />
                     <label htmlFor="surgery" className="text-sm">
                       Surgery
@@ -1157,8 +1202,6 @@ const ViewPreScreeningForm = () => {
                       name="adjuvant_treatments_received_radiotherapy"
                       value="Radiotherapy"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("adjuvant_treatments_received", "Radiotherapy")}
-                      // onChange={() => handleCheckboxChange("adjuvant_treatments_received", "Radiotherapy")}
                     />
                     <label htmlFor="radiotherapy" className="text-sm">
                       Radiotherapy
@@ -1171,8 +1214,6 @@ const ViewPreScreeningForm = () => {
                       name="adjuvant_treatments_received_chemotherapy"
                       value="Chemotherapy"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("adjuvant_treatments_received", "Chemotherapy")}
-                      // onChange={() => handleCheckboxChange("adjuvant_treatments_received", "Chemotherapy")}
                     />
                     <label htmlFor="chemotherapy" className="text-sm">
                       Chemotherapy
@@ -1188,8 +1229,6 @@ const ViewPreScreeningForm = () => {
                       name="adjuvant_treatments_received_immunotherapy"
                       value="Immunotherapy/Cytrotherapy"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("adjuvant_treatments_received", "Immunotherapy/Cytrotherapy")}
-                      // onChange={() => handleCheckboxChange("adjuvant_treatments_received", "Immunotherapy/Cytrotherapy")}
                     />
                     <label htmlFor="immunotherapy" className="text-sm">
                       Immunotherapy/Cytrotherapy
@@ -1202,8 +1241,6 @@ const ViewPreScreeningForm = () => {
                       name="adjuvant_treatments_received_hormonal"
                       value="Hormonal"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("adjuvant_treatments_received", "Hormonal")}
-                      // onChange={() => handleCheckboxChange("adjuvant_treatments_received", "Hormonal")}
                     />
                     <label htmlFor="hormonal" className="text-sm">
                       Hormonal
@@ -1212,15 +1249,13 @@ const ViewPreScreeningForm = () => {
                   <div className="flex items-center gap-2 w-fit">
                     <input
                       type="checkbox"
-                      id="unknown"
-                      name="adjuvant_treatments_received_unknownTreatment"
-                      value="Unknown"
+                      id="none"
+                      name="adjuvant_treatments_received_noneTreatment"
+                      value="None"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("adjuvant_treatments_received", "Unknown")}
-                      // onChange={() => handleCheckboxChange("adjuvant_treatments_received", "Unknown")}
                     />
-                    <label htmlFor="unknown" className="text-sm">
-                      Unknown
+                    <label htmlFor="none" className="text-sm">
+                      None
                     </label>
                   </div>
                 </div>
@@ -1231,15 +1266,18 @@ const ViewPreScreeningForm = () => {
                       type="text"
                       name="adjuvant_treatments_other"
                       className="border-b-[1px] focus:outline-none"
-                      // value={pre_screening_form?.adjuvant_treatments_other}
-                      // onChange={handleInputChange}
                     />
                   </p>
                 </div>
               </div>
               <div className="flex flex-col gap-4">
                 <p className="text-sm">
-                  Treatment/s received from other sources
+                  Treatment/s received from other sources <span className="text-red-500">*</span> {" "}
+                  {errors.other_source_treatments && (
+                    <span className="text-red-500 text-xs">
+                      {errors.other_source_treatments}
+                    </span>
+                  )}
                 </p>
 
                 <div className="flex flex-wrap gap-x-8 gap-y-3">
@@ -1250,8 +1288,6 @@ const ViewPreScreeningForm = () => {
                       name="other_source_treatments_surgeryOther"
                       value="Surgery"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("other_source_treatments", "Surgery")}
-                      // onChange={() => handleCheckboxChange("other_source_treatments", "Surgery")}
                     />
                     <label htmlFor="surgeryOther" className="text-sm">
                       Surgery
@@ -1264,8 +1300,6 @@ const ViewPreScreeningForm = () => {
                       name="other_source_treatments_radiotherapyOther"
                       value="Radiotherapy"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("other_source_treatments", "Radiotherapy")}
-                      // onChange={() => handleCheckboxChange("other_source_treatments", "Radiotherapy")}
                     />
                     <label htmlFor="radiotherapyOther" className="text-sm">
                       Radiotherapy
@@ -1278,8 +1312,6 @@ const ViewPreScreeningForm = () => {
                       name="other_source_treatments_chemotherapyOther"
                       value="Chemotherapy"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("other_source_treatments", "Chemotherapy")}
-                      // onChange={() => handleCheckboxChange("other_source_treatments", "Chemotherapy")}
                     />
                     <label htmlFor="chemotherapyOther" className="text-sm">
                       Chemotherapy
@@ -1295,8 +1327,6 @@ const ViewPreScreeningForm = () => {
                       name="other_source_treatments_immunotherapyOther"
                       value="Immunotherapy/Cytrotherapy"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("other_source_treatments", "Immunotherapy/Cytrotherapy")}
-                      // onChange={() => handleCheckboxChange("other_source_treatments", "Immunotherapy/Cytrotherapy")}
                     />
                     <label htmlFor="immunotherapyOther" className="text-sm">
                       Immunotherapy/Cytrotherapy
@@ -1309,8 +1339,6 @@ const ViewPreScreeningForm = () => {
                       name="other_source_treatments_hormonalOther"
                       value="Hormonal"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("other_source_treatments", "Hormonal")}
-                      // onChange={() => handleCheckboxChange("other_source_treatments", "Hormonal")}
                     />
                     <label htmlFor="hormonalOther" className="text-sm">
                       Hormonal
@@ -1319,15 +1347,13 @@ const ViewPreScreeningForm = () => {
                   <div className="flex items-center gap-2 w-fit">
                     <input
                       type="checkbox"
-                      id="unknownOther"
-                      name="other_source_treatments_unknownOther"
-                      value="Unknown"
+                      id="noneOther"
+                      name="other_source_treatments_noneOther"
+                      value="None"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      // checked={isChecked("other_source_treatments", "Unknown")}
-                      // onChange={() => handleCheckboxChange("other_source_treatments", "Unknown")}
                     />
-                    <label htmlFor="unknownOther" className="text-sm">
-                      Unknown
+                    <label htmlFor="noneOther" className="text-sm">
+                      None
                     </label>
                   </div>
                 </div>
@@ -1338,8 +1364,6 @@ const ViewPreScreeningForm = () => {
                       type="text"
                       name="other_source_treatments_other"
                       className="border-b-[1px] focus:outline-none"
-                      // value={pre_screening_form?.other_source_treatments_other}
-                      // onChange={handleInputChange}
                     />
                   </p>
                 </div>

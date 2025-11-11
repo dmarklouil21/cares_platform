@@ -13,6 +13,8 @@ const PatientMasterList = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [loggedRepresentative, setLoggedRepresentative] = useState(null);
+
   // Data state
   const [patients, setPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,15 +42,24 @@ const PatientMasterList = () => {
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
+  const fetchProfile = async () => {
+    const { data } = await api.get("/partners/private/profile/");
+    setLoggedRepresentative(data);
+    console.log("Profile: ", data);
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
   const fetchData = async () => {
     try {
       const response = await api.get("/patient/list/", {
         params: {
-          status: "validated",
-          registered_by: "private",
-          city: user.city,
+          registered_by: loggedRepresentative?.institution_name,
         },
       });
+      console.log("Patients: ", response.data);
       setPatients(response.data);
     } catch (error) {
       console.error("Error fetching patient data:", error);
@@ -60,7 +71,7 @@ const PatientMasterList = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [loggedRepresentative]);
 
   // Filter data
   const filteredResults = patients.filter((patient) => {

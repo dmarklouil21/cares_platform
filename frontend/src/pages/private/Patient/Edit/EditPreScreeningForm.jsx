@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
+import Notification from "src/components/Notification";
 import LoadingModal from "src/components/Modal/LoadingModal";
+import SystemLoader from "src/components/SystemLoader";
 
 const PatientPreScreeningForm = () => {
   const location = useLocation();
@@ -23,6 +25,11 @@ const PatientPreScreeningForm = () => {
     title: "Success!",
     message: "The form has been submitted successfully.",
   });
+  // Notification
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState(
+    location.state?.type || ""
+  );
   // Loading Modal
   const [loading, setLoading] = useState(false);
   // Confirmation Modal
@@ -31,11 +38,12 @@ const PatientPreScreeningForm = () => {
   const [modalAction, setModalAction] = useState(null);
   const [modalDesc, setModalDesc] = useState("Make sure all your inputs are correct.")
 
+  const [errors, setErrors] = useState({});
+
   useEffect(() => {
     if (record) {
       setPatient(record.formData);
       setPre_screening_form(record.formData.pre_screening_form);
-      setHistoricalUpdates(record.formData.historical_updates);
     }
   }, [record]);
 
@@ -46,7 +54,6 @@ const PatientPreScreeningForm = () => {
       [name]: value,
     }));
   };
-  console.log("Patient Recieve: ", patient);
 
   const handleCheckboxChange = (groupName, value) => {
     setPre_screening_form((prev) => {
@@ -71,27 +78,111 @@ const PatientPreScreeningForm = () => {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    if (historicalUpdates.length > 0) {
-      patient.historical_updates = historicalUpdates.filter(
-        (h) => h.date && h.note
+    const form = document.getElementById("pre-screening-form"); 
+    const formElements = form.elements;
+
+    const newErrors = {}; // collect all errors here
+
+    const checkboxGroupsInput = [
+      {
+        name: "diagnosis_basis",
+        message: "Select at least one diagnosis basis.",
+      },
+      {
+        name: "primary_sites",
+        message: "Select at least one primary site.",
+      },
+      {
+        name: "distant_metastasis_sites",
+        message: "Select 'None' if no distant metastasis.",
+      },
+      {
+        name: "adjuvant_treatments_received",
+        message: "Select 'None' if none received.",
+      },
+      {
+        name: "other_source_treatments",
+        message: "Select 'None' if none received.",
+      },
+    ];
+
+    checkboxGroupsInput.forEach((group) => {
+      const boxes = Array.from(formElements).filter(
+        (el) => el.name && el.name.startsWith(group.name) && el.type === "checkbox"
       );
+      const isChecked = boxes.some((el) => el.checked);
+      if (!isChecked) {
+        newErrors[group.name] = group.message;
+      }
+    });
+
+    const textFields = [
+      { name: "referred_from", message: "Referred from is required." },
+      {
+        name: "referring_doctor_or_facility",
+        message: "Name of referring doctor/facility is required.",
+      },
+      {
+        name: "reason_for_referral",
+        message: "Reason for referral is required.",
+      },
+      { name: "chief_complaint", message: "Chief complaint is required." },
+      {
+        name: "date_of_consultation",
+        message: "Date of consultation/admission is required.",
+      }, 
+      { name: "date_of_diagnosis", message: "Date of diagnosis is required." },
+      { name: "multiple_primaries", message: "This field is required." },
+      { name: "histology", message: "Histology is required." },
+      { name: "laterality", message: "This field is required." },
+      { name: "staging", message: "Staging is required." },
+      { name: "tnm_system", message: "This field is required." },
+      { name: "final_diagnosis", message: "Final diagnosis is required." },
+      { name: "final_diagnosis_icd10", message: "This field is required." },
+      { name: "treatment_purpose", message: "This field is required." },
+      { name: "primary_assistance_by_ejacc", message: "Put 'None' if none recieved." },
+    ];
+
+    textFields.forEach((field) => {
+      const input = formElements[field.name];
+      if (input && !input.value.trim()) {
+        newErrors[field.name] = field.message;
+      }
+    });
+
+    if (formElements["date_of_consultation"].value > new Date().toISOString().split('T')[0])
+        newErrors["date_of_consultation"] = "Date should not be in the future.";
+    if (formElements["date_of_diagnosis"].value > new Date().toISOString().split('T')[0])
+        newErrors["date_of_diagnosis"] = "Date should not be in the future.";
+    if (formElements["date_of_assistance"].value > new Date().toISOString().split('T')[0])
+        newErrors["date_of_assistance"] = "Date should not be in the future.";
+    
+    if (!pre_screening_form.date_of_assistance) {
+        setPre_screening_form({...pre_screening_form, date_of_assistance: null})
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      console.log("Validation errors:", newErrors);
+      return;
     }
 
     setModalText("Save changes?");
+    setModalDesc("Make sure all your inputs are correct!");
     setModalAction({ type: "submit" });
     setModalOpen(true);
   };
 
   const handleModalConfirm = async () => {
     if (modalAction?.type === "submit") {
+      setModalOpen(false);
+      setLoading(true);
       try {
         const formData = new FormData();
         formData.append("cancer_data", JSON.stringify(pre_screening_form));
         formData.append("general_data", JSON.stringify(patient));
         formData.append("photo_url", photoUrl);
 
-        setModalOpen(false);
-        setLoading(true);
         const response = await api.patch(
           `/patient/update/${patient.patient_id}/`,
           formData,
@@ -101,22 +192,32 @@ const PatientPreScreeningForm = () => {
             },
           }
         );
-        console.log("Cancer Data: ", pre_screening_form);
-        console.log("Patient Data: ", patient);
-        setModalInfo({
-          type: "success",
-          title: "Success!",
-          message: "Your form was submitted.",
-        });
-        setShowModal(true);
+        
+        // setModalInfo({
+        //   type: "success",
+        //   title: "Success!",
+        //   message: "Your form was submitted.",
+        // });
+        // setShowModal(true);
+        navigate("/private/patients/");
         // navigate("/Beneficiary/services/cancer-screening");
       } catch (error) {
-        setModalInfo({
-          type: "error",
-          title: "Failed to save changes",
-          message: "Something went wrong while submitting the form.",
-        });
-        setShowModal(true);
+        // setModalInfo({
+        //   type: "error",
+        //   title: "Failed to save changes",
+        //   message: "Something went wrong while submitting the form.",
+        // });
+        // setShowModal(true);
+        let errorMessage = "Something went wrong while submitting the form.";
+
+        if (error.response && error.response.data) {
+          if (error.response.data.non_field_errors) {
+            errorMessage = error.response.data.non_field_errors[0];
+          } else if (error.response.data.detail)
+            errorMessage = error.response.data.detail;
+        }
+        setNotification(errorMessage);
+        setNotificationType("error");
         console.error("Error submitting a request:", error);
       } finally {
         setLoading(false);
@@ -148,7 +249,8 @@ const PatientPreScreeningForm = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      <LoadingModal open={loading} text="Submitting changes..." />
+      {loading && <SystemLoader />}
+      {/* <LoadingModal open={loading} text="Submitting changes..." /> */}
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
         {/* <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
           <h1 className="text-md font-bold">Edit Patient</h1>
@@ -162,6 +264,7 @@ const PatientPreScreeningForm = () => {
         </div> */}
         <div className="h-full w-full flex flex-col justify-between">
           <form
+            id="pre-screening-form"
             className="border border-black/15 p-3 bg-white rounded-sm"
             // onSubmit={handleSave}
           >
@@ -176,7 +279,7 @@ const PatientPreScreeningForm = () => {
                 <div className="flex flex-col gap-3 w-1/2">
                   <div>
                     <label className="text-sm font-medium block mb-1">
-                      Referred From
+                      Referred From <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -185,10 +288,15 @@ const PatientPreScreeningForm = () => {
                       value={pre_screening_form?.referred_from}
                       onChange={handleInputChange}
                     />
+                    {errors.referred_from && (
+                      <span className="text-red-500 text-xs">
+                        {errors.referred_from}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium block mb-1">
-                      Reason for Referral
+                      Reason for Referral <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       name="reason_for_referral"
@@ -196,10 +304,15 @@ const PatientPreScreeningForm = () => {
                       value={pre_screening_form?.reason_for_referral}
                       onChange={handleInputChange}
                     ></textarea>
+                    {errors.reason_for_referral && (
+                      <span className="text-red-500 text-xs">
+                        {errors.reason_for_referral}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium block mb-1">
-                      Date of Consultation / Admission
+                      Date of Consultation / Admission <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -227,12 +340,17 @@ const PatientPreScreeningForm = () => {
                         onChange={handleInputChange}
                       />
                     </div>
+                    {errors.date_of_consultation && (
+                      <span className="text-red-500 text-xs">
+                        {errors.date_of_consultation}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-col gap-3 w-1/2">
                   <div>
                     <label className="text-sm font-medium block mb-1">
-                      Name of Referring Doctor / Facility
+                      Name of Referring Doctor / Facility <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -241,10 +359,15 @@ const PatientPreScreeningForm = () => {
                       value={pre_screening_form?.referring_doctor_or_facility}
                       onChange={handleInputChange}
                     />
+                    {errors.referring_doctor_or_facility && (
+                      <span className="text-red-500 text-xs">
+                        {errors.referring_doctor_or_facility}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium block mb-1">
-                      Chief Complaint
+                      Chief Complaint <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       type="text"
@@ -253,10 +376,15 @@ const PatientPreScreeningForm = () => {
                       value={pre_screening_form?.chief_complaint}
                       onChange={handleInputChange}
                     ></textarea>
+                    {errors.chief_complaint && (
+                      <span className="text-red-500 text-xs">
+                        {errors.chief_complaint}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium block mb-1">
-                      Date of Diagnosis
+                      Date of Diagnosis <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -284,6 +412,11 @@ const PatientPreScreeningForm = () => {
                         onChange={handleInputChange}
                       />
                     </div>
+                    {errors.date_of_diagnosis && (
+                      <span className="text-red-500 text-xs">
+                        {errors.date_of_diagnosis}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -291,12 +424,19 @@ const PatientPreScreeningForm = () => {
                 <h1 id="details_title" className="text-md font-bold">
                   Diagnosis
                 </h1>
-                <p className="text-sm">Most Valid Basis of Diagnosis</p>
+                <p className="text-sm">
+                  Most Valid Basis of Diagnosis <span className="text-red-500">*</span> {" "}
+                  {errors.diagnosis_basis && (
+                    <span className="text-red-500 text-xs">
+                      {errors.diagnosis_basis}
+                    </span>
+                  )}
+                </p>
                 <div className="grid grid-cols-3 gap-x-10 gap-y-5">
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="nonMicroscopic"
+                      name="diagnosis_basis_nonMicroscopic"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("diagnosis_basis", "None Microscopic")}
                       onChange={() =>
@@ -311,7 +451,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="deathCertificatesOnly"
+                      name="diagnosis_basis_deathCertificatesOnly"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "diagnosis_basis",
@@ -329,7 +469,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="clinicalInvestigation"
+                      name="diagnosis_basis_clinicalInvestigation"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "diagnosis_basis",
@@ -347,7 +487,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="specificTumorMarkers"
+                      name="diagnosis_basis_specificTumorMarkers"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "diagnosis_basis",
@@ -365,7 +505,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="microscopic"
+                      name="diagnosis_basis_microscopic"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("diagnosis_basis", "Microscopic")}
                       onChange={() =>
@@ -377,7 +517,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="cytologyHematology"
+                      name="diagnosis_basis_cytologyHematology"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "diagnosis_basis",
@@ -395,7 +535,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="histologyMetastasis"
+                      name="diagnosis_basis_histologyMetastasis"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "diagnosis_basis",
@@ -413,7 +553,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="histologyPrimary"
+                      name="diagnosis_basis_histologyPrimary"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "diagnosis_basis",
@@ -431,7 +571,14 @@ const PatientPreScreeningForm = () => {
                 </div>
               </div>
               <div className="flex flex-col gap-5">
-                <p className="text-sm">Multiple Primaries</p>
+                <p className="text-sm">
+                  Multiple Primaries <span className="text-red-500">*</span> {" "}
+                  {errors.multiple_primaries && (
+                    <span className="text-red-500 text-xs">
+                      {errors.multiple_primaries}
+                    </span>
+                  )}
+                </p>
                 <div className="grid grid-cols-3 gap-x-10 gap-y-5 w-fit">
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
@@ -469,12 +616,19 @@ const PatientPreScreeningForm = () => {
                 </div>
               </div>
               <div className="flex flex-col gap-5">
-                <p className="text-sm">Primary Sites</p>
+                <p className="text-sm">
+                  Primary Sites <span className="text-red-500">*</span> {" "}
+                  {errors.primary_sites && (
+                    <span className="text-red-500 text-xs">
+                      {errors.primary_sites}
+                    </span>
+                  )}
+                </p>
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-10 gap-y-5">
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="colon"
+                      name="primary_sites_colon"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Colon")}
                       onChange={() =>
@@ -486,7 +640,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="brain"
+                      name="primary_sites_brain"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Brain")}
                       onChange={() =>
@@ -498,7 +652,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="bladder"
+                      name="primary_sites_bladder"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Bladder")}
                       onChange={() =>
@@ -510,7 +664,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="skin"
+                      name="primary_sites_skin"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Skin")}
                       onChange={() =>
@@ -522,7 +676,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="kidney"
+                      name="primary_sites_kidney"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Kidney")}
                       onChange={() =>
@@ -534,7 +688,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="testis"
+                      name="primary_sites_testis"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Testis")}
                       onChange={() =>
@@ -546,7 +700,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="liver"
+                      name="primary_sites_liver"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Liver")}
                       onChange={() =>
@@ -558,7 +712,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="corpusUteri"
+                      name="primary_sites_corpusUteri"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Corpus Uteri")}
                       onChange={() =>
@@ -570,7 +724,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="urinary"
+                      name="primary_sites_urinary"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Urinary")}
                       onChange={() =>
@@ -582,7 +736,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="prostate"
+                      name="primary_sites_prostate"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Prostate")}
                       onChange={() =>
@@ -594,7 +748,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="nasopharnyx"
+                      name="primary_sites_nasopharnyx"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Nasopharnyx")}
                       onChange={() =>
@@ -606,7 +760,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="oralCavity"
+                      name="primary_sites_oralCavity"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Oral Cavity")}
                       onChange={() =>
@@ -618,7 +772,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="ovary"
+                      name="primary_sites_ovary"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Ovary")}
                       onChange={() =>
@@ -630,7 +784,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="lung"
+                      name="primary_sites_lung"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Lung")}
                       onChange={() =>
@@ -642,7 +796,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="gull"
+                      name="primary_sites_gull"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Gull")}
                       onChange={() =>
@@ -654,7 +808,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="thyroid"
+                      name="primary_sites_thyroid"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Thyroid")}
                       onChange={() =>
@@ -666,7 +820,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="rectum"
+                      name="primary_sites_rectum"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Rectum")}
                       onChange={() =>
@@ -678,7 +832,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="blood"
+                      name="primary_sites_blood"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Blood")}
                       onChange={() =>
@@ -690,7 +844,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="stomach"
+                      name="primary_sites_stomach"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Stomach")}
                       onChange={() =>
@@ -702,7 +856,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="pancreas"
+                      name="primary_sites_pancreas"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Pancreas")}
                       onChange={() =>
@@ -714,7 +868,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="esophagus"
+                      name="primary_sites_esophagus"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Esophagus")}
                       onChange={() =>
@@ -726,7 +880,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="breast"
+                      name="primary_sites_breast"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Breast")}
                       onChange={() =>
@@ -738,7 +892,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="uterineCervix"
+                      name="primary_sites_uterineCervix"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("primary_sites", "Uterine Cervix")}
                       onChange={() =>
@@ -762,7 +916,14 @@ const PatientPreScreeningForm = () => {
                 </div>
               </div>
               <div className="flex flex-col gap-5">
-                <p className="text-sm">Laterality</p>
+                <p className="text-sm">
+                  Laterality <span className="text-red-500">*</span> {" "}
+                  {errors.laterality && (
+                    <span className="text-red-500 text-xs">
+                      {errors.laterality}
+                    </span>
+                  )}
+                </p>
                 <div className="flex flex-col gap-3">
                   <div className="flex gap-3 items-center">
                     <input
@@ -848,7 +1009,7 @@ const PatientPreScreeningForm = () => {
               </div>
               <div className="grid grid-cols-2 gap-x-10 gap-y-5">
                 <div className="flex gap-2 col-span-2 flex-col">
-                  <label className="text-sm">Histology(Morphology)</label>
+                  <label className="text-sm">Histology(Morphology) <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     name="histology"
@@ -856,9 +1017,14 @@ const PatientPreScreeningForm = () => {
                     value={pre_screening_form?.histology}
                     onChange={handleInputChange}
                   />
+                  {errors.histology && (
+                    <span className="text-red-500 text-xs">
+                      {errors.histology}
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-2 flex-col">
-                  <label className="text-sm">Staging</label>
+                  <label className="text-sm">Staging <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <select
                       name="staging"
@@ -882,9 +1048,14 @@ const PatientPreScreeningForm = () => {
                       <option value="Unknown">Unknown</option>
                     </select>
                   </div>
+                  {errors.staging && (
+                    <span className="text-red-500 text-xs">
+                      {errors.staging}
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-2 flex-col">
-                  <label className="text-sm 700 h-8">TNM System</label>
+                  <label className="text-sm 700 h-8">TNM System <span className="text-red-500">*</span></label>
                   <div className="text-sm flex gap-2 items-center">
                     T
                     <input
@@ -917,15 +1088,27 @@ const PatientPreScreeningForm = () => {
                       onChange={handleInputChange}
                     />
                   </div>
+                  {errors.tnm_system && (
+                    <span className="text-red-500 text-xs">
+                      {errors.tnm_system}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-5">
-                <p className="text-sm">Distant Metastasis Sites</p>
+                <p className="text-sm">
+                  Distant Metastasis Sites <span className="text-red-500">*</span> {" "}
+                  {errors.distant_metastasis_sites && (
+                    <span className="text-red-500 text-xs">
+                      {errors.distant_metastasis_sites}
+                    </span>
+                  )}
+                </p>
                 <div className="grid grid-cols-3 gap-x-10 gap-y-5">
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="none"
+                      name="distant_metastasis_sites_none"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("distant_metastasis_sites", "None")}
                       onChange={() =>
@@ -937,7 +1120,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="distantLymphNodes"
+                      name="distant_metastasis_sites_distantLymphNodes"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "distant_metastasis_sites",
@@ -955,7 +1138,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="bone"
+                      name="distant_metastasis_sites_bone"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("distant_metastasis_sites", "Bone")}
                       onChange={() =>
@@ -967,7 +1150,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="liverPleura"
+                      name="distant_metastasis_sites_liverPleura"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "distant_metastasis_sites",
@@ -985,7 +1168,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="kidneyMetastasis"
+                      name="distant_metastasis_sites_kidneyMetastasis"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("distant_metastasis_sites", "Kidney")}
                       onChange={() =>
@@ -1000,7 +1183,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="brainMetastasis"
+                      name="distant_metastasis_sites_brainMetastasis"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("distant_metastasis_sites", "Brain")}
                       onChange={() =>
@@ -1015,7 +1198,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="ovaryMetastasis"
+                      name="distant_metastasis_sites_ovaryMetastasis"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("distant_metastasis_sites", "Ovary")}
                       onChange={() =>
@@ -1030,7 +1213,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="skinMetastasis"
+                      name="distant_metastasis_sites_skinMetastasis"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("distant_metastasis_sites", "Skin")}
                       onChange={() =>
@@ -1042,7 +1225,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="prostateMetastasis"
+                      name="distant_metastasis_sites_prostateMetastasis"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "distant_metastasis_sites",
@@ -1060,7 +1243,7 @@ const PatientPreScreeningForm = () => {
                   <div className="flex gap-5 justify-center items-center w-fit">
                     <input
                       type="checkbox"
-                      name="unknownMetastasis"
+                      name="distant_metastasis_sites_unknownMetastasis"
                       className="w-3.5 h-3.5 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("distant_metastasis_sites", "Unknown")}
                       onChange={() =>
@@ -1087,17 +1270,22 @@ const PatientPreScreeningForm = () => {
                 </div>
                 <div className="flex flex-col gap-5">
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm">Final Diagnosis</label>
+                    <label className="text-sm">Final Diagnosis <span className="text-red-500">*</span></label>
                     <textarea
                       name="final_diagnosis"
                       className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
                       value={pre_screening_form?.final_diagnosis}
                       onChange={handleInputChange}
                     ></textarea>
+                    {errors.final_diagnosis && (
+                      <span className="text-red-500 text-xs">
+                        {errors.final_diagnosis}
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-sm">
-                      Final Diagnosis: ICD-10 Code
+                      Final Diagnosis: ICD-10 Code <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -1106,12 +1294,24 @@ const PatientPreScreeningForm = () => {
                       value={pre_screening_form?.final_diagnosis_icd10}
                       onChange={handleInputChange}
                     />
+                    {errors.final_diagnosis_icd10 && (
+                      <span className="text-red-500 text-xs">
+                        {errors.final_diagnosis_icd10}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
               <div className="flex flex-col gap-5">
                 <h1 className="text-md font-bold">Treatment</h1>
-                <p className="text-sm">Treatment Purposes</p>
+                <p className="text-sm">
+                  Treatment Purposes <span className="text-red-500">*</span> {" "}
+                  {errors.treatment_purpose && (
+                    <span className="text-red-500 text-xs">
+                      {errors.treatment_purpose}
+                    </span>
+                  )}
+                </p> 
                 <div className="flex flex-col gap-3">
                   <div className="flex gap-3 items-center">
                     <input
@@ -1187,7 +1387,7 @@ const PatientPreScreeningForm = () => {
               <div className="flex gap-5 w-full">
                 <div className="flex gap-2 flex-col w-full">
                   <label className="text-sm">
-                    Primary Assistance by RAFI-ELACC
+                    Primary Assistance by RAFI-ELACC <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -1196,6 +1396,11 @@ const PatientPreScreeningForm = () => {
                     value={pre_screening_form?.primary_assistance_by_ejacc}
                     onChange={handleInputChange}
                   />
+                  {errors.primary_assistance_by_ejacc && (
+                    <span className="text-red-500 text-xs">
+                      {errors.primary_assistance_by_ejacc}
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-2 flex-col w-full">
                   <label className="text-sm">Date of Assistance</label>
@@ -1225,12 +1430,22 @@ const PatientPreScreeningForm = () => {
                       onChange={handleInputChange}
                     />
                   </div>
+                  {errors.date_of_assistance && (
+                    <span className="text-red-500 text-xs">
+                      {errors.date_of_assistance}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-4">
                 <p className="text-sm">
                   Planned Additional/Adjuvant Treatment/s actually received from
-                  RAFI-EJACC
+                  RAFI-EJACC <span className="text-red-500">*</span> {" "}
+                  {errors.adjuvant_treatments_received && (
+                    <span className="text-red-500 text-xs">
+                      {errors.adjuvant_treatments_received}
+                    </span>
+                  )}
                 </p>
 
                 <div className="flex flex-wrap gap-x-8 gap-y-3">
@@ -1238,7 +1453,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="surgery"
-                      name="surgery"
+                      name="adjuvant_treatments_received_surgery"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "adjuvant_treatments_received",
@@ -1259,7 +1474,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="radiotherapy"
-                      name="radiotherapy"
+                      name="adjuvant_treatments_received_radiotherapy"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "adjuvant_treatments_received",
@@ -1280,7 +1495,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="chemotherapy"
-                      name="chemotherapy"
+                      name="adjuvant_treatments_received_chemotherapy"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "adjuvant_treatments_received",
@@ -1304,7 +1519,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="immunotherapy"
-                      name="immunotherapy"
+                      name="adjuvant_treatments_received_immunotherapy"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "adjuvant_treatments_received",
@@ -1325,7 +1540,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="hormonal"
-                      name="hormonal"
+                      name="adjuvant_treatments_received_hormonal"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "adjuvant_treatments_received",
@@ -1345,22 +1560,22 @@ const PatientPreScreeningForm = () => {
                   <div className="flex items-center gap-2 w-fit">
                     <input
                       type="checkbox"
-                      id="unknown"
-                      name="unknownTreatment"
+                      id="none"
+                      name="adjuvant_treatments_received_noneTreatment"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "adjuvant_treatments_received",
-                        "Unknown"
+                        "None"
                       )}
                       onChange={() =>
                         handleCheckboxChange(
                           "adjuvant_treatments_received",
-                          "Unknown"
+                          "None"
                         )
                       }
                     />
-                    <label htmlFor="unknown" className="text-sm">
-                      Unknown
+                    <label htmlFor="none" className="text-sm">
+                      None
                     </label>
                   </div>
                 </div>
@@ -1379,7 +1594,12 @@ const PatientPreScreeningForm = () => {
               </div>
               <div className="flex flex-col gap-4">
                 <p className="text-sm">
-                  Treatment/s received from other sources
+                  Treatment/s received from other sources <span className="text-red-500">*</span> {" "}
+                  {errors.other_source_treatments && (
+                    <span className="text-red-500 text-xs">
+                      {errors.other_source_treatments}
+                    </span>
+                  )}
                 </p>
 
                 <div className="flex flex-wrap gap-x-8 gap-y-3">
@@ -1387,7 +1607,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="surgeryOther"
-                      name="surgeryOther"
+                      name="other_source_treatments_surgeryOther"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("other_source_treatments", "Surgery")}
                       onChange={() =>
@@ -1405,7 +1625,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="radiotherapyOther"
-                      name="radiotherapyOther"
+                      name="other_source_treatments_radiotherapyOther"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "other_source_treatments",
@@ -1426,7 +1646,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="chemotherapyOther"
-                      name="chemotherapyOther"
+                      name="other_source_treatments_chemotherapyOther"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "other_source_treatments",
@@ -1450,7 +1670,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="immunotherapyOther"
-                      name="immunotherapyOther"
+                      name="other_source_treatments_immunotherapyOther"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked(
                         "other_source_treatments",
@@ -1471,7 +1691,7 @@ const PatientPreScreeningForm = () => {
                     <input
                       type="checkbox"
                       id="hormonalOther"
-                      name="hormonalOther"
+                      name="other_source_treatments_hormonalOther"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                       checked={isChecked("other_source_treatments", "Hormonal")}
                       onChange={() =>
@@ -1488,19 +1708,19 @@ const PatientPreScreeningForm = () => {
                   <div className="flex items-center gap-2 w-fit">
                     <input
                       type="checkbox"
-                      id="unknownOther"
-                      name="unknownOther"
+                      id="noneOther"
+                      name="other_source_treatments_noneOther"
                       className="w-3.5 h-3.5 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                      checked={isChecked("other_source_treatments", "Unknown")}
+                      checked={isChecked("other_source_treatments", "None")}
                       onChange={() =>
                         handleCheckboxChange(
                           "other_source_treatments",
-                          "Unknown"
+                          "None"
                         )
                       }
                     />
-                    <label htmlFor="unknownOther" className="text-sm">
-                      Unknown
+                    <label htmlFor="noneOther" className="text-sm">
+                      None
                     </label>
                   </div>
                 </div>
@@ -1524,7 +1744,6 @@ const PatientPreScreeningForm = () => {
               type="button"
               className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black cursor-pointer rounded-md"
               onClick={() => {
-                console.log("Patient ID: ", patient?.patient_id);
                 navigate(`/private/patients/edit/${patient.patient_id}`);
               }}
             >

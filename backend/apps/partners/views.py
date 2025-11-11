@@ -25,6 +25,8 @@ from apps.precancerous.serializers import (
   PreCancerousMedsRequestSerializer,
 )
 
+from apps.rhu.models import Representative
+
 from backend.utils.email import send_precancerous_meds_status_email
 
 from .models import CancerAwarenessActivity, Private, PrivateRepresentative
@@ -73,8 +75,17 @@ class CancerAwarenessActivityCreateView(generics.CreateAPIView):
   permission_classes = [IsAuthenticated]
 
   def perform_create(self, serializer):
+    user = self.request.user
+    uploader = ''
+    if user.is_private:
+      private_representative = get_private_for_user_or_error(user)
+      uploader = private_representative.institution_name
+    elif user.is_rhu:
+      rhu_representative = get_object_or_404(Representative, user=user)
+      uploader = rhu_representative.rhu
+
     try:
-      serializer.save(uploader=self.request.user)
+      serializer.save(uploader=uploader)
     except Exception:
       logger.exception("Error creating cancer awareness activity")
       raise
@@ -144,9 +155,19 @@ class CancerAwarenessActivityUpdateView(generics.UpdateAPIView):
   permission_classes = [IsAuthenticated]
 
 class CancerAwarenessActivityListView(generics.ListAPIView):
-  queryset = CancerAwarenessActivity.objects.all()
+  # queryset = CancerAwarenessActivity.objects.all()
   serializer_class = CancerAwarenessActivitySerializer
   permission_classes = [IsAuthenticated]
+
+  def get_queryset(self):
+    queryset = CancerAwarenessActivity.objects.all()
+    request = self.request.query_params
+
+    uploader_param = request.get('uploader', None)
+    if uploader_param:
+      queryset = queryset.filter(uploader=uploader_param)
+
+    return queryset
 
 class CancerAwarenessActivityDeleteView(generics.DestroyAPIView):
   queryset = CancerAwarenessActivity.objects.all()

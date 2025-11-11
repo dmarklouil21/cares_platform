@@ -14,12 +14,20 @@ import PychosocialSupport from "../pages/private/pychosocialSupport/pychosocialS
 // sub list
 import MassScreening from "../pages/private/Patient/MassScreening";
 import Precancerous from "../pages/private/TreatmentAssistance/PrecancerousMeds/Precancerous"
+import ViewActivity from "../pages/private/CancerAwareness/View/ViewActivity";
+
+// Edit 
+import EditActivity from "../pages/private/CancerAwareness/Edit/Edit";
+
+// Awareness Attendee 
+import Attendee from "../pages/private/CancerAwareness/ManageAttendees";
 
 // Views 
 import PrecancerousView from "../pages/private/TreatmentAssistance/PrecancerousMeds/View/DetailedView"
 
 // Add 
 import AddMeds from "../pages/private/TreatmentAssistance/PrecancerousMeds/Add/AddMeds";
+import AddAwarenessActivity from "../pages/private/CancerAwareness/Add/Add";
 
 // Apply 
 import ApplyMassScreening from "../pages/private/Services/CancerScreening/Apply/MassScreening/";
@@ -54,6 +62,10 @@ const PrivateRoutes = () => (
 
     {/* Awareness */}
     <Route path="cancer-awareness" element={<CancerAwareness />} />
+    <Route path="cancer-awareness/view/:id" element={<ViewActivity />} />
+    <Route path="cancer-awareness/:id/manage-attendees" element={<Attendee />} />
+    <Route path="cancer-awareness/add" element={<AddAwarenessActivity />} />
+    <Route path="cancer-awareness/edit/:id" element={<EditActivity />} />
 
     <Route path="treatment-assistance">
       <Route path="pre-cancerous" element={<Precancerous />} />
