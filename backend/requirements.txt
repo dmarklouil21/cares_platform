@@ -2,5 +2,6 @@ django
 djangorestframework
 django-cors-headers
 djangorestframework-simplejwt
+django-filter
 pillow
 psycopg2

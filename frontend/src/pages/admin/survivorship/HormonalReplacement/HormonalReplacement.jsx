@@ -462,7 +462,7 @@ const HormonalReplacement = () => {
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, search: e.target.value }))
                   }
-                  className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-64 text-sm"
+                  className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-55 text-sm"
                 />
 
                 <select
@@ -548,9 +548,11 @@ const HormonalReplacement = () => {
                     setMonthFilter("");
                     setYearFilter("");
                   }}
-                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+                  className="px-2 py-1.5 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+                  title="Clear Filters"
                 >
-                  Clear Filters
+                  {/* Clear Filters */}
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -641,6 +643,7 @@ const HormonalReplacement = () => {
                                 <button
                                   onClick={() => handleApprove(p.id)}
                                   className="bg-primary cursor-pointer text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                  title="Approve"
                                 >
                                   <CheckCircle className="w-3.5 h-3.5" />
                                 </button>
@@ -651,6 +654,7 @@ const HormonalReplacement = () => {
                                     setRemarksModalOpen(true);
                                   }}
                                   className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                  title="Reject"
                                 >
                                   <X className="w-3.5 h-3.5" />
                                 </button>
@@ -660,6 +664,7 @@ const HormonalReplacement = () => {
                               <button
                                 onClick={() => openConfirm(p.id, "delete")}
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                title="Delete"
                               >
                                 {/* Delete */}
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -668,6 +673,7 @@ const HormonalReplacement = () => {
                               <button
                                 onClick={() => openConfirm(p.id, "delete")}
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                title="Delete"
                               >
                                 {/* Delete */}
                                 <X className="w-3.5 h-3.5" />

@@ -48,7 +48,7 @@ const PatientMasterList = () => {
   const [weekFilter, setWeekFilter] = useState("");
   const [availableWeeks, setAvailableWeeks] = useState([]);
 
-  // ✅ Helper: Get week number of a given date (Week 1–5, resets per month)
+  // Helper: Get week number of a given date (Week 1–5, resets per month)
   const getWeekOfMonth = (date) => {
     const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
     const firstWeekday = firstDay.getDay(); // 0 = Sunday
@@ -57,7 +57,7 @@ const PatientMasterList = () => {
     return Math.ceil((dayOfMonth + offset) / 7);
   };
 
-  // ✅ Update available weeks whenever month or year changes
+  // Update available weeks whenever month or year changes
   useEffect(() => {
     if (monthFilter && yearFilter && patients.length > 0) {
       const weeksWithData = new Set();
@@ -78,7 +78,7 @@ const PatientMasterList = () => {
         }
       });
 
-      // ✅ Sort & limit weeks 1–5
+      // Sort & limit weeks 1–5
       const sortedWeeks = Array.from(weeksWithData)
         .filter((w) => w >= 1 && w <= 5)
         .sort((a, b) => a - b);
@@ -90,7 +90,7 @@ const PatientMasterList = () => {
     }
   }, [monthFilter, yearFilter, patients]);
 
-  // ✅ Combine week logic into date filter
+  // Combine week logic into date filter
   const filterByCreatedAtWithWeek = (data) => {
     return data.filter((record) => {
       if (!record.created_at) return false;
@@ -336,7 +336,7 @@ const PatientMasterList = () => {
                 placeholder="Search by patient ID, name, or LGU..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-64 text-sm"
+                className="border border-gray-300 py-2 px-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-55 text-sm"
               />
 
               <select
@@ -421,9 +421,11 @@ const PatientMasterList = () => {
                   setMonthFilter("");
                   setYearFilter("");
                 }}
-                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+                className="px-2 py-1.5 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+                title="Clear Filters"
               >
-                Clear Filters
+                {/* Clear Filters */}
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -478,6 +480,7 @@ const PatientMasterList = () => {
                           <button
                             onClick={() => handleEditClick(patient.patient_id)}
                             className="bg-yellow-500 cursor-pointer hover:bg-yellow-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                            title="Edit"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
@@ -486,6 +489,7 @@ const PatientMasterList = () => {
                               handleActionClick(patient.patient_id, "delete")
                             }
                             className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                            title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>

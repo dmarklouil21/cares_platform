@@ -5,7 +5,7 @@ import {
   fetchUsers,
   deleteUser,
   updateUser,
-} from "../../../services/userManagementService";
+} from "src/services/userManagementService";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import Notification from "src/components/Notification";
@@ -442,9 +442,11 @@ const UserManagement = () => {
                     setSearchQuery("");
                     setStatusFilter("all");
                   }}
-                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+                  className="px-2 py-1.5 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
+                  title="Clear Filters"
                 >
-                  Clear Filters
+                  {/* Clear Filters */}
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -511,6 +513,7 @@ const UserManagement = () => {
                             <button
                               onClick={() => handleEditClick(user.id)}
                               className="bg-yellow-500 cursor-pointer hover:bg-yellow-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                              title="Edit"
                             >
                               <Pencil className="w-3.5 h-3.5" />
                             </button>
@@ -519,6 +522,7 @@ const UserManagement = () => {
                                 handleActionClick(user.id, "delete")
                               }
                               className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                              title="Delete"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
