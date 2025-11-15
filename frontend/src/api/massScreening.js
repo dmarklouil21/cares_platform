@@ -100,6 +100,68 @@ export const adminCreateMassScreening = async (formData) => {
   return res.data;
 };
 
+// ---------------- Private (Partners) APIs ----------------
+// Create a Mass Screening Request (Private)
+export const createPrivateMassScreening = async (formData) => {
+  const res = await api.post('/partners/cancer-screening/mass-screening/create/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data;
+};
+
+// List current Private user's Mass Screening Requests
+export const listMyPrivateMassScreenings = async (params = {}) => {
+  const res = await api.get('/partners/cancer-screening/mass-screening/request-list/', { params });
+  return res.data;
+};
+
+// Get detail of one of current Private user's Mass Screening Requests
+export const getMyPrivateMassScreeningDetail = async (id) => {
+  const res = await api.get(`/partners/cancer-screening/mass-screening/detail/${id}/`);
+  return res.data;
+};
+
+// Update fields of a Mass Screening Request (Private-owned)
+export const updateMyPrivateMassScreening = async (id, payload) => {
+  const res = await api.patch(`/partners/cancer-screening/mass-screening/update/${id}/`, payload);
+  return res.data;
+};
+
+// Delete one of current Private user's Mass Screening Requests
+export const deleteMyPrivateMassScreening = async (id) => {
+  const res = await api.delete(`/partners/cancer-screening/mass-screening/delete/${id}/`);
+  return res.data;
+};
+
+// Get attendance entries for a Mass Screening Request (Private-owned)
+export const getPrivateMassScreeningAttendance = async (requestId) => {
+  const res = await api.get(`/partners/cancer-screening/mass-screening/attendance/${requestId}/`);
+  return res.data;
+};
+
+// Save attendance entries (replace existing) for a Mass Screening Request (Private-owned)
+export const savePrivateMassScreeningAttendance = async (requestId, entries) => {
+  const payload = { entries };
+  const res = await api.put(`/partners/cancer-screening/mass-screening/attendance/${requestId}/`, payload);
+  return res.data;
+};
+
+// Add attachments to a Private Mass Screening Request (multipart)
+export const addPrivateMassScreeningAttachments = async (id, files) => {
+  const fd = new FormData();
+  files.forEach((file) => fd.append('attachments', file));
+  const res = await api.post(`/partners/cancer-screening/mass-screening/${id}/attachments/add/`, fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data;
+};
+
+// Delete a single attachment (Private)
+export const deletePrivateMassScreeningAttachment = async (attachmentId) => {
+  const res = await api.delete(`/partners/cancer-screening/mass-screening/attachments/delete/${attachmentId}/`);
+  return res.data;
+};
+
 // List RHUs for admin selection
 export const listAdminRHUs = async () => {
   const res = await api.get('/rhu/admin/list/');

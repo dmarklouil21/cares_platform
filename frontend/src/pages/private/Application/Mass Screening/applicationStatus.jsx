@@ -2,8 +2,8 @@ import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState } from "react";
 import { Eye, Trash2, Plus, Pencil, X, RotateCcw} from "lucide-react";
 import {
-  listMyMassScreenings,
-  deleteMyMassScreening,
+  listMyPrivateMassScreenings,
+  deleteMyPrivateMassScreening,
 } from "src/api/massScreening";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
@@ -41,7 +41,7 @@ const MassScreeningStatus = () => {
     try {
       setLoading(true);
       setError("");
-      const data = await listMyMassScreenings();
+      const data = await listMyPrivateMassScreenings();
       const normalized = (Array.isArray(data) ? data : []).map((d) => ({
         id: d.id,
         title: d.title,
@@ -105,7 +105,7 @@ const MassScreeningStatus = () => {
   // Action handlers
   const handleViewClick = (id) => {
     const record = items.find((x) => x.id === id);
-    navigate("/rhu/application/view/applicationview", {
+    navigate(`/private/application/mass-screening/view?id=${encodeURIComponent(id)}`, {
       state: record ?? { id },
     });
   };
@@ -122,7 +122,7 @@ const MassScreeningStatus = () => {
       try {
         setModalOpen(false);
         setLoading(true);
-        await deleteMyMassScreening(modalAction.id);
+        await deleteMyPrivateMassScreening(modalAction.id);
         
         setNotification("Record deleted successfully.");
         setNotificationType("success");

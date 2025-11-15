@@ -110,6 +110,20 @@ class PrivateRepresentativeSerializer(serializers.ModelSerializer):
     request = self.context.get("request")
     user = request.user
 
+    # If updating an existing instance, allow the same user
+    instance = getattr(self, 'instance', None)
+    if instance is not None:
+      # If the instance already belongs to this user, it's fine
+      if instance.user_id == getattr(user, 'id', None):
+        return attrs
+      # Otherwise, ensure the target user doesn't already have a profile
+      if PrivateRepresentative.objects.filter(user=user).exclude(pk=instance.pk).exists():
+        raise serializers.ValidationError({
+          "user": "This user already has a representative profile."
+        })
+      return attrs
+
+    # Creation path: block if the user already has a representative
     if PrivateRepresentative.objects.filter(user=user).exists():
       raise serializers.ValidationError({
         "user": "This user already has a representative profile."

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createMassScreening } from "../../../api/massScreening";
+import { createPrivateMassScreening } from "../../../api/massScreening";
 // import { Link } from "react-router-dom"; // not used
 
 /* Notification (no close button) */
@@ -128,7 +128,7 @@ const MassScreening = () => {
         fd.append("attachments", file);
       });
 
-      await createMassScreening(fd);
+      await createPrivateMassScreening(fd);
 
       setShowConfirm(false);
       setNotif("Mass screening request submitted successfully.");
