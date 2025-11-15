@@ -76,7 +76,12 @@ const useNotifications = () => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
     try {
-      const ws = new WebSocket(process.env.REACT_APP_WS_URL || 'ws://localhost:8000/ws/notifications/');
+      const wsUrl = (
+        (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_WS_URL) ||
+        (typeof process !== 'undefined' && process.env && process.env.REACT_APP_WS_URL) ||
+        'ws://localhost:8000/ws/notifications/'
+      );
+      const ws = new WebSocket(wsUrl);
       
       ws.onopen = () => {
         console.log('WebSocket connected');

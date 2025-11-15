@@ -187,12 +187,12 @@ class PrivatePrepresentativeProfileAPIView(APIView):
 
   def get(self, request):
     representative = self._get_profile(request.user)
-    serializer = PrivateRepresentativeSerializer(representative)
+    serializer = PrivateRepresentativeSerializer(representative, context={'request': request})
     return Response(serializer.data, status=status.HTTP_200_OK)
 
   def put(self, request):
     representative = self._get_profile(request.user)
-    serializer = PrivateRepresentativeSerializer(representative, data=request.data, partial=True)
+    serializer = PrivateRepresentativeSerializer(representative, data=request.data, partial=True, context={'request': request})
     serializer.is_valid(raise_exception=True)
     serializer.save()
     # Sync RHU avatar to User avatar so it's available globally

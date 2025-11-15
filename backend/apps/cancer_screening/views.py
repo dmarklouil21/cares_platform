@@ -16,6 +16,7 @@ from backend.utils.email import (
   send_return_remarks_email, send_loa_email,
   send_precancerous_meds_status_email,
   send_mass_screening_status_email, 
+  send_mass_screening_status_email_private,
   send_service_registration_email
 )
 
@@ -68,12 +69,15 @@ def validate_attachment(file):
 # ---------------------------
 def get_rhu_for_user_or_error(user):
   try:
-    representative = get_object_or_404(Representative, user=user)
-    rhu = representative.rhu
-    return Rhuv2.objects.get(lgu=rhu.lgu)
+    representative = Representative.objects.get(user=user)
   except Representative.DoesNotExist:
-    # Return a clearer 403 instead of generic 404
     raise PermissionDenied("Your account has no RHU profile, please contact admin")
+
+  rhu = representative.rhu
+  try:
+    return Rhuv2.objects.get(lgu=rhu.lgu)
+  except Rhuv2.DoesNotExist:
+    raise PermissionDenied("Your RHU mapping was not found. Please contact admin to configure your LGU.")
 
 # ---------------------------
 # Views
@@ -587,18 +591,23 @@ class AdminMassScreeningStatusView(APIView):
 
   def post(self, request, id, action):
     ms = get_object_or_404(MassScreeningRequest, id=id)
+    remarks = None
     if action == 'verify':
       ms.status = 'Verified'
     elif action == 'reject':
       ms.status = 'Rejected'
+      remarks = request.data.get('remarks')
     elif action == 'done':
       ms.status = 'Done'
     else:
       return Response({ 'detail': 'Invalid action' }, status=status.HTTP_400_BAD_REQUEST)
     ms.save(update_fields=['status'])
-    # Notify RHU via email following individual screening style
+    # Notify RHU or Private applicant via email
     try:
-      send_mass_screening_status_email(ms.rhu, ms.status, request_obj=ms)
+      if ms.rhu_id:
+        send_mass_screening_status_email(ms.rhu, ms.status, request_obj=ms, remarks=remarks)
+      elif ms.private_id:
+        send_mass_screening_status_email_private(ms.private, ms.status, request_obj=ms, remarks=remarks)
     except Exception:
       pass
     return Response(MassScreeningRequestSerializer(ms).data, status=status.HTTP_200_OK)

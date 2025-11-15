@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import React, { useEffect, useMemo, useState, useRef } from "react";
+import { UserPlus, UserMinus } from "lucide-react";
 import {
   getMassScreeningAttendance,
   saveMassScreeningAttendance,
@@ -44,7 +45,7 @@ const ApplicationAttendance = () => {
   const [error, setError] = useState("");
   const [rhuLgu, setRhuLgu] = useState("");
   const [patientList, setPatientList] = useState([]);
-  const [suggestions, setSuggestions] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => setPatients(initialPatients), [initialPatients]);
 
@@ -117,49 +118,28 @@ const ApplicationAttendance = () => {
     setPatients((list) => list.filter((_, i) => i !== idx));
   };
 
-  /* Add new patient */
-  const [newName, setNewName] = useState("");
-  const [newResult, setNewResult] = useState("");
-  const nameInputRef = useRef(null);
-  const isValidName = useMemo(() => {
-    const name = newName.trim().toLowerCase();
-    if (!name) return false;
-    return patientList.some((p) => (p.full_name || `${p.first_name} ${p.last_name}`.trim()).toLowerCase() === name);
-  }, [newName, patientList]);
+  // Available patients panel filtering (exclude already added)
+  const addedNames = useMemo(() => new Set(patients.map((p) => (p.name || "").toLowerCase())), [patients]);
+  const filteredPatients = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    const all = Array.isArray(patientList) ? patientList : [];
+    return all
+      .filter((p) => {
+        const full = (p.full_name || `${p.first_name || ""} ${p.last_name || ""}`).trim();
+        if (!full) return false;
+        if (addedNames.has(full.toLowerCase())) return false;
+        if (!term) return true;
+        return full.toLowerCase().includes(term) || String(p.patient_id || "").includes(term);
+      })
+      .slice(0, 200);
+  }, [patientList, searchTerm, addedNames]);
 
-  const onNameChange = (v) => {
-    setNewName(v);
-    const term = v.trim().toLowerCase();
-    if (!term) {
-      setSuggestions([]);
-      return;
-    }
-    const next = patientList
-      .map((p) => p.full_name || `${p.first_name} ${p.last_name}`.trim())
-      .filter((n) => n.toLowerCase().includes(term))
-      .slice(0, 8);
-    setSuggestions(next);
-  };
-
-  const addPatient = () => {
-    const name = newName.trim();
-    if (!name || !isValidName) {
-      setNotif("Select a patient from your RHU list.");
-      return;
-    }
-    if (patients.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
-      setNotif("Patient already added.");
-      return;
-    }
-    setPatients((list) => [...list, { name, result: newResult.trim() }]);
-    setNewName("");
-    setNewResult("");
+  const addAttendee = (patient) => {
+    const full = (patient.full_name || `${patient.first_name || ""} ${patient.last_name || ""}`).trim();
+    if (!full) return;
+    if (addedNames.has(full.toLowerCase())) return;
+    setPatients((list) => [...list, { name: full, result: "" }]);
     setNotif("Patient added.");
-    requestAnimationFrame(() => nameInputRef.current?.focus());
-  };
-
-  const handleAddKey = (e) => {
-    if (e.key === "Enter" && isValidName) addPatient();
   };
 
   /* Save + confirmation + notification */
@@ -221,126 +201,111 @@ const ApplicationAttendance = () => {
       <div className="w-full flex-1 py-5 flex flex-col justify-start gap-5 px-5 overflow-auto">
         <h2 className="text-xl font-bold text-left w-full pl-5">Attendance</h2>
 
-        <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-4">
-          {/* Basic context */}
+        {/* Context */}
+        <div className="bg-white rounded-2xl shadow-md px-5 py-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <ContextField label="Mass ID" value={record.id} />
             <ContextField label="Title" value={record.title} />
             <ContextField label="Date" value={record.date} />
           </div>
+        </div>
 
-          {/* Add patient */}
-          <div className="mt-2">
-            <div className="text-gray2 text-sm mb-2">Add Patient</div>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-              <div className="md:col-span-5 relative">
+        {/* Two-pane layout: Available (left) | Current attendees (right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Available patients */}
+          <section className="bg-white rounded-2xl shadow-md border border-gray-200">
+            <div className="px-5 py-3 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-yellow-600">Available Patients</h3>
+            </div>
+            <div className="p-4">
+              <div className="mb-3">
                 <input
-                  ref={nameInputRef}
                   type="text"
-                  value={newName}
-                  onChange={(e) => onNameChange(e.target.value)}
-                  onKeyDown={handleAddKey}
-                  placeholder="Full name"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search patients by name or ID..."
+                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary w-full text-sm"
                 />
-                {newName && suggestions.length > 0 && (
-                  <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow max-h-60 overflow-auto">
-                    {suggestions.map((s) => (
-                      <div
-                        key={s}
-                        className="px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm"
-                        onClick={() => {
-                          setNewName(s);
-                          setSuggestions([]);
-                          requestAnimationFrame(() => nameInputRef.current?.focus());
-                        }}
-                      >
-                        {s}
-                      </div>
-                    ))}
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                {filteredPatients.length === 0 ? (
+                  <p className="text-gray-500 text-sm text-center py-6">No patients found.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {filteredPatients.map((p) => {
+                      const full = (p.full_name || `${p.first_name || ""} ${p.last_name || ""}`).trim();
+                      return (
+                        <div key={p.patient_id || full} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
+                          <div>
+                            <p className="text-sm font-medium text-gray-800">{full}</p>
+                            <p className="text-xs text-gray-500">ID: {p.patient_id || "N/A"}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => addAttendee(p)}
+                            className="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded transition-colors"
+                            title="Add Attendee"
+                          >
+                            <UserPlus className="w-4 h-4" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
-              <div className="md:col-span-5">
-                <input
-                  type="text"
-                  value={newResult}
-                  onChange={(e) => setNewResult(e.target.value)}
-                  onKeyDown={handleAddKey}
-                  placeholder="Initial result (optional)"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
-                />
+            </div>
+          </section>
+
+          {/* Current attendees with results */}
+          <section className="bg-white rounded-2xl shadow-md border border-gray-200">
+            <div className="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-yellow-600">Current Attendees</h3>
+              <span className="text-sm text-gray-600">{patients.length} patients</span>
+            </div>
+            <div className="p-4">
+              <div className="border border-gray-200 rounded-md overflow-hidden">
+                <div className="hidden md:grid md:grid-cols-12 font-semibold text-sm px-3 py-2 bg-gray-50">
+                  <div className="md:col-span-4">Name</div>
+                  <div className="md:col-span-7">Result / Notes</div>
+                  <div className="md:col-span-1 text-right pr-2">Actions</div>
+                </div>
+                {patients.map((p, idx) => (
+                  <div key={p.name + idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center p-3 border-t first:border-t-0">
+                    <div className="md:col-span-4 font-medium">{p.name}</div>
+                    <div className="md:col-span-7">
+                      <input
+                        type="text"
+                        value={p.result}
+                        onChange={(e) => updateResult(idx, e.target.value)}
+                        placeholder="Encode result…"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
+                      />
+                    </div>
+                    <div className="md:col-span-1 flex md:justify-end">
+                      <button
+                        type="button"
+                        onClick={() => removePatient(idx)}
+                        className="bg-red-500 hover:bg-red-600 text-white p-1.5 rounded transition-colors"
+                        title="Remove Attendee"
+                      >
+                        <UserMinus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="md:col-span-2">
+              <div className="flex justify-end mt-3">
                 <button
-                  type="button"
-                  onClick={addPatient}
-                  disabled={!isValidName || saving}
-                  className={`w-full px-4 py-2 rounded-md font-semibold ${
-                    isValidName && !saving
-                      ? "bg-secondary text-white"
-                      : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  }`}
-                  title="Add patient"
+                  onClick={handleSave}
+                  disabled={saving}
+                  className={`px-4 py-2 rounded-md bg-primary text-white font-semibold ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
                 >
-                  {saving ? "Saving..." : "Add"}
+                  {saving ? "Saving…" : "Save Attendance"}
                 </button>
               </div>
             </div>
-          </div>
-
-          {/* Patient list with result inputs */}
-          <div className="mt-4">
-            <div className="text-gray2 text-sm mb-1">Patients</div>
-            <div className="border border-gray-200 rounded-md overflow-hidden">
-              {/* Header row */}
-              <div className="hidden md:grid md:grid-cols-12 font-semibold text-sm px-3 py-2 bg-gray-50">
-                <div className="md:col-span-4">Name</div>
-                <div className="md:col-span-7">Result / Notes</div>
-                <div className="md:col-span-1 text-right pr-2">Actions</div>
-              </div>
-
-              {patients.map((p, idx) => (
-                <div
-                  key={p.name + idx}
-                  className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center p-3 border-t first:border-t-0"
-                >
-                  <div className="md:col-span-4 font-medium">{p.name}</div>
-                  <div className="md:col-span-7">
-                    <input
-                      type="text"
-                      value={p.result}
-                      onChange={(e) => updateResult(idx, e.target.value)}
-                      placeholder="Encode result…"
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-1 flex md:justify-end">
-                    <button
-                      type="button"
-                      onClick={() => removePatient(idx)}
-                      className="text-red-600 text-sm hover:underline"
-                      title="Remove"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-end mt-3">
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className={`px-4 py-2 rounded-md bg-primary text-white font-semibold ${
-                  saving ? "opacity-60 cursor-not-allowed" : ""
-                }`}
-              >
-                {saving ? "Saving…" : "Save Attendance"}
-              </button>
-            </div>
-          </div>
+          </section>
         </div>
 
         <div className="w-full flex justify-end gap-3">

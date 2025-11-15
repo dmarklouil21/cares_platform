@@ -12,13 +12,12 @@ const ViewProfile = () => {
 
   // Seed with sample values (UI-only). Replace with real values if you pass state/props.
   const [formData, setFormData] = useState({
-    lgu: "RHU Argao",
-    address: "Poblacion, Argao, Cebu",
-    phone_number: "09171234567",
-    email: "rhu.argaosec@example.com",
-    representative_first_name: "Ana",
-    representative_last_name: "Santos",
-    official_representative_name: "Ana Santos",
+    institution_name: "",
+    address: "",
+    phone_number: "",
+    email: "",
+    first_name: "",
+    last_name: "",
     profilePic: "",
     profileFile: null,
     agreed: true,
@@ -102,10 +101,7 @@ const ViewProfile = () => {
         payload.append("avatar", formData.profileFile);
         hasChanges = true;
       }
-      if (formData.lgu !== beforeEdit.lgu) {
-        payload.append("lgu", formData.lgu);
-        hasChanges = true;
-      }
+      // institution_name is read-only; not sent
       if (formData.address !== beforeEdit.address) {
         payload.append("address", formData.address);
         hasChanges = true;
@@ -114,34 +110,12 @@ const ViewProfile = () => {
         payload.append("phone_number", formData.phone_number);
         hasChanges = true;
       }
-      if (
-        formData.representative_first_name !==
-        beforeEdit.representative_first_name
-      ) {
-        payload.append(
-          "representative_first_name",
-          formData.representative_first_name
-        );
+      if (formData.first_name !== beforeEdit.first_name) {
+        payload.append("first_name", formData.first_name);
         hasChanges = true;
       }
-      if (
-        formData.representative_last_name !==
-        beforeEdit.representative_last_name
-      ) {
-        payload.append(
-          "representative_last_name",
-          formData.representative_last_name
-        );
-        hasChanges = true;
-      }
-      if (
-        formData.official_representative_name !==
-        beforeEdit.official_representative_name
-      ) {
-        payload.append(
-          "official_representative_name",
-          formData.official_representative_name
-        );
+      if (formData.last_name !== beforeEdit.last_name) {
+        payload.append("last_name", formData.last_name);
         hasChanges = true;
       }
 
@@ -156,21 +130,20 @@ const ViewProfile = () => {
         return;
       }
 
-      const res = await api.put("/rhu/profile/", payload, {
+      const res = await api.put("/partners/private/profile/", payload, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const d = res.data;
+      const base = (api.defaults?.baseURL || '').replace(/\/$/, '');
+      const resolvedAvatar = d.avatar ? (d.avatar.startsWith('http') ? d.avatar : `${base}${d.avatar}`) : formData.profilePic;
       const mapped = {
-        lgu: d.lgu || "",
+        institution_name: d.institution_name || "",
         address: d.address || "",
         phone_number: d.phone_number || "",
         email: d.email || "",
-        representative_first_name: d.representative_first_name || "",
-        representative_last_name: d.representative_last_name || "",
-        official_representative_name: d.official_representative_name || "",
-        profilePic: d.avatar
-          ? `http://localhost:8000${d.avatar}`
-          : formData.profilePic,
+        first_name: d.first_name || "",
+        last_name: d.last_name || "",
+        profilePic: resolvedAvatar,
         profileFile: null,
         agreed: true,
       };
@@ -181,10 +154,10 @@ const ViewProfile = () => {
         show: true,
         type: "success",
         title: "Saved",
-        message: "RHU profile updated.",
+        message: "Private profile updated.",
       });
     } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to save RHU profile.";
+      const msg = err?.response?.data?.message || "Failed to save Private profile.";
       setNotify({ show: true, type: "info", title: "Error", message: msg });
     } finally {
       setSaving(false);
@@ -195,17 +168,18 @@ const ViewProfile = () => {
   useEffect(() => {
     const run = async () => {
       try {
-        const res = await api.get("/rhu/profile/");
+        const res = await api.get("/partners/private/profile/");
         const d = res.data;
+        const base = (api.defaults?.baseURL || '').replace(/\/$/, '');
+        const resolvedAvatar = d.avatar ? (d.avatar.startsWith('http') ? d.avatar : `${base}${d.avatar}`) : "";
         const mapped = {
-          lgu: d.lgu || "",
+          institution_name: d.institution_name || "",
           address: d.address || "",
           phone_number: d.phone_number || "",
           email: d.email || "",
-          representative_first_name: d.representative_first_name || "",
-          representative_last_name: d.representative_last_name || "",
-          official_representative_name: d.official_representative_name || "",
-          profilePic: d.avatar ? `http://localhost:8000${d.avatar}` : "",
+          first_name: d.first_name || "",
+          last_name: d.last_name || "",
+          profilePic: resolvedAvatar,
           profileFile: null,
           agreed: true,
         };
@@ -213,7 +187,7 @@ const ViewProfile = () => {
         setBeforeEdit(mapped);
       } catch (err) {
         const msg =
-          err?.response?.data?.message || "Failed to load RHU profile.";
+          err?.response?.data?.message || "Failed to load Private profile.";
         setNotify({ show: true, type: "info", title: "Error", message: msg });
       } finally {
         setLoading(false);
@@ -299,7 +273,7 @@ const ViewProfile = () => {
 
         {/* Content */}
         <div className="bg-white rounded-2xl shadow border border-black/10 p-5 md:p-8">
-          <h2 className="text-lg font-semibold mb-4">RHU Details</h2>
+          <h2 className="text-lg font-semibold mb-4">Private Partner Details</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
             <div className="h-auto w-full flex flex-col items-start gap-3 md:col-span-2 mt-5">
@@ -346,12 +320,12 @@ const ViewProfile = () => {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm">LGU</label>
+              <label className="text-sm">Institution Name</label>
               <input
-                name="lgu"
-                value={formData.lgu}
+                name="institution_name"
+                value={formData.institution_name}
                 onChange={onChange}
-                disabled={readOnly || saving || loading}
+                disabled={true}
                 className={fieldCls}
                 type="text"
               />
@@ -405,10 +379,10 @@ const ViewProfile = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
             <div className="flex flex-col gap-2">
-              <label className="text-sm">Representative First Name</label>
+              <label className="text-sm">First Name</label>
               <input
-                name="representative_first_name"
-                value={formData.representative_first_name}
+                name="first_name"
+                value={formData.first_name}
                 onChange={onChange}
                 disabled={readOnly || saving || loading}
                 className={fieldCls}
@@ -417,22 +391,10 @@ const ViewProfile = () => {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm">Representative Last Name</label>
+              <label className="text-sm">Last Name</label>
               <input
-                name="representative_last_name"
-                value={formData.representative_last_name}
-                onChange={onChange}
-                disabled={readOnly || saving || loading}
-                className={fieldCls}
-                type="text"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2 md:col-span-2">
-              <label className="text-sm">Official Representative Name</label>
-              <input
-                name="official_representative_name"
-                value={formData.official_representative_name}
+                name="last_name"
+                value={formData.last_name}
                 onChange={onChange}
                 disabled={readOnly || saving || loading}
                 className={fieldCls}
