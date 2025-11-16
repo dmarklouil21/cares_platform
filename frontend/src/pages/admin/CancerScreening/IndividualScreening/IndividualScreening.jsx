@@ -375,7 +375,7 @@ const IndividualScreening = () => {
       >
         {/* Header */}
         <div className="flex justify-between items-center w-full">
-          <h2 className="text-xl font-bold text-gray-800">
+          <h2 className="text-[18px] md:text-xl font-bold text-gray-800">
             Individual Screening
           </h2>
           <div className="flex items-center gap-3">
@@ -506,9 +506,9 @@ const IndividualScreening = () => {
 
           {/* Table Section */}
           <div className="px-6 py-4">
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-lg overflow-auto">
               {/* Table Header */}
-              <div className="bg-lightblue px-4 py-3">
+              <div className="bg-lightblue px-4 py-3 w-[500px] md:w-[100%]">
                 <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
                   <div className="col-span-2 text-center">Patient ID</div>
                   <div className="col-span-3 text-center">Name</div>
@@ -520,7 +520,7 @@ const IndividualScreening = () => {
               </div>
 
               {/* Table Body */}
-              <div className="max-h-96 overflow-auto">
+              <div className="max-h-96 overflow-auto w-[500px] md:w-[100%]">
                 {filteredData.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     No records found matching your filters.
@@ -530,7 +530,7 @@ const IndividualScreening = () => {
                     {filteredData.map((item) => (
                       <div
                         key={item.id}
-                        className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
+                        className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center  text-[12px] md:text-[14px]"
                       >
                         <div
                           className="col-span-2 text-center text-blue-500 font-medium cursor-pointer"
@@ -641,10 +641,10 @@ const IndividualScreening = () => {
 
             {/* Footer */}
             <div className="flex justify-between items-center mt-4 px-2">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 text-[12px] md:text-sm">
                 Showing {filteredData.length} of {tableData.length} records
               </div>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center gap-4 text-sm text-gray-600 text-[12px] md:text-sm">
                 <span>Record per page: 10</span>
                 <div className="flex gap-2">
                   <button className="p-1 hover:bg-gray-200 rounded disabled:opacity-50">

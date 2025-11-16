@@ -308,7 +308,7 @@ const PostTreatment = () => {
         <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
           {/* Header */}
           <div className="flex justify-between items-center w-full">
-            <h2 className="text-xl font-bold text-gray-800">
+            <h2 className="text-[18px] md:text-xl font-bold text-gray-800">
               Post Treatment Assistance
             </h2>
             <div className="flex items-center gap-3">
@@ -446,9 +446,9 @@ const PostTreatment = () => {
 
             {/* Table Section */}
             <div className="px-6 py-4">
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-white border border-gray-200 rounded-lg overflow-auto">
                 {/* Table Header */}
-                <div className="bg-lightblue px-4 py-3">
+                <div className="bg-lightblue px-4 py-3 w-[500px] md:w-[100%]">
                   <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
                     <div className="col-span-2 text-center">Patient ID</div>
                     <div className="col-span-3 text-center">Patient Name</div>
@@ -460,7 +460,7 @@ const PostTreatment = () => {
                 </div>
 
                 {/* Table Body */}
-                <div className="max-h-96 overflow-auto">
+                <div className="max-h-96 overflow-auto w-[500px] md:w-[100%]">
                   {filteredAndPaginated.paginatedData.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
                       No records found matching your filters.
@@ -470,7 +470,7 @@ const PostTreatment = () => {
                       {filteredAndPaginated.paginatedData.map((p) => (
                         <div
                           key={p.id}
-                          className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
+                          className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center  text-[12px] md:text-[14px]"
                         >
                           <div
                             className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
@@ -598,7 +598,7 @@ const PostTreatment = () => {
 
               {/* Pagination */}
               <div className="flex justify-between items-center mt-4 px-2">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-600 text-[12px] md:text-sm">
                   Showing {filteredAndPaginated.paginatedData.length} of{" "}
                   {filteredAndPaginated.totalRecords} records
                 </div>
@@ -606,13 +606,13 @@ const PostTreatment = () => {
                   <div className="flex items-center gap-2">
                     <label
                       htmlFor="recordsPerPage"
-                      className="text-sm text-gray-700"
+                      className="text-sm text-gray-700 text-[12px] md:text-sm"
                     >
                       Records per page:
                     </label>
                     <select
                       id="recordsPerPage"
-                      className="border border-gray-300 rounded-md p-1 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                      className="border border-gray-300 rounded-md p-1 text-sm focus:ring-2 focus:ring-primary focus:border-transparent text-[12px] md:text-sm"
                       value={pagination.recordsPerPage}
                       onChange={(e) =>
                         setPagination((prev) => ({
@@ -627,7 +627,7 @@ const PostTreatment = () => {
                       <option>50</option>
                     </select>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-[12px] md:text-sm ">
                     <span>
                       {Math.min(
                         (pagination.currentPage - 1) *

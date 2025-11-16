@@ -11,7 +11,7 @@ import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 const CancerTreatmentApplication = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const [tableData, setTableData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -129,7 +129,14 @@ const CancerTreatmentApplication = () => {
     const monthMatch = !monthFilter || recordMonth === parseInt(monthFilter);
     const yearMatch = !yearFilter || recordYear === parseInt(yearFilter);
 
-    return statusMatch && searchMatch && dateMatch && dayMatch && monthMatch && yearMatch;
+    return (
+      statusMatch &&
+      searchMatch &&
+      dateMatch &&
+      dayMatch &&
+      monthMatch &&
+      yearMatch
+    );
   });
 
   const statusColors = {
@@ -182,9 +189,7 @@ const CancerTreatmentApplication = () => {
       <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
         {/* Header */}
         <div className="flex justify-between items-center w-full">
-          <h2 className="text-xl font-bold text-gray-800">
-            Cancer Treatment
-          </h2>
+          <h2 className="text-xl font-bold text-gray-800">Cancer Treatment</h2>
         </div>
 
         {/* Main Content Card */}
@@ -215,7 +220,9 @@ const CancerTreatmentApplication = () => {
                 <option value="all">All Status</option>
                 <option value="Pending">Pending</option>
                 <option value="Interview Process">Interview Process</option>
-                <option value="Case Summary Generation">Case Summary Gen...</option>
+                <option value="Case Summary Generation">
+                  Case Summary Gen...
+                </option>
                 <option value="Approved">Approved</option>
                 <option value="Complete">Complete</option>
                 <option value="Rejected">Rejected</option>
@@ -286,12 +293,14 @@ const CancerTreatmentApplication = () => {
 
           {/* Table Section */}
           <div className="px-6 py-4">
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-lg overflow-auto ">
               {/* Table Header */}
-              <div className="bg-lightblue px-4 py-3">
+              <div className="bg-lightblue px-4 py-3 w-[500px] md:w-[100%]">
                 <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
                   <div className="col-span-2 text-center">Patient ID</div>
-                  <div className="col-span-2 text-center">Service Requested</div>
+                  <div className="col-span-2 text-center">
+                    Service Requested
+                  </div>
                   <div className="col-span-2 text-center">Date Submitted</div>
                   <div className="col-span-2 text-center">Date Approved</div>
                   <div className="col-span-2 text-center">Status</div>
@@ -300,10 +309,11 @@ const CancerTreatmentApplication = () => {
               </div>
 
               {/* Table Body */}
-              <div className="max-h-96 overflow-auto">
+              <div className="max-h-96 overflow-auto w-[500px] md:w-[100%]">
                 {filteredData.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    No cancer treatment applications found matching your filters.
+                    No cancer treatment applications found matching your
+                    filters.
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-200">
@@ -312,7 +322,7 @@ const CancerTreatmentApplication = () => {
                         key={app.id}
                         className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                       >
-                        <div 
+                        <div
                           className="col-span-2 cursor-pointer text-center text-blue-500 font-medium"
                           onClick={() => handleView(app.id)}
                         >
@@ -348,9 +358,12 @@ const CancerTreatmentApplication = () => {
                           {app.status === "Rejected" && (
                             <button
                               onClick={() => {
-                                navigate("/beneficiary/services/cancer-management/apply/upload-documents", {
-                                  state: { id: app.id },
-                                });
+                                navigate(
+                                  "/beneficiary/services/cancer-management/apply/upload-documents",
+                                  {
+                                    state: { id: app.id },
+                                  }
+                                );
                               }}
                               className="bg-yellow cursor-pointer hover:bg-yellow/90 text-white py-1.5 px-2 rounded transition-colors"
                               title="Resubmit Application"

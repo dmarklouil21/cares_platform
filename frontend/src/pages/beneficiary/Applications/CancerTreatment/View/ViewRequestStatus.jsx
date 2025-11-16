@@ -29,7 +29,8 @@ export default function ViewIndividualStatus() {
   const [uploadResultModalOpen, setUploadResultModalOpen] = useState(false);
   const [resultFile, setResultFile] = useState(null);
 
-  const [uploadCaseSummaryModalOpen, setUploadCaseSummaryModalOpen] = useState(false);
+  const [uploadCaseSummaryModalOpen, setUploadCaseSummaryModalOpen] =
+    useState(false);
   const [caseFile, setCaseFile] = useState(null);
 
   const [loading, setLoading] = useState(false);
@@ -52,9 +53,9 @@ export default function ViewIndividualStatus() {
         description:
           activeStep === 0 ? (
             <>
-              Your request for cancer treatment service has been submitted and is
-              currently under review. Once approved, you’ll receive instructions
-              on the next steps.
+              Your request for cancer treatment service has been submitted and
+              is currently under review. Once approved, you’ll receive
+              instructions on the next steps.
             </>
           ) : (
             <>
@@ -68,9 +69,9 @@ export default function ViewIndividualStatus() {
         description:
           activeStep === 1 ? (
             <>
-              Your request for {cancerTreatment?.service_type} has been accepted. Please
-              proceed to the Interview process. You are scheduled for an
-              interview on{" "}
+              Your request for {cancerTreatment?.service_type} has been
+              accepted. Please proceed to the Interview process. You are
+              scheduled for an interview on{" "}
               {new Date(cancerTreatment?.interview_date).toLocaleDateString(
                 "en-US",
                 {
@@ -214,11 +215,15 @@ export default function ViewIndividualStatus() {
         const formData = new FormData();
         formData.append("attachments", caseFile);
 
-        await api.patch(`/beneficiary/cancer-treatment/case-summary/upload/${cancerTreatment.id}/`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        await api.patch(
+          `/beneficiary/cancer-treatment/case-summary/upload/${cancerTreatment.id}/`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
 
         setModalInfo({
           type: "success",
@@ -272,11 +277,15 @@ export default function ViewIndividualStatus() {
         const formData = new FormData();
         formData.append("attachments", resultFile);
 
-        await api.patch(`/beneficiary/cancer-treatment/result/upload/${cancerTreatment.id}/`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        await api.patch(
+          `/beneficiary/cancer-treatment/result/upload/${cancerTreatment.id}/`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
 
         setModalInfo({
           type: "success",
@@ -408,6 +417,14 @@ export default function ViewIndividualStatus() {
                     </div>
                   );
                 })}
+              </div>
+              <div className="w-full h-full mt-4">
+                <Link
+                  to="/beneficiary/applications/cancer-treatment"
+                  className="flex items-center justify-center border rounded-md w-[300px] py-3 mx-auto border-black/15 hover:bg-black/10 hover:border-black "
+                >
+                  Back
+                </Link>
               </div>
             </div>
           </div>

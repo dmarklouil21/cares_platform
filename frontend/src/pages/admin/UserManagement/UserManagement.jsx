@@ -321,7 +321,9 @@ const UserManagement = () => {
         <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
           {/* Header */}
           <div className="flex justify-between items-center w-full">
-            <h2 className="text-xl font-bold text-gray-800">User Management</h2>
+            <h2 className="text-[18px] md:text-xl font-bold text-gray-800">
+              User Management
+            </h2>
             <div className="flex items-center gap-3">
               <button
                 onClick={handlePrintReport}
@@ -451,9 +453,9 @@ const UserManagement = () => {
 
             {/* Table Section */}
             <div className="px-6 py-4">
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-white border border-gray-200 rounded-lg overflow-auto">
                 {/* Table Header */}
-                <div className="bg-lightblue px-4 py-3">
+                <div className="bg-lightblue px-4 py-3 w-[500px] md:w-[100%]">
                   <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
                     <div className="col-span-4 text-center">Name</div>
                     <div className="col-span-3 text-center">Email</div>
@@ -464,7 +466,7 @@ const UserManagement = () => {
                 </div>
 
                 {/* Table Body */}
-                <div className="max-h-96 overflow-auto">
+                <div className="max-h-96 overflow-auto w-[500px] md:w-[100%]">
                   {paginatedData.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
                       No records found matching your filters.
@@ -474,25 +476,25 @@ const UserManagement = () => {
                       {paginatedData.map((user) => (
                         <div
                           key={user.id}
-                          className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
+                          className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-[12px] md:text-[14px]"
                         >
-                          <div className="col-span-4 text-center text-gray-800">
+                          <div className="col-span-4 text-[12px] md:text-[14px] text-center text-gray-800">
                             {`${user.first_name || ""} ${
                               user.last_name || ""
                             }`.trim()}
                           </div>
                           <div
-                            className="col-span-3 text-center cursor-pointer text-blue-500"
+                            className="col-span-3 text-[10px] md:text-[14px] text-center cursor-pointer text-blue-500"
                             onClick={() => handleViewClick(user.id)}
                           >
                             {user.email}
                           </div>
-                          <div className="col-span-1 text-center text-gray-800">
+                          <div className="col-span-1 text-[10px] md:text-[14px] text-center text-gray-800">
                             {user.role}
                           </div>
                           <div className="col-span-2 text-center">
                             <span
-                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                              className={`inline-flex items-center text-[8px] md:text-[14px] px-3 py-1 rounded-full text-xs font-semibold ${
                                 statusColors[
                                   user.is_active ? "active" : "inactive"
                                 ] || statusColors.Default
@@ -532,14 +534,14 @@ const UserManagement = () => {
 
               {/* Pagination */}
               <div className="flex justify-between items-center mt-4 px-2">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-60 text-[12px] md:text-sm">
                   Showing {paginatedData.length} of {totalRecords} records
                 </div>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
                     <label
                       htmlFor="recordsPerPage"
-                      className="text-sm text-gray-700"
+                      className="text-sm text-gray-700 text-[12px] md:text-sm"
                     >
                       Records per page:
                     </label>
@@ -554,7 +556,7 @@ const UserManagement = () => {
                       <option>50</option>
                     </select>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-[12px] md:text-sm">
                     <span>
                       {Math.min(
                         (currentPage - 1) * recordsPerPage + 1,

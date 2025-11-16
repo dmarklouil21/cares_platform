@@ -13,7 +13,7 @@ const HormonalReplacementStatus = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   const [tableData, setTableData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -111,7 +111,9 @@ const HormonalReplacementStatus = () => {
       record.patient.full_name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
-    const recordDate = new Date(record.date_submitted).toISOString().split("T")[0];
+    const recordDate = new Date(record.date_submitted)
+      .toISOString()
+      .split("T")[0];
     const dateMatch = !dateFilter || recordDate === dateFilter;
 
     return statusMatch && searchMatch && dateMatch;
@@ -215,9 +217,9 @@ const HormonalReplacementStatus = () => {
 
           {/* Table Section */}
           <div className="px-6 py-4">
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-lg overflow-auto">
               {/* Table Header */}
-              <div className="bg-lightblue px-4 py-3">
+              <div className="bg-lightblue px-4 py-3 w-[500px] md:w-[100%]">
                 <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
                   <div className="col-span-2 text-center">Patient ID</div>
                   <div className="col-span-2 text-center">Date Created</div>
@@ -229,10 +231,11 @@ const HormonalReplacementStatus = () => {
               </div>
 
               {/* Table Body */}
-              <div className="max-h-96 overflow-auto">
+              <div className="max-h-96 overflow-auto w-[500px] md:w-[100%]">
                 {filteredData.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    No hormonal replacement applications found matching your filters.
+                    No hormonal replacement applications found matching your
+                    filters.
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-200">
@@ -241,7 +244,7 @@ const HormonalReplacementStatus = () => {
                         key={app.id}
                         className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                       >
-                        <div 
+                        <div
                           className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
                           onClick={() => handleView(app.id)}
                         >
@@ -270,9 +273,12 @@ const HormonalReplacementStatus = () => {
                             <button
                               onClick={() => {
                                 // Add resubmit navigation logic here
-                                navigate("/beneficiary/services/survivorship/hormonal-replacement", {
-                                  state: { id: app.id },
-                                });
+                                navigate(
+                                  "/beneficiary/services/survivorship/hormonal-replacement",
+                                  {
+                                    state: { id: app.id },
+                                  }
+                                );
                               }}
                               className="bg-yellow hover:bg-yellow/90 cursor-pointer text-white py-1.5 px-2 rounded transition-colors"
                               title="Resubmit Application"
@@ -280,13 +286,13 @@ const HormonalReplacementStatus = () => {
                               <RotateCcw className="w-3.5 h-3.5" />
                             </button>
                           )}
-                          
+
                           {app.status !== "Complete" && (
                             <button
                               onClick={() => handleCancel(app.id)}
                               className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                             >
-                              <X className="w-3.5 h-3.5"/>
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>
