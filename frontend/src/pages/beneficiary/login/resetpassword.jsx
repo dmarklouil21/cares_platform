@@ -9,6 +9,9 @@ const ResetPasswordPanel = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [animationClass, setAnimationClass] = useState("bounce-in");
   const [showReqModal, setShowReqModal] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Loading Modal
   const [loading, setLoading] = useState(false);
@@ -26,8 +29,14 @@ const ResetPasswordPanel = () => {
     special: /[^A-Za-z0-9]/.test(password),
     upperLower: /[a-z]/.test(password) && /[A-Z]/.test(password),
   };
-  const allMet = criteria.length && criteria.letterNumber && criteria.special && criteria.upperLower;
-  const passwordsMatch = formData.confirmPassword.length > 0 && formData.newPassword === formData.confirmPassword;
+  const allMet =
+    criteria.length &&
+    criteria.letterNumber &&
+    criteria.special &&
+    criteria.upperLower;
+  const passwordsMatch =
+    formData.confirmPassword.length > 0 &&
+    formData.newPassword === formData.confirmPassword;
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -45,7 +54,11 @@ const ResetPasswordPanel = () => {
       alert("User email not found. Please log in again.");
       return;
     }
-    if (!formData.oldPassword || !formData.newPassword || !formData.confirmPassword) {
+    if (
+      !formData.oldPassword ||
+      !formData.newPassword ||
+      !formData.confirmPassword
+    ) {
       alert("Please fill in all fields.");
       return;
     }
@@ -65,7 +78,11 @@ const ResetPasswordPanel = () => {
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setShowPopup(true);
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.message) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
         alert(error.response.data.message);
       } else {
         alert("Password reset failed. Please try again later.");
@@ -113,16 +130,62 @@ const ResetPasswordPanel = () => {
               <label htmlFor="oldPassword">Old Password</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <img src="/src/assets/images/login/lock.svg" alt="Lock Icon" />
+                  <img
+                    src="/src/assets/images/login/lock.svg"
+                    alt="Lock Icon"
+                  />
                 </div>
                 <input
                   id="oldPassword"
                   name="oldPassword"
-                  type="password"
+                  type={showOldPassword ? "text" : "password"}
                   value={formData.oldPassword}
                   onChange={handleChange}
-                  className="border-[#E2E2E2] border-[1px] rounded-md p-2 pl-10 w-full"
+                  className="border-[#E2E2E2] border-[1px] rounded-md p-2 pl-10 pr-10 w-full"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowOldPassword((v) => !v)}
+                  className="absolute inset-y-0 right-2 flex items-center cursor-pointer"
+                  aria-pressed={showOldPassword}
+                  aria-label={
+                    showOldPassword ? "Hide password" : "Show password"
+                  }
+                  title={showOldPassword ? "Hide password" : "Show password"}
+                >
+                  {!showOldPassword ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 3l18 18M10.58 10.58A3 3 0 0012 15a3 3 0 001.42-.38M9.88 4.24A9.98 9.98 0 0112 4c5.52 0 10 4.48 10 8 0 1.32-.45 2.56-1.25 3.63M6.35 6.35C4.31 7.68 3 9.69 3 12c0 3.52 4.48 8 9 8 1.04 0 2.04-.17 2.97-.49"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
+                      />
+                      <circle cx="12" cy="12" r="3" strokeWidth="2" />
+                    </svg>
+                  )}
+                </button>
               </div>
             </div>
 
@@ -130,40 +193,130 @@ const ResetPasswordPanel = () => {
               <label htmlFor="newPassword">New Password</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <img src="/src/assets/images/login/lock.svg" alt="Lock Icon" />
+                  <img
+                    src="/src/assets/images/login/lock.svg"
+                    alt="Lock Icon"
+                  />
                 </div>
                 <input
                   id="newPassword"
                   name="newPassword"
-                  type="password"
+                  type={showNewPassword ? "text" : "password"}
                   value={formData.newPassword}
                   onChange={handleChange}
                   onFocus={() => setShowReqModal(true)}
                   onBlur={() => setShowReqModal(false)}
-                  className="border-[#E2E2E2] border-[1px] rounded-md p-2 pl-10 w-full"
+                  className="border-[#E2E2E2] border-[1px] rounded-md p-2 pl-10 pr-10 w-full"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((v) => !v)}
+                  className="absolute inset-y-0 right-2 flex items-center cursor-pointer"
+                  aria-pressed={showNewPassword}
+                  aria-label={
+                    showNewPassword ? "Hide password" : "Show password"
+                  }
+                  title={showNewPassword ? "Hide password" : "Show password"}
+                >
+                  {!showNewPassword ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 3l18 18M10.58 10.58A3 3 0 0012 15a3 3 0 001.42-.38M9.88 4.24A9.98 9.98 0 0112 4c5.52 0 10 4.48 10 8 0 1.32-.45 2.56-1.25 3.63M6.35 6.35C4.31 7.68 3 9.69 3 12c0 3.52 4.48 8 9 8 1.04 0 2.04-.17 2.97-.49"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
+                      />
+                      <circle cx="12" cy="12" r="3" strokeWidth="2" />
+                    </svg>
+                  )}
+                </button>
                 {showReqModal && (
                   <div className="absolute z-50 right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg p-4 border border-lightblue">
-                    <h3 className="text-sm font-semibold text-primary mb-2">Password requirements</h3>
+                    <h3 className="text-sm font-semibold text-primary mb-2">
+                      Password requirements
+                    </h3>
                     <ul className="space-y-1.5 text-sm">
-                      <li className={`flex items-center gap-2 ${criteria.length ? "text-green-600" : "text-gray-500"}`}>
-                        <span className={`w-2 h-2 rounded-full ${criteria.length ? "bg-green-600" : "bg-gray-300"}`}></span>
+                      <li
+                        className={`flex items-center gap-2 ${
+                          criteria.length ? "text-green-600" : "text-gray-500"
+                        }`}
+                      >
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            criteria.length ? "bg-green-600" : "bg-gray-300"
+                          }`}
+                        ></span>
                         <span>At least 8 characters</span>
                       </li>
-                      <li className={`flex items-center gap-2 ${criteria.upperLower ? "text-green-600" : "text-gray-500"}`}>
-                        <span className={`w-2 h-2 rounded-full ${criteria.upperLower ? "bg-green-600" : "bg-gray-300"}`}></span>
+                      <li
+                        className={`flex items-center gap-2 ${
+                          criteria.upperLower
+                            ? "text-green-600"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            criteria.upperLower ? "bg-green-600" : "bg-gray-300"
+                          }`}
+                        ></span>
                         <span>Uppercase and lowercase letters</span>
                       </li>
-                      <li className={`flex items-center gap-2 ${criteria.letterNumber ? "text-green-600" : "text-gray-500"}`}>
-                        <span className={`w-2 h-2 rounded-full ${criteria.letterNumber ? "bg-green-600" : "bg-gray-300"}`}></span>
+                      <li
+                        className={`flex items-center gap-2 ${
+                          criteria.letterNumber
+                            ? "text-green-600"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            criteria.letterNumber
+                              ? "bg-green-600"
+                              : "bg-gray-300"
+                          }`}
+                        ></span>
                         <span>Combination of letters and numbers</span>
                       </li>
-                      <li className={`flex items-center gap-2 ${criteria.special ? "text-green-600" : "text-gray-500"}`}>
-                        <span className={`w-2 h-2 rounded-full ${criteria.special ? "bg-green-600" : "bg-gray-300"}`}></span>
+                      <li
+                        className={`flex items-center gap-2 ${
+                          criteria.special ? "text-green-600" : "text-gray-500"
+                        }`}
+                      >
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            criteria.special ? "bg-green-600" : "bg-gray-300"
+                          }`}
+                        ></span>
                         <span>At least one special character</span>
                       </li>
                     </ul>
-                    <div className={`mt-2 text-xs ${allMet ? "text-green-600" : "text-gray-500"}`}>
+                    <div
+                      className={`mt-2 text-xs ${
+                        allMet ? "text-green-600" : "text-gray-500"
+                      }`}
+                    >
                       {allMet ? "Strong password" : "Keep typing..."}
                     </div>
                   </div>
@@ -175,20 +328,74 @@ const ResetPasswordPanel = () => {
               <label htmlFor="confirmPassword">Confirm New Password</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <img src="/src/assets/images/login/lock.svg" alt="Lock Icon" />
+                  <img
+                    src="/src/assets/images/login/lock.svg"
+                    alt="Lock Icon"
+                  />
                 </div>
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="border-[#E2E2E2] border-[1px] rounded-md p-2 pl-10 w-full"
+                  className="border-[#E2E2E2] border-[1px] rounded-md p-2 pl-10 pr-10 w-full"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  className="absolute inset-y-0 right-2 flex items-center cursor-pointer"
+                  aria-pressed={showConfirmPassword}
+                  aria-label={
+                    showConfirmPassword ? "Hide password" : "Show password"
+                  }
+                  title={
+                    showConfirmPassword ? "Hide password" : "Show password"
+                  }
+                >
+                  {!showConfirmPassword ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 3l18 18M10.58 10.58A3 3 0 0012 15a3 3 0 001.42-.38M9.88 4.24A9.98 9.98 0 0112 4c5.52 0 10 4.48 10 8 0 1.32-.45 2.56-1.25 3.63M6.35 6.35C4.31 7.68 3 9.69 3 12c0 3.52 4.48 8 9 8 1.04 0 2.04-.17 2.97-.49"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
+                      />
+                      <circle cx="12" cy="12" r="3" strokeWidth="2" />
+                    </svg>
+                  )}
+                </button>
               </div>
               {formData.confirmPassword.length > 0 && (
-                <p className={`text-sm ${passwordsMatch ? "text-green-600" : "text-red-600"}`}>
-                  {passwordsMatch ? "Passwords match" : "Passwords do not match"}
+                <p
+                  className={`text-sm ${
+                    passwordsMatch ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {passwordsMatch
+                    ? "Passwords match"
+                    : "Passwords do not match"}
                 </p>
               )}
             </div>
@@ -197,7 +404,11 @@ const ResetPasswordPanel = () => {
           <button
             type="submit"
             disabled={!allMet || !passwordsMatch || !formData.oldPassword}
-            className={`font-bold py-2 w-[45%] border-[1px] rounded-md ${!allMet || !passwordsMatch || !formData.oldPassword ? "bg-gray-300 text-gray-600 border-gray-300 cursor-not-allowed" : "bg-primary text-white border-primary hover:border-lightblue hover:bg-lightblue"}`}
+            className={`font-bold py-2 w-[45%] border-[1px] rounded-md ${
+              !allMet || !passwordsMatch || !formData.oldPassword
+                ? "bg-gray-300 text-gray-600 border-gray-300 cursor-not-allowed"
+                : "bg-primary text-white border-primary hover:border-lightblue hover:bg-lightblue"
+            }`}
           >
             Reset Password
           </button>
