@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { addUser, checkEmailExists } from "../../../../services/userManagementService";
+import {
+  addUser,
+  checkEmailExists,
+} from "../../../../services/userManagementService";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import Notification from "src/components/Notification";
@@ -22,11 +25,14 @@ const AddUser = () => {
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
-  const [modalDesc, setModalDesc] = useState("Are you sure you want to proceed with this action?");
+  const [modalDesc, setModalDesc] = useState(
+    "Are you sure you want to proceed with this action?"
+  );
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const [showReqModal, setShowReqModal] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const password = form.password || "";
   const criteria = {
     length: password.length >= 8,
@@ -34,8 +40,13 @@ const AddUser = () => {
     special: /[^A-Za-z0-9]/.test(password),
     upperLower: /[a-z]/.test(password) && /[A-Z]/.test(password),
   };
-  const allMet = criteria.length && criteria.letterNumber && criteria.special && criteria.upperLower;
-  const passwordsMatch = form.confirmPassword.length > 0 && form.password === form.confirmPassword;
+  const allMet =
+    criteria.length &&
+    criteria.letterNumber &&
+    criteria.special &&
+    criteria.upperLower;
+  const passwordsMatch =
+    form.confirmPassword.length > 0 && form.password === form.confirmPassword;
 
   const validate = () => {
     const newErrors = {};
@@ -73,11 +84,17 @@ const AddUser = () => {
       return;
     }
     if (!allMet) {
-      setErrors((prev) => ({ ...prev, password: "Password does not meet requirements." }));
+      setErrors((prev) => ({
+        ...prev,
+        password: "Password does not meet requirements.",
+      }));
       return;
     }
     if (!passwordsMatch) {
-      setErrors((prev) => ({ ...prev, confirmPassword: "Passwords do not match." }));
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: "Passwords do not match.",
+      }));
       return;
     }
     try {
@@ -87,7 +104,10 @@ const AddUser = () => {
         return;
       }
     } catch (_) {
-      setErrors((prev) => ({ ...prev, email: "Unable to verify email. Try again." }));
+      setErrors((prev) => ({
+        ...prev,
+        email: "Unable to verify email. Try again.",
+      }));
       return;
     }
     setModalText("Are you sure you want to add this user?");
@@ -215,26 +235,74 @@ const AddUser = () => {
                   />
                   {showReqModal && (
                     <div className="absolute z-50 right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg p-4 border border-lightblue">
-                      <h3 className="text-sm font-semibold text-primary mb-2">Password requirements</h3>
+                      <h3 className="text-sm font-semibold text-primary mb-2">
+                        Password requirements
+                      </h3>
                       <ul className="space-y-1.5 text-sm">
-                        <li className={`flex items-center gap-2 ${criteria.length ? "text-green-600" : "text-gray-500"}`}>
-                          <span className={`w-2 h-2 rounded-full ${criteria.length ? "bg-green-600" : "bg-gray-300"}`}></span>
+                        <li
+                          className={`flex items-center gap-2 ${
+                            criteria.length ? "text-green-600" : "text-gray-500"
+                          }`}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              criteria.length ? "bg-green-600" : "bg-gray-300"
+                            }`}
+                          ></span>
                           <span>At least 8 characters</span>
                         </li>
-                        <li className={`flex items-center gap-2 ${criteria.upperLower ? "text-green-600" : "text-gray-500"}`}>
-                          <span className={`w-2 h-2 rounded-full ${criteria.upperLower ? "bg-green-600" : "bg-gray-300"}`}></span>
+                        <li
+                          className={`flex items-center gap-2 ${
+                            criteria.upperLower
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              criteria.upperLower
+                                ? "bg-green-600"
+                                : "bg-gray-300"
+                            }`}
+                          ></span>
                           <span>Uppercase and lowercase letters</span>
                         </li>
-                        <li className={`flex items-center gap-2 ${criteria.letterNumber ? "text-green-600" : "text-gray-500"}`}>
-                          <span className={`w-2 h-2 rounded-full ${criteria.letterNumber ? "bg-green-600" : "bg-gray-300"}`}></span>
+                        <li
+                          className={`flex items-center gap-2 ${
+                            criteria.letterNumber
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              criteria.letterNumber
+                                ? "bg-green-600"
+                                : "bg-gray-300"
+                            }`}
+                          ></span>
                           <span>Combination of letters and numbers</span>
                         </li>
-                        <li className={`flex items-center gap-2 ${criteria.special ? "text-green-600" : "text-gray-500"}`}>
-                          <span className={`w-2 h-2 rounded-full ${criteria.special ? "bg-green-600" : "bg-gray-300"}`}></span>
+                        <li
+                          className={`flex items-center gap-2 ${
+                            criteria.special
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              criteria.special ? "bg-green-600" : "bg-gray-300"
+                            }`}
+                          ></span>
                           <span>At least one special character</span>
                         </li>
                       </ul>
-                      <div className={`mt-2 text-xs ${allMet ? "text-green-600" : "text-gray-500"}`}>
+                      <div
+                        className={`mt-2 text-xs ${
+                          allMet ? "text-green-600" : "text-gray-500"
+                        }`}
+                      >
                         {allMet ? "Strong password" : "Keep typing..."}
                       </div>
                     </div>
@@ -293,16 +361,69 @@ const AddUser = () => {
                 <label className="block text-gray-700 mb-1">
                   Confirm Password:
                 </label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={form.confirmPassword}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none "
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((v) => !v)}
+                    className="absolute inset-y-0 right-2 flex items-center cursor-pointer"
+                    aria-pressed={showConfirmPassword}
+                    aria-label={
+                      showConfirmPassword ? "Hide password" : "Show password"
+                    }
+                    title={
+                      showConfirmPassword ? "Hide password" : "Show password"
+                    }
+                  >
+                    {!showConfirmPassword ? (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-5 h-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 3l18 18M10.58 10.58A3 3 0 0012 15a3 3 0 001.42-.38M9.88 4.24A9.98 9.98 0 0112 4c5.52 0 10 4.48 10 8 0 1.32-.45 2.56-1.25 3.63M6.35 6.35C4.31 7.68 3 9.69 3 12c0 3.52 4.48 8 9 8 1.04 0 2.04-.17 2.97-.49"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-5 h-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
+                        />
+                        <circle cx="12" cy="12" r="3" strokeWidth="2" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
                 {form.confirmPassword.length > 0 && (
-                  <p className={`text-sm ${passwordsMatch ? "text-green-600" : "text-red-600"}`}>
-                    {passwordsMatch ? "Passwords match" : "Passwords do not match"}
+                  <p
+                    className={`text-sm ${
+                      passwordsMatch ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {passwordsMatch
+                      ? "Passwords match"
+                      : "Passwords do not match"}
                   </p>
                 )}
                 {errors.confirmPassword && (
@@ -336,7 +457,11 @@ const AddUser = () => {
           <button
             type="submit"
             disabled={!allMet || !passwordsMatch}
-            className={`text-center font-bold py-2 w-[35%] border rounded-md ${!allMet || !passwordsMatch ? "bg-gray-300 text-gray-600 border-gray-300 cursor-not-allowed" : "bg-primary text-white border-primary hover:border-lightblue hover:bg-lightblue"}`}
+            className={`text-center font-bold py-2 w-[35%] border rounded-md ${
+              !allMet || !passwordsMatch
+                ? "bg-gray-300 text-gray-600 border-gray-300 cursor-not-allowed"
+                : "bg-primary text-white border-primary hover:border-lightblue hover:bg-lightblue"
+            }`}
           >
             ADD
           </button>

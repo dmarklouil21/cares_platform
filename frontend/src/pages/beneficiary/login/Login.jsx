@@ -13,6 +13,7 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // Loading Modal
   const [loading, setLoading] = useState(false);
@@ -88,7 +89,9 @@ const Login = () => {
           <img src="/images/logo_white_text.png" className="size-15" />
           <div>
             {" "}
-            <p className="font-bold text-white  text-[20px] tracking-wider">CARES Platform</p>
+            <p className="font-bold text-white  text-[20px] tracking-wider">
+              CARES Platform
+            </p>
           </div>
         </div>
 
@@ -120,14 +123,59 @@ const Login = () => {
             </div>
             <div className="flex gap-2 flex-col">
               <label>Password</label>
-              <input
-                type="password"
-                className="border-[#E2E2E2] border-[1px] rounded-md p-2"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative border-[#E2E2E2] border-[1px] rounded-md p-2">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className=" pr-10 focus:outline-none flex w-full"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute inset-y-0 right-2 flex items-center cursor-pointer"
+                  aria-pressed={showPassword}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {!showPassword ? (
+                    // Eye-off icon
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 3l18 18M10.58 10.58A3 3 0 0012 15a3 3 0 001.42-.38M9.88 4.24A9.98 9.98 0 0112 4c5.52 0 10 4.48 10 8 0 1.32-.45 2.56-1.25 3.63M6.35 6.35C4.31 7.68 3 9.69 3 12c0 3.52 4.48 8 9 8 1.04 0 2.04-.17 2.97-.49"
+                      />
+                    </svg>
+                  ) : (
+                    // Eye icon
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
+                      />
+                      <circle cx="12" cy="12" r="3" strokeWidth="2" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
           <button

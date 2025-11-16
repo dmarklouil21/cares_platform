@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { updateUser, checkEmailExists } from "../../../../services/userManagementService";
+import {
+  updateUser,
+  checkEmailExists,
+} from "../../../../services/userManagementService";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import Notification from "src/components/Notification";
@@ -58,11 +61,16 @@ const EditUser = () => {
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetPassword, setResetPassword] = useState("");
   const [resetConfirmPassword, setResetConfirmPassword] = useState("");
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showResetConfirmPassword, setShowResetConfirmPassword] =
+    useState(false);
   const [resetNotification, setResetNotification] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalAction, setModalAction] = useState(null); // {type: 'reset'|'save'}
-  const [modalDesc, setModalDesc] = useState("Are you sure you want to proceed with this action?");
+  const [modalDesc, setModalDesc] = useState(
+    "Are you sure you want to proceed with this action?"
+  );
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
 
@@ -127,13 +135,19 @@ const EditUser = () => {
       return;
     }
     try {
-      const { exists } = await checkEmailExists({ email: form.email, excludeId: backendUser.id });
+      const { exists } = await checkEmailExists({
+        email: form.email,
+        excludeId: backendUser.id,
+      });
       if (exists) {
         setErrors((prev) => ({ ...prev, email: "Email already in use." }));
         return;
       }
     } catch (_) {
-      setErrors((prev) => ({ ...prev, email: "Unable to verify email. Try again." }));
+      setErrors((prev) => ({
+        ...prev,
+        email: "Unable to verify email. Try again.",
+      }));
       return;
     }
     setModalText("Are you sure you want to save changes?");
@@ -237,20 +251,112 @@ const EditUser = () => {
             <h2 className="text-lg font-bold mb-2 text-center">
               Reset Password
             </h2>
-            <input
-              type="password"
-              placeholder="New Password"
-              value={resetPassword}
-              onChange={(e) => setResetPassword(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-2 focus:outline-none w-full"
-            />
-            <input
-              type="password"
-              placeholder="Confirm Password"
-              value={resetConfirmPassword}
-              onChange={(e) => setResetConfirmPassword(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-2 focus:outline-none w-full"
-            />
+            <div className="relative">
+              <input
+                type={showResetPassword ? "text" : "password"}
+                placeholder="New Password"
+                value={resetPassword}
+                onChange={(e) => setResetPassword(e.target.value)}
+                className="border border-gray-300 rounded px-3 py-2 focus:outline-none w-full pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowResetPassword((v) => !v)}
+                className="absolute inset-y-0 right-2 flex items-center cursor-pointer"
+                aria-pressed={showResetPassword}
+                aria-label={
+                  showResetPassword ? "Hide password" : "Show password"
+                }
+                title={showResetPassword ? "Hide password" : "Show password"}
+              >
+                {!showResetPassword ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 3l18 18M10.58 10.58A3 3 0 0012 15a3 3 0 001.42-.38M9.88 4.24A9.98 9.98 0 0112 4c5.52 0 10 4.48 10 8 0 1.32-.45 2.56-1.25 3.63M6.35 6.35C4.31 7.68 3 9.69 3 12c0 3.52 4.48 8 9 8 1.04 0 2.04-.17 2.97-.49"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
+                    />
+                    <circle cx="12" cy="12" r="3" strokeWidth="2" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            <div className="relative">
+              <input
+                type={showResetConfirmPassword ? "text" : "password"}
+                placeholder="Confirm Password"
+                value={resetConfirmPassword}
+                onChange={(e) => setResetConfirmPassword(e.target.value)}
+                className="border border-gray-300 rounded px-3 py-2 focus:outline-none w-full pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowResetConfirmPassword((v) => !v)}
+                className="absolute inset-y-0 right-2 flex items-center cursor-pointer"
+                aria-pressed={showResetConfirmPassword}
+                aria-label={
+                  showResetConfirmPassword ? "Hide password" : "Show password"
+                }
+                title={
+                  showResetConfirmPassword ? "Hide password" : "Show password"
+                }
+              >
+                {!showResetConfirmPassword ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 3l18 18M10.58 10.58A3 3 0 0012 15a3 3 0 001.42-.38M9.88 4.24A9.98 9.98 0 0112 4c5.52 0 10 4.48 10 8 0 1.32-.45 2.56-1.25 3.63M6.35 6.35C4.31 7.68 3 9.69 3 12c0 3.52 4.48 8 9 8 1.04 0 2.04-.17 2.97-.49"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
+                    />
+                    <circle cx="12" cy="12" r="3" strokeWidth="2" />
+                  </svg>
+                )}
+              </button>
+            </div>
             {resetNotification && (
               <span className="text-red-500 text-xs">{resetNotification}</span>
             )}
