@@ -33,7 +33,7 @@ export default function ViewPostTreatmentStatus() {
   const [resultFile, setResultFile] = useState(null);
 
   const [isCheckupModalOpen, setIsCheckupModalOpen] = useState(false);
-  
+
   // Confirmation Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("Confirm Status Change?");
@@ -55,75 +55,76 @@ export default function ViewPostTreatmentStatus() {
   // Step definitions
   const stepList = useMemo(() => {
     const baseSteps = [
-      { 
-        title: "Pending", 
-        description: activeStep === 0 ? (
-          <>
-            Your request for cancer screening has been submitted and is
-            currently under review. Once approved, you’ll receive instructions
-            on the next steps.
-          </>
-        ) : (
-          <>
-            Your request has been approved. You will be notified with your
-            laboratory test date through email.
-          </>
-        ),
+      {
+        title: "Pending",
+        description:
+          activeStep === 0 ? (
+            <>
+              Your request for cancer screening has been submitted and is
+              currently under review. Once approved, you’ll receive instructions
+              on the next steps.
+            </>
+          ) : (
+            <>
+              Your request has been approved. You will be notified with your
+              laboratory test date through email.
+            </>
+          ),
       },
-      { 
-        title: "Approved", 
-        description: activeStep === 1 ? (
-          <>
-            Your post treatment laboratory test request has been approved{" "}
-            <b>
-              {new Date(
-                postTreatment?.laboratory_test_date
-              ).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </b>
-            . Please make sure to arrive at least 15 minutes early and bring
-            any required identification.
-          </>
-        ) : (
-          <>
-            Your laboratory test has been scheduled for{" "}
-            <b>
-              {new Date(
-                postTreatment?.laboratory_test_date
-              ).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </b>
-            . Please make sure to arrive at least 15 minutes early and bring
-            any required identification.
-          </>
-        ),
+      {
+        title: "Approved",
+        description:
+          activeStep === 1 ? (
+            <>
+              Your post treatment laboratory test request has been approved{" "}
+              <b>
+                {new Date(
+                  postTreatment?.laboratory_test_date
+                ).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </b>
+              . Please make sure to arrive at least 15 minutes early and bring
+              any required identification.
+            </>
+          ) : (
+            <>
+              Your laboratory test has been scheduled for{" "}
+              <b>
+                {new Date(
+                  postTreatment?.laboratory_test_date
+                ).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </b>
+              . Please make sure to arrive at least 15 minutes early and bring
+              any required identification.
+            </>
+          ),
       },
-      { 
-        title: "Completed", 
-        description: activeStep === 2 ? (
-          <>
-            Your post treatment laboratory test has been successfully completed, please upload back the result of your test.
-            <span
-              className="text-blue-500 underline cursor-pointer"
-              onClick={() => setUploadResultModalOpen(true)}
-            >
-              Click here to upload results.
-            </span>
-          </>
-        ) : activeStep > 2 ? (
-          <> Your post treatment laboratory test is complete. </>
-        ) : (
-          <>
-            {" "}
-            Your follow checkup may require base on the results.{" "}
-          </>
-        ),
+      {
+        title: "Completed",
+        description:
+          activeStep === 2 ? (
+            <>
+              Your post treatment laboratory test has been successfully
+              completed, please upload back the result of your test.
+              <span
+                className="text-blue-500 underline cursor-pointer"
+                onClick={() => setUploadResultModalOpen(true)}
+              >
+                Click here to upload results.
+              </span>
+            </>
+          ) : activeStep > 2 ? (
+            <> Your post treatment laboratory test is complete. </>
+          ) : (
+            <> Your follow checkup may require base on the results. </>
+          ),
       },
     ];
 
@@ -139,10 +140,10 @@ export default function ViewPostTreatmentStatus() {
                 className="text-blue-500 underline cursor-pointer"
               >
                 View Checkup Schedules
-              </span> {' '}
+              </span>{" "}
             </>
           ) : (
-            <> Followup Checkup is required.{" "} </>
+            <> Followup Checkup is required. </>
           ),
       });
       baseSteps.push({
@@ -161,7 +162,7 @@ export default function ViewPostTreatmentStatus() {
           activeStep === 3 ? (
             <> Case is closed, thank you for your cooperation. </>
           ) : (
-            <> Case is closed, thank you for your cooperation.  </>
+            <> Case is closed, thank you for your cooperation. </>
           ),
       });
     }
@@ -172,9 +173,7 @@ export default function ViewPostTreatmentStatus() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await api.get(
-          `/post-treatment/view/${id}/`
-        );
+        const { data } = await api.get(`/post-treatment/view/${id}/`);
         setPostTreatment(data);
 
         if (data?.status === "Follow-up Required") {
@@ -209,11 +208,15 @@ export default function ViewPostTreatmentStatus() {
         const formData = new FormData();
         formData.append("file", resultFile);
 
-        await api.patch(`/beneficiary/post-treatment/result/upload/${postTreatment.id}/`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        await api.patch(
+          `/beneficiary/post-treatment/result/upload/${postTreatment.id}/`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
 
         setModalInfo({
           type: "success",
@@ -242,7 +245,7 @@ export default function ViewPostTreatmentStatus() {
     // <div className="h-screen w-full flex flex-col bg-[#F8F9FA]">
     <>
       {loading && <SystemLoader />}
-      
+
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -282,7 +285,9 @@ export default function ViewPostTreatmentStatus() {
           {/* <div className="bg-white flex flex-col gap-7 rounded-[4px] shadow-md p-6 w-full max-w-3xl"> */}
           <div className="border border-black/15 p-3 bg-white rounded-sm">
             <div className="w-full bg-white rounded-[4px] p-4 ">
-              <h2 className="text-md font-bold mb-3">Post Treatment Progress</h2>
+              <h2 className="text-md font-bold mb-3">
+                Post Treatment Progress
+              </h2>
               {/* <div className="flex justify-between items-center">
                 <h2 className="text-md font-bold mb-3">Screening Progress</h2>
               </div> */}
@@ -328,6 +333,14 @@ export default function ViewPostTreatmentStatus() {
                     </div>
                   );
                 })}
+              </div>
+              <div className="w-full h-full mt-4">
+                <Link
+                  to="/beneficiary/applications/post-treatment"
+                  className="flex items-center justify-center border rounded-md w-[300px] py-3 mx-auto border-black/15 hover:bg-black/10 hover:border-black "
+                >
+                  Back
+                </Link>
               </div>
             </div>
           </div>

@@ -241,7 +241,7 @@ const Profile = () => {
         {/* Header */}
         <div className="flex items-center px-5 justify-between">
           <div className="flex items-center gap-5">
-            <h1 className="text-lg font-bold">Beneficiary Profile</h1>
+            <h1 className="font-bold text-[14px] md:text-lg ">Beneficiary Profile</h1>
             {readOnly ? (
               <button
                 onClick={handleEdit}
@@ -253,13 +253,13 @@ const Profile = () => {
               <div className="flex gap-2">
                 <button
                   onClick={handleCancel}
-                  className="px-4 py-1 rounded bg-white border border-black/15 hover:bg-gray"
+                  className="md:px-4 py-1 rounded bg-white border border-black/15 hover:bg-gray md:text-[16px] text-[14px] px-1"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-1 rounded bg-primary text-white hover:bg-primary/80"
+                  className="md:px-4 py-1 rounded bg-primary text-white hover:bg-primary/80 md:text-[16px] text-[14px] px-1"
                 >
                   Save Changes
                 </button>

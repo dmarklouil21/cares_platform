@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { logout } from "src/services/authService";
 import RhuSidebar from "../navigation/Rhu";
@@ -18,19 +24,19 @@ const useNotifications = () => {
     try {
       setLoading(true);
       setError(null);
-      const { data } = await api.get('/notifications/list/');
-      console.log("Notifications: ", data)
-      
+      const { data } = await api.get("/notifications/list/");
+      console.log("Notifications: ", data);
+
       // Assuming API returns { notifications: [], unread_count: number }
       const notifs = data.results;
       // const count = data.count
-      const count = notifs.filter(n => !n.is_read).length;
-    
+      const count = notifs.filter((n) => !n.is_read).length;
+
       setNotifications(notifs);
       setUnreadCount(count);
     } catch (err) {
-      console.error('Failed to fetch notifications:', err);
-      setError('Failed to load notifications');
+      console.error("Failed to fetch notifications:", err);
+      setError("Failed to load notifications");
     } finally {
       setLoading(false);
     }
@@ -39,35 +45,37 @@ const useNotifications = () => {
   const markAsRead = useCallback(async (notificationId) => {
     try {
       await api.patch(`/notifications/${notificationId}/mark-read/`);
-      setNotifications(prev => 
-        prev.map(notif => 
+      setNotifications((prev) =>
+        prev.map((notif) =>
           notif.id === notificationId ? { ...notif, is_read: true } : notif
         )
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
-      console.error('Failed to mark notification as read:', err);
+      console.error("Failed to mark notification as read:", err);
     }
   }, []);
 
   const markAllAsRead = useCallback(async () => {
     try {
-      await api.patch('/notifications/mark-all-read/');
-      setNotifications(prev => prev.map(notif => ({ ...notif, is_read: true })));
+      await api.patch("/notifications/mark-all-read/");
+      setNotifications((prev) =>
+        prev.map((notif) => ({ ...notif, is_read: true }))
+      );
       setUnreadCount(0);
     } catch (err) {
-      console.error('Failed to mark all as read:', err);
+      console.error("Failed to mark all as read:", err);
     }
   }, []);
 
   // For multiple notifications
   const markMultipleAsRead = async (notificationIds) => {
     try {
-      await api.post('/notifications/mark-multiple-read/', {
-        notification_ids: notificationIds
+      await api.post("/notifications/mark-multiple-read/", {
+        notification_ids: notificationIds,
       });
     } catch (err) {
-      console.error('Failed to mark multiple notifications as read:', err);
+      console.error("Failed to mark multiple notifications as read:", err);
     }
   };
 
@@ -76,52 +84,60 @@ const useNotifications = () => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
     try {
-      const wsUrl = (
-        (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_WS_URL) ||
-        (typeof process !== 'undefined' && process.env && process.env.REACT_APP_WS_URL) ||
-        'ws://localhost:8000/ws/notifications/'
-      );
+      const wsUrl =
+        (typeof import.meta !== "undefined" &&
+          import.meta.env &&
+          import.meta.env.VITE_WS_URL) ||
+        (typeof process !== "undefined" &&
+          process.env &&
+          process.env.REACT_APP_WS_URL) ||
+        "ws://localhost:8000/ws/notifications/";
       const ws = new WebSocket(wsUrl);
-      
+
       ws.onopen = () => {
-        console.log('WebSocket connected');
+        console.log("WebSocket connected");
         retryCountRef.current = 0;
       };
 
       ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          if (message.type === 'NEW_NOTIFICATION') {
-            setNotifications(prev => [message.notification, ...prev]);
-            setUnreadCount(prev => prev + 1);
-          } else if (message.type === 'NOTIFICATION_READ') {
-            setNotifications(prev => 
-              prev.map(notif => 
-                notif.id === message.notificationId ? { ...notif, read: true } : notif
+          if (message.type === "NEW_NOTIFICATION") {
+            setNotifications((prev) => [message.notification, ...prev]);
+            setUnreadCount((prev) => prev + 1);
+          } else if (message.type === "NOTIFICATION_READ") {
+            setNotifications((prev) =>
+              prev.map((notif) =>
+                notif.id === message.notificationId
+                  ? { ...notif, read: true }
+                  : notif
               )
             );
           }
         } catch (err) {
-          console.error('Failed to parse WebSocket message:', err);
+          console.error("Failed to parse WebSocket message:", err);
         }
       };
 
       ws.onclose = () => {
         // Auto-reconnect with exponential backoff
         if (retryCountRef.current < maxRetries) {
-          const timeout = Math.min(1000 * Math.pow(2, retryCountRef.current), 30000);
+          const timeout = Math.min(
+            1000 * Math.pow(2, retryCountRef.current),
+            30000
+          );
           retryCountRef.current += 1;
           setTimeout(connectWebSocket, timeout);
         }
       };
 
       ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        console.error("WebSocket error:", error);
       };
 
       wsRef.current = ws;
     } catch (err) {
-      console.error('Failed to establish WebSocket connection:', err);
+      console.error("Failed to establish WebSocket connection:", err);
     }
   }, []);
 
@@ -133,7 +149,7 @@ const useNotifications = () => {
 
   useEffect(() => {
     fetchNotifications();
-    
+
     // Try WebSocket first, fallback to polling
     if (window.WebSocket) {
       connectWebSocket();
@@ -155,7 +171,7 @@ const useNotifications = () => {
     error,
     fetchNotifications,
     markAsRead,
-    markAllAsRead
+    markAllAsRead,
   };
 };
 
@@ -171,7 +187,7 @@ const NotificationItem = React.memo(({ notification, onMarkAsRead }) => {
     const date = new Date(timestamp);
     const now = new Date();
     const diffInHours = (now - date) / (1000 * 60 * 60);
-    
+
     if (diffInHours < 1) {
       return `${Math.floor(diffInHours * 60)}m ago`;
     } else if (diffInHours < 24) {
@@ -184,17 +200,25 @@ const NotificationItem = React.memo(({ notification, onMarkAsRead }) => {
   return (
     <li
       className={`px-4 py-3 text-sm hover:bg-gray-50 cursor-pointer transition-colors duration-200 ${
-        !notification.is_read ? 'bg-blue-50 border-l-4 border-l-blue-500' : 'text-gray-600'
+        !notification.is_read
+          ? "bg-blue-50 border-l-4 border-l-blue-500"
+          : "text-gray-600"
       }`}
       onClick={handleClick}
     >
       <div className="flex justify-between items-start gap-2">
         <div className="flex-1">
-          <p className={`font-medium ${!notification.is_read ? 'text-gray-900' : 'text-gray-700'}`}>
+          <p
+            className={`font-medium ${
+              !notification.is_read ? "text-gray-900" : "text-gray-700"
+            }`}
+          >
             {notification.title}
           </p>
           {notification.message && (
-            <p className="text-gray-500 mt-1 line-clamp-2">{notification.message}</p>
+            <p className="text-gray-500 mt-1 line-clamp-2">
+              {notification.message}
+            </p>
           )}
         </div>
         {!notification.is_read && (
@@ -206,11 +230,15 @@ const NotificationItem = React.memo(({ notification, onMarkAsRead }) => {
           {formatTime(notification.created_at || notification.timestamp)}
         </span>
         {notification.type && (
-          <span className={`text-xs px-2 py-1 rounded-full ${
-            notification.type === 'alert' ? 'bg-red-100 text-red-800' :
-            notification.type === 'info' ? 'bg-blue-100 text-blue-800' :
-            'bg-gray-100 text-gray-800'
-          }`}>
+          <span
+            className={`text-xs px-2 py-1 rounded-full ${
+              notification.type === "alert"
+                ? "bg-red-100 text-red-800"
+                : notification.type === "info"
+                ? "bg-blue-100 text-blue-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
             {notification.type}
           </span>
         )}
@@ -237,13 +265,15 @@ const AdminHeader = () => {
     loading,
     error,
     markAsRead,
-    markAllAsRead
+    markAllAsRead,
   } = useNotifications();
 
   // Memoized sorted notifications (newest first)
   const sortedNotifications = useMemo(() => {
-    return [...notifications].sort((a, b) => 
-      new Date(b.created_at || b.timestamp) - new Date(a.created_at || a.timestamp)
+    return [...notifications].sort(
+      (a, b) =>
+        new Date(b.created_at || b.timestamp) -
+        new Date(a.created_at || a.timestamp)
     );
   }, [notifications]);
 
@@ -251,8 +281,10 @@ const AdminHeader = () => {
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
-        menuRef.current && !menuRef.current.contains(e.target) &&
-        notifRef.current && !notifRef.current.contains(e.target)
+        menuRef.current &&
+        !menuRef.current.contains(e.target) &&
+        notifRef.current &&
+        !notifRef.current.contains(e.target)
       ) {
         setOpen(false);
         setShowNotifications(false);
@@ -270,9 +302,14 @@ const AdminHeader = () => {
       try {
         const res = await api.get("/user/profile/");
         const d = res.data;
-        const name = `${d.first_name || ""} ${d.last_name || ""}`.trim() || "RHU";
-        const base = (api.defaults?.baseURL || '').replace(/\/$/, '');
-        const avatar = d.avatar ? (d.avatar.startsWith('http') ? d.avatar : `${base}${d.avatar}`) : "/images/Avatar.png";
+        const name =
+          `${d.first_name || ""} ${d.last_name || ""}`.trim() || "RHU";
+        const base = (api.defaults?.baseURL || "").replace(/\/$/, "");
+        const avatar = d.avatar
+          ? d.avatar.startsWith("http")
+            ? d.avatar
+            : `${base}${d.avatar}`
+          : "/images/Avatar.png";
         setProfileName(name);
         setProfileAvatar(avatar);
       } catch (e) {
@@ -288,9 +325,12 @@ const AdminHeader = () => {
     navigate(0);
   };
 
-  const handleNotificationClick = useCallback((notificationId) => {
-    markAsRead(notificationId);
-  }, [markAsRead]);
+  const handleNotificationClick = useCallback(
+    (notificationId) => {
+      markAsRead(notificationId);
+    },
+    [markAsRead]
+  );
 
   return (
     <div className="bg-white py-3.5 px-5 w-full flex justify-between items-center shadow-sm">
@@ -315,26 +355,28 @@ const AdminHeader = () => {
         <div ref={notifRef} className="relative">
           <button
             onClick={() => {
-              setShowNotifications(prev => !prev);
+              setShowNotifications((prev) => !prev);
               setOpen(false);
             }}
             className="relative p-1 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-            aria-label={`Notifications ${unreadCount > 0 ? `${unreadCount} unread` : ''}`}
+            aria-label={`Notifications ${
+              unreadCount > 0 ? `${unreadCount} unread` : ""
+            }`}
           >
-            <img 
-              src="/images/notification-icon.svg" 
-              className="size-5" 
-              alt="Notifications" 
+            <img
+              src="/images/notification-icon.svg"
+              className="size-5"
+              alt="Notifications"
             />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center min-w-[1rem]">
-                {unreadCount > 99 ? '99+' : unreadCount}
+                {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white shadow-lg rounded-lg z-50 border border-gray-200">
+            <div className="absolute md:right-0 mt-2  -right-30 w-80 bg-white shadow-lg rounded-lg z-50 border border-gray-200">
               <div className="p-3 border-b border-gray-100 flex justify-between items-center">
                 <span className="text-sm font-semibold text-gray-900">
                   Notifications
@@ -355,9 +397,7 @@ const AdminHeader = () => {
                     Loading notifications...
                   </div>
                 ) : error ? (
-                  <div className="p-4 text-center text-red-500">
-                    {error}
-                  </div>
+                  <div className="p-4 text-center text-red-500">{error}</div>
                 ) : sortedNotifications.length > 0 ? (
                   <ul>
                     {sortedNotifications.map((notification) => (
@@ -379,7 +419,7 @@ const AdminHeader = () => {
                   </div>
                 )}
               </div>
-              
+
               {/* {sortedNotifications.length > 0 && (
                 <div className="p-2 border-t border-gray-100 text-center">
                   <Link

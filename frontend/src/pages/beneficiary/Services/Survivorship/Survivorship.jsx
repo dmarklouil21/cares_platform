@@ -23,7 +23,7 @@ const survivorshipOptions = [
     description:
       "Access mental health services like counseling or therapy to help manage emotional challenges during survivorship.",
     link: "/beneficiary/services/survivorship/hormonal-replacement",
- },
+  },
 ];
 
 const SurvivorshipPage = () => {
@@ -38,11 +38,11 @@ const SurvivorshipPage = () => {
         Your Next Chapter: Guidance for Survivors
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
         {survivorshipOptions.map((option, index) => (
           <div
             key={index}
-            className="rounded-md bg-white custom-shadow h-72 flex flex-col justify-between p-4 items-center"
+            className="rounded-md bg-white custom-shadow h-72 flex flex-col justify-between p-4 items-center "
           >
             <img
               src={option.icon}
@@ -52,18 +52,14 @@ const SurvivorshipPage = () => {
             <h4 className="text-lg font-bold text-center text-gray-800">
               {option.title}
             </h4>
-            <p className="text-gray2 text-center text-sm">
+            <p className="text-gray2 text-center text-sm w-[70%]">
               {option.description}
             </p>
-            <Link 
+            <Link
               className="px-7 py-1 bg-primary text-white text-sm rounded hover:bg-[#5a7c94] transition"
               to={option.link}
             >
-              {option.title === "Psychosocial Support" ? (
-                "Explore"
-              ) : (
-                "Apply"
-              )}
+              {option.title === "Psychosocial Support" ? "Explore" : "Apply"}
             </Link>
           </div>
         ))}

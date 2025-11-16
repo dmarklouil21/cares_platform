@@ -401,7 +401,7 @@ const AdminCancerManagement = () => {
         <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
           {/* Header */}
           <div className="flex justify-between items-center w-full">
-            <h2 className="text-xl font-bold text-gray-800">
+            <h2 className="text-[18px] md:text-xl font-bold text-gray-800">
               Cancer Management
             </h2>
             <div className="flex items-center gap-3">
@@ -529,7 +529,9 @@ const AdminCancerManagement = () => {
                   onClick={() => {
                     setSearchQuery("");
                     setStatusFilter("All");
-                    setDateFilter("");
+                    setDayFilter("");
+                    setMonthFilter("");
+                    setYearFilter("");
                   }}
                   className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
                 >
@@ -540,9 +542,9 @@ const AdminCancerManagement = () => {
 
             {/* Table Section */}
             <div className="px-6 py-4">
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-white border border-gray-200 rounded-lg overflow-auto">
                 {/* Table Header */}
-                <div className="bg-lightblue px-4 py-3">
+                <div className="bg-lightblue px-4 py-3 w-[500px] md:w-[100%]">
                   <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
                     <div className="col-span-2 text-center">Patient ID</div>
                     <div className="col-span-3 text-center">Name</div>
@@ -556,9 +558,9 @@ const AdminCancerManagement = () => {
                 </div>
 
                 {/* Table Body */}
-                <div className="max-h-96 overflow-auto">
+                <div className="max-h-96 overflow-auto w-[500px] md:w-[100%]">
                   {filteredData.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
+                    <div className="text-center py-8 text-gray-500 ">
                       No records found matching your filters.
                     </div>
                   ) : (
@@ -566,7 +568,7 @@ const AdminCancerManagement = () => {
                       {filteredData.map((item) => (
                         <div
                           key={item.id}
-                          className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
+                          className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-[12px] md:text-[14px]"
                         >
                           <div
                             className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
@@ -611,7 +613,7 @@ const AdminCancerManagement = () => {
                               }
                             )}
                           </div>
-                          <div className="col-span-2 text-center">
+                          <div className="col-span-2 text-center ">
                             <span
                               className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold max-w-[120px] truncate ${
                                 statusColors[item.status] ||
@@ -685,27 +687,27 @@ const AdminCancerManagement = () => {
 
               {/* Footer */}
               <div className="flex justify-between items-center mt-4 px-2">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-600 text-[12px] md:text-sm">
                   Showing {filteredData.length} of {tableData.length} records
                 </div>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
                     <label
                       htmlFor="recordsPerPage"
-                      className="text-sm text-gray-700"
+                      className="text-sm text-gray-700 text-[12px] md:text-sm"
                     >
                       Record per page:
                     </label>
                     <select
                       id="recordsPerPage"
-                      className="border border-gray-300 rounded-md p-1 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                      className="border border-gray-300 rounded-md p-1 text-sm focus:ring-2 focus:ring-primary focus:border-transparent text-[12px] md:text-sm"
                     >
                       <option>10</option>
                       <option>20</option>
                       <option>50</option>
                     </select>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-[12px] md:text-sm">
                     <span>
                       1 – {Math.min(10, filteredData.length)} of{" "}
                       {filteredData.length}

@@ -182,11 +182,15 @@ export default function ViewIndividualStatus() {
         const formData = new FormData();
         formData.append("screening_attachments", resultFile);
 
-        await api.patch(`/beneficiary/individual-screening/results-upload/${individualScreening.id}/`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        await api.patch(
+          `/beneficiary/individual-screening/results-upload/${individualScreening.id}/`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
 
         setModalInfo({
           type: "success",
@@ -305,6 +309,14 @@ export default function ViewIndividualStatus() {
                     </div>
                   );
                 })}
+              </div>
+              <div className="w-full h-full mt-4">
+                <Link
+                  to="/beneficiary/applications/individual-screening"
+                  className="flex items-center justify-center border rounded-md w-[300px] py-3 mx-auto border-black/15 hover:bg-black/10 hover:border-black "
+                >
+                  Back
+                </Link>
               </div>
             </div>
           </div>
