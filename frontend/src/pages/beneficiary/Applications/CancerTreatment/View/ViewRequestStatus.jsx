@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import api from "src/api/axiosInstance";
 import { useAuth } from "src/context/AuthContext";
+import { Camera } from "lucide-react";
 
 import FileUploadModal from "src/components/Modal/FileUploadModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
@@ -92,28 +93,47 @@ export default function ViewIndividualStatus() {
         title: "Case Summary & Intervention Plan",
         description:
           activeStep === 2 ? (
-            <>
-              Your Case Summary and Intervention Plan has been sent to your
-              email. Review, sign and upload it back.
-              <span
-                // to={`/beneficiary/applications/cancer-treatment/view/${id}/upload`}
-                // state={{
-                //   cancer_treatment: cancerTreatment,
-                //   purpose: "case_summary_upload",
-                // }}
+            <div className="space-y-2">
+              <p>Your Case Summary and Intervention Plan has been sent to your
+              email. Review, sign and upload it back.</p>
+              <div
+                className="flex items-center gap-2 p-2 border border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
                 onClick={() => setUploadCaseSummaryModalOpen(true)}
-                className="text-blue-500 underline cursor-pointer"
               >
-                Click here to upload!
-              </span>
-            </>
+                <Camera className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors duration-200" />
+                <div>
+                  <p className="text-sm font-medium text-blue-700 group-hover:text-blue-800">Upload</p>
+                </div>
+              </div>
+            </div>
           ) : (
-            <>
+            <p className="text-gray-600">
               Your Case Summary and Intervention Plan has been sent to your
               email. Review, sign and upload it back.
-            </>
+            </p>
           ),
       },
+      // {
+      //   title: "Case Summary & Intervention Plan",
+      //   description:
+      //     activeStep === 2 ? (
+      //       <>
+      //         Your Case Summary and Intervention Plan has been sent to your
+      //         email. Review, sign and upload it back.
+      //         <span
+      //           onClick={() => setUploadCaseSummaryModalOpen(true)}
+      //           className="text-blue-500 underline cursor-pointer"
+      //         >
+      //           Click here to upload!
+      //         </span>
+      //       </>
+      //     ) : (
+      //       <>
+      //         Your Case Summary and Intervention Plan has been sent to your
+      //         email. Review, sign and upload it back.
+      //       </>
+      //     ),
+      // },
       {
         title: "Approved",
         description:
@@ -155,29 +175,51 @@ export default function ViewIndividualStatus() {
         title: "Completed",
         description:
           activeStep === 4 ? (
-            <>
-              Upload the results of your radiation therapy.{" "}
-              <span
-                className="text-blue-500 underline cursor-pointer"
+            <div className="space-y-2">
+              <p>Upload the results of your {cancerTreatment.service_type}.</p>
+              <div
+                className="flex items-center gap-2 p-2 border border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
                 onClick={() => setUploadResultModalOpen(true)}
-                // to={`/beneficiary/applications/cancer-treatment/view/${id}/upload`}
-                // state={{
-                //   individual_screening: cancerTreatment,
-                //   purpose: "result_upload",
-                // }}
-                // className="text-blue-500 underline"
               >
-                Click here to upload!
-              </span>
-            </>
+                <Camera className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors duration-200" />
+                <div>
+                  <p className="text-sm font-medium text-blue-700 group-hover:text-blue-800">Upload results</p>
+                </div>
+              </div>
+            </div>
           ) : (
-            <>
-              {" "}
-              After completion you are required to upload the results of your
-              cancer screening.
-            </>
+            <p className="text-gray-600">
+              After completion you are required to upload the results of your service treatment.
+            </p>
           ),
-      },
+      }
+      // {
+      //   title: "Completed",
+      //   description:
+      //     activeStep === 4 ? (
+      //       <>
+      //         Upload the results of your radiation therapy.{" "}
+      //         <span
+      //           className="text-blue-500 underline cursor-pointer"
+      //           onClick={() => setUploadResultModalOpen(true)}
+      //           // to={`/beneficiary/applications/cancer-treatment/view/${id}/upload`}
+      //           // state={{
+      //           //   individual_screening: cancerTreatment,
+      //           //   purpose: "result_upload",
+      //           // }}
+      //           // className="text-blue-500 underline"
+      //         >
+      //           Click here to upload!
+      //         </span>
+      //       </>
+      //     ) : (
+      //       <>
+      //         {" "}
+      //         After completion you are required to upload the results of your
+      //         cancer screening.
+      //       </>
+      //     ),
+      // },
     ],
     [activeStep, cancerTreatment]
   );

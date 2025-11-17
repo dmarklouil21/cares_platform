@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
-import { RotateCcw, X } from "lucide-react";
+import { RotateCcw, Trash2, X } from "lucide-react";
 import api from "src/api/axiosInstance";
 
 import Notification from "src/components/Notification";
@@ -208,9 +208,11 @@ const PatientHomeVisit = () => {
                   setStatusFilter("all");
                   setDateFilter("");
                 }}
+                title="Clear Filters"
                 className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
               >
-                Clear Filters
+                {/* Clear Filters */}
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>

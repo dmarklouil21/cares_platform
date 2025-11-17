@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import api from "src/api/axiosInstance";
 import { useAuth } from "src/context/AuthContext";
+import { Camera } from "lucide-react";
 
 import FileUploadModal from "src/components/Modal/FileUploadModal";
 import CheckupScheduleModal from "src/components/Modal/CheckupScheduleModal";
@@ -110,22 +111,49 @@ export default function ViewPostTreatmentStatus() {
         title: "Completed",
         description:
           activeStep === 2 ? (
-            <>
-              Your post treatment laboratory test has been successfully
-              completed, please upload back the result of your test.
-              <span
-                className="text-blue-500 underline cursor-pointer"
+            <div className="space-y-2">
+              <p>Your post treatment laboratory test has been successfully
+               completed, please upload back the result of your test.</p>
+              <div
+                className="flex items-center gap-2 p-2 border border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
                 onClick={() => setUploadResultModalOpen(true)}
               >
-                Click here to upload results.
-              </span>
-            </>
+                <Camera className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors duration-200" />
+                <div>
+                  <p className="text-sm font-medium text-blue-700 group-hover:text-blue-800">Upload results</p>
+                </div>
+              </div>
+            </div>
           ) : activeStep > 2 ? (
-            <> Your post treatment laboratory test is complete. </>
+            <p className="text-gray-600">
+              our post treatment laboratory test is complete.
+            </p>
           ) : (
-            <> Your follow checkup may require base on the results. </>
+             <p className="text-gray-600">
+              A followup checkup may require base on the results. 
+            </p>
           ),
-      },
+      }
+      // {
+      //   title: "Completed",
+      //   description:
+      //     activeStep === 2 ? (
+      //       <>
+      //         Your post treatment laboratory test has been successfully
+      //         completed, please upload back the result of your test.
+      //         <span
+      //           className="text-blue-500 underline cursor-pointer"
+      //           onClick={() => setUploadResultModalOpen(true)}
+      //         >
+      //           Click here to upload results.
+      //         </span>
+      //       </>
+      //     ) : activeStep > 2 ? (
+      //       <> Your post treatment laboratory test is complete. </>
+      //     ) : (
+      //       <> Your follow checkup may require base on the results. </>
+      //     ),
+      // },
     ];
 
     if (postTreatment?.status === "Follow-up Required") {
