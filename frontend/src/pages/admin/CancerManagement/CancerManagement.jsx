@@ -448,9 +448,9 @@ const AdminCancerManagement = () => {
                 >
                   <option value="All">All Status</option>
                   <option value="Pending">Pending</option>
-                  <option value="Interview Process">Interview Process</option>
+                  <option value="Interview Process">Interview Pro...</option>
                   <option value="Case Summary Generation">
-                    Case Summary Gen...
+                    Case Summary
                   </option>
                   <option value="Approved">Approved</option>
                   <option value="Completed">Completed</option>
@@ -533,9 +533,11 @@ const AdminCancerManagement = () => {
                     setMonthFilter("");
                     setYearFilter("");
                   }}
+                  title="Clear Filters"
                   className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
                 >
-                  Clear Filters
+                  {/* Clear Filters */}
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -631,6 +633,7 @@ const AdminCancerManagement = () => {
                                     handleValidate(item.id, "validate")
                                   }
                                   className="bg-primary cursor-pointer hover:bg-primary/90 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
+                                  title="Approve"
                                 >
                                   <CheckCircle className="w-3.5 h-3.5" />
                                 </button>
@@ -643,6 +646,7 @@ const AdminCancerManagement = () => {
                                     });
                                     setRemarksModalOpen(true);
                                   }}
+                                  title="Reject"
                                 >
                                   <X className="w-3.5 h-3.5" />
                                 </button>
@@ -652,6 +656,7 @@ const AdminCancerManagement = () => {
                               <button
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 onClick={() => handleDelete(item.id, "delete")}
+                                title="Delete"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -659,6 +664,7 @@ const AdminCancerManagement = () => {
                               <button
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 onClick={() => handleCancel(item.id, "cancel")}
+                                title="Cancel"
                               >
                                 <X className="w-3.5 h-3.5" />
                               </button>

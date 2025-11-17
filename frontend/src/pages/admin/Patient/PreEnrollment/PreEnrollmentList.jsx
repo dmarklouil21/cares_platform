@@ -385,9 +385,11 @@ const PreEnrollmentList = () => {
                     setMonthFilter("");
                     setYearFilter("");
                   }}
+                  title="Clear Filters"
                   className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
                 >
-                  Clear Filters
+                  {/* Clear Filters */}
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -468,6 +470,7 @@ const PreEnrollmentList = () => {
                                       "validate"
                                     )
                                   }
+                                  title="Approve"
                                   className="bg-primary cursor-pointer text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
                                   <CheckCircle className="w-3.5 h-3.5" />
@@ -476,6 +479,7 @@ const PreEnrollmentList = () => {
                                   onClick={() =>
                                     handleActionClick(item.patient_id, "reject")
                                   }
+                                  title="Reject"
                                   className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                                 >
                                   <X className="w-3.5 h-3.5" />
@@ -487,6 +491,7 @@ const PreEnrollmentList = () => {
                                 onClick={() =>
                                   handleActionClick(item.patient_id, "delete")
                                 }
+                                title="Delete"
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />

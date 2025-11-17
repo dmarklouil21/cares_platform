@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import api from "src/api/axiosInstance";
 import { useAuth } from "src/context/AuthContext";
+import { Camera } from 'lucide-react';
 
 import FileUploadModal from "src/components/Modal/FileUploadModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
@@ -116,33 +117,50 @@ export default function ViewIndividualStatus() {
       //       </>
       //     ),
       // },
+      // {
+      //   title: "Complete",
+      //   description:
+      //     activeStep === 2 ? (
+      //       <>
+      //         Upload the results of your cancer screening.{" "}
+      //         <span
+      //           className="flex items-center gap-1 text-blue-500 cursor-pointer"
+      //           onClick={() => setUploadResultModalOpen(true)}
+      //         >
+      //           {/* Click here to upload! */}
+      //           <Camera className="w-7 h-7" />
+      //         </span>
+      //       </>
+      //     ) : (
+      //       <>
+      //         {" "}
+      //         After completion you are required to upload the results of your
+      //         cancer screening.
+      //       </>
+      //     ),
+      // },
       {
         title: "Complete",
         description:
           activeStep === 2 ? (
-            <>
-              Upload the results of your cancer screening.{" "}
-              <span
-                className="text-blue-500 underline cursor-pointer"
+            <div className="space-y-2">
+              <p>Upload the results of your cancer screening.</p>
+              <div
+                className="flex items-center gap-2 p-2 border border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
                 onClick={() => setUploadResultModalOpen(true)}
-                // to="/beneficiary/applications/individual-screening/upload-attachments"
-                // state={{
-                //   individual_screening: individualScreening,
-                //   purpose: "result_upload",
-                // }}
-                // className="text-blue-500 underline"
               >
-                Click here to upload!
-              </span>
-            </>
+                <Camera className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors duration-200" />
+                <div>
+                  <p className="text-sm font-medium text-blue-700 group-hover:text-blue-800">Upload results</p>
+                </div>
+              </div>
+            </div>
           ) : (
-            <>
-              {" "}
-              After completion you are required to upload the results of your
-              cancer screening.
-            </>
+            <p className="text-gray-600">
+              After completion you are required to upload the results of your cancer screening.
+            </p>
           ),
-      },
+      }
     ],
     [activeStep, individualScreening]
   );
