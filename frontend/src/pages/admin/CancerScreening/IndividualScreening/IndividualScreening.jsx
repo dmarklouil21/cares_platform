@@ -497,9 +497,11 @@ const IndividualScreening = () => {
                   setMonthFilter("");
                   setYearFilter("");
                 }}
+                title="Clear Filters"
                 className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
               >
-                Clear Filters
+                {/* Clear Filters */}
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -591,6 +593,7 @@ const IndividualScreening = () => {
                                 onClick={() =>
                                   handleActionClick(item.id, "approve")
                                 }
+                                title="Approve"
                                 className="bg-primary cursor-pointer hover:bg-primary/90 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
                                 <CheckCircle className="w-3.5 h-3.5" />
@@ -604,6 +607,7 @@ const IndividualScreening = () => {
                                   });
                                   setRemarksModalOpen(true);
                                 }}
+                                title="Reject"
                               >
                                 {/* Reject */}
                                 <X className="w-3.5 h-3.5" />
@@ -616,6 +620,7 @@ const IndividualScreening = () => {
                               onClick={() =>
                                 handleActionClick(item.id, "delete")
                               }
+                              title="Delete"
                             >
                               {/* Delete */}
                               <Trash2 className="w-3.5 h-3.5" />
@@ -626,6 +631,7 @@ const IndividualScreening = () => {
                               onClick={() =>
                                 handleActionClick(item.id, "cancel")
                               }
+                              title="Cancel"
                             >
                               {/* Cancel */}
                               <X className="w-3.5 h-3.5" />
