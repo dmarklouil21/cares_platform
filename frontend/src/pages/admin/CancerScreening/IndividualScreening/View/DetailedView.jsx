@@ -53,6 +53,8 @@ const DetailedView = () => {
   const [sendLOAModalOpen, setSendLOAModalOpen] = useState(false);
   const [loaFile, setLoaFile] = useState(null);
 
+  const [isDownloading, setIsDownloading] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -71,6 +73,16 @@ const DetailedView = () => {
 
     fetchData();
   }, []);
+
+  const handleDownload = () => {
+    setIsDownloading(true);
+    // The download will be triggered automatically through the onDownload prop
+  };
+
+  const handleDownloadComplete = () => {
+    setIsDownloading(false);
+    console.log('PDF download completed');
+  };
 
   // useEffect(() => {
   //   if (record) {
@@ -594,12 +606,15 @@ const DetailedView = () => {
               <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                 <div className="flex gap-2">
                   <span className="font-medium w-40">Generate LOA</span>
-                  <span
-                    className="text-blue-700 cursor-pointer"
-                    onClick={handlePrint}
+                  <button
+                    className="text-blue-700 cursor-pointer disabled:bg-gray-400"
+                    // onClick={handlePrint}
+                    onClick={handleDownload}
+                    disabled={isDownloading}
                   >
-                    Download
-                  </span>
+                    {/* Download */}
+                    {isDownloading ? 'Downloading...' : 'Download'}
+                  </button>
                 </div>
                 <div className="flex gap-2">
                   <span className="font-medium w-40">Send LOA</span>
@@ -631,7 +646,13 @@ const DetailedView = () => {
           </div>
           <br />
         </div>
-        <LOAPrintTemplate loaData={record} />
+        {/* <LOAPrintTemplate loaData={record} /> */}
+        {isDownloading && (
+          <LOAPrintTemplate 
+            loaData={record} 
+            onDownload={handleDownloadComplete}
+          />
+        )}
       </div>
     </>
   );
