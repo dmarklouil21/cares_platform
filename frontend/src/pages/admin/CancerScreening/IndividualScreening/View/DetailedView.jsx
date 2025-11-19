@@ -53,8 +53,6 @@ const DetailedView = () => {
   const [sendLOAModalOpen, setSendLOAModalOpen] = useState(false);
   const [loaFile, setLoaFile] = useState(null);
 
-  const [isDownloading, setIsDownloading] = useState(false);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -73,16 +71,6 @@ const DetailedView = () => {
 
     fetchData();
   }, []);
-
-  const handleDownload = () => {
-    setIsDownloading(true);
-    // The download will be triggered automatically through the onDownload prop
-  };
-
-  const handleDownloadComplete = () => {
-    setIsDownloading(false);
-    console.log('PDF download completed');
-  };
 
   // useEffect(() => {
   //   if (record) {
@@ -608,12 +596,9 @@ const DetailedView = () => {
                   <span className="font-medium w-40">Generate LOA</span>
                   <button
                     className="text-blue-700 cursor-pointer disabled:bg-gray-400"
-                    // onClick={handlePrint}
-                    onClick={handleDownload}
-                    disabled={isDownloading}
+                    onClick={handlePrint}
                   >
-                    {/* Download */}
-                    {isDownloading ? 'Downloading...' : 'Download'}
+                    Download
                   </button>
                 </div>
                 <div className="flex gap-2">
@@ -646,13 +631,7 @@ const DetailedView = () => {
           </div>
           <br />
         </div>
-        {/* <LOAPrintTemplate loaData={record} /> */}
-        {isDownloading && (
-          <LOAPrintTemplate 
-            loaData={record} 
-            onDownload={handleDownloadComplete}
-          />
-        )}
+        <LOAPrintTemplate loaData={record} />
       </div>
     </>
   );
