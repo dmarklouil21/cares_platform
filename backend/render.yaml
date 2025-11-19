@@ -23,11 +23,8 @@ services:
     buildCommand: "cd frontend && npm install && npm run build"
     staticPublishPath: ./frontend/build
     envVars:
-      - key: REACT_APP_API_URL
-        fromService:
-          name: your-django-backend
-          type: web
-          property: host
+      - key: VITE_API_URL 
+        value: https://backend.onrender.com  # Your actual backend URL
 
 databases:
   - name: cares_platform_db
