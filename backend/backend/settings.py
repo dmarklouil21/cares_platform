@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import dj_database_url
 
 import os
 
@@ -23,19 +24,29 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-%hjkyw6w&-4%2=s-$3hniln=2z5c9^t1ez**8wp&!%2qo!d-ee'
+# SECRET_KEY = 'django-insecure-%hjkyw6w&-4%2=s-$3hniln=2z5c9^t1ez**8wp&!%2qo!d-ee'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-%hjkyw6w&-4%2=s-$3hniln=2z5c9^t1ez**8wp&!%2qo!d-ee')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = ['*']
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "https://your-react-app.onrender.com",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+# CSRF trusted origins
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
+    'https://*.yourdomain.com',
+]
 
 # Application definition
 
@@ -64,6 +75,7 @@ INSTALLED_APPS = [
     'apps.rhu',
     'apps.psychosocial_support',
     'apps.notifications',
+    'whitenoise.runserver_nostatic',  # for development
 ]
 
 MIDDLEWARE = [
@@ -75,7 +87,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
+
+# For production, make sure to set these
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -101,14 +120,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cares_platform_db',
-        'USER': 'postgres',
-        'PASSWORD': 'admin',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -169,8 +185,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+# MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -180,7 +197,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Media files
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 
 # Twilio SMS settings
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
