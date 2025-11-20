@@ -215,3 +215,47 @@ class PrivateRegistrationAPIView(APIView):
       {"message": "RHU registered successfully. Please check your email."},
       status=status.HTTP_201_CREATED
     )
+
+# Test 
+from django.core.mail import send_mail
+from django.conf import settings
+import os
+
+class TestEmailAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        # 1. Debug Environment Variables (Don't show full password, just check if it exists)
+        user_set = "SET" if os.environ.get('EMAIL_HOST_USER') else "MISSING"
+        pass_set = "SET" if os.environ.get('EMAIL_HOST_PASSWORD') else "MISSING"
+        
+        debug_info = {
+            "EMAIL_HOST_USER_STATUS": user_set,
+            "EMAIL_HOST_PASSWORD_STATUS": pass_set,
+            "EMAIL_PORT": settings.EMAIL_PORT,
+            "EMAIL_USE_TLS": settings.EMAIL_USE_TLS,
+        }
+
+        # 2. Try to send a raw email
+        try:
+            send_mail(
+                subject='Render Diagnostic Test',
+                message='If you see this, the email system is working.',
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=['caresplatform@gmail.com'], # Sending to yourself to test
+                fail_silently=False,
+            )
+            return Response({
+                "status": "SUCCESS", 
+                "message": "Email sent!", 
+                "debug_info": debug_info
+            }, status=200)
+            
+        except Exception as e:
+            # Return the EXACT error to the browser
+            return Response({
+                "status": "FAILED", 
+                "error": str(e),
+                "error_type": type(e).__name__,
+                "debug_info": debug_info
+            }, status=500)
