@@ -36,7 +36,7 @@ ALLOWED_HOSTS = ['*']
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "https://your-react-app.onrender.com",
+    "https://cares-platform-frontend.onrender.com",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
