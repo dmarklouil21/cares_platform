@@ -2,15 +2,15 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { logout } from "src/services/authService";
 
-import dashboardIcon from "../assets/images/navigation/admin/dashboard.svg";
-import patientIcon from "../assets/images/navigation/patient/cancerwarenessicon.svg";
-import arrowIcon from "../assets/images/navigation/admin/arrow.svg";
-import cancerScreeningIcon from "../assets/images/navigation/admin/cancerscreeningicon.svg";
-import treatmentIcon from "../assets/images/navigation/admin/treatment.svg";
-import survivorshipIcon from "../assets/images/navigation/admin/survivorship.svg";
-import cancerManagementIcon from "../assets/images/navigation/admin/CancerManagement.svg";
-import psychosocialIcon from "../assets/images/navigation/admin/PychosocialSupport.svg";
-import userManagementIcon from "../assets/images/navigation/admin/usermanagementicon.svg";
+import dashboardIcon from "../../assets/images/navigation/admin/dashboard.svg";
+import patientIcon from "../../assets/images/navigation/patient/cancerwarenessicon.svg";
+import arrowIcon from "../../assets/images/navigation/admin/arrow.svg";
+import cancerScreeningIcon from "../../assets/images/navigation/admin/cancerscreeningicon.svg";
+import treatmentIcon from "../../assets/images/navigation/admin/treatment.svg";
+import survivorshipIcon from "../../assets/images/navigation/admin/survivorship.svg";
+import cancerManagementIcon from "../../assets/images/navigation/admin/CancerManagement.svg";
+import psychosocialIcon from "../../assets/images/navigation/admin/PychosocialSupport.svg";
+import userManagementIcon from "../../assets/images/navigation/admin/usermanagementicon.svg";
 
 const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const location = useLocation();

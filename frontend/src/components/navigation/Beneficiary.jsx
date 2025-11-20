@@ -3,13 +3,13 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ScanLine, ClipboardCheck } from "lucide-react";
 import { logout } from "src/services/authService";
 
-import homeIcon from "../assets/images/navigation/admin/dashboard.svg";
-import cancerAwarenessIcon from "../assets/images/navigation/patient/cancerwarenessicon.svg"; // Check spelling: cancerawarenessicon?
-import homeVisitIcon from "../assets/images/navigation/admin/survivorship.svg";
-import servicesIcon from "../assets/images/navigation/patient/services.svg";
-import arrowIcon from "../assets/images/navigation/admin/arrow.svg";
-import applicationsIcon from "../assets/images/navigation/admin/patient.svg";
-import psychosocialIcon from "../assets/images/navigation/admin/PychosocialSupport.svg";
+import homeIcon from "../../assets/images/navigation/admin/dashboard.svg";
+import cancerAwarenessIcon from "../../assets/images/navigation/patient/cancerwarenessicon.svg"; // Check spelling: cancerawarenessicon?
+import homeVisitIcon from "../../assets/images/navigation/admin/survivorship.svg";
+import servicesIcon from "../../assets/images/navigation/patient/services.svg";
+import arrowIcon from "../../assets/images/navigation/admin/arrow.svg";
+import applicationsIcon from "../../assets/images/navigation/admin/patient.svg";
+import psychosocialIcon from "../../assets/images/navigation/admin/PychosocialSupport.svg";
 
 const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const location = useLocation();

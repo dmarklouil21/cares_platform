@@ -1,10 +1,10 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import api from "src/api/axiosInstance";
 
-import patientsIcon from "../assets/images/dashboard/2patients.svg";
-import homeIcon from "../assets/images/dashboard/Home.svg";
-import activeIcon from "../assets/images/dashboard/activepatient.svg";
-import pendingIcon from "../assets/images/dashboard/pending.svg";
+import patientsIcon from "../../../assets/images/dashboard/2patients.svg";
+import homeIcon from "../../../assets/images/dashboard/Home.svg";
+import activeIcon from "../../../assets/images/dashboard/activepatient.svg";
+import pendingIcon from "../../../assets/images/dashboard/pending.svg";
 
 const usePrefersReducedMotion = () => {
   const [prefers, setPrefers] = useState(false);
