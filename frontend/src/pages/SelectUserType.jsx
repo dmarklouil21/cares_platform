@@ -1,6 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+import benLogo from "../assets/images/registration/benlogo.svg";
+import rhuLogo from "../assets/images/registration/rhulogo.svg";
+import privateLogo from "../assets/images/registration/privatelogo.svg";
+
 const SelectUserType = () => {
   return (
     <div className="bg-gray w-full  lg:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10 relative`">
@@ -35,9 +39,14 @@ const SelectUserType = () => {
             to="/beneficiary-login"
             className="flex gap-5 w-full text-black hover:text-[#636c72] font-bold text-xl px-4 py-3 rounded-lg hover:bg-lightblue focus:outline-none"
           >
-            <img
+            {/* <img
               src="/src/assets/images/registration/benlogo.svg"
               alt="RAFFI LOGO"
+              className="h-6 w-6"
+            /> */}
+            <img
+              src={benLogo} 
+              alt="Beneficiary Logo"
               className="h-6 w-6"
             />
             Beneficiary
@@ -46,9 +55,14 @@ const SelectUserType = () => {
             to="/rhu-login"
             className="flex gap-5 w-full text-black hover:text-[#636c72] font-bold text-xl px-4 py-3 rounded-lg hover:bg-lightblue focus:outline-none"
           >
-            <img
+            {/* <img
               src="/src/assets/images/registration/rhulogo.svg"
               alt="RAFFI LOGO"
+              className="h-6 w-6"
+            /> */}
+            <img
+              src={rhuLogo}
+              alt="RHU Logo"
               className="h-6 w-6"
             />
             RHU
@@ -57,9 +71,14 @@ const SelectUserType = () => {
             to="/private-login"
             className="flex gap-5 w-full text-black hover:text-[#636c72] font-bold text-xl px-4 py-3 rounded-lg hover:bg-lightblue focus:outline-none"
           >
-            <img
+            {/* <img
               src="/src/assets/images/registration/privatelogo.svg"
               alt="RAFFI LOGO"
+              className="h-6 w-6"
+            /> */}
+            <img
+              src={privateLogo}
+              alt="Private Logo"
               className="h-6 w-6"
             />
             Private/Partner
