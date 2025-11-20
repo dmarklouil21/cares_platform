@@ -18,6 +18,10 @@ from backend.utils.email import send_registration_email
 from apps.rhu.models import RHU, Rhuv2, Representative
 from apps.partners.models import Private, PrivateRepresentative
 
+import logging
+
+logger = logging.getLogger(__name__) # <--- Setup logger
+
 class RegistrationAPIView(APIView):
   permission_classes = [AllowAny]
 
@@ -42,6 +46,7 @@ class RegistrationAPIView(APIView):
         try:
             send_registration_email(user_obj, pwd)
         except Exception as e:
+            logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
             print(f"Background email failed: {e}")
     
     # Start the thread. The request proceeds immediately without waiting.
