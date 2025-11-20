@@ -45,7 +45,8 @@ CORS_ALLOW_CREDENTIALS = True
 # CSRF trusted origins
 CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com',
-    'https://*.yourdomain.com',
+    'https://cares-platform-frontend.onrender.com',
+    'https://cares-platform.onrender.com',
 ]
 
 # Application definition
