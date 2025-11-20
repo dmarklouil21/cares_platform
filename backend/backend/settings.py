@@ -31,7 +31,12 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-%hjkyw6w&-4%2=s-$3hni
 # DEBUG = True
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'cares-platform.onrender.com',
+    'cares-platform-frontend.onrender.com',
+    'localhost',
+    '127.0.0.1',
+]
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
@@ -44,9 +49,20 @@ CORS_ALLOW_CREDENTIALS = True
 
 # CSRF trusted origins
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.onrender.com',
-    'https://cares-platform-frontend.onrender.com',
-    'https://cares-platform.onrender.com',
+    "https://cares-platform-frontend.onrender.com",
+    "https://cares-platform.onrender.com",
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 # Application definition
@@ -80,15 +96,15 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 # For production, make sure to set these

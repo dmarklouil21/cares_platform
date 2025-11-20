@@ -16,6 +16,10 @@ services:
         value: false
       - key: WEB_CONCURRENCY
         value: 4
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://cares-platform-frontend.onrender.com,http://localhost:3000"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://cares-platform-frontend.onrender.com,https://cares-platform.onrender.com"
 
   - type: web
     name: frontend
