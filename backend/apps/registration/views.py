@@ -8,6 +8,8 @@ import string
 from rest_framework.permissions import AllowAny
 from django.db import IntegrityError
 
+import threading
+
 # from twilio.base.exceptions import TwilioRestException
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -35,12 +37,23 @@ class RegistrationAPIView(APIView):
         status=status.HTTP_400_BAD_REQUEST
       )
     
-    email_status = send_registration_email(user, password)
-    if email_status is not True:
-      return Response(
-        {"message": f"Failed to send email: {email_status}"},
-        status=status.HTTP_400_BAD_REQUEST
-      )
+    # Define a small helper function to run in the background
+    def send_email_in_background(user_obj, pwd):
+        try:
+            send_registration_email(user_obj, pwd)
+        except Exception as e:
+            print(f"Background email failed: {e}")
+    
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(user, password))
+    email_thread.start()
+
+    # email_status = send_registration_email(user, password)
+    # if email_status is not True:
+    #   return Response(
+    #     {"message": f"Failed to send email: {email_status}"},
+    #     status=status.HTTP_400_BAD_REQUEST
+    #   )
     
     return Response(
       {"message": "User registered successfully. Please check your email."},

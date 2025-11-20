@@ -44,14 +44,17 @@ CORS_ALLOWED_ORIGINS = [
     "https://cares-platform-frontend.onrender.com",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-
-# CSRF trusted origins
-CSRF_TRUSTED_ORIGINS = [
-    "https://cares-platform-frontend.onrender.com",
-    "https://cares-platform.onrender.com",
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
 ]
+
+# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -63,6 +66,14 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+]
+
+CORS_PREFLIGHT_MAX_AGE = 86400
+
+# CSRF trusted origins
+CSRF_TRUSTED_ORIGINS = [
+    "https://cares-platform-frontend.onrender.com",
+    "https://cares-platform.onrender.com",
 ]
 
 # Application definition
