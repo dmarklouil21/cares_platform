@@ -9,10 +9,10 @@ import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
 import { use } from "react";
 
-import dateIcon from "../assets/images/input_icons/datebirth.svg";
-import emailIcon from "../assets/images/input_icons/email.svg";
-import phoneIcon from "../assets/images/input_icons/mobile.svg";
-import telephoneIcone from "../assets/images/input_icons/telephone.svg";
+import dateIcon from "../../../assets/images/input_icons/datebirth.svg";
+import emailIcon from "../../../assets/images/input_icons/email.svg";
+import phoneIcon from "../../../assets/images/input_icons/mobile.svg";
+import telephoneIcone from "../../../assets/images/input_icons/telephone.svg";
 
 export default function PatinetProfileForm() {
   const { user } = useAuth();

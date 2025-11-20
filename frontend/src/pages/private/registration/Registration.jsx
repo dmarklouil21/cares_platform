@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import dateIcon from "../assets/images/input_icons/datebirth.svg";
-import emailIcon from "../assets/images/input_icons/email.svg";
-import phoneIcon from "../assets/images/input_icons/mobile.svg";
+import emailIcon from "../../../assets/images/input_icons/email.svg";
+import phoneIcon from "../../../assets/images/input_icons/mobile.svg";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
