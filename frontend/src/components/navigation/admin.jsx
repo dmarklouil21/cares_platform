@@ -2,6 +2,16 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { logout } from "src/services/authService";
 
+import dashboardIcon from "../assets/images/navigation/admin/dashboard.svg";
+import patientIcon from "../assets/images/navigation/patient/cancerwarenessicon.svg";
+import arrowIcon from "../assets/images/navigation/admin/arrow.svg";
+import cancerScreeningIcon from "../assets/images/navigation/admin/cancerscreeningicon.svg";
+import treatmentIcon from "../assets/images/navigation/admin/treatment.svg";
+import survivorshipIcon from "../assets/images/navigation/admin/survivorship.svg";
+import cancerManagementIcon from "../assets/images/navigation/admin/CancerManagement.svg";
+import psychosocialIcon from "../assets/images/navigation/admin/PychosocialSupport.svg";
+import userManagementIcon from "../assets/images/navigation/admin/usermanagementicon.svg";
+
 const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -20,49 +30,49 @@ const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const nav = [
     {
       name: "Dashboard",
-      icon: "/src/assets/images/navigation/admin/dashboard.svg",
+      icon: dashboardIcon,
       path: "/admin",
       arrow: "",
     },
     {
       name: "Patient",
-      icon: "/src/assets/images/navigation/patient/cancerwarenessicon.svg",
+      icon: patientIcon,
       path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+      arrow: arrowIcon,
     },
     {
       name: "Cancer Screening",
-      icon: "/src/assets/images/navigation/admin/cancerscreeningicon.svg",
+      icon: cancerScreeningIcon,
       path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+      arrow: arrowIcon,
     },
     {
       name: "Treatment Assistance",
-      icon: "/src/assets/images/navigation/admin/treatment.svg",
+      icon: treatmentIcon,
       path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+      arrow: arrowIcon,
     },
     {
       name: "Survivorship",
-      icon: "/src/assets/images/navigation/admin/survivorship.svg",
+      icon: survivorshipIcon,
       path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+      arrow: arrowIcon,
     },
     {
       name: "Cancer Management",
-      icon: "/src/assets/images/navigation/admin/CancerManagement.svg",
+      icon: cancerManagementIcon,
       path: "/admin/cancer-management",
       arrow: "",
     },
     {
       name: "Psychosocial Support ",
-      icon: "/src/assets/images/navigation/admin/PychosocialSupport.svg",
+      icon: psychosocialIcon,
       path: "/admin/PychosocialSupport",
       arrow: "",
     },
     {
       name: "User Management",
-      icon: "/src/assets/images/navigation/admin/usermanagementicon.svg",
+      icon: userManagementIcon,
       path: "/admin/user-management",
       arrow: "",
     },

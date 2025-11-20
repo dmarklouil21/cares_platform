@@ -3,6 +3,14 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ScanLine, ClipboardCheck } from "lucide-react";
 import { logout } from "src/services/authService";
 
+import homeIcon from "../assets/images/navigation/admin/dashboard.svg";
+import cancerAwarenessIcon from "../assets/images/navigation/patient/cancerwarenessicon.svg"; // Check spelling: cancerawarenessicon?
+import homeVisitIcon from "../assets/images/navigation/admin/survivorship.svg";
+import servicesIcon from "../assets/images/navigation/patient/services.svg";
+import arrowIcon from "../assets/images/navigation/admin/arrow.svg";
+import applicationsIcon from "../assets/images/navigation/admin/patient.svg";
+import psychosocialIcon from "../assets/images/navigation/admin/PychosocialSupport.svg";
+
 const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -17,37 +25,37 @@ const BeneficiarySidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const nav = [
     {
       name: "Home",
-      icon: "/src/assets/images/navigation/admin/dashboard.svg",
+      icon: homeIcon,
       path: "/beneficiary",
       arrow: "",
     },
     {
       name: "Cancer Awareness",
-      icon: "/src/assets/images/navigation/patient/cancerwarenessicon.svg",
+      icon: cancerAwarenessIcon,
       path: "/beneficiary/cancer-awareness",
       arrow: "",
     },
     {
       name: "Home Visit",
-      icon: "/src/assets/images/navigation/admin/survivorship.svg",
+      icon: homeVisitIcon,
       path: "/beneficiary/home-visit",
       arrow: "",
     },
     {
       name: "Services",
-      icon: "/src/assets/images/navigation/patient/services.svg",
+      icon: servicesIcon,
       path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+      arrow: arrowIcon
     },
     {
       name: "Applications",
-      icon: "/src/assets/images/navigation/admin/patient.svg",
+      icon: applicationsIcon,
       path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+      arrow: arrowIcon
     },
     {
       name: "Pychosocial Support",
-      icon: "/src/assets/images/navigation/admin/PychosocialSupport.svg",
+      icon: psychosocialIcon,
       path: "/beneficiary/PychosocialSupport",
       arrow: "",
     },

@@ -9,6 +9,11 @@ import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
 import { use } from "react";
 
+import dateIcon from "../assets/images/input_icons/datebirth.svg";
+import emailIcon from "../assets/images/input_icons/email.svg";
+import phoneIcon from "../assets/images/input_icons/mobile.svg";
+import telephoneIcone from "../assets/images/input_icons/telephone.svg";
+
 export default function PatinetProfileForm() {
   const { user } = useAuth();
   // Notification Modal
@@ -380,7 +385,7 @@ export default function PatinetProfileForm() {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/input_icons/datebirth.svg"
+                    src={dateIcon}
                     alt="Date of Birth Icon"
                     className="md:w-5 md:h-5 w-4 h-4"
                   />
@@ -619,7 +624,7 @@ export default function PatinetProfileForm() {
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <img
-                        src="/src/assets/images/input_icons/telephone.svg"
+                        src={telephoneIcone}
                         alt="Telephone Icon"
                       />
                     </div>
@@ -646,7 +651,7 @@ export default function PatinetProfileForm() {
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <img
-                        src="/src/assets/images/input_icons/email.svg"
+                        src={emailIcon}
                         alt="Email Icon"
                       />
                     </div>

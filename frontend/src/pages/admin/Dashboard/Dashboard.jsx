@@ -1,6 +1,11 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import api from "src/api/axiosInstance";
 
+import patientsIcon from "../assets/images/dashboard/2patients.svg";
+import homeIcon from "../assets/images/dashboard/Home.svg";
+import activeIcon from "../assets/images/dashboard/activepatient.svg";
+import pendingIcon from "../assets/images/dashboard/pending.svg";
+
 const usePrefersReducedMotion = () => {
   const [prefers, setPrefers] = useState(false);
   useEffect(() => {
@@ -459,25 +464,25 @@ const Dashboard = () => {
   const cards = [
     {
       id: 1,
-      icon: "/src/assets/images/dashboard/2patients.svg",
+      icon: patientsIcon,
       label: "Total patient registered",
       value: totalPatients.toLocaleString(),
     },
     {
       id: 2,
-      icon: "/src/assets/images/dashboard/Home.svg",
+      icon: homeIcon,
       label: "Due for Home Visit",
       value: dueForHomeVisit.toLocaleString(),
     },
     {
       id: 3,
-      icon: "/src/assets/images/dashboard/activepatient.svg",
+      icon: activeIcon,
       label: "Active Patients",
       value: activePatients.toLocaleString(),
     },
     {
       id: 4,
-      icon: "/src/assets/images/dashboard/pending.svg",
+      icon: pendingIcon,
       label: "Pending Pre Enrollment",
       value: pendingPreEnrollment.toLocaleString(),
     },

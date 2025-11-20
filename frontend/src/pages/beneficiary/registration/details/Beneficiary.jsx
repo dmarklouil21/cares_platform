@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+import dateIcon from "../assets/images/input_icons/datebirth.svg";
+import emailIcon from "../assets/images/input_icons/email.svg";
+import phoneIcon from "../assets/images/input_icons/mobile.svg";
+
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
@@ -93,19 +97,6 @@ const Info101 = () => {
       return;
     }
 
-    // const isValid = Object.values(formData).every((val) =>
-    //   typeof val === "boolean" ? val === true : val.trim() !== ""
-    // );
-
-    // if (!isValid) {
-    //   setModalInfo({
-    //     type: "info",
-    //     title: "Note",
-    //     message: "Please fill in all fields and agree to the privacy notice.",
-    //   });
-    //   setShowModal(true);
-    //   return;
-    // }
     setLoading(true);
     try {
       // Map frontend fields to backend expected fields
@@ -226,7 +217,7 @@ const Info101 = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/input_icons/datebirth.svg"
+                    src={dateIcon}
                     alt="Date Icon"
                     className="md:w-5 md:h-5 w-4 h-4"
                   />
@@ -264,7 +255,7 @@ const Info101 = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/input_icons/email.svg"
+                    src={emailIcon}
                     alt="Email Icon"
                     className="md:w-5 md:h-5 w-4 h-4"
                   />
@@ -293,7 +284,7 @@ const Info101 = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/input_icons/mobile.svg"
+                    src={phoneIcon}
                     alt="Phone Icon"
                     className="w-5 h-5"
                   />

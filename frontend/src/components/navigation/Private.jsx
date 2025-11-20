@@ -3,6 +3,15 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ScanLine, ClipboardCheck } from "lucide-react";
 import { logout } from "src/services/authService";
 
+import dashboardIcon from "../assets/images/navigation/admin/dashboard.svg";
+import cancerAwarenessIcon from "../assets/images/navigation/patient/cancerwarenessicon.svg";
+import rhuIcon from "../assets/images/navigation/rhu/rhu.svg";
+import treatmentIcon from "../assets/images/navigation/admin/treatment.svg";
+import servicesIcon from "../assets/images/navigation/patient/services.svg";
+import cancerScreeningIcon from "../assets/images/navigation/admin/cancerscreeningicon.svg";
+import psychosocialIcon from "../assets/images/navigation/admin/PychosocialSupport.svg";
+import arrowIcon from "../assets/images/navigation/admin/arrow.svg";
+
 const RhuSidebar = ({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -21,43 +30,43 @@ const RhuSidebar = ({ isSidebarOpen = false, setIsSidebarOpen = () => {} }) => {
   const nav = [
     {
       name: "Dashboard",
-      icon: "/src/assets/images/navigation/admin/dashboard.svg",
+      icon: dashboardIcon,
       path: "/private",
       arrow: "",
     },
     {
       name: "Cancer Awareness",
-      icon: "/src/assets/images/navigation/patient/cancerwarenessicon.svg",
+      icon: cancerAwarenessIcon,
       path: "/private/cancer-awareness",
       arrow: "",
     },
     {
       name: "Patient",
-      icon: "/src/assets/images/navigation/rhu/rhu.svg",
+      icon: rhuIcon,
       path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+      arrow: arrowIcon,
     },
     {
       name: "Treatment Assistance",
-      icon: "/src/assets/images/navigation/admin/treatment.svg",
+      icon: treatmentIcon,
       path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+      arrow: arrowIcon,
     },
     {
       name: "Services",
-      icon: "/src/assets/images/navigation/patient/services.svg",
+      icon: servicesIcon,
       path: "",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+      arrow: arrowIcon,
     },
     {
       name: "Applications",
-      icon: "/src/assets/images/navigation/admin/cancerscreeningicon.svg",
+      icon: cancerScreeningIcon,
       // path: "/private/application",
-      arrow: "/src/assets/images/navigation/admin/arrow.svg",
+      arrow: arrowIcon
     },
     {
       name: "Pychosocial Activities",
-      icon: "/src/assets/images/navigation/admin/PychosocialSupport.svg",
+      icon: psychosocialIcon,
       path: "/private/PychosocialSupport",
       arrow: "",
     },

@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+import dateIcon from "../assets/images/input_icons/datebirth.svg";
+import emailIcon from "../assets/images/input_icons/email.svg";
+import phoneIcon from "../assets/images/input_icons/mobile.svg";
+
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import LoadingModal from "src/components/Modal/LoadingModal";
@@ -88,20 +92,6 @@ const Registration = () => {
       return;
     }
 
-    // const isValid = Object.values(formData).every((val) =>
-    //   typeof val === "boolean" ? val === true : val.trim() !== ""
-    // );
-    // if (!isValid) {
-    //   // alert("Please fill in all fields and agree to the privacy notice.");
-    //   setModalInfo({
-    //     type: "info",
-    //     title: "Note",
-    //     message: "Please fill in all fields and agree to the privacy notice.",
-    //   });
-    //   setShowModal(true);
-    //   return;
-    // }
-    // // setSubmitting(true);
     setLoading(true);
     try {
       const payload = {
@@ -230,7 +220,7 @@ const Registration = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/input_icons/mobile.svg"
+                    src={phoneIcon}
                     alt="Phone Icon"
                     className="w-5 h-5"
                   />
@@ -258,7 +248,7 @@ const Registration = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/input_icons/email.svg"
+                    src={emailIcon}
                     alt="Email Icon"
                     className="w-5 h-5"
                   />
