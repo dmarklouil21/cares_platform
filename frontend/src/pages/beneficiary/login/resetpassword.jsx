@@ -131,7 +131,7 @@ const ResetPasswordPanel = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/login/lock.svg"
+                    src="/assets/images/login/lock.svg"
                     alt="Lock Icon"
                   />
                 </div>
@@ -194,7 +194,7 @@ const ResetPasswordPanel = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/login/lock.svg"
+                    src="/assets/images/login/lock.svg"
                     alt="Lock Icon"
                   />
                 </div>
@@ -329,7 +329,7 @@ const ResetPasswordPanel = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/login/lock.svg"
+                    src="/assets/images/login/lock.svg"
                     alt="Lock Icon"
                   />
                 </div>
@@ -423,7 +423,7 @@ const ResetPasswordPanel = () => {
               alt="RAFI LOGO"
             />
             <img
-              src="/src/assets/images/login/checkmark.svg"
+              src="/assets/images/login/checkmark.svg"
               className="h-[95px]"
               alt="Check Mark"
             />
