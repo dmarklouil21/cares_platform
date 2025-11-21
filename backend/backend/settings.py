@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    # 'cloudinary_storage',
     'django.contrib.staticfiles',
+    # 'cloudinary',
     'django_filters',
     'rest_framework',  # Django REST Framework
     'corsheaders',  # CORS headers for API
