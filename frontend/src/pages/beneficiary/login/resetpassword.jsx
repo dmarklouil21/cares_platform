@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { resetPasswordAPI } from "src/services/authService";
 
-import LoadingModal from "src/components/Modal/LoadingModal";
+import SystemLoader from "src/components/SystemLoader";
 
 const ResetPasswordPanel = () => {
   const navigate = useNavigate();
@@ -111,7 +111,7 @@ const ResetPasswordPanel = () => {
 
   return (
     <>
-      <LoadingModal open={loading} text="Loading..." />
+      {loading && <SystemLoader />}
       <div className="bg-gray w-full lg:w-[75%] h-screen flex flex-col items-center justify-center gap-5">
         <div className="flex flex-col gap-2 items-center justify-center">
           <h2 className="text-3xl font-bold">Reset Your Password</h2>
