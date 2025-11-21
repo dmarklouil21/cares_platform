@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { getAccessToken, getRefreshToken, logout } from '../services/authService';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const instance = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: API_URL,
 });
 
 // Request interceptor: add access token
@@ -28,7 +30,7 @@ instance.interceptors.response.use(
 
       try {
         const refresh = getRefreshToken();
-        const response = await axios.post('http://localhost:8000/user/auth/token/refresh/', { refresh });
+        const response = await axios.post(`${API_URL}/user/auth/token/refresh/`, { refresh });
 
         localStorage.setItem('access', response.data.access);
         originalRequest.headers['Authorization'] = `Bearer ${response.data.access}`;
@@ -45,14 +47,3 @@ instance.interceptors.response.use(
 );
 
 export default instance;
-
-
-// Sample usage of the API instance
-
-/* import api from '../api/axiosInstance';
-
-const fetchProfile = async () => {
-  const res = await api.get('/api/user/profile/');
-  console.log("User profile:", res.data);
-};
- */
