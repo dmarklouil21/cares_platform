@@ -76,18 +76,22 @@ CSRF_TRUSTED_ORIGINS = [
 # -----------------------------------------------------------------------------
 
 INSTALLED_APPS = [
+    'cloudinary_storage',
+    'django.contrib.staticfiles',
+    'cloudinary',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage',
-    'django.contrib.staticfiles',
-    'cloudinary',
+    
     'django_filters',
     'rest_framework',
     'corsheaders',
     'anymail', # Using Brevo via API
+
+    'whitenoise.runserver_nostatic',
     
     # Your Apps
     'apps.beneficiary',
@@ -105,8 +109,6 @@ INSTALLED_APPS = [
     'apps.rhu',
     'apps.psychosocial_support',
     'apps.notifications',
-    
-    'whitenoise.runserver_nostatic',
 ]
 
 # MEDIA CONFIGURATION (Cloudinary)
@@ -211,12 +213,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
