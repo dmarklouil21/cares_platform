@@ -28,7 +28,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '.railway.app', 
     # If you add a custom domain to Railway later, add it here:
-    # 'api.cares-platform.com',
+    'cares-platform-api.up.railway.app',
 ]
 
 # -----------------------------------------------------------------------------
@@ -43,7 +43,7 @@ CORS_ALLOWED_ORIGINS = [
     # TODO: UPDATE THIS AFTER DEPLOYING FRONTEND TO VERCEL
     # It will look something like: https://cares-platform-tau.vercel.app
     # ------------------------------------------------------------------
-    "https://cares-platform.vercel.app", 
+    "https://cares-platform.vercel.app",
 ]
 
 # Allow standard methods
@@ -64,6 +64,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "https://*.railway.app", # Trust the backend domain itself
+    "cares-platform-api.up.railway.app",
     # ------------------------------------------------------------------
     # TODO: UPDATE THIS MATCHING CORS_ALLOWED_ORIGINS
     # ------------------------------------------------------------------
