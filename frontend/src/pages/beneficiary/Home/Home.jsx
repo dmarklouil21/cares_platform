@@ -7,35 +7,35 @@ const supportAgencies = [
     name: "Vicente Sotto Memorial Medical Center (VSMMC)",
     description:
       "Public hospital offering free cancer diagnosis, specialist referrals, and outpatient treatment services.",
-    logo: "/src/assets/images/patient/PatientHomePage/sotto.png",
+    logo: "/assets/images/patient/PatientHomePage/sotto.png",
     path: "/agencies/vsmmc",
   },
   {
     name: "Philippine Charity Sweepstakes Office (PCSO)",
     description:
       "Provides financial grants for cancer treatment, medications, and rehabilitation through medical assistance programs.",
-    logo: "/src/assets/images/patient/PatientHomePage/pcso.png",
+    logo: "/assets/images/patient/PatientHomePage/pcso.png",
     path: "/agencies/pcso",
   },
   {
     name: "DOH Medical Assistance for Financially Incapacitated Patients (MAIFP)",
     description:
       "Government program covering hospitalization costs for indigent cancer patients in public hospitals.",
-    logo: "/src/assets/images/patient/PatientHomePage/doh.png",
+    logo: "/assets/images/patient/PatientHomePage/doh.png",
     path: "/agencies/doh",
   },
   {
     name: "Department of Social Welfare & Development (DSWD)",
     description:
       "Offers subsistence allowances, transportation aid, and psychosocial support for cancer patients.",
-    logo: "/src/assets/images/patient/PatientHomePage/DSWD-LOGO.png",
+    logo: "/assets/images/patient/PatientHomePage/DSWD-LOGO.png",
     path: "/agencies/dswd",
   },
   {
     name: "City Hospitalization Assistance & Medicines Program (CHAMP)",
     description:
       "Local initiative providing free medicines and limited hospitalization subsidies for qualified residents.",
-    logo: "/src/assets/images/patient/PatientHomePage/champ.png",
+    logo: "/assets/images/patient/PatientHomePage/champ.png",
     path: "/agencies/champ",
   },
 ];
@@ -141,7 +141,7 @@ const NavigationGuide = () => {
 
             <div className="flex items-center gap-3 mb-6 b">
               <img
-                src="/src/assets/images/patient/PatientHomePage/location.svg"
+                src="/assets/images/patient/PatientHomePage/location.svg"
                 alt="Location icon"
                 className="size-6 md:size-8"
               />
@@ -163,7 +163,7 @@ const NavigationGuide = () => {
               </p>
               <div className="flex items-center gap-3 mb-1">
                 <img
-                  src="/src/assets/images/patient/PatientHomePage/calendar.svg"
+                  src="/assets/images/patient/PatientHomePage/calendar.svg"
                   alt="Calendar icon"
                   className="size-6 md:size-8"
                 />
@@ -190,7 +190,7 @@ const NavigationGuide = () => {
               </ul>
               <div className="flex gap-3 items-center">
                 <img
-                  src="/src/assets/images/patient/PatientHomePage/calendar.svg"
+                  src="/assets/images/patient/PatientHomePage/calendar.svg"
                   alt="Calendar icon"
                   className="size-6 md:size-8"
                 />
