@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
-import { Printer, FileText, FileDown, Eye, Edit, Trash2, Plus, Pencil } from "lucide-react";
+import {
+  Printer,
+  FileText,
+  FileDown,
+  Eye,
+  Edit,
+  Trash2,
+  Plus,
+  Pencil,
+} from "lucide-react";
 import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
@@ -37,7 +46,9 @@ const PatientMasterList = () => {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
-  const [modalDesc, setModalDesc] = useState("Please confirm before proceeding.");
+  const [modalDesc, setModalDesc] = useState(
+    "Please confirm before proceeding."
+  );
   const [modalAction, setModalAction] = useState(null);
 
   const fetchProfile = async () => {
@@ -132,7 +143,7 @@ const PatientMasterList = () => {
         setModalOpen(false);
         setLoading(true);
         await api.delete(`/patient/delete/${modalAction.id}/`);
-        
+
         setNotification("Patient deleted successfully.");
         setNotificationType("success");
         setTimeout(() => setNotification(""), 2000);
@@ -153,7 +164,9 @@ const PatientMasterList = () => {
 
   const handleDeleteClick = (id) => {
     setModalText("Confirm Delete");
-    setModalDesc("Are you sure you want to delete this patient? This action cannot be undone.");
+    setModalDesc(
+      "Are you sure you want to delete this patient? This action cannot be undone."
+    );
     setModalAction({ id, action: "delete" });
     setModalOpen(true);
   };
@@ -296,9 +309,9 @@ const PatientMasterList = () => {
 
           {/* Table Section */}
           <div className="px-6 py-4">
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-lg overflow-auto">
               {/* Table Header */}
-              <div className="bg-lightblue px-4 py-3">
+              <div className="bg-lightblue px-4 py-3 w-[500px] md:w-[100%]">
                 <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
                   <div className="col-span-2 text-center">Patient ID</div>
                   <div className="col-span-2 text-center">First Name</div>
@@ -310,7 +323,7 @@ const PatientMasterList = () => {
               </div>
 
               {/* Table Body */}
-              <div className="max-h-96 overflow-auto">
+              <div className="max-h-96 overflow-auto w-[500px] md:w-[100%]">
                 {paginatedData.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     No patients found matching your filters.
@@ -322,7 +335,7 @@ const PatientMasterList = () => {
                         key={patient.patient_id}
                         className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                       >
-                        <div 
+                        <div
                           className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
                           onClick={() => handleViewClick(patient.patient_id)}
                         >
@@ -356,7 +369,9 @@ const PatientMasterList = () => {
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteClick(patient.patient_id)}
+                            onClick={() =>
+                              handleDeleteClick(patient.patient_id)
+                            }
                             className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded transition-colors"
                             title="Delete Patient"
                           >
@@ -373,7 +388,10 @@ const PatientMasterList = () => {
             {/* Pagination */}
             <div className="flex justify-between items-center mt-4 px-2">
               <div className="flex items-center gap-2">
-                <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                <label
+                  htmlFor="recordsPerPage"
+                  className="text-sm text-gray-700"
+                >
                   Records per page:
                 </label>
                 <select
@@ -387,11 +405,15 @@ const PatientMasterList = () => {
                   <option value={50}>50</option>
                 </select>
               </div>
-              
+
               <div className="flex items-center gap-4">
                 <span className="text-sm text-gray-700">
-                  {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)} -{" "}
-                  {Math.min(currentPage * recordsPerPage, totalRecords)} of {totalRecords}
+                  {Math.min(
+                    (currentPage - 1) * recordsPerPage + 1,
+                    totalRecords
+                  )}{" "}
+                  - {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
+                  {totalRecords}
                 </span>
                 <div className="flex gap-1">
                   <button
