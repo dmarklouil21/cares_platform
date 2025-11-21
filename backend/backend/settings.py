@@ -64,7 +64,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "https://*.railway.app", # Trust the backend domain itself
-    "cares-platform-api.up.railway.app",
+    "https://cares-platform-api.up.railway.app",
     # ------------------------------------------------------------------
     # TODO: UPDATE THIS MATCHING CORS_ALLOWED_ORIGINS
     # ------------------------------------------------------------------
