@@ -163,7 +163,7 @@ const Login = () => {
           >
             Login
           </button>
-          <p className="text-sm text-black">
+          {/* <p className="text-sm text-black">
             Don't have an account?{" "}
             <Link
               to="/admin-registration"
@@ -171,7 +171,7 @@ const Login = () => {
             >
               Sign Up
             </Link>
-          </p>
+          </p> */}
           {/* <div className="w-full flex items-center my-2">
             <hr className="flex-grow border-gray-200" />
             <span className="mx-4 text-gray-400">Or</span>
