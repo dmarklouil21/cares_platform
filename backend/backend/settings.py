@@ -197,13 +197,14 @@ TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
 TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
 
 # Email backend settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'caresplatform@gmail.com'  #  Gmail address
-EMAIL_HOST_PASSWORD = 'tnymdneawgjtxljt'  # Gmail app password
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+# Configuration for Anymail
+ANYMAIL = {
+  "BREVO_API_KEY": os.environ.get('BREVO_API_KEY'),
+}
+
+DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'caresplatform@gmail.com')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 AUTHENTICATION_BACKENDS = [
     # 'apps.user.auth_backend.EmailBackend',
