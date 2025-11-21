@@ -226,7 +226,7 @@ const Info101 = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/input_icons/datebirth.svg"
+                    src="/assets/images/input_icons/datebirth.svg"
                     alt="Date Icon"
                     className="md:w-5 md:h-5 w-4 h-4"
                   />
@@ -264,7 +264,7 @@ const Info101 = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/input_icons/email.svg"
+                    src="/assets/images/input_icons/email.svg"
                     alt="Email Icon"
                     className="md:w-5 md:h-5 w-4 h-4"
                   />
@@ -293,7 +293,7 @@ const Info101 = () => {
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/input_icons/mobile.svg"
+                    src="/assets/images/input_icons/mobile.svg"
                     alt="Phone Icon"
                     className="w-5 h-5"
                   />
