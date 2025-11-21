@@ -12,7 +12,7 @@ const screeningOptions = [
   //     "Physician-guided process",
   //     "Private results with counseling",
   //   ],
-  //   icon: "/src/assets/images/patient/services/cancerscreening/individualscreeningicon.png",
+  //   icon: "/assets/images/patient/services/cancerscreening/individualscreeningicon.png",
   //   // link: "/Beneficiary/services/cancer-screening/individual-screening-req",
   //   link: "/Beneficiary/services/cancer-screening/pre-screening-form-note",
   //   isLink: true,
@@ -27,7 +27,7 @@ const screeningOptions = [
       "Quick procedures",
       "Group education on cancer prevention",
     ],
-    icon: "/src/assets/images/patient/services/cancerscreening/masscreeningicon.png",
+    icon: "/assets/images/patient/services/cancerscreening/masscreeningicon.png",
     isLink: false,
   },
 ];

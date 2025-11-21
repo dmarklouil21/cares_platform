@@ -21,7 +21,7 @@ const CancerScreening = () => {
         "Physician-guided process",
         "Private results with counseling",
       ],
-      icon: "/src/assets/images/patient/services/cancerscreening/individualscreeningicon.png",
+      icon: "/assets/images/patient/services/cancerscreening/individualscreeningicon.png",
       // link: "/Beneficiary/services/cancer-screening/individual-screening-req", 
       // link: "/Beneficiary/services/cancer-screening/screening-requirements-note",
       link: "/beneficiary/services/cancer-screening/procedure",

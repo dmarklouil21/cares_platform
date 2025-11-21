@@ -100,7 +100,7 @@ const PychosocialSupport = () => {
                           className="flex items-center justify-start gap-2 text-[12px] text-blue-600 underline"
                         >
                           <img
-                            src="/src/assets/images/input_icons/attachmenticon.svg"
+                            src="/assets/images/input_icons/attachmenticon.svg"
                             alt="attachment icon"
                             className="h-3.5 w-3.5"
                           />

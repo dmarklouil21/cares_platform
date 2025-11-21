@@ -281,7 +281,7 @@ const RadioactiveDocument = () => {
             >
               <div className="px-1.5 py-1 bg-primary rounded-4xl">
                 <img
-                  src="/src/assets/images/services/cancerscreening/upload_icon.svg"
+                  src="/assets/images/services/cancerscreening/upload_icon.svg"
                   alt="upload icon"
                   className="h-6"
                 />
