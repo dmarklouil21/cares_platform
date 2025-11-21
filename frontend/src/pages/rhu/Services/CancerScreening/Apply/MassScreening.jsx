@@ -159,7 +159,7 @@ const MassScreening = () => {
           </h3>
 
           <div className="grid grid-cols-2 gap-6">
-            <div className="flex flex-col">
+            <div className="flex flex-col justify-between">
               <label htmlFor="title" className="text-gray2">
                 Title
               </label>
@@ -172,7 +172,7 @@ const MassScreening = () => {
               />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col justify-between">
               <label htmlFor="venue" className="text-gray2">
                 Venue
               </label>
@@ -185,7 +185,7 @@ const MassScreening = () => {
               />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col justify-between">
               <label htmlFor="date" className="text-gray2">
                 Date
               </label>
@@ -199,7 +199,7 @@ const MassScreening = () => {
               />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col justify-between ">
               <label htmlFor="beneficiaries" className="text-gray2">
                 Target Beneficiaries
               </label>
@@ -212,7 +212,7 @@ const MassScreening = () => {
               />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col justify-between">
               <label htmlFor="description" className="text-gray2">
                 Description
               </label>
@@ -225,7 +225,7 @@ const MassScreening = () => {
               />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col justify-between">
               <label htmlFor="supportneed" className="text-gray2">
                 RAFI support need
               </label>
