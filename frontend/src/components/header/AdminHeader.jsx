@@ -447,7 +447,7 @@ const AdminHeader = () => {
           </div>
           <p className="text-primary text-sm">{profileName}</p>
           <img
-            src="/src/assets/images/navigation/admin/arrow.svg"
+            src="/assets/images/navigation/admin/arrow.svg"
             alt="arrow"
             className={`h-2.5 w-2.5 transition-transform duration-200 ${
               open ? "rotate-180" : "rotate-0"

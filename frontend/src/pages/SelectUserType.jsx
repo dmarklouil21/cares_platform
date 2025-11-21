@@ -36,7 +36,7 @@ const SelectUserType = () => {
             className="flex gap-5 w-full text-black hover:text-[#636c72] font-bold text-xl px-4 py-3 rounded-lg hover:bg-lightblue focus:outline-none"
           >
             <img
-              src="/src/assets/images/registration/benlogo.svg"
+              src="/assets/images/registration/benlogo.svg"
               alt="RAFFI LOGO"
               className="h-6 w-6"
             />
@@ -47,7 +47,7 @@ const SelectUserType = () => {
             className="flex gap-5 w-full text-black hover:text-[#636c72] font-bold text-xl px-4 py-3 rounded-lg hover:bg-lightblue focus:outline-none"
           >
             <img
-              src="/src/assets/images/registration/rhulogo.svg"
+              src="/assets/images/registration/rhulogo.svg"
               alt="RAFFI LOGO"
               className="h-6 w-6"
             />
@@ -58,7 +58,7 @@ const SelectUserType = () => {
             className="flex gap-5 w-full text-black hover:text-[#636c72] font-bold text-xl px-4 py-3 rounded-lg hover:bg-lightblue focus:outline-none"
           >
             <img
-              src="/src/assets/images/registration/privatelogo.svg"
+              src="/assets/images/registration/privatelogo.svg"
               alt="RAFFI LOGO"
               className="h-6 w-6"
             />
