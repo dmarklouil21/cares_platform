@@ -17,7 +17,7 @@ export default function () {
         alt="RAFI LOGO"
       />
       <img
-        src="/src/assets/images/login/checkmark.svg"
+        src="/assets/images/login/checkmark.svg"
         className="h-[95px]"
         alt="Check Mark"
       />

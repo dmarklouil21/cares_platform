@@ -435,11 +435,11 @@ const Info101 = () => {
             <div
               className={`bg-white py-5 px-20 rounded-xl shadow-xl text-center flex flex-col items-center gap-5 ${animationClass}`}
             >
-              <h2 className="text-2xl font-bold text-primary">CHECK SMS</h2>
+              <h2 className="text-2xl font-bold text-primary">CHECK EMAIL</h2>
               <p className="text-center">
                 Please check your messages. We’ve sent you an email and password
                 <br />
-                to your mobile number, use them to log in and reset your password.
+                to your registered email, use them to log in and reset your password.
               </p>
               <button
                 onClick={handleOk}
