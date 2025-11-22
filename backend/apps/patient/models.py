@@ -1,6 +1,7 @@
 from django.utils import timezone
 from django.db import models
 from apps.user.models import User
+from cloudinary.models import CloudinaryField
 
 # Create your models here.
 
@@ -61,7 +62,7 @@ class Patient(models.Model):
   source_of_income = models.CharField(max_length=100, blank=True, null=True)
   monthly_income = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
   
-  photo_url = models.ImageField(upload_to='patient/photo_url/', null=True, blank=True)
+  photo_url = CloudinaryField('image', folder='images', null=True, blank=True)
   registered_by = models.CharField(max_length=20, default='Self')
   created_at = models.DateTimeField(auto_now_add=True)
 
