@@ -42,7 +42,7 @@ const ViewAttachments = () => {
   const [modalText, setModalText] = useState("");
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
-
+  console.log("Record in Attachments:", record);
   useEffect(() => {
     const mappedFiles = record.attachments.reduce((acc, doc) => {
       acc[doc.doc_type] = doc;
@@ -254,7 +254,7 @@ const ViewAttachments = () => {
                       {uploaded ? (
                         <div className="flex gap-3">
                           <a
-                            href={uploaded.file}
+                            href={uploaded.file_url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 text-sm hover:text-blue-800"
