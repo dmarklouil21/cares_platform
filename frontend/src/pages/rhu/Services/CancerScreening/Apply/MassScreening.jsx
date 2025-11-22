@@ -150,13 +150,13 @@ const MassScreening = () => {
     <div className="w-full h-screen bg-gray overflow-auto relative">
       <Notification message={notif} />
 
-      <div className="py-6 px-10">
-        <h2 className="text-xl font-semibold mb-6">Mass Screening Application</h2>
+      <div className="py-6 px-5 md:px-10">
+        <h2 className="text-xl font-semibold mb-6">
+          Mass Screening Application
+        </h2>
 
-        <div className="flex flex-col gap-3 w-full bg-white rounded-2xl py-7 px-8">
-          <h3 className="text-2xl font-bold text-secondary">
-            Mass Screening
-          </h3>
+        <div className="flex flex-col gap-3 w-full bg-white rounded-2xl py-7 px-5 md:px-8">
+          <h3 className="text-2xl font-bold text-secondary">Mass Screening</h3>
 
           <div className="grid grid-cols-2 gap-6">
             <div className="flex flex-col justify-between">
@@ -168,7 +168,7 @@ const MassScreening = () => {
                 type="text"
                 value={form.title}
                 onChange={onChange("title")}
-                className="border border-gray2 py-2 w-full px-5 rounded-md outline-none"
+                className="border border-gray2 py-2 w-full px-5 rounded-md outline-none text-[12px] md:text-[16px]"
               />
             </div>
 
@@ -181,7 +181,7 @@ const MassScreening = () => {
                 type="text"
                 value={form.venue}
                 onChange={onChange("venue")}
-                className="border border-gray2 py-2 w-full px-5 rounded-md outline-none"
+                className="border border-gray2 py-2 w-full px-5 rounded-md outline-none text-[12px] md:text-[16px]"
               />
             </div>
 
@@ -195,7 +195,7 @@ const MassScreening = () => {
                 value={form.date}
                 onChange={onChange("date")}
                 min={todayStr}
-                className="border border-gray2 py-2 w-full px-5 rounded-md outline-none"
+                className="border border-gray2 py-2 w-full px-5 rounded-md outline-none text-[12px] md:text-[16px]"
               />
             </div>
 
@@ -208,7 +208,7 @@ const MassScreening = () => {
                 type="text"
                 value={form.beneficiaries}
                 onChange={onChange("beneficiaries")}
-                className="border border-gray2 py-2 w-full px-5 rounded-md outline-none"
+                className="border border-gray2 py-2 w-full px-5 rounded-md outline-none text-[12px] md:text-[16px]"
               />
             </div>
 
@@ -221,7 +221,7 @@ const MassScreening = () => {
                 rows={4}
                 value={form.description}
                 onChange={onChange("description")}
-                className="border border-gray2 py-2 w-full px-2 rounded-md resize-none outline-none"
+                className="border border-gray2 py-2 w-full px-2 rounded-md resize-none outline-none text-[12px] md:text-[16px]"
               />
             </div>
 
@@ -234,7 +234,7 @@ const MassScreening = () => {
                 rows={4}
                 value={form.supportNeed}
                 onChange={onChange("supportNeed")}
-                className="border border-gray2 py-2 w-full px-2 rounded-md resize-none outline-none"
+                className="border border-gray2 py-2 w-full px-2 rounded-md resize-none outline-none text-[12px] md:text-[16px]"
               />
             </div>
           </div>

@@ -241,10 +241,10 @@ export default function PatinetProfileForm() {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting your data..." />
-      <div className="h-screen w-full lg:w-[75%] flex flex-col gap-3 md:gap-12 bg-gray py-12 px-5 overflow-auto">
+      <div className="h-screen w-full lg:w-[75%] flex flex-col gap-3 md:gap-12 bg-gray py-12 px-3 md:px-5 overflow-auto">
         <form
           // onSubmit={handleSubmit}
-          className="bg-white p-5 md:p-9 flex flex-col gap-8 rounded-2xl "
+          className="bg-white py-5 px-3 md:p-9 flex flex-col gap-8 rounded-2xl "
         >
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             {/* Left Side: Title + Note + Date md:text-2xl text-gray-800*/}
@@ -667,11 +667,11 @@ export default function PatinetProfileForm() {
             </div>
 
             {/* Additional Info Section */}
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-5 ">
               <h1 className="font-bold">Additional Info</h1>
-              <div className="grid grid-cols-2 gap-x-10 gap-y-5">
+              <div className="grid grid-cols-2 gap-x-10 gap-y-5 ">
                 {/* Source of Information */}
-                <div className="flex gap-2 flex-col col-span-2">
+                <div className="flex gap-2 flex-col col-span-2 ">
                   <label className="text-black text-[12px] md:text-[16px]">
                     Source of Information (Where did you hear about
                     RAFI-EJACC?): <span className="text-red-500">*</span>

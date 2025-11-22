@@ -67,7 +67,9 @@ const PreCancerStatus = () => {
     } catch (e) {
       // fallback to sample if API fails
       setTableData(SAMPLE_PRE_CANCEROUS_APPS);
-      setNotificationMessage("Unable to load applications. Showing sample data.");
+      setNotificationMessage(
+        "Unable to load applications. Showing sample data."
+      );
       setNotificationType("warning");
       setNotification("Unable to load applications. Showing sample data.");
       setTimeout(() => setNotification(""), 3000);
@@ -125,7 +127,9 @@ const PreCancerStatus = () => {
       record.patientNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
       record.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       record.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      record.interpretationOfResult.toLowerCase().includes(searchQuery.toLowerCase());
+      record.interpretationOfResult
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
     const recordDate = new Date(record.created_at).toISOString().split("T")[0];
     const dateMatch = !dateFilter || recordDate === dateFilter;
 
@@ -261,9 +265,9 @@ const PreCancerStatus = () => {
                     {filteredData.map((app) => (
                       <div
                         key={app.id}
-                        className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
+                        className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm text-[12px] md:text-[14px]"
                       >
-                        <div 
+                        <div
                           className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
                           onClick={() => handleView(app.id)}
                         >
@@ -299,14 +303,14 @@ const PreCancerStatus = () => {
                               <RotateCcw className="w-3.5 h-3.5" />
                             </button>
                           )}
-                          
+
                           {app.status !== "Completed" && (
                             <button
                               onClick={() => handleCancel(app.id)}
                               className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               title="Cancel"
                             >
-                              <X className="w-3.5 h-3.5"/>
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>
