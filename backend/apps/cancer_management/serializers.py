@@ -177,7 +177,7 @@ class CancerTreatmentCreationSerializer(serializers.Serializer):
       service_provider=validated_data.get("service_provider"),
       status="Interview Process"
     )
-
+  
     # 4. Save ServiceAttachments
     for key, file in files.items():
       ServiceAttachment.objects.create(
