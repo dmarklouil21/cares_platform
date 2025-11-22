@@ -312,8 +312,8 @@ class ResultDeleteView(APIView):
       cancer_treatment.save(update_fields=["uploaded_result"])
 
       # If the file still exists in storage, remove it manually (edge case)
-      if os.path.exists(file_path):
-        os.remove(file_path)
+      # if os.path.exists(file_path):
+      #   os.remove(file_path)
 
       return Response(
         {"message": "Attachment deleted successfully."},
