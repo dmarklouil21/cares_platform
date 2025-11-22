@@ -76,8 +76,6 @@ CSRF_TRUSTED_ORIGINS = [
 # -----------------------------------------------------------------------------
 
 INSTALLED_APPS = [
-    'cloudinary_storage',
-    'cloudinary',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
 
@@ -91,6 +89,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'anymail', # Using Brevo via API
+
+    'cloudinary_storage',
+    'cloudinary',
     
     # Your Apps
     'apps.beneficiary',
