@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 
 from rest_framework import generics, status
 from rest_framework import filters
@@ -334,6 +335,24 @@ class MassScreeningAttendanceView(APIView):
 
     saved = ms.attendance_entries.all().order_by('id')
     return Response(MassScreeningAttendanceEntrySerializer(saved, many=True).data, status=status.HTTP_200_OK)
+
+class PrivateEligiblePatientsListView(APIView):
+  permission_classes = [IsAuthenticated]
+
+  def get(self, request):
+    private = get_private_for_user_or_error(request.user)
+    qs = Patient.objects.filter(registered_by__iexact=private.institution_name).order_by('last_name', 'first_name')
+    q = request.query_params.get('q')
+    if q:
+      qs = qs.filter(Q(first_name__icontains=q) | Q(last_name__icontains=q))
+    data = [
+      {
+        'patient_id': p.patient_id,
+        'name': f"{p.first_name} {p.last_name}".strip(),
+      }
+      for p in qs
+    ]
+    return Response({'patients': data}, status=status.HTTP_200_OK)
 
 class MyMassScreeningRequestDeleteView(generics.DestroyAPIView):
   serializer_class = MassScreeningRequestSerializer

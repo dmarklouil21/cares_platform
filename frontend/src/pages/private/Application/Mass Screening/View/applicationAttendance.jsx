@@ -45,6 +45,10 @@ const ApplicationAttendance = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  const [eligible, setEligible] = useState([]);
+  const [eligibleLoading, setEligibleLoading] = useState(false);
+  const [search, setSearch] = useState("");
+
   useEffect(() => setPatients(initialPatients), [initialPatients]);
 
   // Load existing attendance from backend
@@ -80,24 +84,41 @@ const ApplicationAttendance = () => {
     setPatients((list) => list.filter((_, i) => i !== idx));
   };
 
-  /* Add new patient */
-  const [newName, setNewName] = useState("");
-  const [newResult, setNewResult] = useState("");
-  const nameInputRef = useRef(null);
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      try {
+        setEligibleLoading(true);
+        const params = search?.trim() ? { q: search.trim() } : undefined;
+        const { data } = await api.get(
+          `/partners/private/eligible-patients/`,
+          params ? { params } : undefined
+        );
+        if (!alive) return;
+        const list = Array.isArray(data?.patients) ? data.patients : [];
+        setEligible(list);
+      } catch (e) {
+        // non-blocking
+      } finally {
+        if (alive) setEligibleLoading(false);
+      }
+    };
+    const t = setTimeout(load, 300); // debounce
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, [search]);
 
-  const addPatient = () => {
-    const name = newName.trim();
+  const addFromEligible = (item) => {
+    const name = String(item?.name || "").trim();
     if (!name) return;
-    setPatients((list) => [...list, { name, result: newResult.trim() }]);
-    setNewName("");
-    setNewResult("");
+    if (patients.some((p) => p.name === name)) {
+      setNotif("Already added.");
+      return;
+    }
+    setPatients((list) => [...list, { name, result: "" }]);
     setNotif("Patient added.");
-    // focus back to name input for fast entry
-    requestAnimationFrame(() => nameInputRef.current?.focus());
-  };
-
-  const handleAddKey = (e) => {
-    if (e.key === "Enter") addPatient();
   };
 
   /* Save + confirmation + notification */
@@ -174,49 +195,46 @@ const ApplicationAttendance = () => {
 
         {/* Two-pane layout: Add patient (left) | Current attendees (right) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left: Add Patient */}
           <section className="bg-white rounded-2xl shadow-md border border-gray-200">
             <div className="px-5 py-3 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-yellow-600">Add Patient</h3>
             </div>
             <div className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-                <div className="md:col-span-5">
-                  <input
-                    ref={nameInputRef}
-                    type="text"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    onKeyDown={handleAddKey}
-                    placeholder="Full name"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
-                  />
-                </div>
-                <div className="md:col-span-5">
-                  <input
-                    type="text"
-                    value={newResult}
-                    onChange={(e) => setNewResult(e.target.value)}
-                    onKeyDown={handleAddKey}
-                    placeholder="Initial result (optional)"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <button
-                    type="button"
-                    onClick={addPatient}
-                    disabled={!newName.trim() || saving}
-                    className={`w-full rounded-md font-semibold flex items-center justify-center gap-2 ${
-                      newName.trim() && !saving
-                        ? "bg-green-500 hover:bg-green-600 text-white p-2 transition-colors"
-                        : "bg-gray-200 text-gray-500 cursor-not-allowed p-2"
-                    }`}
-                    title="Add patient"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    <span>Add</span>
-                  </button>
+              <div className="grid grid-cols-1 gap-3">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search registered patients by name"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
+                />
+                <div className="border border-gray-200 rounded-md overflow-hidden">
+                  <div className="hidden md:grid md:grid-cols-12 font-semibold text-sm px-3 py-2 bg-gray-50">
+                    <div className="md:col-span-9">Name</div>
+                    <div className="md:col-span-3 text-right pr-2">Action</div>
+                  </div>
+                  {eligibleLoading ? (
+                    <div className="p-3 text-sm text-gray-500">Loading…</div>
+                  ) : eligible.length ? (
+                    eligible.map((it, idx) => (
+                      <div key={it.patient_id + idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center p-3 border-t first:border-t-0">
+                        <div className="md:col-span-9">{it.name}</div>
+                        <div className="md:col-span-3 flex md:justify-end">
+                          <button
+                            type="button"
+                            onClick={() => addFromEligible(it)}
+                            disabled={patients.some((p) => p.name === it.name)}
+                            className="bg-green-500 hover:bg-green-600 disabled:bg-gray-200 disabled:text-gray-500 text-white p-2 rounded transition-colors flex items-center gap-2"
+                          >
+                            <UserPlus className="w-4 h-4" />
+                            <span>Add</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-3 text-sm text-gray-500">No patients found.</div>
+                  )}
                 </div>
               </div>
             </div>
