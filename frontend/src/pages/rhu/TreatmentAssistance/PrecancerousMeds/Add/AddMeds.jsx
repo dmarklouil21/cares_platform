@@ -21,6 +21,7 @@ const SearchableSelect = ({
   options = [],
   value = null,
   onChange,
+  errors = {},
 }) => {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -46,7 +47,7 @@ const SearchableSelect = ({
 
   return (
     <div className="w-full" ref={ref}>
-      <label className="text-sm font-medium block mb-1">{label}</label>
+      <label className="text-sm font-medium block mb-1">{label} <span className="text-red-500">*</span></label>
       <div className="relative">
         <button
           type="button"
@@ -90,6 +91,11 @@ const SearchableSelect = ({
           </div>
         )}
       </div>
+      {errors.patient && !value && (
+        <span className="text-red-500 text-xs">
+          {errors.patient}
+        </span>
+      )}
       {value && (
         <p className="text-xs text-gray-500 mt-1">
           Selected: <span className="font-medium">{value.full_name}</span>{" "}
@@ -101,14 +107,6 @@ const SearchableSelect = ({
 };
 
 const LIST_PATH = "/rhu/treatment-assistance/pre-cancerous";
-
-const CheckIcon = ({ active }) => (
-  <img
-    src="/images/check.svg"
-    alt=""
-    className={`h-5 w-5 transition ${active ? "" : "grayscale opacity-50"}`}
-  />
-);
 
 const AdminHormonalReplacementAdd = () => {
   const navigate = useNavigate();
@@ -133,6 +131,10 @@ const AdminHormonalReplacementAdd = () => {
 
   const [activeIdx, setActiveIdx] = useState(0);
   const activeDoc = requiredDocs[activeIdx];
+
+  const [loggedRepresentative, setLoggedRepresentative] = useState(null);
+
+  const [errors, setErrors] = useState({});
 
   // helper to build a cleared files map
   const makeEmptyFiles = () =>
@@ -167,7 +169,12 @@ const AdminHormonalReplacementAdd = () => {
 
   const fetchData = async () => {
     try {
-      const response = await api.get("/patient/list/");
+      const response = await api.get("/patient/list/", {
+        params: {
+            // status: "validated",
+            registered_by: loggedRepresentative?.rhu_name,
+          }
+      });
       setPatientTable(response.data);
       console.log("Responses: ", response.data);
     } catch (error) {
@@ -176,19 +183,39 @@ const AdminHormonalReplacementAdd = () => {
   };
 
   const fetchProfile = async () => {
-    try {
-      const {data} = await api.get("/rhu/profile/");
-      setDestinationName(data.rhu_name)
-      console.log("Representative Profile: ", data.rhu_name);
-    } catch (error) {
-      console.error("Error fetching representative profile", error);
-    }
+    const { data } = await api.get("/rhu/profile/");
+    setLoggedRepresentative(data);
+    setDestinationName(data.rhu_name)
+    console.log("Profile: ", data);
   };
+
+  // const fetchData = async () => {
+  //   try {
+  //     const response = await api.get("/patient/list/");
+  //     setPatientTable(response.data);
+  //     console.log("Responses: ", response.data);
+  //   } catch (error) {
+  //     console.error("Error fetching patient data:", error);
+  //   }
+  // };
+
+  // const fetchProfile = async () => {
+  //   try {
+  //     const {data} = await api.get("/rhu/profile/");
+  //     setDestinationName(data.rhu_name)
+  //     console.log("Representative Profile: ", data.rhu_name);
+  //   } catch (error) {
+  //     console.error("Error fetching representative profile", error);
+  //   }
+  // };
+
+   useEffect(() => {
+    fetchProfile();
+  }, []);
 
   useEffect(() => {
     fetchData();
-    fetchProfile();
-  }, []);
+  }, [loggedRepresentative]);
 
   const handleChooseFile = () => inputRef.current?.click();
 
@@ -199,24 +226,6 @@ const AdminHormonalReplacementAdd = () => {
     }
     e.target.value = ""; // allow reselecting the same file
   };
-
-  // Defaults for date/schedule
-  // useEffect(() => {
-  //   const today = new Date();
-  //   const yyyy = today.getFullYear();
-  //   const mm = String(today.getMonth() + 1).padStart(2, "0");
-  //   const dd = String(today.getDate()).padStart(2, "0");
-  //   if (!date) setDate(`${yyyy}-${mm}-${dd}`);
-  //   if (!schedule) setSchedule(`${yyyy}-${mm}-${dd}`);
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
-
-  // Auto-fill Age & Address when selecting a patient
-  // useEffect(() => {
-  //   if (!patient) return;
-  //   setAge(patient.age != null ? String(patient.age) : "");
-  //   setPatientAddress(patient.address || "");
-  // }, [patient]);
 
   const isValid = useMemo(() => {
     return (
@@ -231,25 +240,37 @@ const AdminHormonalReplacementAdd = () => {
     interpretationOfResult,
   ]);
 
-  const validateOrNotify = () => {
-    if (isValid) return true;
+  const validate = () => {
+    const newErrors = {};
 
-    const msg = !patient
-      ? "Please select a patient."
-      : !diagnosis.trim()
-      ? "Please enter Diagnosis."
-      : !date
-      ? "Please set Date."
-      : "Please complete all required fields.";
+    if (!patient)
+      newErrors["patient"] = "Select a patient."
+    if (!date)
+      newErrors["release_date_of_meds"] = "Release date is required."
+    if (!interpretationOfResult)
+      newErrors["interpretation_of_result"] = "Select one value."
+    if (!date)
+      newErrors["release_date_of_meds"] = "Release date is required."
 
-    setNotifyInfo({ type: "info", title: "Incomplete", message: msg });
-    setNotifyOpen(true);
-    return false;
+    if (date && date < new Date().toISOString().split('T')[0])
+      newErrors["release_date_of_meds"] = "Date should not be in the past.";
+
+    return newErrors;
+  };
+
+  const handleSave = () => {
+    const validationErrors = validate();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setErrors({});
+    setConfirmOpen(true);
   };
 
   const doSubmit = async () => {
-    // if (!validateOrNotify()) return;
-
     setConfirmOpen(false);
     setLoading(true);
 
@@ -323,6 +344,7 @@ const AdminHormonalReplacementAdd = () => {
                 value={patient}
                 onChange={setPatient}
                 placeholder="Type to search by name or email..."
+                errors={errors}
               />
             </div>
 
@@ -336,7 +358,7 @@ const AdminHormonalReplacementAdd = () => {
                 className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
                 value={patient?.diagnosis[0]?.diagnosis}
                 onChange={(e) => setDiagnosis(e.target.value)}
-                placeholder="e.g., Hypertension"
+                placeholder="Autofill field"
               />
             </div>
 
@@ -353,6 +375,11 @@ const AdminHormonalReplacementAdd = () => {
                 <option value="Unsatisfactory">Unsatisfactory</option>
                 {/* <option value="Reject">Reject</option> */}
               </select>
+              {errors.interpretation_of_result && (
+                <span className="text-red-500 text-xs">
+                  {errors.interpretation_of_result}
+                </span>
+              )}
             </div>
 
             <div className="w-full">
@@ -380,6 +407,11 @@ const AdminHormonalReplacementAdd = () => {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
               />
+              {errors.release_date_of_meds && (
+                <span className="text-red-500 text-xs">
+                  {errors.release_date_of_meds}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -394,7 +426,7 @@ const AdminHormonalReplacementAdd = () => {
           </Link>
           <button
             type="button"
-            onClick={() => setConfirmOpen(true)}
+            onClick={handleSave}
             // disabled={!isValid}
             className={`text-center font-bold text-white py-2 w-full md:w-[30%] rounded-md shadow ${
               !true

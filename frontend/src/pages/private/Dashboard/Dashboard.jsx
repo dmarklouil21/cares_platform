@@ -458,25 +458,25 @@ const Dashboard = () => {
   const cards = [
     {
       id: 1,
-      icon: "/src/assets/images/dashboard/2patients.svg",
+      icon: "/assets/images/dashboard/2patients.svg",
       label: "Total patient registered",
       value: totalPatients.toLocaleString(),
     },
     {
       id: 2,
-      icon: "/src/assets/images/dashboard/activepatient.svg",
+      icon: "/assets/images/dashboard/activepatient.svg",
       label: "Active Patients",
       value: activePatients.toLocaleString(),
     },
     {
       id: 3,
-      icon: "/src/assets/images/dashboard/Home.svg",
+      icon: "/assets/images/dashboard/Home.svg",
       label: "Mass Screening Activities",
       value: dueForHomeVisit.toLocaleString(),
     },
     {
       id: 4,
-      icon: "/src/assets/images/dashboard/pending.svg",
+      icon: "/assets/images/dashboard/pending.svg",
       label: "Cancer Awareness Program",
       value: pendingPreEnrollment.toLocaleString(),
     },

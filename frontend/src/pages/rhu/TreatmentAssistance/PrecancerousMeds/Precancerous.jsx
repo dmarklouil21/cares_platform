@@ -1,6 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { Printer, Plus, Eye, CheckCircle, X, CheckCheck, Pencil, Trash2 } from "lucide-react";
+import {
+  Printer,
+  Plus,
+  Eye,
+  CheckCircle,
+  X,
+  CheckCheck,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import {
   adminListPreCancerousMeds,
   adminVerifyPreCancerousMeds,
@@ -99,7 +108,9 @@ const PreCancerous = () => {
     const rows = tableData.filter((p) => {
       const matchesSearch =
         !q ||
-        String(p.patient.patient_id || "").toLowerCase().includes(q) ||
+        String(p.patient.patient_id || "")
+          .toLowerCase()
+          .includes(q) ||
         (p.patient.first_name || "").toLowerCase().includes(q) ||
         (p.patient.last_name || "").toLowerCase().includes(q);
 
@@ -134,11 +145,18 @@ const PreCancerous = () => {
         String(b.patient.patient_id || "")
       );
     });
-  }, [tableData, searchQuery, statusFilter, dayFilter, monthFilter, yearFilter]);
+  }, [
+    tableData,
+    searchQuery,
+    statusFilter,
+    dayFilter,
+    monthFilter,
+    yearFilter,
+  ]);
 
   const totalRecords = filteredResults.length;
   const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
-  
+
   useEffect(() => {
     setCurrentPage(1);
   }, [recordsPerPage, searchQuery, statusFilter, totalRecords]);
@@ -160,13 +178,13 @@ const PreCancerous = () => {
       setVerifyOpen(true);
       return;
     }
-    
+
     let text = "Confirm this action?";
     if (action === "reject") text = "Reject this application?";
     else if (action === "delete") text = "Delete this application?";
     else if (action === "cancel") text = "Cancel this application?";
     // if (action === "done") text = "Mark this request as Done?";
-    
+
     setModalText(text);
     setModalDesc("Please confirm before proceeding.");
     setModalAction({ id, action });
@@ -268,13 +286,15 @@ const PreCancerous = () => {
           <div className="bg-white rounded-lg shadow-lg p-6 min-w-[400px]">
             <h3 className="text-lg font-semibold mb-4">Set Release Date</h3>
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Release Date</label>
+              <label className="block text-sm font-medium mb-2">
+                Release Date
+              </label>
               <input
                 type="date"
                 value={verifyDate}
                 onChange={(e) => setVerifyDate(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2"
-                min={new Date().toISOString().split('T')[0]}
+                min={new Date().toISOString().split("T")[0]}
               />
             </div>
             <div className="flex gap-3 justify-end">
@@ -423,9 +443,9 @@ const PreCancerous = () => {
 
           {/* Table Section */}
           <div className="px-6 py-4">
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-lg overflow-auto">
               {/* Table Header */}
-              <div className="bg-lightblue px-4 py-3">
+              <div className="bg-lightblue px-4 py-3 w-[500px] md:w-[100%]">
                 <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
                   <div className="col-span-2 text-center">Patient ID</div>
                   <div className="col-span-2 text-center">Patient Name</div>
@@ -437,14 +457,15 @@ const PreCancerous = () => {
               </div>
 
               {/* Table Body */}
-              <div className="max-h-96 overflow-auto">
+              <div className="max-h-96 overflow-auto w-[500px] md:w-[100%]">
                 {loading ? (
                   <div className="text-center py-8 text-gray-500">
                     Loading...
                   </div>
                 ) : paginated.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    No pre-cancerous medication requests found matching your filters.
+                    No pre-cancerous medication requests found matching your
+                    filters.
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-200">
@@ -453,7 +474,7 @@ const PreCancerous = () => {
                         key={p.id}
                         className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
                       >
-                        <div 
+                        <div
                           className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
                           onClick={() => handleView(p.id)}
                         >
@@ -463,7 +484,9 @@ const PreCancerous = () => {
                           {p.patient.full_name}
                         </div>
                         <div className="col-span-2 text-center text-gray-800">
-                          {p.request_destination === "Rural Health Unit" ? "RHU - " : ""}
+                          {p.request_destination === "Rural Health Unit"
+                            ? "RHU - "
+                            : ""}
                           {p.destination_name}
                         </div>
                         <div className="col-span-2 text-center text-gray-800">
@@ -486,7 +509,7 @@ const PreCancerous = () => {
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button> */}
-                          
+
                           {p.status === "Pending" ? (
                             <>
                               <button
@@ -504,7 +527,8 @@ const PreCancerous = () => {
                                 <X className="w-3.5 h-3.5" />
                               </button>
                             </>
-                          ) : p.status !== "Completed" || p.status !== "Rejected" ? (
+                          ) : p.status !== "Completed" ||
+                            p.status !== "Rejected" ? (
                             <button
                               onClick={() => openConfirm(p.id, "delete")}
                               className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded transition-colors"
@@ -530,7 +554,7 @@ const PreCancerous = () => {
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           )} */}
-                          
+
                           {p.status === "Verified" && (
                             <button
                               onClick={() => openConfirm(p.id, "done")}
@@ -551,7 +575,10 @@ const PreCancerous = () => {
             {/* Pagination */}
             <div className="flex justify-between items-center mt-4 px-2">
               <div className="flex items-center gap-2">
-                <label htmlFor="recordsPerPage" className="text-sm text-gray-700">
+                <label
+                  htmlFor="recordsPerPage"
+                  className="text-sm text-gray-700"
+                >
                   Records per page:
                 </label>
                 <select
@@ -565,15 +592,19 @@ const PreCancerous = () => {
                   <option value={50}>50</option>
                 </select>
               </div>
-              
+
               <div className="flex items-center gap-4">
                 <span className="text-sm text-gray-700">
-                  {Math.min((currentPage - 1) * recordsPerPage + 1, totalRecords)} -{" "}
-                  {Math.min(currentPage * recordsPerPage, totalRecords)} of {totalRecords}
+                  {Math.min(
+                    (currentPage - 1) * recordsPerPage + 1,
+                    totalRecords
+                  )}{" "}
+                  - {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
+                  {totalRecords}
                 </span>
                 <div className="flex gap-1">
                   <button
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     className={`px-3 py-1 rounded text-sm ${
                       currentPage === 1
@@ -584,7 +615,9 @@ const PreCancerous = () => {
                     ←
                   </button>
                   <button
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
                     disabled={currentPage === totalPages}
                     className={`px-3 py-1 rounded text-sm ${
                       currentPage === totalPages

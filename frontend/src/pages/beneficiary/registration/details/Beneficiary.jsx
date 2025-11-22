@@ -166,7 +166,7 @@ const Info101 = () => {
         onClose={() => setShowModal(false)}
       />
 
-      <div className=" lg:w-[75%] flex flex-col  bg-gray py-12  overflow-auto h-screen md:min-h-screen gap-3 md:gap-12 md:px-12 px-5">
+      <div className=" lg:w-[75%] flex flex-col  bg-gray py-12  overflow-auto h-screen md:min-h-screen gap-3 md:gap-12 md:px-12 px-2">
         {/* <div className="w-full flex justify-between px-9">
           <h1 className="font-bold text-[12px] md:text-2xl">
             Beneficiary registration
@@ -182,12 +182,12 @@ const Info101 = () => {
         <form
           id="beneficiary-form"
           onSubmit={handleSubmit}
-          className="bg-white p-5 md:p-9 flex flex-col gap-8 rounded-2xl"
+          className="bg-white p-5  md:p-9 flex flex-col gap-8 rounded-2xl"
         >
           <h1 className="font-bold md:text-2xl">Personal Details</h1>
 
           <div className="grid grid-cols-2 gap-x-4 gap-y-5 md:gap-x-10  ">
-            <div className="flex gap-2 flex-col">
+            <div className="flex gap-2 flex-col justify-between ">
               <label className="text-[12px] md:text-[16px]">First Name <span className="text-red-500">*</span></label>
               <input
                 name="firstName"
@@ -204,7 +204,7 @@ const Info101 = () => {
               )}
             </div>
 
-            <div className="flex gap-2 flex-col">
+            <div className="flex gap-2 flex-col justify-between">
               <label className="text-[12px] md:text-[16px]">Last Name <span className="text-red-500">*</span></label>
               <input
                 name="lastName"
@@ -221,12 +221,12 @@ const Info101 = () => {
               )}
             </div>
 
-            <div className="flex gap-2 flex-col">
+            <div className="flex gap-2 flex-col justify-between">
               <label className="text-[12px] md:text-[16px]">Date of Birth <span className="text-red-500">*</span></label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/input_icons/datebirth.svg"
+                    src="/assets/images/input_icons/datebirth.svg"
                     alt="Date Icon"
                     className="md:w-5 md:h-5 w-4 h-4"
                   />
@@ -259,12 +259,12 @@ const Info101 = () => {
               />
             </div> */}
 
-            <div className="flex gap-2 flex-col">
+            <div className="flex gap-2 flex-col justify-between">
               <label className=" text-[12px] md:text-[16px]">Email <span className="text-red-500">*</span></label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/input_icons/email.svg"
+                    src="/assets/images/input_icons/email.svg"
                     alt="Email Icon"
                     className="md:w-5 md:h-5 w-4 h-4"
                   />
@@ -286,14 +286,14 @@ const Info101 = () => {
               )}
             </div>
 
-            <div className="flex gap-2 flex-col">
+            <div className="flex gap-2 flex-col justify-between">
               <label className="text-[12px] md:text-[16px]">
                 Phone Number
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <img
-                    src="/src/assets/images/input_icons/mobile.svg"
+                    src="/assets/images/input_icons/mobile.svg"
                     alt="Phone Icon"
                     className="w-5 h-5"
                   />
@@ -327,7 +327,7 @@ const Info101 = () => {
               )}
             </div>
 
-            <div className="flex gap-2 flex-col">
+            <div className="flex gap-2 flex-col justify-between">
               <label className="text-[12px] md:text-[16px]">
                 Are you a resident of Cebu (province)? <span className="text-red-500">*</span>
               </label>
@@ -366,7 +366,7 @@ const Info101 = () => {
               )}
             </div>
             {/* flex gap-2 flex-col col-span-2 /flex justify-end gap-2 flex-col text-[12px] md:text-[16px] */}
-            <div className="flex gap-2 flex-col">
+            <div className="flex gap-2 flex-col justify-between">
               <label className="text-[12px] md:text-[16px]">Address <span className="text-red-500">*</span></label>
               <input
                 name="address"
@@ -435,11 +435,11 @@ const Info101 = () => {
             <div
               className={`bg-white py-5 px-20 rounded-xl shadow-xl text-center flex flex-col items-center gap-5 ${animationClass}`}
             >
-              <h2 className="text-2xl font-bold text-primary">CHECK SMS</h2>
+              <h2 className="text-2xl font-bold text-primary">CHECK EMAIL</h2>
               <p className="text-center">
                 Please check your messages. We’ve sent you an email and password
                 <br />
-                to your mobile number, use them to log in and reset your password.
+                to your registered email, use them to log in and reset your password.
               </p>
               <button
                 onClick={handleOk}

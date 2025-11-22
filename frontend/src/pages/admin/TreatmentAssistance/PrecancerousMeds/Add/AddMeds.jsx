@@ -106,14 +106,6 @@ const SearchableSelect = ({
 
 const LIST_PATH = "/admin/treatment-assistance/pre-cancerous";
 
-const CheckIcon = ({ active }) => (
-  <img
-    src="/images/check.svg"
-    alt=""
-    className={`h-5 w-5 transition ${active ? "" : "grayscale opacity-50"}`}
-  />
-);
-
 const AdminHormonalReplacementAdd = () => {
   const navigate = useNavigate();
 
@@ -211,22 +203,6 @@ const AdminHormonalReplacementAdd = () => {
     date,
     interpretationOfResult,
   ]);
-
-  const validateOrNotify = () => {
-    if (isValid) return true;
-
-    const msg = !patient
-      ? "Please select a patient."
-      : !diagnosis.trim()
-      ? "Please enter Diagnosis."
-      : !date
-      ? "Please set Date."
-      : "Please complete all required fields.";
-
-    setNotifyInfo({ type: "info", title: "Incomplete", message: msg });
-    setNotifyOpen(true);
-    return false;
-  };
 
   const validate = () => {
     const newErrors = {};

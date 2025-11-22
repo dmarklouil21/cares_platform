@@ -322,7 +322,7 @@ const CancerTreatmentApplication = () => {
                     {filteredData.map((app) => (
                       <div
                         key={app.id}
-                        className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm"
+                        className="grid grid-cols-12 gap-4 px-4 py-4 hover:bg-gray-50 items-center text-sm text-[12px] md:text-[14px]"
                       >
                         <div
                           className="col-span-2 cursor-pointer text-center text-blue-500 font-medium"

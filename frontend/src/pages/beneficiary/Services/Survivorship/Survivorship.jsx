@@ -5,21 +5,21 @@ import BeneficiarySidebar from "src/components/navigation/Beneficiary";
 const survivorshipOptions = [
   {
     title: "Hormonal Replacement Therapy",
-    icon: "/src/assets/images/patient/services/survivorship/hormonalicon.png",
+    icon: "/assets/images/patient/services/survivorship/hormonalicon.png",
     description:
       "Support your recovery with prescribed hormonal medications to manage the effects of cancer treatment and hormone imbalances.",
     link: "/beneficiary/services/survivorship/hormonal-replacement",
   },
   // {
   //   title: "Patient Home Visit",
-  //   icon: "/src/assets/images/patient/services/survivorship/patienthouseicon.png",
+  //   icon: "/assets/images/patient/services/survivorship/patienthouseicon.png",
   //   description:
   //     "Receive medical guidance, follow-ups, or support services in the comfort of your home through scheduled nurse or health worker visits.",
   //   link: "/beneficiary/services/survivorship/hormonal-replacement",
   // },
   {
     title: "Psychosocial Support",
-    icon: "/src/assets/images/patient/services/survivorship/utak.png",
+    icon: "/assets/images/patient/services/survivorship/utak.png",
     description:
       "Access mental health services like counseling or therapy to help manage emotional challenges during survivorship.",
     link: "/beneficiary/services/survivorship/hormonal-replacement",

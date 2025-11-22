@@ -313,6 +313,19 @@ const PostTreatmentView = () => {
       ? "bg-red-100 text-red-700 border border-red-200"
       : "bg-yellow-100 text-yellow-700";
 
+      // Define the linear order of your status workflow
+
+  const statusLevels = {
+    "Pending": 0,
+    "Approved": 1,
+    "Completed": 2,
+    "Follow-up Required": 3,
+    "Closed": 4
+  };
+
+  // Get the numeric level of the SAVED record status
+  const currentLevel = statusLevels[data?.status] || 0;
+
   return (
     <>
       {loading && <SystemLoader />}
@@ -410,11 +423,12 @@ const PostTreatmentView = () => {
                   className="-ml-1 outline-none focus:ring-0 text-gray-700"
                   value={status}
                   onChange={handleStatusChange}
+                  disabled={data?.status === "Closed"}
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Follow-up Required">Follow-up Required</option>
+                  <option value="Pending" disabled={currentLevel > 0}>Pending</option>
+                  <option value="Approved" disabled={currentLevel > 1}>Approved</option>
+                  <option value="Completed" disabled={currentLevel > 2}>Completed</option>
+                  <option value="Follow-up Required" disabled={currentLevel > 3}>Follow-up Required</option>
                   <option value="Closed">Closed</option>
                 </select>
               </div>
@@ -481,7 +495,9 @@ const PostTreatmentView = () => {
                 </Link>
               </div>
               <div className="flex gap-2">
-                <span className="font-medium w-40">Lab Results</span>
+                <span className="font-medium w-40">Lab Results {" "}
+                  <span className="text-xs text-red-500">{data?.uploaded_result ? "" : "(Missing)"}</span>
+                </span>
                 <Link
                   className="text-blue-700"
                   to={`/admin/treatment-assistance/postview/${data?.id}/lab-result`}

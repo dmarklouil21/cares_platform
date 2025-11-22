@@ -239,9 +239,9 @@ const MassScreeningStatus = () => {
 
           {/* Table Section */}
           <div className="px-6 py-4">
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-lg overflow-auto">
               {/* Table Header */}
-              <div className="bg-lightblue px-4 py-3">
+              <div className="bg-lightblue px-4 py-3   w-[500px] md:w-[100%]">
                 <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
                   <div className="col-span-2 text-center">Mass ID</div>
                   <div className="col-span-3 text-center">Title</div>
@@ -253,7 +253,7 @@ const MassScreeningStatus = () => {
               </div>
 
               {/* Table Body */}
-              <div className="max-h-96 overflow-auto">
+              <div className="max-h-96 overflow-auto  w-[500px] md:w-[100%]">
                 {paginatedData.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     No mass screening requests found matching your filters.

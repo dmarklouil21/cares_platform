@@ -219,9 +219,9 @@ const PatientHomeVisit = () => {
 
           {/* Table Section */}
           <div className="px-6 py-4">
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-lg overflow-auto">
               {/* Table Header */}
-              <div className="bg-lightblue px-4 py-3">
+              <div className="bg-lightblue px-4 py-3 w-[500px] md:w-[100%]">
                 <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
                   <div className="col-span-2 text-center">Patient ID</div>
                   <div className="col-span-2 text-center">Date Scheduled</div>
@@ -233,7 +233,7 @@ const PatientHomeVisit = () => {
               </div>
 
               {/* Table Body */}
-              <div className="max-h-96 overflow-auto">
+              <div className="max-h-96 overflow-auto w-[500px] md:w-[100%]">
                 {filteredData.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     No home visit applications found matching your filters.

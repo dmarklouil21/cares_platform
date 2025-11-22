@@ -76,6 +76,7 @@ const ApplicationAttendance = () => {
       try {
         const prof = await api.get("/rhu/profile/");
         const lgu = prof?.data?.lgu || "";
+        console.log("RHU LGU:", lgu);
         setRhuLgu(lgu);
         const toCity = (s) => String(s || "").replace(/^RHU\s+/i, "").split(",")[0].trim();
         const norm = (s) => toCity(s).toLowerCase();
@@ -89,10 +90,10 @@ const ApplicationAttendance = () => {
 
         if (!Array.isArray(list) || list.length === 0) {
           try {
-            const resCity = await api.get(`/patient/list/`, { params: { registered_by: "rhu", city: cityExact } });
+            const resCity = await api.get(`/patient/list/`, { params: { registered_by: lgu } });
             list = Array.isArray(resCity?.data) ? resCity.data : (Array.isArray(resCity?.data?.results) ? resCity.data.results : []);
             if (!list.length) {
-              const resAllRhu = await api.get(`/patient/list/`, { params: { registered_by: "rhu" } });
+              const resAllRhu = await api.get(`/patient/list/`, { params: { registered_by: lgu } });
               const allRhu = Array.isArray(resAllRhu?.data) ? resAllRhu.data : (Array.isArray(resAllRhu?.data?.results) ? resAllRhu.data.results : []);
               list = allRhu.filter((p) => norm(p.city) === norm(cityExact) || norm(p.city).includes(norm(cityExact)));
             }

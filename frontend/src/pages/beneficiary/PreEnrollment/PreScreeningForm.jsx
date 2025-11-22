@@ -286,9 +286,9 @@ const PreScreeningForm = () => {
         <form
           id="pre-screening-form"
           onSubmit={handleSubmit}
-          className="bg-white p-9 flex flex-col gap-10 rounded-2xl"
+          className="bg-white py-5 px-3 md:p-9 flex flex-col gap-10 rounded-2xl"
         >
-          <div>
+          <div className="">
             <h2 className="text-md font-bold border-b pb-1 mb-5">
               CANCER DATA
             </h2>
@@ -296,7 +296,7 @@ const PreScreeningForm = () => {
               Note: Please put <span className="font-semibold">"NA"</span> for not applicable fields.
             </p>
             <br /> */}
-            <div className="grid grid-cols-2 gap-x-10 gap-y-5">
+            <div className="grid grid-cols-2 gap-x-5 md:gap-x-10 gap-y-5 ">
               <div className="flex gap-2 flex-col text-[12px] md:text-[16px] justify-between">
                 <label>
                   Referred From <span className="text-red-500">*</span>
@@ -335,7 +335,7 @@ const PreScreeningForm = () => {
                 </label>
                 <textarea
                   name="reason_for_referral"
-                  className="border-[#6B7280] border-[1px] rounded-md p-2 resize-none h-28"
+                  className="border-[#6B7280] border-[1px] rounded-md p-2 resize-none h-28 text-[12px] md:text-[16px]"
                 ></textarea>
                 {errors.reason_for_referral && (
                   <span className="text-red-500 text-xs">
@@ -350,7 +350,7 @@ const PreScreeningForm = () => {
                 </label>
                 <textarea
                   name="chief_complaint"
-                  className="border-[#6B7280] border-[1px] rounded-md p-2 resize-none h-28"
+                  className="border-[#6B7280] border-[1px] rounded-md p-2 resize-none h-28 text-[12px] md:text-[16px]"
                 ></textarea>
                 {errors.chief_complaint && (
                   <span className="text-red-500 text-xs">
@@ -384,7 +384,7 @@ const PreScreeningForm = () => {
                   <input
                     type="date"
                     name="date_of_consultation"
-                    className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                    className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                     placeholder="Select date"
                   />
                 </div>
@@ -419,7 +419,7 @@ const PreScreeningForm = () => {
                   <input
                     type="date"
                     name="date_of_diagnosis"
-                    className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                    className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                     placeholder="Select date"
                   />
                 </div>
@@ -435,7 +435,7 @@ const PreScreeningForm = () => {
             <h1 id="details_title" className="font-bold">
               Diagnosis <span className="text-red-500">*</span>
             </h1>
-            <p className="text-[#6B7280]">
+            <p className="text-[#6B7280] ">
               Most Valid Basis of Diagnosis{" "}
               <span className="text-red-500">*</span>{" "}
               {errors.diagnosis_basis && (
@@ -450,9 +450,9 @@ const PreScreeningForm = () => {
                   type="checkbox"
                   name="diagnosis_basis_nonMicroscopic"
                   value="None Microscopic"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
+                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6] "
                 />
-                <label>Non Microscopic</label>
+                <label className="text-[14px] md:text-[16px]">Non Microscopic</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -461,7 +461,7 @@ const PreScreeningForm = () => {
                   value="Death Certificates Only"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Death Certificates Only</label>
+                <label className="text-[14px] md:text-[16px]">Death Certificates Only</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -470,7 +470,7 @@ const PreScreeningForm = () => {
                   value="Clinical Investigation"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Clinical Investigation</label>
+                <label className="text-[14px] md:text-[16px]">Clinical Investigation</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -479,7 +479,7 @@ const PreScreeningForm = () => {
                   value="Specific Tumor Markers"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Specific Tumors Makers</label>
+                <label className="text-[14px] md:text-[16px]">Specific Tumors Makers</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -488,7 +488,7 @@ const PreScreeningForm = () => {
                   value="Microscopic"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Microscopic</label>
+                <label className="text-[14px] md:text-[16px]">Microscopic</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -497,7 +497,7 @@ const PreScreeningForm = () => {
                   value="Cytology or Hematology"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Cytology or Hermotology</label>
+                <label className="text-[14px] md:text-[16px]">Cytology or Hermotology</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -506,7 +506,7 @@ const PreScreeningForm = () => {
                   value="Histology of Metastasis"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Histology of Metastasis</label>
+                <label className="text-[14px] md:text-[16px]">Histology of Metastasis</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -515,7 +515,7 @@ const PreScreeningForm = () => {
                   value="Histology of Primary"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Histology of Primary</label>
+                <label className="text-[14px] md:text-[16px]">Histology of Primary</label>
               </div>
             </div>
           </div>
@@ -523,7 +523,7 @@ const PreScreeningForm = () => {
             <p className="text-[#6B7280]">
               Multiple Primaries <span className="text-red-500">*</span>{" "}
               {errors.multiple_primaries && (
-                <span className="text-red-500 text-xs">
+                <span className="text-red-500 text-xs ">
                   {errors.multiple_primaries}
                 </span>
               )}
@@ -534,9 +534,9 @@ const PreScreeningForm = () => {
                   type="radio"
                   name="multiple_primaries"
                   value={1}
-                  className="w-4 h-4"
+                  className="w-4 h-4 text-[14px] md:text-[16px]"
                 />
-                <label>{1}</label>
+                <label className="text-[14px] md:text-[16px]">{1}</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -545,7 +545,7 @@ const PreScreeningForm = () => {
                   value={2}
                   className="w-4 h-4"
                 />
-                <label>{2}</label>
+                <label className="text-[14px] md:text-[16px]">{2}</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -554,7 +554,7 @@ const PreScreeningForm = () => {
                   value={3}
                   className="w-4 h-4"
                 />
-                <label>{3}</label>
+                <label className="text-[14px] md:text-[16px]">{3}</label>
               </div>
             </div>
           </div>
@@ -575,7 +575,7 @@ const PreScreeningForm = () => {
                   value="Colon"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Colon</label>
+                <label className="text-[14px] md:text-[16px]">Colon</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -584,7 +584,7 @@ const PreScreeningForm = () => {
                   value="Brain"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Brain</label>
+                <label className="text-[14px] md:text-[16px]">Brain</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -593,7 +593,7 @@ const PreScreeningForm = () => {
                   value="Bladder"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Bladder</label>
+                <label className="text-[14px] md:text-[16px]">Bladder</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -602,7 +602,7 @@ const PreScreeningForm = () => {
                   value="Skin"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Skin</label>
+                <label className="text-[14px] md:text-[16px]">Skin</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -611,7 +611,7 @@ const PreScreeningForm = () => {
                   value="Kidney"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Kidney</label>
+                <label className="text-[14px] md:text-[16px]">Kidney</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -620,7 +620,7 @@ const PreScreeningForm = () => {
                   value="Testis"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Testis</label>
+                <label className="text-[14px] md:text-[16px]">Testis</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -629,7 +629,7 @@ const PreScreeningForm = () => {
                   value="Liver"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Liver</label>
+                <label className="text-[14px] md:text-[16px]">Liver</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -638,7 +638,7 @@ const PreScreeningForm = () => {
                   value="Corpus Uteri"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Corpus Uteri</label>
+                <label className="text-[14px] md:text-[16px]">Corpus Uteri</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -647,7 +647,7 @@ const PreScreeningForm = () => {
                   value="Urinary"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Urinary</label>
+                <label className="text-[14px] md:text-[16px]">Urinary</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -656,7 +656,7 @@ const PreScreeningForm = () => {
                   value="Prostate"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Prostate</label>
+                <label className="text-[14px] md:text-[16px]">Prostate</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -665,7 +665,7 @@ const PreScreeningForm = () => {
                   value="Nasopharnyx"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Nasopharnyx</label>
+                <label className="text-[14px] md:text-[16px]">Nasopharnyx</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -674,7 +674,7 @@ const PreScreeningForm = () => {
                   value="Oral Cavity"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Oral Cavity</label>
+                <label className="text-[14px] md:text-[16px]">Oral Cavity</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -683,7 +683,7 @@ const PreScreeningForm = () => {
                   value="Ovary"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Ovary</label>
+                <label className="text-[14px] md:text-[16px]">Ovary</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -692,7 +692,7 @@ const PreScreeningForm = () => {
                   value="Lung"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Lung</label>
+                <label className="text-[14px] md:text-[16px]">Lung</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -701,7 +701,7 @@ const PreScreeningForm = () => {
                   value="Gull"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Gull</label>
+                <label className="text-[14px] md:text-[16px]">Gull</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -710,7 +710,7 @@ const PreScreeningForm = () => {
                   value="Thyroid"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Thyroid</label>
+                <label className="text-[14px] md:text-[16px]">Thyroid</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -719,7 +719,7 @@ const PreScreeningForm = () => {
                   value="Rectum"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Rectum</label>
+                <label className="text-[14px] md:text-[16px]">Rectum</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -728,7 +728,7 @@ const PreScreeningForm = () => {
                   value="Blood"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Blood</label>
+                <label className="text-[14px] md:text-[16px]">Blood</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -737,7 +737,7 @@ const PreScreeningForm = () => {
                   value="Stomach"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Stomach</label>
+                <label className="text-[14px] md:text-[16px]">Stomach</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -746,7 +746,7 @@ const PreScreeningForm = () => {
                   value="Pancreas"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Pancreas</label>
+                <label className="text-[14px] md:text-[16px]">Pancreas</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -755,7 +755,7 @@ const PreScreeningForm = () => {
                   value="Esophagus"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Esophagus</label>
+                <label className="text-[14px] md:text-[16px]">Esophagus</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -764,7 +764,7 @@ const PreScreeningForm = () => {
                   value="Breast"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Breast</label>
+                <label className="text-[14px] md:text-[16px]">Breast</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -773,16 +773,16 @@ const PreScreeningForm = () => {
                   value="Uterine Cervix"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Uterine Cervix</label>
+                <label className="text-[14px] md:text-[16px]">Uterine Cervix</label>
               </div>
             </div>
             <div>
-              <p>
+              <p className="text-[14px] md:text-[16px] ">
                 Other's, specify
                 <input
                   type="text"
                   name="primary_sites_other"
-                  className="border-b-[1px] border-[#000]"
+                  className="border-b-[1px] border-[#000] text-[12px] md:text-[16px] ml-2 "
                 />
               </p>
             </div>
@@ -809,7 +809,7 @@ const PreScreeningForm = () => {
                   htmlFor="left"
                   className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
                 ></label>
-                <span>Left</span>
+                <span className="text-[14px] md:text-[16px]">Left</span>
               </div>
               <div className="flex gap-3 items-center">
                 <input
@@ -823,7 +823,7 @@ const PreScreeningForm = () => {
                   htmlFor="right"
                   className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
                 ></label>
-                <span>Right</span>
+                <span className="text-[14px] md:text-[16px]">Right</span>
               </div>
               <div className="flex gap-3 items-center">
                 <input
@@ -837,7 +837,7 @@ const PreScreeningForm = () => {
                   htmlFor="notsated"
                   className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
                 ></label>
-                <span>Not Stated</span>
+                <span className="text-[14px] md:text-[16px]">Not Stated</span>
               </div>
               <div className="flex gap-3 items-center">
                 <input
@@ -851,7 +851,7 @@ const PreScreeningForm = () => {
                   htmlFor="bilateral"
                   className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
                 ></label>
-                <span>Bilateral</span>
+                <span className="text-[14px] md:text-[16px]">Bilateral</span>
               </div>
               <div className="flex gap-3 items-center">
                 <input
@@ -865,7 +865,7 @@ const PreScreeningForm = () => {
                   htmlFor="mild"
                   className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
                 ></label>
-                <span>Mild</span>
+                <span className="text-[14px] md:text-[16px]">Mild</span>
               </div>
             </div>
           </div>
@@ -877,7 +877,7 @@ const PreScreeningForm = () => {
               <input
                 type="text"
                 name="histology"
-                className="border-[#6B7280] border-[1px] rounded-md p-2"
+                className="border-[#6B7280] border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
               {errors.histology && (
                 <span className="text-red-500 text-xs">{errors.histology}</span>
@@ -890,7 +890,7 @@ const PreScreeningForm = () => {
               <div className="relative">
                 <select
                   name="staging"
-                  className="border-[#6B7280] w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8"
+                  className="border-[#6B7280] w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8 text-[12px] md:text-[16px]"
                 >
                   <option value="" disabled selected>
                     Select
@@ -922,7 +922,7 @@ const PreScreeningForm = () => {
                   id="tInput"
                   maxLength="1"
                   onInput={handleTNMInput}
-                  className="border-b outline-none px-2 w-[20%] text-center"
+                  className="border-b outline-none px-2 w-[20%] text-center text-[12px] md:text-[16px]"
                   required
                 />
                 N
@@ -932,7 +932,7 @@ const PreScreeningForm = () => {
                   id="nInput"
                   maxLength="1"
                   onInput={handleTNMInput}
-                  className="border-b outline-none px-2 w-[20%] text-center"
+                  className="border-b outline-none px-2 w-[20%] text-center text-[12px] md:text-[16px]"
                   required
                 />
                 M
@@ -942,7 +942,7 @@ const PreScreeningForm = () => {
                   id="mInput"
                   maxLength="1"
                   onInput={handleTNMInput}
-                  className="border-b outline-none px-2 w-[20%] text-center"
+                  className="border-b outline-none px-2 w-[20%] text-center text-[12px] md:text-[16px]"
                   required
                 />
               </div>
@@ -971,7 +971,7 @@ const PreScreeningForm = () => {
                   value="None"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>None</label>
+                <label className="text-[14px] md:text-[16px]">None</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -980,7 +980,7 @@ const PreScreeningForm = () => {
                   value="Destant Lymph Nodes"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Destant Lymph Nodes</label>
+                <label className="text-[14px] md:text-[16px]">Destant Lymph Nodes</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -989,7 +989,7 @@ const PreScreeningForm = () => {
                   value="Bone"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Bone</label>
+                <label className="text-[14px] md:text-[16px]">Bone</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -998,7 +998,7 @@ const PreScreeningForm = () => {
                   value="Liver(Pleura)"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Liver(Pleura)</label>
+                <label className="text-[14px] md:text-[16px]">Liver(Pleura)</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -1007,7 +1007,7 @@ const PreScreeningForm = () => {
                   value="Kidney"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Kidney</label>
+                <label className="text-[14px] md:text-[16px]">Kidney</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -1016,7 +1016,7 @@ const PreScreeningForm = () => {
                   value="Brain"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Brain</label>
+                <label className="text-[14px] md:text-[16px]">Brain</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -1025,7 +1025,7 @@ const PreScreeningForm = () => {
                   value="Ovary"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Ovary</label>
+                <label className="text-[14px] md:text-[16px]">Ovary</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -1034,7 +1034,7 @@ const PreScreeningForm = () => {
                   value="Skin"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Skin</label>
+                <label className="text-[14px] md:text-[16px]">Skin</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -1043,7 +1043,7 @@ const PreScreeningForm = () => {
                   value="Prostate"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Prostate</label>
+                <label className="text-[14px] md:text-[16px]">Prostate</label>
               </div>
               <div className="flex gap-5 justify-center items-center w-fit">
                 <input
@@ -1052,16 +1052,16 @@ const PreScreeningForm = () => {
                   value="Unknown"
                   className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label>Unknown</label>
+                <label className="text-[14px] md:text-[16px]">Unknown</label>
               </div>
             </div>
             <div>
-              <p>
+              <p className=" text-[14px] md:text-[16px]">
                 Other's, specify
                 <input
                   type="text"
                   name="distant_metastasis_sites_other"
-                  className="border-b-[1px] border-[#000]"
+                  className="border-b-[1px] border-[#000] ml-2 text-[12px] md:text-[16px] "
                 />
               </p>
             </div>
@@ -1072,7 +1072,7 @@ const PreScreeningForm = () => {
                 </label>
                 <textarea
                   name="final_diagnosis"
-                  className="border-[#6B7280] border-[1px] rounded-md p-2 h-36 md:w-[60%] resize-none"
+                  className="border-[#6B7280] border-[1px] rounded-md p-2 h-36 md:w-[60%] resize-none text-[12px] md:text-[16px]"
                 ></textarea>
                 {errors.final_diagnosis && (
                   <span className="text-red-500 text-xs">
@@ -1080,7 +1080,7 @@ const PreScreeningForm = () => {
                   </span>
                 )}
               </div>
-              <div className="flex flex-col gap-5 w-[50%]">
+              <div className="flex flex-col gap-5 md:w-[50%]">
                 <label className="text-sm text-[#6B7280]">
                   Final Diagnosis: ICD-10 Code{" "}
                   <span className="text-red-500">*</span>
@@ -1088,7 +1088,7 @@ const PreScreeningForm = () => {
                 <input
                   type="text"
                   name="final_diagnosis_icd10"
-                  className="border-[#6B7280] border-[1px] rounded-md p-2"
+                  className="border-[#6B7280] border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
                 />
                 {errors.final_diagnosis_icd10 && (
                   <span className="text-red-500 text-xs">
@@ -1121,7 +1121,7 @@ const PreScreeningForm = () => {
                   htmlFor="curativeComplete"
                   className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
                 ></label>
-                <span>Curative-Complete</span>
+                <span className="text-[14px] md:text-[16px]">Curative-Complete</span>
               </div>
               <div className="flex gap-3 items-center">
                 <input
@@ -1135,7 +1135,7 @@ const PreScreeningForm = () => {
                   htmlFor="curativeIncomplete"
                   className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
                 ></label>
-                <span>Curative-Incomplete</span>
+                <span className="text-[14px] md:text-[16px]">Curative-Incomplete</span>
               </div>
               <div className="flex gap-3 items-center">
                 <input
@@ -1149,16 +1149,16 @@ const PreScreeningForm = () => {
                   htmlFor="palliative"
                   className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
                 ></label>
-                <span>Palliative Only</span>
+                <span className="text-[14px] md:text-[16px]">Palliative Only</span>
               </div>
             </div>
             <div>
-              <p className="text-[#6B7280] text-sm">
+              <p className="text-[14px] md:text-[16px]  ">
                 Other's, specify
                 <input
                   type="text"
                   name="treatment_purpose_other"
-                  className="border-b-[1px] border-[#000]"
+                  className="border-b-[1px] border-[#000] ml-2 text-[12px] md:text-[16px] "
                 />
               </p>
             </div>
@@ -1172,7 +1172,7 @@ const PreScreeningForm = () => {
               <input
                 type="text"
                 name="primary_assistance_by_ejacc"
-                className="border-[#6B7280] border-[1px] rounded-md p-2"
+                className="border-[#6B7280] border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
               />
               {errors.primary_assistance_by_ejacc && (
                 <span className="text-red-500 text-xs">
@@ -1204,7 +1204,7 @@ const PreScreeningForm = () => {
                 <input
                   type="date"
                   name="date_of_assistance"
-                  className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
+                  className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
                   placeholder="Select date"
                 />
               </div>
@@ -1235,7 +1235,7 @@ const PreScreeningForm = () => {
                   value="Surgery"
                   className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
                 />
-                <label htmlFor="surgery" className="text-[#374151] text-sm">
+                <label htmlFor="surgery" className="text-[#374151]  text-[14px] md:text-[16px]">
                   Surgery
                 </label>
               </div>
@@ -1318,7 +1318,7 @@ const PreScreeningForm = () => {
                 <input
                   type="text"
                   name="adjuvant_treatments_other"
-                  className="border-b-[1px] border-[#000] focus:outline-none"
+                  className="border-b-[1px] text-black  border-[#000] focus:outline-none "
                 />
               </p>
             </div>
@@ -1432,7 +1432,7 @@ const PreScreeningForm = () => {
                 <input
                   type="text"
                   name="other_source_treatments_other"
-                  className="border-b-[1px] border-[#000] focus:outline-none"
+                  className="border-b-[1px] border-[#000] focus:outline-none text-black ml-2"
                 />
               </p>
             </div>

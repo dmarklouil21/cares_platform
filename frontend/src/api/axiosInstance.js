@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAccessToken, getRefreshToken, logout } from '../services/authService';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const instance = axios.create({
   baseURL: API_URL,
@@ -30,6 +30,7 @@ instance.interceptors.response.use(
 
       try {
         const refresh = getRefreshToken();
+        const response = await axios.post(`${API_URL}/user/auth/token/refresh/`, { refresh });
         const response = await axios.post(`${API_URL}/user/auth/token/refresh/`, { refresh });
 
         localStorage.setItem('access', response.data.access);

@@ -191,7 +191,7 @@ const Login = () => {
               Sign Up
             </Link>
           </p>
-          <div className="w-full flex items-center my-2">
+          {/* <div className="w-full flex items-center my-2">
             <hr className="flex-grow border-gray-200" />
             <span className="mx-4 text-gray-400">Or</span>
             <hr className="flex-grow border-gray-200" />
@@ -207,7 +207,7 @@ const Login = () => {
               <rect fill="#ffba08" x="13" y="13" width="9" height="9" />
             </svg>
             Sign up with Microsoft
-          </button>
+          </button> */}
         </form>
       </div>
     </>
