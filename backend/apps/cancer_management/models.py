@@ -1,5 +1,6 @@
 from django.db import models
 from apps.patient.models import Patient
+from cloudinary.models import CloudinaryField
 
 # Create your models here.
 
@@ -69,7 +70,7 @@ class CancerTreatment(models.Model):
     ],
     default='Pending'
   )
-  uploaded_result = models.FileField(upload_to='attachments/result/', blank=True, null=True)
+  uploaded_result = CloudinaryField('document', folder='attachments/cancer_management_result/', blank=True, null=True)
 
 def service_document_path(instance, filename):
   return f"service_documents/{instance.cancer_treatment.service_type}/{instance.cancer_treatment.id}/{filename}"
@@ -80,7 +81,7 @@ class ServiceAttachment(models.Model):
     on_delete=models.CASCADE,
     related_name="attachments"
   )
-  file = models.FileField(upload_to=service_document_path)
+  file = CloudinaryField('document', folder=service_document_path)
   uploaded_at = models.DateTimeField(auto_now_add=True)
 
   # optional: track type (medical_cert, lab_results, etc.)

@@ -40,15 +40,23 @@ class WellBeingAssessmentSerializer(serializers.ModelSerializer):
     ]
 
 class ServiceAttachmentSerializer(serializers.ModelSerializer):
+  file_url = serializers.SerializerMethodField()
   class Meta:
     model = ServiceAttachment
-    fields = ["id", "file", "uploaded_at", "doc_type"]
+    fields = ["id", "file", "uploaded_at", "doc_type", "file_url"]
+  
+  def get_file_url(self, obj):
+    """Return the Cloudinary URL for the file"""
+    if obj.file:
+        return obj.file.url  # This returns the full Cloudinary URL
+    return None
 
 class CancerTreatmentSerializer(serializers.ModelSerializer):
   patient = PatientSerializer(read_only=True)
   wellbeing_assessment = WellBeingAssessmentSerializer(read_only=True)
   attachments = ServiceAttachmentSerializer(many=True, read_only=True)
 
+  uploaded_result_url = serializers.SerializerMethodField()
   class Meta:
     model = CancerTreatment
     fields = [
@@ -63,11 +71,18 @@ class CancerTreatmentSerializer(serializers.ModelSerializer):
       "date_completed",
       "status",
       "uploaded_result",
+      'uploaded_result_url',
       "attachments",
       'has_patient_response',
       'response_description',
       'service_provider',
     ]
+  
+  def get_uploaded_result_url(self, obj):
+    """Return the Cloudinary URL for uploaded_result"""
+    if obj.uploaded_result:
+        return obj.uploaded_result.url
+    return None
 
 class CancerTreatmentSubmissionSerializer(serializers.Serializer):
   files = serializers.DictField(
