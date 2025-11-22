@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import Patient, CancerDiagnosis, EmergencyContact, HistoricalUpdate, ServiceReceived
+from apps.partners.models import PrivateRepresentative
+
 from .models import (
   DiagnosisBasis, PrimarySite, DistantMetastasisSite, TreatmentOption,
   PreScreeningForm
@@ -162,6 +164,7 @@ class AdminPreEnrollmentSerializer(serializers.Serializer):
   cancer_data = PreScreeningFormSerializer()
 
   def create(self, validated_data):
+    request = self.context.get("request")
 
     general_data = validated_data.pop('general_data')
     cancer_data = validated_data.pop('cancer_data')
@@ -174,6 +177,15 @@ class AdminPreEnrollmentSerializer(serializers.Serializer):
     distant_metastasis_sites_data = cancer_data.pop('distant_metastasis_sites')
     adjuvant_treatments_received_data = cancer_data.pop('adjuvant_treatments_received')
     other_source_treatments_data = cancer_data.pop('other_source_treatments')
+
+    # If a Private user is creating the patient, link to their Private org
+    if request and getattr(request.user, 'is_private', False):
+      try:
+        rep = PrivateRepresentative.objects.get(user=request.user)
+        general_data['private'] = rep.private
+        general_data['registered_by'] = 'Private'
+      except PrivateRepresentative.DoesNotExist:
+        pass
 
     patient = Patient.objects.create(**general_data)
 

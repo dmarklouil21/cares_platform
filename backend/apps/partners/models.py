@@ -1,7 +1,5 @@
 from django.db import models
 
-from apps.patient.models import Patient
-
 from apps.user.models import User
 
 # Create your models here.
@@ -28,7 +26,7 @@ class CancerAwarenessAttendance(models.Model):
       related_name="attendances"
   )
   patient = models.ForeignKey(
-      Patient, 
+      'patient.Patient', 
       on_delete=models.CASCADE,
       related_name="cancer_awareness_attendances"
   )

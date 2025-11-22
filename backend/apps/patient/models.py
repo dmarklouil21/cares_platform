@@ -1,6 +1,7 @@
 from django.utils import timezone
 from django.db import models
 from apps.user.models import User
+from apps.partners.models import Private
 
 # Create your models here.
 
@@ -33,6 +34,7 @@ REGISTERED_BY = [
 class Patient(models.Model):
   user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='patient')
   patient_id = models.CharField(max_length=20, unique=True)
+  private = models.ForeignKey(Private, on_delete=models.SET_NULL, null=True, blank=True, related_name='patients')
 
   first_name = models.CharField(max_length=100)
   middle_name = models.CharField(max_length=100, blank=True, null=True)

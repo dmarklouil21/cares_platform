@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.db.models.functions import TruncMonth
-from django.db.models import Count
+from django.db.models import Count, Q
 
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -14,6 +14,8 @@ from apps.notifications.utils import create_notification
 from apps.survivorship.models import PatientHomeVisit
 
 from .models import Patient, CancerDiagnosis
+from apps.partners.models import PrivateRepresentative
+
 from .serializers import PatientSerializer, AdminPreEnrollmentSerializer
 
 from . models import PATIENT_STATUS_CHOICES
@@ -187,16 +189,46 @@ class PatientListView(generics.ListAPIView):
 
     queryset = Patient.objects.none()  # prevents "unbound" errors
 
-    if user.is_superuser:
+    if user.is_superuser or getattr(user, 'is_rhu', False) or getattr(user, 'is_private', False):
       queryset = Patient.objects.all()
     else:
       queryset = Patient.objects.filter(registered_by='Self')
 
+    # If Private user, scope to their institution
+    if getattr(user, 'is_private', False):
+      try:
+        rep = PrivateRepresentative.objects.get(user=user)
+        queryset = queryset.filter(private=rep.private)
+      except PrivateRepresentative.DoesNotExist:
+        return Patient.objects.none()
+
     registered_by_param = request.get('registered_by', None)
     if registered_by_param:
-      queryset = Patient.objects.filter(registered_by=registered_by_param)
+      queryset = queryset.filter(registered_by__iexact=registered_by_param)
 
-    return queryset
+    # Optional free-text search across common fields
+    q = (request.get('q') or '').strip()
+    if q:
+      queryset = queryset.filter(
+        Q(first_name__icontains=q) |
+        Q(last_name__icontains=q) |
+        Q(email__icontains=q) |
+        Q(patient_id__icontains=q) |
+        Q(mobile_number__icontains=q)
+      )
+
+    # Optional limit to cap size
+    limit_param = request.get('limit')
+    try:
+      limit = int(limit_param) if limit_param is not None else None
+    except (TypeError, ValueError):
+      limit = None
+
+    if limit is not None:
+      limit = max(1, min(limit, 100))  # enforce 1..100
+      return queryset.order_by('last_name', 'first_name')[:limit]
+
+    return queryset.order_by('last_name', 'first_name')
 
 class PatientStatusUpdateView(APIView):
   permission_classes = [IsAuthenticated, IsAdminUser]
