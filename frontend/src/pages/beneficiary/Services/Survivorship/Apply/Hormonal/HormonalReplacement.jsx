@@ -93,7 +93,6 @@ const HormonalReplacement = () => {
           }, {});
           setFiles(mappedFiles);
         }
-
       } catch (error) {
         console.error("Error fetching screening data:", error);
       }
@@ -140,11 +139,13 @@ const HormonalReplacement = () => {
       const endpoint = isResubmitting
         ? `/beneficiary/hormonal-replacement/update/${id}/`
         : `/beneficiary/hormonal-replacement/request/`;
-      
+
       const method = isResubmitting ? api.patch : api.post;
 
-      await method(endpoint, formData, { headers: { "Content-Type": "multipart/form-data" } });
-      
+      await method(endpoint, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       // await api.post(
       //   `/beneficiary/hormonal-replacement/request/`,
       //   formData,
@@ -201,14 +202,14 @@ const HormonalReplacement = () => {
       {loading && <SystemLoader />}
 
       <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        <div className="py-6 px-10 flex flex-col flex-1">
+        <div className="py-6 p-5 md:px-10 flex flex-col flex-1 ">
           <h2 className="text-xl font-semibold mb-6">
             Hormonal Replacement Medication Application
           </h2>
 
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-8 flex-1 overflow-auto"
+            className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-5 md:px-8 flex-1 overflow-auto"
           >
             {/* Screening Info */}
             <div className="flex flex-col gap-6">

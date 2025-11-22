@@ -225,7 +225,7 @@ const IndividualScreening = () => {
 
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-8 flex-1 overflow-auto"
+            className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-5 md:px-8 flex-1 overflow-auto"
           >
             {/* Screening Info */}
             <div className="flex flex-col gap-6">
