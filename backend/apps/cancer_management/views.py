@@ -270,14 +270,23 @@ class ResultAttachmentUploadView(APIView):
     cancer_treatment.uploaded_result = file
     cancer_treatment.save()
 
+    serializer = CancerTreatmentSerializer(cancer_treatment, context={'request': request})
+
     return Response(
-      {
-        "message": "Attachment uploaded successfully.",
-        "file_url": cancer_treatment.uploaded_result.url,
-        "file_name": os.path.basename(cancer_treatment.uploaded_result.name),
-      },
-      status=status.HTTP_200_OK,
+        {
+            "message": "Attachment uploaded successfully.",
+            "data": serializer.data 
+        },
+        status=status.HTTP_200_OK,
     )
+    # return Response(
+    #   {
+    #     "message": "Attachment uploaded successfully.",
+    #     "file_url": cancer_treatment.uploaded_result.url,
+    #     "file_name": os.path.basename(cancer_treatment.uploaded_result.name),
+    #   },
+    #   status=status.HTTP_200_OK,
+    # )
   
 class ResultDeleteView(APIView):
   permission_classes = [IsAuthenticated, IsAdminUser]
