@@ -42,6 +42,7 @@ const ViewAttachments = () => {
   const [modalText, setModalText] = useState("");
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
+  
   console.log("Record in Attachments:", record);
   useEffect(() => {
     const mappedFiles = record.attachments.reduce((acc, doc) => {
@@ -236,7 +237,6 @@ const ViewAttachments = () => {
               <p className="font-bold italic">
                 Review all uploaded documents before approving or rejecting.
               </p>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-6">
                 {requiredDocs.map((d) => {
                   const uploaded = files[d.key];
