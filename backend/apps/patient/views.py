@@ -92,45 +92,13 @@ class PreEnrollmentView(generics.CreateAPIView):
 
     # --- Step 5: Return structured response ---
     return Response(
-      self.get_serializer(result).data,
-      status=status.HTTP_201_CREATED
+        PatientSerializer(patient, context={"request": request}).data,  # Use PatientSerializer here
+        status=status.HTTP_201_CREATED
     )
-# class PreEnrollmentView(generics.CreateAPIView):
-#   queryset = Patient.objects.all() 
-#   serializer_class = AdminPreEnrollmentSerializer
-
-#   def create(self, request, *args, **kwargs):
-#     cancer_data = json.loads(request.data.get("cancer_data", "{}"))
-#     general_data = json.loads(request.data.get("general_data", "{}"))
-
-#     serializer = self.get_serializer(
-#       data={"general_data": general_data, "cancer_data": cancer_data},
-#       context={"request": request}
-#     )
-
-#     serializer.is_valid(raise_exception=True)
-#     result = serializer.save()
-
-#     patient = result["general_data"] 
-#     cancer_data = result["cancer_data"]
-
-#     CancerDiagnosis.objects.create(
-#       patient=patient,
-#       diagnosis=cancer_data.final_diagnosis,
-#       date_diagnosed=cancer_data.date_of_diagnosis,
-#       cancer_site=", ".join(cancer_data.primary_sites.values_list("name", flat=True)),
-#       cancer_stage=cancer_data.staging,
-#     )
-
-#     photo_url = self.request.FILES.get('photoUrl')
-#     if photo_url:
-#       patient.photo_url = photo_url
-#       patient.save()
-    
-#     return Response(
-#       self.get_serializer(result).data,
-#       status=status.HTTP_201_CREATED
-#     )
+    # return Response(
+    #   self.get_serializer(result).data,
+    #   status=status.HTTP_201_CREATED
+    # )
 
 class PatientUpdateView(generics.UpdateAPIView):
   queryset = Patient.objects.all()
@@ -166,10 +134,15 @@ class PatientUpdateView(generics.UpdateAPIView):
       patient.photo_url = photo_url
       patient.save()
 
+    # Return with the PatientSerializer to get Cloudinary URLs
     return Response(
-      PatientSerializer(patient, context={"request": request}).data,
-      status=status.HTTP_200_OK,
+        PatientSerializer(patient, context={"request": request}).data,  # Use PatientSerializer here
+        status=status.HTTP_200_OK,
     )
+    # return Response(
+    #   PatientSerializer(patient, context={"request": request}).data,
+    #   status=status.HTTP_200_OK,
+    # )
 
 class PatientDetailView(generics.RetrieveAPIView):
   queryset = Patient.objects.all()

@@ -95,6 +95,9 @@ class PatientSerializer(serializers.ModelSerializer):
   age = serializers.ReadOnlyField()
   full_name = serializers.ReadOnlyField()
 
+  # Add URL fields for Cloudinary files
+  photo_url_display = serializers.SerializerMethodField()
+
   class Meta:
     model = Patient
     fields = [
@@ -105,6 +108,12 @@ class PatientSerializer(serializers.ModelSerializer):
       'historical_updates', 'photo_url', 'pre_screening_form', 'service_received'
     ]
     read_only_fields = ('created_at', 'patient_id', 'photo_url')
+  
+  def get_photo_url_display(self, obj):
+    """Return the Cloudinary URL for the photo"""
+    if obj.photo_url:
+        return obj.photo_url.url  # This returns the full Cloudinary URL
+    return None
 
 class AdminPreEnrollmentSerializer(serializers.Serializer):
   general_data = PatientSerializer()
