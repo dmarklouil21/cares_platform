@@ -166,8 +166,8 @@ const RadioactiveDocument = () => {
         
         const method = isResubmitting ? api.patch : api.post;
 
-      // await method(endpoint, formData, { headers: { "Content-Type": "multipart/form-data" } });
-      await method(endpoint, formData);
+      await method(endpoint, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      // await method(endpoint, formData);
 
         navigate("/beneficiary/applications/cancer-treatment", {
         state: {
