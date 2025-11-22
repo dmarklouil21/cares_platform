@@ -91,14 +91,14 @@ class PreEnrollmentView(generics.CreateAPIView):
         patient.save(update_fields=["photo_url"])
 
     # --- Step 5: Return structured response ---
-    return Response(
-        PatientSerializer(patient, context={"request": request}).data,  # Use PatientSerializer here
-        status=status.HTTP_201_CREATED
-    )
     # return Response(
-    #   self.get_serializer(result).data,
-    #   status=status.HTTP_201_CREATED
+    #     PatientSerializer(patient, context={"request": request}).data,  # Use PatientSerializer here
+    #     status=status.HTTP_201_CREATED
     # )
+    return Response(
+      self.get_serializer(result).data,
+      status=status.HTTP_201_CREATED
+    )
 
 class PatientUpdateView(generics.UpdateAPIView):
   queryset = Patient.objects.all()
@@ -135,14 +135,14 @@ class PatientUpdateView(generics.UpdateAPIView):
       patient.save()
 
     # Return with the PatientSerializer to get Cloudinary URLs
-    return Response(
-        PatientSerializer(patient, context={"request": request}).data,  # Use PatientSerializer here
-        status=status.HTTP_200_OK,
-    )
     # return Response(
-    #   PatientSerializer(patient, context={"request": request}).data,
-    #   status=status.HTTP_200_OK,
+    #     PatientSerializer(patient, context={"request": request}).data,  # Use PatientSerializer here
+    #     status=status.HTTP_200_OK,
     # )
+    return Response(
+      PatientSerializer(patient, context={"request": request}).data,
+      status=status.HTTP_200_OK,
+    )
 
 class PatientDetailView(generics.RetrieveAPIView):
   queryset = Patient.objects.all()
