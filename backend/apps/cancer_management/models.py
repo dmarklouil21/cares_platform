@@ -81,7 +81,7 @@ class ServiceAttachment(models.Model):
     on_delete=models.CASCADE,
     related_name="attachments"
   )
-  file = CloudinaryField('document', folder=service_document_path)
+  file = CloudinaryField('document', folder=f'cancer_management/service_documents/{cancer_treatment.service_type}/')
   uploaded_at = models.DateTimeField(auto_now_add=True)
 
   # optional: track type (medical_cert, lab_results, etc.)

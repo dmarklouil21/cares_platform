@@ -167,17 +167,6 @@ class CancerTreatmentCreationSerializer(serializers.Serializer):
             question_id=q_id,
             value=value,
           )
-    # answers = well_being_data.get("answers", {})
-    # for q_id, value in answers.items():
-    #   try:
-    #     q = WellBeingQuestion.objects.get(id=q_id)
-    #     WellBeingAnswer.objects.create(
-    #       assessment=assessment,
-    #       question=q,
-    #       value=value,
-    #     )
-    #   except WellBeingQuestion.DoesNotExist:
-    #     continue
 
     # 3. Create CancerTreatment
     cancer_treatment = CancerTreatment.objects.create(
@@ -197,10 +186,3 @@ class CancerTreatmentCreationSerializer(serializers.Serializer):
         doc_type=key 
       )
     return cancer_treatment
-
-# for doc_type, f in files.items():
-    #   ServiceAttachment.objects.create(
-    #     cancer_treatment=cancer_treatment,
-    #     file=f,
-    #     doc_type=doc_type
-    #   )
