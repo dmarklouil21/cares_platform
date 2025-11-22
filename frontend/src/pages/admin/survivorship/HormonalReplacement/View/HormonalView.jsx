@@ -129,6 +129,15 @@ const HormonalView = () => {
       ? "bg-red-100 text-red-700 border border-red-200"
       : "bg-yellow-100 text-yellow-700";
 
+  const statusLevels = {
+    "Pending": 0,
+    "Approved": 1,
+    "Completed": 2,
+  };
+
+  // Get the numeric level of the SAVED record status
+  const currentLevel = statusLevels[data?.status] || 0;
+
   return (
     <>
       {loading && <SystemLoader />}
@@ -209,9 +218,10 @@ const HormonalView = () => {
                   className="-ml-1 outline-none focus:ring-0 text-gray-700"
                   value={status}
                   onChange={handleStatusChange}
+                  disabled={data?.status === "Completed"}
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="Approved">Approved</option>
+                  <option value="Pending" disabled={currentLevel > 0}>Pending</option>
+                  <option value="Approved" disabled={currentLevel > 1}>Approved</option>
                   <option value="Completed">Completed</option>
                 </select>
               </div>

@@ -488,9 +488,10 @@ const DetailedView = () => {
                   className="-ml-1 outline-none focus:ring-0 text-gray-700"
                   value={status}
                   onChange={handleStatusChange}
+                  disabled={record?.status === "Completed" || record?.status === "Rejected"}
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="Approved">Approve</option>
+                  <option value="Pending" disabled={record?.status !== "Pending"}>Pending</option>
+                  <option value="Approved" disabled={record?.status === "Completed"}>Approve</option>
                   <option value="Completed">Complete</option>
                   <option value="Rejected">Reject</option>
                 </select>
@@ -572,7 +573,9 @@ const DetailedView = () => {
               <div className="flex gap-2">
                 <span className="font-medium w-50">
                   Screening Results{" "}
-                  <span className="text-xs text-red-500">(Missing)</span>
+                  <span className="text-xs text-red-500">
+                    {record?.uploaded_result ? "" : "(Missing)"}
+                  </span>
                 </span>
                 <Link
                   className="text-blue-700"

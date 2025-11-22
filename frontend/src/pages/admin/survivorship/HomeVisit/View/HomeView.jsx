@@ -285,6 +285,15 @@ const HomeVisitView = () => {
       ? "bg-red-100 text-red-700 border border-red-200"
       : "bg-yellow-100 text-yellow-700";
 
+  const statusLevels = {
+    "Pending": 0,
+    "Processing": 1,
+    "Recommendation": 2,
+  };
+
+  // Get the numeric level of the SAVED record status
+  const currentLevel = statusLevels[data?.status] || 0;
+
   return (
     <>
       {loading && <SystemLoader />}
@@ -394,11 +403,12 @@ const HomeVisitView = () => {
                   className="-ml-1 outline-none focus:ring-0 text-gray-700"
                   value={status}
                   onChange={handleStatusChange}
+                  disabled={data?.status === "Completed"}
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="Processing">Processing</option>
-                  <option value="Recommendation">Recommendation</option>
-                  <option value="Closed">Closed</option>
+                  <option value="Pending" disabled={currentLevel > 0}>Pending</option>
+                  <option value="Processing" disabled={currentLevel > 1}>Processing</option>
+                  <option value="Recommendation" disabled={currentLevel > 2}>Recommendation</option>
+                  <option value="Completed">Completed</option>
                 </select>
               </div>
               <div className="flex gap-2">
