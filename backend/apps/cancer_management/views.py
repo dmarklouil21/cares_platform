@@ -262,10 +262,10 @@ class ResultAttachmentUploadView(APIView):
     file = attachments[0]
     validate_attachment(file)
 
-    if cancer_treatment.uploaded_result:
-      old_path = cancer_treatment.uploaded_result.path
-      if os.path.exists(old_path):
-        os.remove(old_path)
+    # if cancer_treatment.uploaded_result:
+    #   old_path = cancer_treatment.uploaded_result.path
+    #   if os.path.exists(old_path):
+    #     os.remove(old_path)
 
     cancer_treatment.uploaded_result = file
     cancer_treatment.save()
