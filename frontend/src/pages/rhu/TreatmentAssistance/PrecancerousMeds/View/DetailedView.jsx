@@ -152,46 +152,6 @@ const PreCancerousView = () => {
       setModalAction(null);
     }
   }
-  // const handleConfirmAction = async () => {
-  //   const action = confirmAction;
-  //   setConfirmOpen(false);
-  //   setConfirmAction(null);
-
-  //   try {
-  //     if (action === "save") {
-  //       await adminSetReleaseDate(id, releaseDate);
-  //       setToast({ type: "success", message: "Release date saved." });
-  //     }
-
-  //     if (action === "done") {
-  //       await adminDonePreCancerousMeds(id);
-  //       setStatus("Done");
-  //       setToast({ type: "success", message: "Marked as done." });
-  //     }
-
-  //     // refresh details
-  //     const fresh = await adminGetPreCancerousMedsDetail(id);
-  //     setPatient(fresh);
-  //     setReleaseDate(fresh.release_date_of_meds || "");
-
-  //     // Navigate back after a short delay
-  //     setTimeout(() => {
-  //       navigate("/Admin/treatment/precancerous");
-  //     }, 900);
-  //   } catch (e) {
-  //     setToast({ type: "error", message: "Action failed. Please try again." });
-  //   }
-  // };
-
-  // if (loading) {
-  //   return (
-  //     <div className="h-screen w-full flex flex-col items-center justify-center bg-[#F8F9FA]">
-  //       <div className="bg-white p-6 rounded shadow">
-  //         <p className="font-semibold">Loading...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   if (error || !preCancerous) {
     return (
@@ -217,6 +177,15 @@ const PreCancerousView = () => {
       : preCancerous?.status === "Rejected"
       ? "bg-red-100 text-red-700 border border-red-200"
       : "bg-yellow-100 text-yellow-700";
+
+  const statusLevels = {
+    "Pending": 0,
+    "Approved": 1,
+    "Completed": 2,
+  };
+
+  // Get the numeric level of the SAVED record status
+  const currentLevel = statusLevels[preCancerous?.status] || 0;
 
   return (
     <>
@@ -297,9 +266,10 @@ const PreCancerousView = () => {
                 className="-ml-1 outline-none focus:ring-0 text-gray-700"
                 value={status}
                 onChange={handleStatusChange}
+                disabled={preCancerous?.status === "Completed"}
               >
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
+                <option value="Pending" disabled={currentLevel > 0}>Pending</option>
+                <option value="Approved" disabled={currentLevel > 1}>Approved</option>
                 <option value="Completed">Completed</option>
               </select>
             </div>

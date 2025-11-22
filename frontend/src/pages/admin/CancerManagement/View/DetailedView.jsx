@@ -401,6 +401,21 @@ const AdminCancerManagementView = () => {
       document.title = originalTitle;
     }, 1000); // 1 second delay
   };
+
+  // Define the hierarchy of your workflow
+  const statusSteps = {
+    "Pending": 0,
+    "Interview Process": 1,
+    "Case Summary Generation": 2,
+    "Approved": 3,
+    // Completed and Rejected are usually final steps
+    "Completed": 4, 
+    "Rejected": 5 
+  };
+
+  // Get the number for the CURRENT saved status
+  const currentStep = statusSteps[record?.status] || 0;
+
   return (
     <>
       {loading && <SystemLoader />}
@@ -453,36 +468,6 @@ const AdminCancerManagementView = () => {
         onConfirm={() => setRemarksModalOpen(false)}
         confirmText="Confirm"
       />
-      {/* {remarksModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">
-              Remarks
-            </h2>
-            <textarea
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:outline-none mb-4 resize-none"
-              rows={4}
-              placeholder="Enter your remarks here..."
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-            />
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-5 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
-                onClick={() => setRemarksModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-5 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors"
-                onClick={handleReturn}
-              >
-                Send
-              </button>
-            </div>
-          </div>
-        </div>
-      )} */}
 
       {/* Send LOA Modal */}
       <FileUploadModal
@@ -575,13 +560,14 @@ const AdminCancerManagementView = () => {
                   className="-ml-1 outline-none focus:ring-0 text-gray-700"
                   value={status}
                   onChange={handleStatusChange}
+                  disabled={record?.status === "Completed" || record?.status === "Rejected"}
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="Interview Process">Interview Process</option>
-                  <option value="Case Summary Generation">
+                  <option value="Pending" disabled={currentStep > 0}>Pending</option>
+                  <option value="Interview Process" disabled={currentStep > 1} >Interview Process</option>
+                  <option value="Case Summary Generation" disabled={currentStep > 2}>
                     Case Summary Generation
                   </option>
-                  <option value="Approved">Approve</option>
+                  <option value="Approved" disabled={currentStep > 3}>Approve</option>
                   <option value="Rejected">Reject</option>
                   <option value="Completed">Complete</option>
                 </select>
@@ -687,7 +673,7 @@ const AdminCancerManagementView = () => {
               <div className="flex gap-2">
                 <span className="font-medium w-40">
                   Lab Results{" "}
-                  <span className="text-xs text-red-500">(Missing)</span>
+                  <span className="text-xs text-red-500">{record?.uploaded_result ? "" : "(Missing)"}</span>
                 </span>
                 <Link
                   className="text-blue-700"
