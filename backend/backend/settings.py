@@ -76,9 +76,10 @@ CSRF_TRUSTED_ORIGINS = [
 # -----------------------------------------------------------------------------
 
 INSTALLED_APPS = [
-    # 'cloudinary_storage',
+    'cloudinary_storage',
+    'cloudinary',
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
-    # 'cloudinary',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -90,8 +91,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'anymail', # Using Brevo via API
-
-    'whitenoise.runserver_nostatic',
     
     # Your Apps
     'apps.beneficiary',
@@ -112,14 +111,17 @@ INSTALLED_APPS = [
 ]
 
 # MEDIA CONFIGURATION (Cloudinary)
-# CLOUDINARY_STORAGE = {
-#     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
-#     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
-#     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
-# }
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 
 # Define media storage to use Cloudinary
-# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', # Top priority
@@ -212,6 +214,10 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',  # Project-level static files
+]
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_FINDERS = [
@@ -222,9 +228,6 @@ STATICFILES_FINDERS = [
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 
 # -----------------------------------------------------------------------------
 # EMAIL (BREVO API)
