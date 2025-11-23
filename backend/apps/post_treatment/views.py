@@ -21,6 +21,7 @@ from apps.notifications.utils import create_notification
 from . models import PostTreatment, FollowupCheckups, RequiredAttachment
 from . serializers import PostTreatmentSerializer, PostTreatmentAdminCreateSerializer, RequiredAttachmentSerializer
 
+import cloudinary.uploader
 import logging
 logger = logging.getLogger(__name__)
 
