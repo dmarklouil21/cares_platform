@@ -272,7 +272,8 @@ const LabResult = () => {
                   </div>
                   {files ? (
                     <a
-                      href={files[0].url}
+                      // href={files[0].url}
+                      href={record?.uploaded_result_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 text-sm hover:text-blue-800 cursor-pointer"
