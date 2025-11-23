@@ -85,73 +85,6 @@ useEffect(() => {
   fetchData();
 }, []);
 
-  // Fetch list on mount
-  // useEffect(() => {
-  //   const load = async () => {
-  //     try {
-  //       setLoading(true);
-  //       const data = await adminListPsychosocialActivities();
-  //       const normalized = (Array.isArray(data) ? data : []).map((a) => ({
-  //         ...a,
-  //         photo: a.photo_url || a.photo,
-  //         attachment: a.attachment_url || a.attachment,
-  //         patients:
-  //           typeof a.patients === "string"
-  //             ? a.patients
-  //                 .split(",")
-  //                 .map((s) => s.trim())
-  //                 .filter(Boolean)
-  //             : Array.isArray(a.patients)
-  //             ? a.patients
-  //             : [],
-  //       }));
-  //       setActivities(normalized);
-  //     } catch (e) {
-  //       setNotification("Failed to load activities.");
-  //       setNotificationType("error");
-  //       setTimeout(() => setNotification(""), 2000);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   load();
-  // }, []);
-
-  // Dynamic suggestions from backend
-  // useEffect(() => {
-  //   let alive = true;
-  //   const load = async () => {
-  //     try {
-  //       const res = await api.get("/patient/list/");
-  //       const arr = Array.isArray(res?.data)
-  //         ? res.data
-  //         : Array.isArray(res?.data?.results)
-  //         ? res.data.results
-  //         : [];
-  //       const names = (arr || [])
-  //         .map((d) => d.full_name || `${d.first_name || ""} ${d.last_name || ""}`.trim())
-  //         .filter(Boolean);
-  //       if (alive) setPatientList(names);
-  //     } catch {
-  //       if (alive) setPatientList([]);
-  //     }
-  //   };
-  //   load();
-  //   return () => {
-  //     alive = false;
-  //   };
-  // }, []);
-
-  // useEffect(() => {
-  //   if (!inputFocused) return setSuggestions([]);
-  //   const q = (patientQuery || "").trim().toLowerCase();
-  //   const exclude = new Set(form.patients.map((p) => String(p).toLowerCase()));
-  //   const base = patientList.filter((n) => !exclude.has(String(n).toLowerCase()));
-  //   if (!q) return setSuggestions(base.slice(0, 50));
-  //   const filtered = base.filter((n) => String(n).toLowerCase().includes(q));
-  //   setSuggestions(filtered.slice(0, 20));
-  // }, [inputFocused, patientQuery, form.patients, patientList]);
-
   const resetForm = () => {
     setForm({
       title: "",
@@ -490,7 +423,8 @@ useEffect(() => {
                         </button>
                         {activity.attachment && (
                           <a
-                            href={filePreviewUrl(activity.attachment)}
+                            // href={filePreviewUrl(activity.attachment)}
+                            href={activity.attachment_url}
                             download
                             target="_blank"
                             rel="noreferrer"
@@ -506,7 +440,8 @@ useEffect(() => {
                     {activity.photo && (
                       <div className="mt-2">
                         <img
-                          src={filePreviewUrl(activity.photo)}
+                          // src={filePreviewUrl(activity.photo_url)}
+                          src={activity.photo_url}
                           alt={activity.title}
                           className="w-32 h-32 object-cover rounded-lg border border-gray-200"
                         />
