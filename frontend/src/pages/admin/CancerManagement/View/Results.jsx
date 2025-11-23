@@ -156,6 +156,7 @@ const ViewResults = () => {
   };
 
   const handleViewFile = (file, e) => {
+    console.log("Viewing file:", file);
     e.stopPropagation();
     const fileURL = file.fileObject
       ? URL.createObjectURL(file.fileObject)
