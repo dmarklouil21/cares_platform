@@ -306,11 +306,11 @@ class ResultDeleteView(APIView):
       # cancer_treatment.uploaded_result.delete(save=False)
       file_obj = cancer_treatment.uploaded_result
 
-      is_raw = file_obj.name.lower().endswith(('.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.rar'))
-      res_type = 'raw' if is_raw else 'image'
+      # is_raw = file_obj.name.lower().endswith(('.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.rar'))
+      # res_type = 'raw' if is_raw else 'image'
       
-      cloudinary.uploader.destroy(file_obj.public_id, resource_type=res_type)
-      
+      cloudinary.uploader.destroy(file_obj.public_id, resource_type='auto')
+
       # Clear model field
       cancer_treatment.uploaded_result = None
       cancer_treatment.save(update_fields=["uploaded_result"])
