@@ -202,12 +202,15 @@ const ViewResults = () => {
 
                   {files ? (
                     <div className="flex gap-3">
-                      <span
+                      <a
+                        href={record?.uploaded_result_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="text-blue-600 text-sm hover:text-blue-800 cursor-pointer"
-                        onClick={(e) => handleViewFile(files[0], e)}
+                        // onClick={(e) => handleViewFile(files[0], e)}
                       >
                         View
-                      </span>
+                      </a>
                       <span
                         className="text-yellow text-sm hover:text-yellow-600 cursor-pointer"
                         onClick={handleAddOrEditFile}
