@@ -51,9 +51,16 @@ class IndividualScreeningAdminCreateSerializer(serializers.ModelSerializer):
     ]
 
 class MassScreeningAttachmentSerializer(serializers.ModelSerializer):
+  file_url = serializers.SerializerMethodField()
   class Meta:
     model = MassScreeningAttachment
-    fields = ['id', 'file', 'uploaded_at']
+    fields = ['id', 'file', 'uploaded_at', 'file_url']
+  
+  def get_file_url(self, obj):
+    """Return the Cloudinary URL for the file"""
+    if obj.file:
+        return obj.file.url  # This returns the full Cloudinary URL
+    return None
 
 class MassScreeningRequestSerializer(serializers.ModelSerializer):
   attachments = MassScreeningAttachmentSerializer(many=True, read_only=True)

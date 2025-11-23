@@ -76,7 +76,8 @@ class MassScreeningRequest(models.Model):
 
 class MassScreeningAttachment(models.Model):
   request = models.ForeignKey(MassScreeningRequest, on_delete=models.CASCADE, related_name='attachments')
-  file = models.FileField(upload_to='attachments/mass_screening/')
+  # file = models.FileField(upload_to='attachments/mass_screening/')
+  file = CloudinaryField('document', folder='attachments/mass_screening/screening_documents', resource_type='auto')
   uploaded_at = models.DateTimeField(auto_now_add=True)
 
   def __str__(self):
