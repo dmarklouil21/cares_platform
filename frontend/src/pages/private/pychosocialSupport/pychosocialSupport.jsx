@@ -79,7 +79,7 @@ const PychosocialSupport = () => {
                     className="flex flex-col  md:flex-row gap-8 p-5 border-b-[1.5px] border-primary"
                   >
                     <img
-                      src={activity.photo || "/images/placeholder-image.png"}
+                      src={activity.photo_url || "/images/placeholder-image.png"}
                       alt={activity.title || "Activity photo"}
                       className="h-40 w-72 rounded-md object-cover"
                     />
@@ -96,13 +96,13 @@ const PychosocialSupport = () => {
 
                       {activity.attachment ? (
                         <a
-                          href={activity.attachment}
+                          href={activity.attachment_url}
                           target="_blank"
                           rel="noreferrer"
                           className="flex items-center justify-start gap-2 text-[12px] text-blue-600 underline"
                         >
                           <img
-                            src="/src/assets/images/input_icons/attachmenticon.svg"
+                            src="/assets/images/input_icons/attachmenticon.svg"
                             alt="attachment icon"
                             className="h-3.5 w-3.5"
                           />

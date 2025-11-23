@@ -142,7 +142,7 @@ const ViewActivity = () => {
                   <div>
                     <h4 className="text-sm font-semibold text-gray-700 mb-2">Photo</h4>
                     <img
-                      src={activity.photo}
+                      src={activity.photo_url}
                       alt={activity.title}
                       className="w-full max-w-md rounded-lg shadow-sm border border-gray-200"
                     />
