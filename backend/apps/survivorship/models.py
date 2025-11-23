@@ -3,6 +3,8 @@ from django.db import models
 from apps.patient.models import Patient
 from apps.cancer_management.models import WellBeingAssessment
 
+from cloudinary.models import CloudinaryField
+
 # Create your models here.
 
 STATUS_CHOICES = [
@@ -59,7 +61,8 @@ class HormonalReplacement(models.Model):
 
 class HormonalReplacementRequiredAttachment(models.Model):
   hormonal_replacement = models.ForeignKey(HormonalReplacement, on_delete=models.CASCADE, related_name='required_attachments')
-  file = models.FileField(upload_to='attachments/hormonal_replacement/')
+  # file = models.FileField(upload_to='attachments/hormonal_replacement/')
+  file = CloudinaryField('document', folder='attachments/hormonal_replacement/required_documents', resource_type='auto')
   uploaded_at = models.DateTimeField(auto_now_add=True)
 
   doc_type = models.CharField(max_length=100, blank=True, null=True)

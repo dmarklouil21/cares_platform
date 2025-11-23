@@ -11,9 +11,16 @@ from apps.cancer_management.serializers import WellBeingAssessmentSerializer
 from .models import PatientHomeVisit, HormonalReplacement, HormonalReplacementRequiredAttachment
 
 class HormonalReplacementRequiredAttachmentSerializer(serializers.ModelSerializer):
+  file_url = serializers.SerializerMethodField()
   class Meta:
     model = HormonalReplacementRequiredAttachment
-    fields = ['id', 'file', 'uploaded_at', 'doc_type']
+    fields = ['id', 'file', 'uploaded_at', 'doc_type', 'file_url']
+  
+  def get_file_url(self, obj):
+    """Return the Cloudinary URL for the file"""
+    if obj.file:
+        return obj.file.url  # This returns the full Cloudinary URL
+    return None
 
 class HomevisitSerializer(serializers.ModelSerializer):
   patient_id = serializers.CharField(write_only=True)
