@@ -27,15 +27,21 @@ class IndividualScreeningSerializer(serializers.ModelSerializer):
   patient = PatientSerializer(read_only=True)
   screening_attachments = ScreeningAttachmentSerializer(many=True, read_only=True)
 
+  uploaded_result_url = serializers.SerializerMethodField()
   class Meta:
     model = IndividualScreening
     fields = [
       'id', 'patient', 'procedure_name', 'procedure_details', 'cancer_site',
       'status', 'created_at', 'has_patient_response', 'screening_attachments', 'service_provider',
-      'response_description', 'date_approved', 'screening_date', 'uploaded_result',
+      'response_description', 'date_approved', 'screening_date', 'uploaded_result', 'uploaded_result_url',
     ]
   
-
+  def get_uploaded_result_url(self, obj):
+    """Return the Cloudinary URL for uploaded_result"""
+    if obj.uploaded_result:
+        return obj.uploaded_result.url
+    return None
+  
 class IndividualScreeningAdminCreateSerializer(serializers.ModelSerializer):
   class Meta:
     model = IndividualScreening
