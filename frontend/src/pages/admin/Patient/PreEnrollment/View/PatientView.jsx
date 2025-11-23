@@ -70,7 +70,7 @@ const PatientMasterListView = () => {
               {/* Photo */}
               <div className="w-[120px] h-[120px] border border-gray-300 rounded-lg overflow-hidden">
                 <img
-                  src={patient?.photo_url}
+                  src={patient?.photo_url_display}
                   alt="2x2 ID"
                   className="w-full h-full object-cover"
                 />
