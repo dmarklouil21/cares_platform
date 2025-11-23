@@ -302,7 +302,7 @@ class ResultDeleteView(APIView):
     
     try:
       # Get file path before deleting from model
-      file_path = cancer_treatment.uploaded_result.path
+      # file_path = cancer_treatment.uploaded_result.path
 
       # Delete file reference from model
       cancer_treatment.uploaded_result.delete(save=False)
