@@ -303,14 +303,12 @@ class ResultDeleteView(APIView):
     
     try:
       # Delete file reference from model
-      # cancer_treatment.uploaded_result.delete(save=False)
       file_obj = cancer_treatment.uploaded_result
       public_id = file_obj.public_id
 
       raw_extensions = ('.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.rar')
       is_raw = public_id.lower().endswith(raw_extensions)
 
-      # is_raw = file_obj.name.lower().endswith(('.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.rar'))
       res_type = 'raw' if is_raw else 'image'
       
       cloudinary.uploader.destroy(public_id, resource_type=res_type)
