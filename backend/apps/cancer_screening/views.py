@@ -41,6 +41,7 @@ from .serializers import (
   MassScreeningAttendanceBulkSerializer,
 )
 
+import cloudinary.uploader
 import os
 import logging
 logger = logging.getLogger(__name__)
@@ -299,22 +300,30 @@ class ResultAttachmentUploadView(APIView):
     file = attachments[0]
     validate_attachment(file)
 
-    if individual_screening.uploaded_result:
-      old_path = individual_screening.uploaded_result.path
-      if os.path.exists(old_path):
-        os.remove(old_path)
+    # if individual_screening.uploaded_result:
+    #   old_path = individual_screening.uploaded_result.path
+    #   if os.path.exists(old_path):
+    #     os.remove(old_path)
 
     individual_screening.uploaded_result = file
     individual_screening.save()
 
+    serializer = IndividualScreeningSerializer(individual_screening, context={'request': request})
     return Response(
-      {
-        "message": "Attachment uploaded successfully.",
-        "file_url": individual_screening.uploaded_result.url,
-        "file_name": os.path.basename(individual_screening.uploaded_result.name),
-      },
-      status=status.HTTP_200_OK,
+        {
+            "message": "Attachment uploaded successfully.",
+            "data": serializer.data 
+        },
+        status=status.HTTP_200_OK,
     )
+    # return Response(
+    #   {
+    #     "message": "Attachment uploaded successfully.",
+    #     "file_url": individual_screening.uploaded_result.url,
+    #     "file_name": os.path.basename(individual_screening.uploaded_result.name),
+    #   },
+    #   status=status.HTTP_200_OK,
+    # )
 
 class ResultDeleteView(APIView):
   permission_classes = [IsAuthenticated, IsAdminUser]
@@ -330,18 +339,26 @@ class ResultDeleteView(APIView):
     
     try:
       # Get file path before deleting from model
-      file_path = individual_screening.uploaded_result.path
+      # file_path = individual_screening.uploaded_result.path
 
       # Delete file reference from model
-      individual_screening.uploaded_result.delete(save=False)
+      # individual_screening.uploaded_result.delete(save=False)
+      file_obj = individual_screening.uploaded_result
+      public_id = file_obj.public_id
 
+      raw_extensions = ('.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.rar')
+      is_raw = public_id.lower().endswith(raw_extensions)
+
+      res_type = 'raw' if is_raw else 'image'
+      
+      cloudinary.uploader.destroy(public_id, resource_type=res_type)
       # Clear model field
       individual_screening.uploaded_result = None
       individual_screening.save(update_fields=["uploaded_result"])
 
       # If the file still exists in storage, remove it manually (edge case)
-      if os.path.exists(file_path):
-        os.remove(file_path)
+      # if os.path.exists(file_path):
+      #   os.remove(file_path)
 
       return Response(
         {"message": "Attachment deleted successfully."},

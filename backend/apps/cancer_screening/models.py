@@ -2,6 +2,7 @@ from django.db import models
 from apps.patient.models import Patient
 from apps.rhu.models import RHU, Rhuv2
 from apps.partners.models import Private
+from cloudinary.models import CloudinaryField
 
 # Create your models here.
 
@@ -27,7 +28,8 @@ class IndividualScreening(models.Model):
   date_approved = models.DateField(blank=True, null=True)
   date_completed = models.DateField(blank=True, null=True)
   # loa_generated = models.FileField(upload_to='attachments/loa/', blank=True, null=True)
-  uploaded_result = models.FileField(upload_to='attachments/result/', blank=True, null=True)
+  # uploaded_result = models.FileField(upload_to='attachments/result/', blank=True, null=True)
+  uploaded_result = CloudinaryField('document', folder='attachments/cancer_screening_result/', resource_type='auto', blank=True, null=True)
   has_patient_response = models.BooleanField(default=False)
   response_description = models.CharField(max_length=255, blank=True, null=True)
   screening_date = models.DateField(blank=True, null=True)
@@ -36,52 +38,14 @@ class IndividualScreening(models.Model):
 
 class ScreeningAttachment(models.Model):
   individual_screening = models.ForeignKey(IndividualScreening, on_delete=models.CASCADE, related_name='screening_attachments')
-  file = models.FileField(upload_to='attachments/screening_files/')
+  # file = models.FileField(upload_to='attachments/screening_files/')
+  file = CloudinaryField('document', folder='attachments/cancer_screening/screening_documents', resource_type='auto')
   uploaded_at = models.DateTimeField(auto_now_add=True)
 
   doc_type = models.CharField(max_length=100, blank=True, null=True)
 
   def __str__(self):
     return f"Attachment for {self.individual_screening}"
-
-# class PreCancerousMedsRequest(models.Model):
-#   patient = models.ForeignKey(
-#     Patient,
-#     to_field='patient_id',
-#     db_column='patient_id',
-#     on_delete=models.CASCADE,
-#     related_name='precancerous_meds_requests_legacy',
-#     related_query_name='precancerous_meds_request_legacy'
-#   )
-#   lgu_name = models.CharField(max_length=255)
-#   date = models.DateField()
-#   contact_number = models.CharField(max_length=50, blank=True)
-#   prepared_by = models.CharField(max_length=255)
-#   approved_by = models.CharField(max_length=255)
-#   last_name = models.CharField(max_length=100)
-#   first_name = models.CharField(max_length=100)
-#   middle_initial = models.CharField(max_length=2, blank=True)
-#   date_of_birth = models.DateField()
-#   interpretation_of_result = models.CharField(
-#     max_length=50,
-#     choices=[
-#       ('Negative', 'Negative'),
-#       ('ASC-US', 'ASC-US'),
-#       ('HPV Positive', 'HPV Positive'),
-#       ('Unsatisfactory', 'Unsatisfactory'),
-#       ('Other', 'Other'),
-#     ]
-#   )
-#   status = models.CharField(max_length=20, default='Pending')
-#   release_date_of_meds = models.DateField(null=True, blank=True)
-#   created_at = models.DateTimeField(auto_now_add=True)
-
-#   class Meta:
-#     db_table = 'cancer_screening_precancerousmedsrequest'
-#     managed = False
-
-#   def __str__(self):
-#     return f"PreCancerousMedsRequest for {self.patient.full_name}"
 
 class MassScreeningRequest(models.Model):
   """Represents an RHU-initiated mass screening request."""
