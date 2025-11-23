@@ -359,7 +359,7 @@ const applicationView = () => {
 
                       <div className="flex items-center gap-3">
                         <a
-                          href={att.url === "#" ? undefined : att.url}
+                          href={att.url === "#" ? undefined : att.file_url}
                           target={att.url === "#" ? undefined : "_blank"}
                           rel="noopener noreferrer"
                           onClick={(e) => {

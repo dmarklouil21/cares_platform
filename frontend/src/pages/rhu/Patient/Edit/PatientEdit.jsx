@@ -90,7 +90,7 @@ const PatientMasterListEdit = () => {
         if (isMounted) {
           setForm({...data});
           // setHistoricalUpdates(response.data.historical_updates);
-          setPhotoUrl(data.photo_url);
+          setPhotoUrl(data.photo_url_display);
         }
       } catch (error) {
         console.error("Error fetching patient data:", error);
