@@ -2,13 +2,15 @@ from django.db import models
 
 from apps.patient.models import Patient
 
+from cloudinary.models import CloudinaryField
+
 class Activity(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, null=True)
     date = models.DateField()
 
-    photo = models.ImageField(upload_to='psychosocial_support/photos/', null=True, blank=True)
-    attachment = models.FileField(upload_to='psychosocial_support/attachments/', null=True, blank=True)
+    photo = CloudinaryField('image', folder='attachments/psychosocial/photos/', blank=True, null=True)
+    attachment = CloudinaryField('document', folder='attachments/psychosocial/files/', resource_type='auto', blank=True, null=True)
 
     # Store attendee names as a simple comma-separated string for simplicity.
     patients = models.TextField(blank=True, default="")

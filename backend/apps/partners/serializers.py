@@ -11,6 +11,9 @@ from .models import Private, PrivateRepresentative, CancerAwarenessAttendance, C
 class CancerAwarenessActivitySerializer(serializers.ModelSerializer):
   uploader_name = serializers.CharField(source="uploader.fullname", read_only=True)
 
+  attachment_url = serializers.SerializerMethodField()
+  photo_url = serializers.SerializerMethodField()
+
   class Meta:
     model = CancerAwarenessActivity
     fields = [
@@ -21,11 +24,24 @@ class CancerAwarenessActivitySerializer(serializers.ModelSerializer):
       "description",
       "date",
       "photo",
+      "photo_url",
       "attachment",
+      "attachment_url",
       "created_at",
       # "updated_at",
     ]
     read_only_fields = ["id", "created_at", "uploader_name"]
+  
+  def get_attachment_url(self, obj):
+    """Return the Cloudinary URL for the file"""
+    if obj.attachment:
+        return obj.attachment.url  # This returns the full Cloudinary URL
+    return None
+  def get_photo_url(self, obj):
+    """Return the Cloudinary URL for the photo"""
+    if obj.photo:
+        return obj.photo.url  # This returns the full Cloudinary URL
+    return None
 
 class AttendanceSerializer(serializers.ModelSerializer):
     patient = PatientSerializer(read_only=True)
@@ -74,18 +90,12 @@ class AttendanceCreateSerializer(serializers.ModelSerializer):
         
         return CancerAwarenessAttendance.objects.bulk_create(attendances)
   
-  # def create(self, validated_data):
-  #   uploader = self.request.user
-
-  #   cancer_awareness_activity = CancerAwarenessActivity.objects.create(uploader=uploader, **validated_data)
-        
-  #   return cancer_awareness_activity
-
 # New models for the rhu 
 class PrivateRepresentativeSerializer(serializers.ModelSerializer):
   institution_name = serializers.ReadOnlyField(source='private.institution_name')
   # lgu = serializers.CharField(write_only=True, required=True)
   address = serializers.CharField(write_only=True, required=True)
+  avatar_url = serializers.SerializerMethodField()
 
   class Meta:
     model = PrivateRepresentative
@@ -99,9 +109,16 @@ class PrivateRepresentativeSerializer(serializers.ModelSerializer):
       'email',
       'phone_number',
       'avatar',
+      'avatar_url',
       'address',
       'created_at'
     ]
+  
+  def get_avatar_url(self, obj):
+    """Return the Cloudinary URL for the avatar"""
+    if obj.avatar:
+        return obj.avatar.url  # This returns the full Cloudinary URL
+    return None
 
   def validate(self, attrs):
     """

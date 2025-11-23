@@ -7,23 +7,34 @@ from apps.patient.models import Patient
 from apps.patient.serializers import PatientSerializer
 
 class ActivitySerializer(serializers.ModelSerializer):
-  # uploader_name = serializers.CharField(source="uploader.fullname", read_only=True)
+  attachment_url = serializers.SerializerMethodField()
+  photo_url = serializers.SerializerMethodField()
 
   class Meta:
     model = Activity
     fields = [
       "id",
-      # "uploader",
-      # "uploader_name",
       "title",
       "description",
       "date",
       "photo",
+      "photo_url",
       "attachment",
+      "attachment_url",
       "created_at",
-      # "updated_at",
     ]
     read_only_fields = ["id", "created_at"]
+  
+  def get_attachment_url(self, obj):
+    """Return the Cloudinary URL for the file"""
+    if obj.attachment:
+        return obj.attachment.url  # This returns the full Cloudinary URL
+    return None
+  def get_photo_url(self, obj):
+    """Return the Cloudinary URL for the photo"""
+    if obj.photo:
+        return obj.photo.url  # This returns the full Cloudinary URL
+    return None
 
 class AttendanceSerializer(serializers.ModelSerializer):
     patient = PatientSerializer(read_only=True)
@@ -43,9 +54,6 @@ class AttendanceCreateSerializer(serializers.ModelSerializer):
         fields = ['patient_ids']
     
     def create(self, validated_data):
-        print("Context: ", self.context)
-        print("Validated Data: ", validated_data)
-        
         # Get the activity object directly from context
         activity = self.context.get('activity')
         
@@ -145,37 +153,3 @@ class ActivityCreateSerializer(serializers.ModelSerializer):
                 items = list(value) if not isinstance(value, dict) else list(value.values())
             return ', '.join([str(x).strip() for x in items if str(x).strip()])
         return str(value)
-
-
-# class ActivitySerializer(serializers.ModelSerializer):
-#     # Simple serializer that exposes patients as plain text
-#     photo_url = serializers.SerializerMethodField()
-#     attachment_url = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = Activity
-#         fields = [
-#             'id', 'title', 'description', 'date',
-#             'photo', 'attachment', 'photo_url', 'attachment_url',
-#             'patients', 'created_at'
-#         ]
-
-#     def get_photo_url(self, obj):
-#         try:
-#             if obj.photo and hasattr(obj.photo, 'url'):
-#                 request = self.context.get('request')
-#                 url = obj.photo.url
-#                 return request.build_absolute_uri(url) if request else url
-#         except Exception:
-#             return None
-#         return None
-
-#     def get_attachment_url(self, obj):
-#         try:
-#             if obj.attachment and hasattr(obj.attachment, 'url'):
-#                 request = self.context.get('request')
-#                 url = obj.attachment.url
-#                 return request.build_absolute_uri(url) if request else url
-#         except Exception:
-#             return None
-#         return None

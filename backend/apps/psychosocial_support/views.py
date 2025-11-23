@@ -42,8 +42,6 @@ class ActivityAttendeesView(APIView):
     
     def post(self, request, id):
         try:
-            print(f"Received request for activity {id}")
-            print(f"Request data: {request.data}")
             activity = Activity.objects.get(id=id)
             
             # Pass the activity object directly instead of just the ID
@@ -51,9 +49,7 @@ class ActivityAttendeesView(APIView):
                 data=request.data, 
                 context={'activity': activity}  # Pass the object, not just ID
             )
-            
-            print('Serializer: ', serializer)
-            
+  
             if serializer.is_valid():
                 serializer.save()
                 attendances = activity.attendances.all()

@@ -1,5 +1,7 @@
 from django.db import models
 
+from cloudinary.models import CloudinaryField
+
 from apps.patient.models import Patient
 
 from apps.user.models import User
@@ -10,8 +12,10 @@ class CancerAwarenessActivity(models.Model):
   title = models.CharField(max_length=255)
   description = models.TextField()
   date = models.DateTimeField()
-  photo = models.ImageField(upload_to='cancer_awareness_activity/photos/', blank=True, null=True)
-  attachment = models.FileField(upload_to='attachments/cancer_awareness_activity/', blank=True, null=True)
+  # photo = models.ImageField(upload_to='cancer_awareness_activity/photos/', blank=True, null=True)
+  # attachment = models.FileField(upload_to='attachments/cancer_awareness_activity/', blank=True, null=True)
+  photo = CloudinaryField('image', folder='attachments/cancer_awareness_activity/photos/', blank=True, null=True)
+  attachment = CloudinaryField('document', folder='attachments/cancer_awareness_activity/files/', resource_type='auto', blank=True, null=True)
   created_at = models.DateTimeField(auto_now_add=True)
 
   class Meta:
@@ -58,7 +62,7 @@ class PrivateRepresentative (models.Model):
   email = models.EmailField()
   address = models.CharField(max_length=255)
   phone_number = models.CharField(max_length=15)
-  avatar = models.ImageField(upload_to='rhu/avatar/', null=True, blank=True)
+  avatar = CloudinaryField('image', folder='private/avatar/photos/', blank=True, null=True)
 
   created_at = models.DateField(auto_now_add=True)
 

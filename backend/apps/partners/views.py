@@ -89,16 +89,6 @@ class CancerAwarenessActivityCreateView(generics.CreateAPIView):
     except Exception:
       logger.exception("Error creating cancer awareness activity")
       raise
-    # serializer.save(uploader=self.request.user)
-    # try:
-    #   with transaction.atomic():
-    #     uploader = self.request.user
-
-    #     cancer_awareness = serializer.save(uploader=uploader)
-
-    # except Exception as e:
-    #   logger.error(f"Error creating screening procedure: {str(e)}")
-    #   raise e
 
 class ActivityAttendeesView(APIView):
     def get(self, request, id):
