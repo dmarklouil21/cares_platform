@@ -23,6 +23,7 @@ from backend.utils.email import (
   send_service_registration_email
 )
 
+import cloudinary.uploader
 import json
 import os
 import logging
@@ -301,19 +302,18 @@ class ResultDeleteView(APIView):
       )
     
     try:
-      # Get file path before deleting from model
-      # file_path = cancer_treatment.uploaded_result.path
-
       # Delete file reference from model
-      cancer_treatment.uploaded_result.delete(save=False)
+      # cancer_treatment.uploaded_result.delete(save=False)
+      file_obj = cancer_treatment.uploaded_result
 
+      is_raw = file_obj.name.lower().endswith(('.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.rar'))
+      res_type = 'raw' if is_raw else 'image'
+      
+      cloudinary.uploader.destroy(file_obj.public_id, resource_type=res_type)
+      
       # Clear model field
       cancer_treatment.uploaded_result = None
       cancer_treatment.save(update_fields=["uploaded_result"])
-
-      # If the file still exists in storage, remove it manually (edge case)
-      # if os.path.exists(file_path):
-      #   os.remove(file_path)
 
       return Response(
         {"message": "Attachment deleted successfully."},
