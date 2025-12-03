@@ -203,7 +203,7 @@ const ViewResults = () => {
                   {files ? (
                     <div className="flex gap-3">
                       <a
-                        href={record?.uploaded_result_url}
+                        href={record?.uploaded_result}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 text-sm hover:text-blue-800 cursor-pointer"

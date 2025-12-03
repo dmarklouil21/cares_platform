@@ -139,7 +139,7 @@ const PatientMasterListEdit = () => {
         // const normalized = normalizePatient(response.data || {});
         setForm({...data});
         // setHistoricalUpdates(normalized.historical_updates);
-        setPhotoUrl(data.photo_url_display);
+        setPhotoUrl(data.photo_url);
       } catch (error) {
         console.error("Error fetching patient data:", error);
       }

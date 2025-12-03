@@ -80,7 +80,7 @@ const PschosocialSupport = () => {
     setLoading(false);
   }
 };
-
+console.log(activities);
 useEffect(() => {
   fetchData();
 }, []);
@@ -424,7 +424,7 @@ useEffect(() => {
                         {activity.attachment && (
                           <a
                             // href={filePreviewUrl(activity.attachment)}
-                            href={activity.attachment_url}
+                            href={activity.attachment}
                             download
                             target="_blank"
                             rel="noreferrer"
@@ -441,7 +441,7 @@ useEffect(() => {
                       <div className="mt-2">
                         <img
                           // src={filePreviewUrl(activity.photo_url)}
-                          src={activity.photo_url}
+                          src={activity.photo}
                           alt={activity.title}
                           className="w-32 h-32 object-cover rounded-lg border border-gray-200"
                         />

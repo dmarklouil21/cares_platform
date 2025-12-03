@@ -248,7 +248,7 @@ const ViewAttachments = () => {
                       {uploaded ? (
                         <div className="flex gap-3">
                           <a
-                            href={uploaded.file_url || uploaded.file}
+                            href={uploaded.file}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 text-sm hover:text-blue-800"
