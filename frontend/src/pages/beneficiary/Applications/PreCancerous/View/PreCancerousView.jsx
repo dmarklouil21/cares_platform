@@ -1,33 +1,26 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import api from "src/api/axiosInstance";
 import { useAuth } from "src/context/AuthContext";
 
-import { getPreCancerousMedsDetail } from "src/api/precancerous";
+// import { getPreCancerousMedsDetail } from "src/api/precancerous"; // Unused in this snippet but kept if needed
 
 import FileUploadModal from "src/components/Modal/FileUploadModal";
 import CheckupScheduleModal from "src/components/Modal/CheckupScheduleModal";
-
-import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import SystemLoader from "src/components/SystemLoader";
-
-// import LOAPrintTemplate from "../download/LOAPrintTemplate";
 
 // Map status to step index
 const STATUS_TO_STEP = {
   Pending: 0,
   Approved: 1,
   Completed: 2,
-  // "Follow-up Required": 3,
-  // Closed: 3,
 };
 
 const getStepIndexByStatus = (status) => STATUS_TO_STEP[status] ?? 0;
 
 export default function PreCancerousView() {
   const { user } = useAuth();
-  // const location = useLocation();
   const { id } = useParams();
   const [preCancerousMeds, setPreCancerousMeds] = useState(null);
 
@@ -35,12 +28,6 @@ export default function PreCancerousView() {
   const [resultFile, setResultFile] = useState(null);
 
   const [isCheckupModalOpen, setIsCheckupModalOpen] = useState(false);
-
-  // Confirmation Modal State
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalDesc, setModalDesc] = useState("");
-  const [modalAction, setModalAction] = useState(null);
 
   // Notification Modal
   const [showModal, setShowModal] = useState(false);
@@ -59,72 +46,104 @@ export default function PreCancerousView() {
     const baseSteps = [
       {
         title: "Pending",
-        description:
-          activeStep === 0 ? (
+        description: (() => {
+          // 1. PAST
+          if (activeStep > 0) {
+            return (
+              <>
+                Your request has been approved. You have been notified regarding
+                your medicine release details.
+              </>
+            );
+          }
+          // 2. CURRENT
+          return (
             <>
-              Your request for hormonal replacement medication has been
-              submitted and is currently under review. Once approved, you’ll
-              receive instructions on the next steps.
+              Your request for pre-cancerous medication has been submitted
+              and is currently under review. Once approved, you’ll receive
+              instructions on the next steps.
             </>
-          ) : (
-            <>
-              Your request has been approved. You will be notified with your
-              medicines release date through email.
-            </>
-          ),
+          );
+        })(),
       },
       {
         title: "Approved",
-        description:
-          activeStep === 1 ? (
-            <>
-              Your hormonal replacement medication request has been approved{" "}
-              <b>
-                {new Date(
-                  preCancerousMeds?.release_date_of_meds
-                ).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </b>
-              . Please make sure to arrive at least 15 minutes early and bring
-              any required identification.
-            </>
-          ) : (
-            <>
-              Your medicines release date has been scheduled for{" "}
-              <b>
-                {new Date(
-                  preCancerousMeds?.release_date_of_meds
-                ).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </b>
-              . Please make sure to arrive at least 15 minutes early and bring
-              any required identification.
-            </>
-          ),
+        description: (() => {
+          // 1. PAST
+          if (activeStep > 1) {
+            return (
+              <>
+                Medicine release scheduled for{" "}
+                <b>
+                  {preCancerousMeds?.release_date_of_meds
+                    ? new Date(
+                        preCancerousMeds.release_date_of_meds
+                      ).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "N/A"}
+                </b>{" "}
+                is marked as done.
+              </>
+            );
+          }
+          // 2. CURRENT
+          if (activeStep === 1) {
+            return (
+              <>
+                Your pre-cancerous medication request has been approved and is scheduled for released in{" "}
+                <b>
+                  {preCancerousMeds?.release_date_of_meds
+                    ? new Date(
+                        preCancerousMeds.release_date_of_meds
+                      ).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "N/A"}
+                </b>
+                . Please make sure to arrive at the designated date and bring
+                any required identification.
+              </>
+            );
+          }
+          // 3. FUTURE
+          return (
+            <span className="text-gray-500">
+              Once approved, your medicine release date will appear here.
+            </span>
+          );
+        })(),
       },
       {
         title: "Completed",
-        description:
-          activeStep === 2 ? (
-            <>
-              Your hormonal replacement medication request test has been
-              successfully claimed.
-            </>
-          ) : activeStep > 2 ? (
-            <> Your hormonal replacement is complete. </>
-          ) : (
-            <>
-              {" "}
-              You will be notified through email if the medicine is available
-              for claiming.{" "}
-            </>
-          ),
+        description: (() => {
+          // 1. PAST (If there were steps after this)
+          if (activeStep > 2) {
+            return (
+              <p className="text-green-600 font-medium">
+                Medication claimed successfully.
+              </p>
+            );
+          }
+          // 2. CURRENT
+          if (activeStep === 2) {
+            return (
+              <p className="text-green-600 font-medium">
+                Your pre-cancerous medication has been successfully claimed.
+              </p>
+            );
+          }
+          // 3. FUTURE
+          return (
+            <span className="text-gray-500">
+              You will be notified here once the medicine is successfully claimed.
+            </span>
+          );
+        })(),
       },
     ];
 
@@ -164,6 +183,8 @@ export default function PreCancerousView() {
         const formData = new FormData();
         formData.append("file", resultFile);
 
+        // Note: Check if this endpoint is correct for Pre-Cancerous. 
+        // Kept as provided in the snippet.
         await api.patch(
           `/beneficiary/post-treatment/result/upload/${preCancerousMeds.id}/`,
           formData,
@@ -192,13 +213,10 @@ export default function PreCancerousView() {
       }
     } catch (error) {
       console.error(error);
-    } finally {
-      // Stop here
     }
   };
 
   return (
-    // <div className="h-screen w-full flex flex-col bg-[#F8F9FA]">
     <>
       {loading && <SystemLoader />}
 
@@ -209,11 +227,10 @@ export default function PreCancerousView() {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      {/* Upload Result Modal */}
+
       <FileUploadModal
         open={uploadResultModalOpen}
         title="Upload Result"
-        // recipient={data?.patient?.email}
         onFileChange={setResultFile}
         onConfirm={handleUpload}
         onCancel={() => setUploadResultModalOpen(false)}
@@ -224,32 +241,24 @@ export default function PreCancerousView() {
         onClose={() => setIsCheckupModalOpen(false)}
         data={preCancerousMeds}
       />
-      <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
-        {/* <div className=" px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Post Treatment</h1>
-          <Link to="/beneficiary/applications/post-treatment">
-            <img
-              src="/images/back.png"
-              alt="Back"
-              className="h-6 cursor-pointer"
-            />
-          </Link>
-        </div> */}
 
-        {/* <div className="flex-1 w-full py-5 px-5 flex justify-center items-start"> */}
-        <div className="h-full w-full flex flex-col justify-between">
-          {/* <div className="bg-white flex flex-col gap-7 rounded-[4px] shadow-md p-6 w-full max-w-3xl"> */}
-          <div className="border border-black/15 p-3 bg-white rounded-sm">
-            <div className="w-full bg-white rounded-[4px] p-4 ">
-              <h2 className="text-md font-bold mb-3">
-                Pre Cancerous Medication Request
-              </h2>
-              {/* <div className="flex justify-between items-center">
-                <h2 className="text-md font-bold mb-3">Screening Progress</h2>
-              </div> */}
+      {/* Main Container mirroring the modern design */}
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-6 px-5 md:px-10 flex flex-col flex-1">
+          {/* Top Title */}
+          <h2 className="text-xl font-semibold mb-6">Application Status</h2>
 
-              {/* Stepper */}
-              <div className="flex flex-col gap-0">
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-5 md:px-8 flex-1 overflow-auto">
+            
+            {/* Header */}
+            <h1 className="font-bold text-[24px] md:text-3xl text-yellow">
+              Pre-Cancerous Medication Progress
+            </h1>
+
+            {/* Stepper Content */}
+            <div className="flex-1 w-full max-w-4xl">
+              <div className="flex flex-col gap-0 mt-4">
                 {stepList.map((step, idx) => {
                   const isActive = idx === activeStep;
                   const isLast = idx === stepList.length - 1;
@@ -278,31 +287,34 @@ export default function PreCancerousView() {
                       </div>
 
                       {/* Step text */}
-                      <div className="flex flex-col gap-1 pb-8">
+                      <div className="flex flex-col gap-1 pb-10">
                         <h3 className="font-semibold text-md text-gray-800">
-                          {step?.title}
+                          {step.title}
                         </h3>
-                        <p className="text-gray-600 text-sm">
-                          {step?.description}
-                        </p>
+                        <div className="text-gray-600 text-sm">
+                          {step.description}
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="w-full h-full mt-4">
-                <Link
-                  to="/beneficiary/applications/precancerous"
-                  className="flex items-center justify-center border rounded-md w-[300px] py-3 mx-auto border-black/15 hover:bg-black/10 hover:border-black "
-                >
-                  Back
-                </Link>
-              </div>
+            </div>
+
+            {/* Actions / Footer Button */}
+            <div className="mt-6 flex justify-end">
+              <Link
+                to="/beneficiary/applications/precancerous"
+                className="border border-black/15 py-3 rounded-md text-center px-6 hover:bg-black/10 hover:border-black w-full md:w-[40%]"
+              >
+                Back
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* <LOAPrintTemplate loaData={individualScreening} /> */}
+        {/* Bottom decorative strip */}
+        <div className="h-16 bg-secondary"></div>
       </div>
     </>
   );

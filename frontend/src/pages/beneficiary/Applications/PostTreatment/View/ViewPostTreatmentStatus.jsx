@@ -1,32 +1,26 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import api from "src/api/axiosInstance";
 import { useAuth } from "src/context/AuthContext";
 import { Camera } from "lucide-react";
 
 import FileUploadModal from "src/components/Modal/FileUploadModal";
 import CheckupScheduleModal from "src/components/Modal/CheckupScheduleModal";
-
-import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import SystemLoader from "src/components/SystemLoader";
 
-// import LOAPrintTemplate from "../download/LOAPrintTemplate";
-
 // Map status to step index
+// Note: We handle the dynamic "Follow-up" index inside the component logic
 const STATUS_TO_STEP = {
   Pending: 0,
   Approved: 1,
   Completed: 2,
-  // "Follow-up Required": 3,
-  Closed: 3,
+  "Follow-up Required": 3,
+  Closed: 3, // Default closed index, might shift if follow-up exists
 };
-
-const getStepIndexByStatus = (status) => STATUS_TO_STEP[status] ?? 0;
 
 export default function ViewPostTreatmentStatus() {
   const { user } = useAuth();
-  // const location = useLocation();
   const { id } = useParams();
   const [postTreatment, setPostTreatment] = useState(null);
 
@@ -34,12 +28,6 @@ export default function ViewPostTreatmentStatus() {
   const [resultFile, setResultFile] = useState(null);
 
   const [isCheckupModalOpen, setIsCheckupModalOpen] = useState(false);
-
-  // Confirmation Modal State
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalDesc, setModalDesc] = useState("");
-  const [modalAction, setModalAction] = useState(null);
 
   // Notification Modal
   const [showModal, setShowModal] = useState(false);
@@ -51,147 +39,185 @@ export default function ViewPostTreatmentStatus() {
 
   const [loading, setLoading] = useState(false);
 
-  const activeStep = getStepIndexByStatus(postTreatment?.status || "");
+  // Calculate active step dynamically based on whether Follow-up is required
+  const activeStep = useMemo(() => {
+    const status = postTreatment?.status || "";
+    let step = STATUS_TO_STEP[status] ?? 0;
+
+    // If "Closed" and we previously had a follow-up, the step should be 4
+    // (This logic depends on how your backend stores history, but assuming simple status check:)
+    if (status === "Closed" && postTreatment?.follow_up_required_previously) { 
+       // You might need a flag in your data if 'Closed' doesn't distinguish between 
+       // closed-after-followup vs closed-normally. 
+       // For now, we will stick to the basic mapping, but if Follow-up is visible, Closed is step 4.
+       return 4; 
+    }
+    
+    // Simple override for visual flow if strict "Closed" mapping is needed
+    if (status === "Closed" && postTreatment?.status === "Follow-up Required") {
+        return 4;
+    }
+
+    return step;
+  }, [postTreatment]);
 
   // Step definitions
   const stepList = useMemo(() => {
     const baseSteps = [
       {
         title: "Pending",
-        description:
-          activeStep === 0 ? (
+        description: (() => {
+          // 1. PAST
+          if (activeStep > 0) {
+            return (
+              <>
+                Your request has been approved. You have been notified regarding your
+                laboratory test details.
+              </>
+            );
+          }
+          // 2. CURRENT
+          return (
             <>
-              Your request for cancer screening has been submitted and is
+              Your request for post-treatment care has been submitted and is
               currently under review. Once approved, you’ll receive instructions
               on the next steps.
             </>
-          ) : (
-            <>
-              Your request has been approved. You will be notified with your
-              laboratory test date through email.
-            </>
-          ),
+          );
+        })(),
       },
       {
         title: "Approved",
-        description:
-          activeStep === 1 ? (
-            <>
-              Your post treatment laboratory test request has been approved{" "}
-              <b>
-                {new Date(
-                  postTreatment?.laboratory_test_date
-                ).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </b>
-              . Please make sure to arrive at least 15 minutes early and bring
-              any required identification.
-            </>
-          ) : (
-            <>
-              Your laboratory test has been scheduled for{" "}
-              <b>
-                {new Date(
-                  postTreatment?.laboratory_test_date
-                ).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </b>
-              . Please make sure to arrive at least 15 minutes early and bring
-              any required identification.
-            </>
-          ),
+        description: (() => {
+          // 1. PAST
+          if (activeStep > 1) {
+            return (
+              <>
+                Laboratory test scheduled for{" "}
+                <b>
+                  {postTreatment?.laboratory_test_date
+                    ? new Date(postTreatment.laboratory_test_date).toLocaleDateString(
+                        "en-US",
+                        { year: "numeric", month: "long", day: "numeric" }
+                      )
+                    : "N/A"}
+                </b>{" "}
+                is marked as done.
+              </>
+            );
+          }
+          // 2. CURRENT
+          if (activeStep === 1) {
+            return (
+              <>
+                Your post treatment laboratory test request has been approved for{" "}
+                <b>
+                  {postTreatment?.laboratory_test_date
+                    ? new Date(postTreatment.laboratory_test_date).toLocaleDateString(
+                        "en-US",
+                        { year: "numeric", month: "long", day: "numeric" }
+                      )
+                    : "N/A"}
+                </b>
+                . Please make sure to arrive at least 15 minutes early and bring
+                any required identification.
+              </>
+            );
+          }
+          // 3. FUTURE
+          return (
+            <span className="text-gray-500">
+              Once approved, your laboratory test schedule will appear here.
+            </span>
+          );
+        })(),
       },
       {
         title: "Completed",
-        description:
-          activeStep === 2 ? (
-            <div className="space-y-2">
-              <p>Your post treatment laboratory test has been successfully
-               completed, please upload back the result of your test.</p>
-              <div
-                className="flex items-center gap-2 p-2 border border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
-                onClick={() => setUploadResultModalOpen(true)}
-              >
-                <Camera className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors duration-200" />
-                <div>
-                  <p className="text-sm font-medium text-blue-700 group-hover:text-blue-800">Upload results</p>
+        description: (() => {
+          // 1. PAST
+          if (activeStep > 2) {
+            return (
+              <p className="text-green-600 font-medium">
+                Laboratory test results uploaded successfully.
+              </p>
+            );
+          }
+          // 2. CURRENT
+          if (activeStep === 2) {
+            return (
+              <div className="space-y-2">
+                <p>
+                  Your laboratory test is complete. Please upload the result of
+                  your test.
+                </p>
+                <div
+                  className="md:w-[40%] flex items-center gap-2 p-2 border border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
+                  onClick={() => setUploadResultModalOpen(true)}
+                >
+                  <Camera className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors duration-200" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-700 group-hover:text-blue-800">
+                      Upload results
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : activeStep > 2 ? (
-            <p className="text-gray-600">
-              our post treatment laboratory test is complete.
-            </p>
-          ) : (
-             <p className="text-gray-600">
-              A followup checkup may require base on the results. 
-            </p>
-          ),
-      }
-      // {
-      //   title: "Completed",
-      //   description:
-      //     activeStep === 2 ? (
-      //       <>
-      //         Your post treatment laboratory test has been successfully
-      //         completed, please upload back the result of your test.
-      //         <span
-      //           className="text-blue-500 underline cursor-pointer"
-      //           onClick={() => setUploadResultModalOpen(true)}
-      //         >
-      //           Click here to upload results.
-      //         </span>
-      //       </>
-      //     ) : activeStep > 2 ? (
-      //       <> Your post treatment laboratory test is complete. </>
-      //     ) : (
-      //       <> Your follow checkup may require base on the results. </>
-      //     ),
-      // },
+            );
+          }
+          // 3. FUTURE
+          return (
+            <span className="text-gray-500">
+              After your test is completed, you are required to upload the results
+              here.
+            </span>
+          );
+        })(),
+      },
     ];
 
-    if (postTreatment?.status === "Follow-up Required") {
+    // Dynamic Logic: Check if Follow-up is required
+    // We check the actual status string or a specific flag from backend
+    const isFollowUp = postTreatment?.status === "Follow-up Required";
+    
+    if (isFollowUp) {
       baseSteps.push({
         title: "Follow-up Required",
-        description:
-          activeStep === 3 ? (
-            <>
-              Followup Checkup is required.{" "}
-              <span
-                onClick={() => setIsCheckupModalOpen(true)}
-                className="text-blue-500 underline cursor-pointer"
-              >
-                View Checkup Schedules
-              </span>{" "}
-            </>
-          ) : (
-            <> Followup Checkup is required. </>
-          ),
+        description: (() => {
+            // 1. PAST (If we had a step after this)
+            if (activeStep > 3) return "Follow-up process completed.";
+            
+            // 2. CURRENT
+            if (activeStep === 3) {
+                return (
+                    <div className="space-y-1">
+                        <p>Based on your results, a follow-up checkup is required.</p>
+                        <span
+                            onClick={() => setIsCheckupModalOpen(true)}
+                            className="text-blue-600 font-semibold hover:underline cursor-pointer flex items-center gap-1"
+                        >
+                            View Checkup Schedules &rarr;
+                        </span>
+                    </div>
+                )
+            }
+            // 3. FUTURE (Shouldn't really happen if logic is correct, but safe fallback)
+            return "Follow-up details will appear here if required.";
+        })()
       });
+      
       baseSteps.push({
         title: "Closed",
-        description:
-          activeStep === 4 ? (
-            <> Case is closed, thank you for your cooperation. </>
-          ) : (
-            <> Case is closed, thank you for your cooperation. </>
-          ),
+        description: "Case is closed, thank you for your cooperation.",
       });
     } else {
+      // Normal Closure
       baseSteps.push({
         title: "Closed",
-        description:
-          activeStep === 3 ? (
-            <> Case is closed, thank you for your cooperation. </>
-          ) : (
-            <> Case is closed, thank you for your cooperation. </>
-          ),
+        description: (() => {
+            if (activeStep === 3 || activeStep === 4) return "Case is closed, thank you for your cooperation.";
+            return <span className="text-gray-500">Case will be closed upon completion.</span>;
+        })()
       });
     }
 
@@ -203,11 +229,6 @@ export default function ViewPostTreatmentStatus() {
       try {
         const { data } = await api.get(`/post-treatment/view/${id}/`);
         setPostTreatment(data);
-
-        if (data?.status === "Follow-up Required") {
-          STATUS_TO_STEP["Follow-up Required"] = 3;
-          STATUS_TO_STEP["Closed"] = 4;
-        }
       } catch (error) {
         console.error("Error fetching record data:", error);
       }
@@ -264,13 +285,10 @@ export default function ViewPostTreatmentStatus() {
       }
     } catch (error) {
       console.error(error);
-    } finally {
-      // Stop here
     }
   };
 
   return (
-    // <div className="h-screen w-full flex flex-col bg-[#F8F9FA]">
     <>
       {loading && <SystemLoader />}
 
@@ -281,11 +299,11 @@ export default function ViewPostTreatmentStatus() {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
+
       {/* Upload Result Modal */}
       <FileUploadModal
         open={uploadResultModalOpen}
         title="Upload Result"
-        // recipient={data?.patient?.email}
         onFileChange={setResultFile}
         onConfirm={handleUpload}
         onCancel={() => setUploadResultModalOpen(false)}
@@ -296,32 +314,23 @@ export default function ViewPostTreatmentStatus() {
         onClose={() => setIsCheckupModalOpen(false)}
         data={postTreatment}
       />
-      <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
-        {/* <div className=" px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Post Treatment</h1>
-          <Link to="/beneficiary/applications/post-treatment">
-            <img
-              src="/images/back.png"
-              alt="Back"
-              className="h-6 cursor-pointer"
-            />
-          </Link>
-        </div> */}
 
-        {/* <div className="flex-1 w-full py-5 px-5 flex justify-center items-start"> */}
-        <div className="h-full w-full flex flex-col justify-between">
-          {/* <div className="bg-white flex flex-col gap-7 rounded-[4px] shadow-md p-6 w-full max-w-3xl"> */}
-          <div className="border border-black/15 p-3 bg-white rounded-sm">
-            <div className="w-full bg-white rounded-[4px] p-4 ">
-              <h2 className="text-md font-bold mb-3">
-                Post Treatment Progress
-              </h2>
-              {/* <div className="flex justify-between items-center">
-                <h2 className="text-md font-bold mb-3">Screening Progress</h2>
-              </div> */}
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-6 px-5 md:px-10 flex flex-col flex-1">
+          {/* Top Title */}
+          <h2 className="text-xl font-semibold mb-6">Application Status</h2>
 
-              {/* Stepper */}
-              <div className="flex flex-col gap-0">
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-5 md:px-8 flex-1 overflow-auto">
+            
+            {/* Header */}
+            <h1 className="font-bold text-[24px] md:text-3xl text-yellow">
+              Post Treatment Progress
+            </h1>
+
+            {/* Stepper Content */}
+            <div className="flex-1 w-full max-w-4xl">
+              <div className="flex flex-col gap-0 mt-4">
                 {stepList.map((step, idx) => {
                   const isActive = idx === activeStep;
                   const isLast = idx === stepList.length - 1;
@@ -350,31 +359,34 @@ export default function ViewPostTreatmentStatus() {
                       </div>
 
                       {/* Step text */}
-                      <div className="flex flex-col gap-1 pb-8">
+                      <div className="flex flex-col gap-1 pb-10">
                         <h3 className="font-semibold text-md text-gray-800">
-                          {step?.title}
+                          {step.title}
                         </h3>
-                        <p className="text-gray-600 text-sm">
-                          {step?.description}
-                        </p>
+                        <div className="text-gray-600 text-sm">
+                          {step.description}
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="w-full h-full mt-4">
-                <Link
-                  to="/beneficiary/applications/post-treatment"
-                  className="flex items-center justify-center border rounded-md w-[300px] py-3 mx-auto border-black/15 hover:bg-black/10 hover:border-black "
-                >
-                  Back
-                </Link>
-              </div>
+            </div>
+
+            {/* Actions / Footer Button */}
+            <div className="mt-6 flex justify-end">
+              <Link
+                to="/beneficiary/applications/post-treatment"
+                className="border border-black/15 py-3 rounded-md text-center px-6 hover:bg-black/10 hover:border-black w-full md:w-[40%]"
+              >
+                Back
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* <LOAPrintTemplate loaData={individualScreening} /> */}
+        {/* Bottom decorative strip */}
+        <div className="h-16 bg-secondary"></div>
       </div>
     </>
   );

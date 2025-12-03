@@ -155,7 +155,7 @@ const HormonalReplacement = () => {
       // );
 
       navigate("/beneficiary/success-application", {
-        state: { okLink: "beneficiary/applications/individual-screening" },
+        state: { okLink: "beneficiary/applications/hormonal-replacement" },
       });
     } catch (error) {
       let message = "Something went wrong while submitting the form.";

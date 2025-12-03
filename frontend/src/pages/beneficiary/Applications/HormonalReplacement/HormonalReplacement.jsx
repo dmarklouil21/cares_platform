@@ -289,7 +289,7 @@ const HormonalReplacementStatus = () => {
                             </button>
                           )}
 
-                          {app.status !== "Complete" && (
+                          {app.status !== "Completed" && (
                             <button
                               onClick={() => handleCancel(app.id)}
                               className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"

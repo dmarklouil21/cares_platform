@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import api from "src/api/axiosInstance";
 import { useAuth } from "src/context/AuthContext";
 
@@ -20,8 +20,6 @@ export default function ViewHomeVisitStatus() {
   const { user } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
-  // const location = useLocation();
-  // const id = location?.state.id;
   const [homeVisit, setHomeVisit] = useState(null);
 
   const activeStep = getStepIndexByStatus(homeVisit?.status || "");
@@ -31,115 +29,140 @@ export default function ViewHomeVisitStatus() {
     () => [
       {
         title: "Pending",
-        description:
-          activeStep === 0 ? (
+        description: (() => {
+          // 1. PAST
+          if (activeStep > 0) {
+            return (
+              <>
+                You have submitted your Well-Being Form. The team is currently
+                reviewing your responses to determine the schedule.
+              </>
+            );
+          }
+          // 2. CURRENT
+          return (
             <>
               You’ve been selected for a home visit. Before it can be scheduled,
-              Please fill out and submit the <span onClick={() => navigate(`wellbeing-form`)} className="text-blue-700 underline cursor-pointer">Well-Being Form</span> in this page. This form helps us
-              assess your current condition and prepare for the visit.
+              please fill out and submit the{" "}
+              <span
+                onClick={() => navigate(`wellbeing-form`)}
+                className="text-blue-700 font-semibold underline cursor-pointer hover:text-blue-800"
+              >
+                Well-Being Form
+              </span>
+              . This form helps us assess your current condition and prepare for
+              the visit.
             </>
-          ) : (
-            <>
-              You’ve completed the Well-Being Form. The team will now review your
-              responses to determine your home visit schedule.
-            </>
-          ),
+          );
+        })(),
       },
       {
         title: "Processing",
-        description:
-          activeStep === 1 ? (
-            <>
-              Your home visit has been scheduled for{" "}
-              <b>
-                {new Date(homeVisit?.visit_date).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </b>
-              . Please make sure to be available at your residence during this
-              date.
-            </>
-          ) : activeStep < 1 ? (
-            <>
-             Your visit date will be schedule after reviewing your well being form.
-            </>
-          ) : (
-            <>
-              Home visit is complete, wait for the findings and recommendation to be sent to you.
-            </>
-          ),
+        description: (() => {
+          // 1. PAST
+          if (activeStep > 1) {
+            return (
+              <>
+                Home visit scheduled for{" "}
+                <b>
+                  {homeVisit?.visit_date
+                    ? new Date(homeVisit.visit_date).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        }
+                      )
+                    : "N/A"}
+                </b>{" "}
+                is marked as done.
+              </>
+            );
+          }
+          // 2. CURRENT
+          if (activeStep === 1) {
+            return (
+              <>
+                Your home visit has been scheduled for{" "}
+                <b>
+                  {homeVisit?.visit_date
+                    ? new Date(homeVisit.visit_date).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        }
+                      )
+                    : "N/A"}
+                </b>
+                . Please make sure to be available at your residence during this
+                date.
+              </>
+            );
+          }
+          // 3. FUTURE
+          return (
+            <span className="text-gray-500">
+              Your visit date will be scheduled after reviewing your well-being
+              form.
+            </span>
+          );
+        })(),
       },
       {
         title: "Recommendation",
-        description:
-          activeStep === 2 ? (
-            <>
-              Your home visit has been completed. Our healthcare team is now
-              preparing a report and medical recommendation based on the visit
-              findings.
-            </>
-          ) : activeStep > 2 ? (
-            <> Your post-visit recommendation has been finalized. </>
-          ) : (
-            <>
-              Your home visit has been completed. Our healthcare team is now
-              preparing a report and medical recommendation based on the visit
-              findings.
-            </>
-          ),
+        description: (() => {
+          // 1. PAST
+          if (activeStep > 2) {
+            return (
+              <p className="text-green-600 font-medium">
+                Post-visit recommendation report finalized.
+              </p>
+            );
+          }
+          // 2. CURRENT
+          if (activeStep === 2) {
+            return (
+              <>
+                Your home visit has been completed. Our healthcare team is now
+                preparing a report and medical recommendation based on the visit
+                findings.
+              </>
+            );
+          }
+          // 3. FUTURE
+          return (
+            <span className="text-gray-500">
+              Findings and recommendations will be processed here after the visit.
+            </span>
+          );
+        })(),
       },
       {
         title: "Completed",
-        description:
-          activeStep === 3 ? (
-            <>
-              Your home visit case has been completed. Thank you for your cooperation and have a smooth recovery.
-              {/* <Link
-                to="/beneficiary/applications/individual-screening/upload-attachments"
-                state={{
-                  home_visit: homeVisit,
-                  purpose: "result_upload",
-                }}
-                className="text-blue-500 underline"
-              >
-                Click here to view or upload additional documents.
-              </Link> */}
-            </>
-          ) : (
-            <>
-              Once the recommendation has been finalized and shared, your case will
-              be marked as closed.
-            </>
-          ),
+        description: (() => {
+          // 1. PAST / CURRENT (Final Step)
+          if (activeStep >= 3) {
+            return (
+              <p className="text-green-600 font-medium">
+                Your home visit case has been completed. Thank you for your
+                cooperation and have a smooth recovery.
+              </p>
+            );
+          }
+          // 2. FUTURE
+          return (
+            <span className="text-gray-500">
+              Once the recommendation has been finalized and shared, your case
+              will be marked as closed.
+            </span>
+          );
+        })(),
       },
-      // {
-      //   title: "Closed",
-      //   description:
-      //     activeStep === 3 ? (
-      //       <>
-      //         Your home visit case has been completed. Thank you for your cooperation and have a smooth recovery.
-      //         {/* <Link
-      //           to="/beneficiary/applications/individual-screening/upload-attachments"
-      //           state={{
-      //             home_visit: homeVisit,
-      //             purpose: "result_upload",
-      //           }}
-      //           className="text-blue-500 underline"
-      //         >
-      //           Click here to view or upload additional documents.
-      //         </Link> */}
-      //       </>
-      //     ) : (
-      //       <>
-      //         Once the recommendation has been finalized and shared, your case will
-      //         be marked as closed.
-      //       </>
-      //     ),
-      // },
     ],
-    [activeStep, homeVisit]
+    [activeStep, homeVisit, navigate]
   );
 
   useEffect(() => {
@@ -155,34 +178,26 @@ export default function ViewHomeVisitStatus() {
     };
 
     fetchData();
-  }, [user]);
+  }, [user, id]);
 
   return (
-    // <div className="h-screen w-full flex flex-col bg-[#F8F9FA]">
-    <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
-      {/* <div className=" px-5 w-full flex justify-between items-center">
-        <h1 className="text-md font-bold">Home Visit</h1>
-        <Link to="/beneficiary/home-visit">
-          <img
-            src="/images/back.png"
-            alt="Back"
-            className="h-6 cursor-pointer"
-          />
-        </Link>
-      </div> */}
+    // Main Container mirroring the modern design
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+      <div className="py-6 px-5 md:px-10 flex flex-col flex-1">
+        {/* Top Title */}
+        <h2 className="text-xl font-semibold mb-6">Application Status</h2>
 
-      {/* <div className="flex-1 w-full py-5 px-5 flex justify-center items-start"> */}
-      <div className="h-full w-full flex flex-col justify-between">
-        {/* <div className="bg-white flex flex-col gap-7 rounded-[4px] shadow-md p-6 w-full max-w-3xl"> */}
-        <div className="border border-black/15 p-3 bg-white rounded-sm">
-          <div className="w-full bg-white rounded-[4px] p-4 ">
-            <h2 className="text-md font-bold mb-3">Home Visit Progress</h2>
-            {/* <div className="flex justify-between items-center">
-              <h2 className="text-md font-bold mb-3">Screening Progress</h2>
-            </div> */}
+        {/* White Card Container */}
+        <div className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-5 md:px-8 flex-1 overflow-auto">
+          
+          {/* Header */}
+          <h1 className="font-bold text-[24px] md:text-3xl text-yellow">
+            Home Visit Progress
+          </h1>
 
-            {/* Stepper */}
-            <div className="flex flex-col gap-0">
+          {/* Stepper Content */}
+          <div className="flex-1 w-full max-w-4xl">
+            <div className="flex flex-col gap-0 mt-4">
               {stepList.map((step, idx) => {
                 const isActive = idx === activeStep;
                 const isLast = idx === stepList.length - 1;
@@ -211,23 +226,34 @@ export default function ViewHomeVisitStatus() {
                     </div>
 
                     {/* Step text */}
-                    <div className="flex flex-col gap-1 pb-8">
+                    <div className="flex flex-col gap-1 pb-10">
                       <h3 className="font-semibold text-md text-gray-800">
                         {step.title}
                       </h3>
-                      <p className="text-gray-600 text-sm">
+                      <div className="text-gray-600 text-sm">
                         {step.description}
-                      </p>
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
           </div>
+
+          {/* Actions / Footer Button */}
+          <div className="mt-6 flex justify-end">
+            <Link
+              to="/beneficiary/home-visit"
+              className="border border-black/15 py-3 rounded-md text-center px-6 hover:bg-black/10 hover:border-black w-full md:w-[40%]"
+            >
+              Back
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* <LOAPrintTemplate loaData={homeVisit} /> */}
+      {/* Bottom decorative strip */}
+      <div className="h-16 bg-secondary"></div>
     </div>
   );
 }

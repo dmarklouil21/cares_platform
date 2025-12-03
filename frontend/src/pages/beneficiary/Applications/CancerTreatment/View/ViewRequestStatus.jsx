@@ -8,8 +8,6 @@ import FileUploadModal from "src/components/Modal/FileUploadModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import SystemLoader from "src/components/SystemLoader";
 
-// import LOAPrintTemplate from "../download/LOAPrintTemplate";
-
 // Map status to step index
 const STATUS_TO_STEP = {
   Pending: 0,
@@ -21,7 +19,7 @@ const STATUS_TO_STEP = {
 
 const getStepIndexByStatus = (status) => STATUS_TO_STEP[status] ?? 0;
 
-export default function ViewIndividualStatus() {
+export default function ViewCancerTreatmentStatus() {
   const { user } = useAuth();
   const location = useLocation();
   const { id } = useParams();
@@ -46,180 +44,193 @@ export default function ViewIndividualStatus() {
 
   const activeStep = getStepIndexByStatus(cancerTreatment?.status || "");
 
-  // Step definitions
+  // Step definitions with 3-Way Logic (Past, Present, Future)
   const stepList = useMemo(
     () => [
       {
         title: "Pending",
         description:
           activeStep === 0 ? (
+            // CURRENT: Step 0
             <>
               Your request for cancer treatment service has been submitted and
               is currently under review. Once approved, you’ll receive
               instructions on the next steps.
             </>
           ) : (
+            // PAST
             <>
-              Your request has been accepted. You will be notified with your
-              interview date through email.
+              Your request has been accepted. You have been notified regarding your
+              interview details.
             </>
           ),
       },
       {
         title: "Interview Process",
-        description:
-          activeStep === 1 ? (
-            <>
-              Your request for {cancerTreatment?.service_type} has been
-              accepted. Please proceed to the Interview process. You are
-              scheduled for an interview on{" "}
-              {new Date(cancerTreatment?.interview_date).toLocaleDateString(
-                "en-US",
-                {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                }
-              )}
-            </>
-          ) : (
-            <>
-              Your request has been accepted. You will be notified with your
-              interview date through email.
-            </>
-          ),
+        description: (() => {
+          // 1. PAST (Step > 1)
+          if (activeStep > 1) {
+            return (
+              <>
+                Interview process completed on{" "}
+                <b>
+                  {cancerTreatment?.interview_date
+                    ? new Date(cancerTreatment.interview_date).toLocaleDateString("en-US", {
+                        year: "numeric", month: "long", day: "numeric"
+                      })
+                    : "N/A"}
+                </b>.
+              </>
+            );
+          }
+          // 2. CURRENT (Step == 1)
+          if (activeStep === 1) {
+            return (
+              <>
+                Your request for {cancerTreatment?.service_type} has been
+                accepted. Please proceed to the Interview process. You are
+                scheduled for an interview on{" "}
+                <b>
+                  {cancerTreatment?.interview_date
+                    ? new Date(cancerTreatment.interview_date).toLocaleDateString("en-US", {
+                        year: "numeric", month: "long", day: "numeric"
+                      })
+                    : "TBA"}
+                </b>.
+              </>
+            );
+          }
+          // 3. FUTURE
+          return (
+            <span className="text-gray-500">
+              Once your initial request is approved, your interview schedule will appear here.
+            </span>
+          );
+        })(),
       },
       {
         title: "Case Summary & Intervention Plan",
-        description:
-          activeStep === 2 ? (
-            <div className="space-y-2">
-              <p>Your Case Summary and Intervention Plan has been sent to your
-              email. Review, sign and upload it back.</p>
-              <div
-                className="flex items-center gap-2 p-2 border border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
-                onClick={() => setUploadCaseSummaryModalOpen(true)}
-              >
-                <Camera className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors duration-200" />
-                <div>
-                  <p className="text-sm font-medium text-blue-700 group-hover:text-blue-800">Upload</p>
+        description: (() => {
+          // 1. PAST
+          if (activeStep > 2) {
+            return (
+              <p className="text-green-600 font-medium">
+                Case Summary and Intervention Plan signed and uploaded.
+              </p>
+            );
+          }
+          // 2. CURRENT
+          if (activeStep === 2) {
+            return (
+              <div className="space-y-2">
+                <p>
+                  Your Case Summary and Intervention Plan has been sent to your
+                  email. Review, sign and upload it back.
+                </p>
+                <div
+                  className="md:w-[40%] flex items-center gap-2 p-2 border border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
+                  onClick={() => setUploadCaseSummaryModalOpen(true)}
+                >
+                  <Camera className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors duration-200" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-700 group-hover:text-blue-800">
+                      Upload Signed Document
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <p className="text-gray-600">
-              Your Case Summary and Intervention Plan has been sent to your
-              email. Review, sign and upload it back.
-            </p>
-          ),
+            );
+          }
+          // 3. FUTURE
+          return (
+            <span className="text-gray-500">
+              After the interview, you will need to review and sign the case summary here.
+            </span>
+          );
+        })(),
       },
-      // {
-      //   title: "Case Summary & Intervention Plan",
-      //   description:
-      //     activeStep === 2 ? (
-      //       <>
-      //         Your Case Summary and Intervention Plan has been sent to your
-      //         email. Review, sign and upload it back.
-      //         <span
-      //           onClick={() => setUploadCaseSummaryModalOpen(true)}
-      //           className="text-blue-500 underline cursor-pointer"
-      //         >
-      //           Click here to upload!
-      //         </span>
-      //       </>
-      //     ) : (
-      //       <>
-      //         Your Case Summary and Intervention Plan has been sent to your
-      //         email. Review, sign and upload it back.
-      //       </>
-      //     ),
-      // },
       {
         title: "Approved",
-        description:
-          activeStep === 3 ? (
-            <>
-              Your cancer treatment has been scheduled for{" "}
-              <b>
-                {new Date(cancerTreatment?.treatment_date).toLocaleDateString(
-                  "en-US",
-                  {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  }
-                )}
-              </b>
-              . Please make sure to arrive at least 15 minutes early and bring
-              any required identification.
-            </>
-          ) : (
-            <>
-              Your cancer treatment has been scheduled for{" "}
-              <b>
-                {new Date(cancerTreatment?.treatment_date).toLocaleDateString(
-                  "en-US",
-                  {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  }
-                )}
-              </b>
-              . Please make sure to arrive at least 15 minutes early and bring
-              any required identification.
-            </>
-          ),
+        description: (() => {
+          // 1. PAST
+          if (activeStep > 3) {
+            return (
+              <>
+                Treatment scheduled for{" "}
+                <b>
+                  {cancerTreatment?.treatment_date
+                    ? new Date(cancerTreatment.treatment_date).toLocaleDateString("en-US", {
+                        year: "numeric", month: "long", day: "numeric"
+                      })
+                    : "N/A"}
+                </b>
+                {" "}is marked as done.
+              </>
+            );
+          }
+          // 2. CURRENT
+          if (activeStep === 3) {
+            return (
+              <>
+                Your cancer treatment has been scheduled for{" "}
+                <b>
+                  {cancerTreatment?.treatment_date
+                    ? new Date(cancerTreatment.treatment_date).toLocaleDateString("en-US", {
+                        year: "numeric", month: "long", day: "numeric"
+                      })
+                    : "N/A"}
+                </b>
+                . Please make sure to arrive at least 15 minutes early and bring
+                any required identification.
+              </>
+            );
+          }
+          // 3. FUTURE
+          return (
+            <span className="text-gray-500">
+              Once the case summary is finalized, your treatment date will be displayed here.
+            </span>
+          );
+        })(),
       },
       {
         title: "Completed",
-        description:
-          activeStep === 4 ? (
-            <div className="space-y-2">
-              <p>Upload the results of your {cancerTreatment.service_type}.</p>
-              <div
-                className="flex items-center gap-2 p-2 border border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
-                onClick={() => setUploadResultModalOpen(true)}
-              >
-                <Camera className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors duration-200" />
-                <div>
-                  <p className="text-sm font-medium text-blue-700 group-hover:text-blue-800">Upload results</p>
+        description: (() => {
+          // 1. PAST (If there were further steps) or Completed State
+          if (activeStep > 4) {
+            return (
+              <p className="text-green-600 font-medium">
+                Treatment results uploaded successfully.
+              </p>
+            );
+          }
+          // 2. CURRENT
+          if (activeStep === 4) {
+            return (
+              <div className="space-y-2">
+                <p>Upload the results of your {cancerTreatment?.service_type}.</p>
+                <div
+                  className="flex items-center gap-2 p-2 border border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
+                  onClick={() => setUploadResultModalOpen(true)}
+                >
+                  <Camera className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors duration-200" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-700 group-hover:text-blue-800">
+                      Upload results
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <p className="text-gray-600">
-              After completion you are required to upload the results of your service treatment.
-            </p>
-          ),
-      }
-      // {
-      //   title: "Completed",
-      //   description:
-      //     activeStep === 4 ? (
-      //       <>
-      //         Upload the results of your radiation therapy.{" "}
-      //         <span
-      //           className="text-blue-500 underline cursor-pointer"
-      //           onClick={() => setUploadResultModalOpen(true)}
-      //           // to={`/beneficiary/applications/cancer-treatment/view/${id}/upload`}
-      //           // state={{
-      //           //   individual_screening: cancerTreatment,
-      //           //   purpose: "result_upload",
-      //           // }}
-      //           // className="text-blue-500 underline"
-      //         >
-      //           Click here to upload!
-      //         </span>
-      //       </>
-      //     ) : (
-      //       <>
-      //         {" "}
-      //         After completion you are required to upload the results of your
-      //         cancer screening.
-      //       </>
-      //     ),
-      // },
+            );
+          }
+          // 3. FUTURE
+          return (
+            <span className="text-gray-500">
+              After completion of treatment, you are required to upload the results here.
+            </span>
+          );
+        })(),
+      },
     ],
     [activeStep, cancerTreatment]
   );
@@ -278,7 +289,6 @@ export default function ViewIndividualStatus() {
           "Something went wrong while submitting the attachment.";
 
         if (error.response && error.response.data) {
-          // DRF ValidationError returns an object with arrays of messages
           if (error.response.data.non_field_errors) {
             errorMessage = error.response.data.non_field_errors[0];
           }
@@ -294,8 +304,6 @@ export default function ViewIndividualStatus() {
       }
     } catch (error) {
       console.error(error);
-    } finally {
-      // Stop here
     }
   };
 
@@ -340,7 +348,6 @@ export default function ViewIndividualStatus() {
           "Something went wrong while submitting the attachment.";
 
         if (error.response && error.response.data) {
-          // DRF ValidationError returns an object with arrays of messages
           if (error.response.data.non_field_errors) {
             errorMessage = error.response.data.non_field_errors[0];
           }
@@ -356,13 +363,10 @@ export default function ViewIndividualStatus() {
       }
     } catch (error) {
       console.error(error);
-    } finally {
-      // Stop here
     }
   };
 
   return (
-    // <div className="h-screen w-full flex flex-col bg-[#F8F9FA]">
     <>
       {loading && <SystemLoader />}
 
@@ -378,7 +382,6 @@ export default function ViewIndividualStatus() {
       <FileUploadModal
         open={uploadCaseSummaryModalOpen}
         title="Upload Signed Case Summary"
-        // recipient={data?.patient?.email}
         onFileChange={setCaseFile}
         onConfirm={handleCaseSummaryUpload}
         onCancel={() => setUploadCaseSummaryModalOpen(false)}
@@ -388,38 +391,30 @@ export default function ViewIndividualStatus() {
       <FileUploadModal
         open={uploadResultModalOpen}
         title="Upload Result"
-        // recipient={data?.patient?.email}
         onFileChange={setResultFile}
         onConfirm={handleUpload}
         onCancel={() => setUploadResultModalOpen(false)}
       />
 
-      <div className="h-screen w-full flex flex-col justify-start items-center p-5 gap-3 bg-gray overflow-auto">
-        {/* <div className=" px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Cancer Treatment</h1>
-          <Link to="/beneficiary/applications/cancer-treatment">
-            <img
-              src="/images/back.png"
-              alt="Back"
-              className="h-6 cursor-pointer"
-            />
-          </Link>
-        </div> */}
+      {/* Main Container mirroring the modern design */}
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-6 px-5 md:px-10 flex flex-col flex-1">
+          {/* Top Title */}
+          <h2 className="text-xl font-semibold mb-6">
+            Application Status
+          </h2>
 
-        {/* <div className="flex-1 w-full py-5 px-5 flex justify-center items-start"> */}
-        <div className="h-full w-full flex flex-col justify-between">
-          {/* <div className="bg-white flex flex-col gap-7 rounded-[4px] shadow-md p-6 w-full max-w-3xl"> */}
-          <div className="border border-black/15 p-3 bg-white rounded-sm">
-            <div className="w-full bg-white rounded-[4px] p-4 ">
-              <h2 className="text-md font-bold mb-3">
-                Treatment Application Progress
-              </h2>
-              {/* <div className="flex justify-between items-center">
-                <h2 className="text-md font-bold mb-3">Screening Progress</h2>
-              </div> */}
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-5 md:px-8 flex-1 overflow-auto">
+            
+            {/* Header */}
+            <h1 className="font-bold text-[24px] md:text-3xl text-yellow">
+              Treatment Progress
+            </h1>
 
-              {/* Stepper */}
-              <div className="flex flex-col gap-0">
+            {/* Stepper Content */}
+            <div className="flex-1 w-full max-w-4xl">
+              <div className="flex flex-col gap-0 mt-4">
                 {stepList.map((step, idx) => {
                   const isActive = idx === activeStep;
                   const isLast = idx === stepList.length - 1;
@@ -448,31 +443,34 @@ export default function ViewIndividualStatus() {
                       </div>
 
                       {/* Step text */}
-                      <div className="flex flex-col gap-1 pb-8">
+                      <div className="flex flex-col gap-1 pb-10">
                         <h3 className="font-semibold text-md text-gray-800">
                           {step.title}
                         </h3>
-                        <p className="text-gray-600 text-sm">
+                        <div className="text-gray-600 text-sm">
                           {step.description}
-                        </p>
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="w-full h-full mt-4">
-                <Link
-                  to="/beneficiary/applications/cancer-treatment"
-                  className="flex items-center justify-center border rounded-md w-[300px] py-3 mx-auto border-black/15 hover:bg-black/10 hover:border-black "
-                >
-                  Back
-                </Link>
-              </div>
+            </div>
+
+            {/* Actions / Footer Button */}
+            <div className="mt-6 flex justify-end">
+              <Link
+                to="/beneficiary/applications/cancer-treatment"
+                className="border border-black/15 py-3 rounded-md text-center px-6 hover:bg-black/10 hover:border-black w-full md:w-[40%]"
+              >
+                Back
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* <LOAPrintTemplate loaData={individualScreening} /> */}
+        {/* Bottom decorative strip */}
+        <div className="h-16 bg-secondary"></div>
       </div>
     </>
   );

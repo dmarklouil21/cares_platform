@@ -85,18 +85,10 @@ const PreCancerousMeds = () => {
         destination_name: selectedPartner || selectedRHU || 'Rafi-EJACC'
       }
 
-      // await api.post(
-      //   `/beneficiary/precancerous-meds/submit/`,
-      //   formData,
-      //   {
-      //     headers: { "Content-Type": "multipart/form-data" },
-      //   }
-      // );
-      console.log("Payload: ", payload);
       await api.post(`/beneficiary/precancerous-meds/submit/`, payload);
 
       navigate("/beneficiary/success-application", {
-        state: { okLink: "beneficiary/applications/individual-screening" },
+        state: { okLink: "beneficiary/applications/precancerous" },
       });
     } catch (error) {
       let message = "Something went wrong while submitting the form.";

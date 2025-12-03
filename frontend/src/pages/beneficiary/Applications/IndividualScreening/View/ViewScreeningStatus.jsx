@@ -8,8 +8,6 @@ import FileUploadModal from "src/components/Modal/FileUploadModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import SystemLoader from "src/components/SystemLoader";
 
-// import LOAPrintTemplate from "../download/LOAPrintTemplate";
-
 // Map status to step index
 const STATUS_TO_STEP = {
   Pending: 0,
@@ -41,126 +39,106 @@ export default function ViewIndividualStatus() {
 
   const activeStep = getStepIndexByStatus(individualScreening?.status || "");
 
-  // Step definitions
   const stepList = useMemo(
     () => [
       {
         title: "Pending",
         description:
           activeStep === 0 ? (
+            // CURRENT: Step 0
             <>
-              Your request for cancer screening has been submitted and is
-              currently under review. Once approved, you’ll receive instructions
-              on the next steps.
+              Your request for cancer screening has been submitted and is currently
+              under review. Once approved, you’ll receive instructions on the next
+              steps.
             </>
           ) : (
+            // COMPLETED: Step 0 (User is on Step 1 or 2)
             <>
-              Your request has been approved. You will be notified with your
-              screening date through email.
+              Your request has been approved. You have been notified via email regarding
+              your screening details.
             </>
           ),
       },
       {
         title: "Approve",
-        description:
-          activeStep === 1 ? (
-            <>
-              {/* To proceed with your application, fill out the Screening Procedure form and submit the required documents.{" "} */}
-              Your cancer screening has been scheduled for{" "}
-              <b>
-                {new Date(
-                  individualScreening?.screening_date
-                ).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </b>
-              . Please make sure to arrive at least 15 minutes early and bring
-              any required identification.
-              {/* <Link
-            to="/Beneficiary/services/cancer-screening/screening-requirements-note"
-            className="text-blue-500 underline"
-          >
-            Click here to proceed!
-          </Link> */}
-            </>
-          ) : (
-            <>
-              {/* Fill out the Screening Procedure form and submit the required documents. */}
-              Your cancer screening has been scheduled for{" "}
-              <b>
-                {new Date(
-                  individualScreening?.screening_date
-                ).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </b>
-              . Please make sure to arrive at least 15 minutes early and bring
-              any required identification.
-            </>
-          ),
+        description: (() => {
+          if (activeStep > 1) {
+            return (
+              <>
+                Screening was scheduled for{" "}
+                <b>
+                  {individualScreening?.screening_date
+                    ? new Date(individualScreening.screening_date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "N/A"}
+                </b>
+                . Procedure marked as done.
+              </>
+            );
+          }
+          if (activeStep === 1) {
+            return (
+              <>
+                Your cancer screening has been scheduled for{" "}
+                <b>
+                  {individualScreening?.screening_date
+                    ? new Date(individualScreening.screening_date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "N/A"}
+                </b>
+                . Please make sure to arrive at least 15 minutes early and bring any
+                required identification.
+              </>
+            );
+          }
+          return (
+            <span className="text-gray-500">
+              Once your request is approved, your screening date and instructions will appear here.
+            </span>
+          );
+        })(),
       },
-      // {
-      //   title: "In Progress",
-      //   description:
-      //     activeStep === 2 ? (
-      //       <>Your cancer screening is in progress.</>
-      //     ) : activeStep > 2 ? (
-      //       <> Your cancer screening is complete. </>
-      //     ) : (
-      //       <>
-      //         {" "}
-      //         Your screening date will be scheduled once everything is ready.{" "}
-      //       </>
-      //     ),
-      // },
-      // {
-      //   title: "Complete",
-      //   description:
-      //     activeStep === 2 ? (
-      //       <>
-      //         Upload the results of your cancer screening.{" "}
-      //         <span
-      //           className="flex items-center gap-1 text-blue-500 cursor-pointer"
-      //           onClick={() => setUploadResultModalOpen(true)}
-      //         >
-      //           {/* Click here to upload! */}
-      //           <Camera className="w-7 h-7" />
-      //         </span>
-      //       </>
-      //     ) : (
-      //       <>
-      //         {" "}
-      //         After completion you are required to upload the results of your
-      //         cancer screening.
-      //       </>
-      //     ),
-      // },
       {
         title: "Complete",
-        description:
-          activeStep === 2 ? (
-            <div className="space-y-2">
-              <p>Upload the results of your cancer screening.</p>
-              <div
-                className="flex items-center gap-2 p-2 border border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
-                onClick={() => setUploadResultModalOpen(true)}
-              >
-                <Camera className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors duration-200" />
-                <div>
-                  <p className="text-sm font-medium text-blue-700 group-hover:text-blue-800">Upload results</p>
+        description: (() => {
+          if (activeStep > 2) {
+            return (
+              <p className="text-green-600 font-medium">
+                Results have been uploaded successfully.
+              </p>
+            );
+          }
+          if (activeStep === 2) {
+            return (
+              <div className="space-y-2">
+                <p>Upload the results of your cancer screening.</p>
+                <div
+                  className="flex items-center gap-2 p-2 border border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
+                  onClick={() => setUploadResultModalOpen(true)}
+                >
+                  <Camera className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors duration-200" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-700 group-hover:text-blue-800">
+                      Upload results
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <p className="text-gray-600">
-              After completion you are required to upload the results of your cancer screening.
+            );
+          }
+          return (
+            <p className="text-gray-500">
+              After your screening is completed, you will be required to upload the results here.
             </p>
-          ),
-      }
+          );
+        })(),
+      },
     ],
     [activeStep, individualScreening]
   );
@@ -221,7 +199,6 @@ export default function ViewIndividualStatus() {
           "Something went wrong while submitting the attachment.";
 
         if (error.response && error.response.data) {
-          // DRF ValidationError returns an object with arrays of messages
           if (error.response.data.non_field_errors) {
             errorMessage = error.response.data.non_field_errors[0];
           }
@@ -237,13 +214,10 @@ export default function ViewIndividualStatus() {
       }
     } catch (error) {
       console.error(error);
-    } finally {
-      // Stop here
     }
   };
 
   return (
-    // <div className="h-screen w-full flex flex-col bg-[#F8F9FA]">
     <>
       {loading && <SystemLoader />}
 
@@ -254,40 +228,34 @@ export default function ViewIndividualStatus() {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      {/* Upload Result Modal */}
+
       <FileUploadModal
         open={uploadResultModalOpen}
         title="Upload Result"
-        // recipient={data?.patient?.email}
         onFileChange={setResultFile}
         onConfirm={handleUpload}
         onCancel={() => setUploadResultModalOpen(false)}
       />
 
-      <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
-        {/* <div className=" px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Individual Screening</h1>
-          <Link to="/beneficiary/applications/individual-screening">
-            <img
-              src="/images/back.png"
-              alt="Back"
-              className="h-6 cursor-pointer"
-            />
-          </Link>
-        </div> */}
+      {/* Main Container mirroring IndividualScreening layout */}
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-6 px-5 md:px-10 flex flex-col flex-1">
+          {/* Top Title similar to "Cancer Screening Application" */}
+          <h2 className="text-xl font-semibold mb-6">
+            Application Status
+          </h2>
 
-        {/* <div className="flex-1 w-full py-5 px-5 flex justify-center items-start"> */}
-        <div className="h-full w-full flex flex-col justify-between">
-          {/* <div className="bg-white flex flex-col gap-7 rounded-[4px] shadow-md p-6 w-full max-w-3xl"> */}
-          <div className="border border-black/15 p-3 bg-white rounded-sm">
-            <div className="w-full bg-white rounded-[4px] p-4 ">
-              <h2 className="text-md font-bold mb-3">Screening Progress</h2>
-              {/* <div className="flex justify-between items-center">
-                <h2 className="text-md font-bold mb-3">Screening Progress</h2>
-              </div> */}
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-5 md:px-8 flex-1 overflow-auto">
+            
+            {/* Header similar to "Individual Screening" */}
+            <h1 className="font-bold text-[24px] md:text-3xl text-yellow">
+              Screening Progress
+            </h1>
 
-              {/* Stepper */}
-              <div className="flex flex-col gap-0">
+            {/* Stepper Content */}
+            <div className="flex-1 w-full max-w-4xl">
+              <div className="flex flex-col gap-0 mt-4">
                 {stepList.map((step, idx) => {
                   const isActive = idx === activeStep;
                   const isLast = idx === stepList.length - 1;
@@ -316,31 +284,35 @@ export default function ViewIndividualStatus() {
                       </div>
 
                       {/* Step text */}
-                      <div className="flex flex-col gap-1 pb-8">
+                      <div className="flex flex-col gap-1 pb-10">
                         <h3 className="font-semibold text-md text-gray-800">
                           {step.title}
                         </h3>
-                        <p className="text-gray-600 text-sm">
+                        <div className="text-gray-600 text-sm">
                           {step.description}
-                        </p>
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="w-full h-full mt-4">
-                <Link
-                  to="/beneficiary/applications/individual-screening"
-                  className="flex items-center justify-center border rounded-md w-[300px] py-3 mx-auto border-black/15 hover:bg-black/10 hover:border-black "
-                >
-                  Back
-                </Link>
-              </div>
+            </div>
+
+            {/* Actions / Footer Button */}
+            <div className="mt-6 flex justify-end">
+              <Link
+                to="/beneficiary/applications/individual-screening"
+                // Styled to match the "Cancel" button in the other component
+                className="border border-black/15 py-3 rounded-md text-center px-6 hover:bg-black/10 hover:border-black w-full md:w-[40%]"
+              >
+                Back
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* <LOAPrintTemplate loaData={individualScreening} /> */}
+        {/* Bottom decorative strip */}
+        <div className="h-16 bg-secondary"></div>
       </div>
     </>
   );
