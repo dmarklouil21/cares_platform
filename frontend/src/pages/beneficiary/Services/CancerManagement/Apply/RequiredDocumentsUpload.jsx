@@ -313,7 +313,7 @@ const RadioactiveDocument = () => {
               <Link
                 to="/beneficiary/services/cancer-management/apply/well-being-tool"
                 className="border border-black/15 py-3 rounded-md text-center px-6  hover:bg-black/10 hover:border-black w-full md:w-[40%]"
-                state={serviceType}
+                state={{serviceType, wellBeningData}}
               >
                 Back
               </Link>

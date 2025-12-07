@@ -1,58 +1,43 @@
-// src/pages/treatment/AdminprecancerousView.jsx
 import React, { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import {
-  adminGetPreCancerousMedsDetail,
-  adminSetReleaseDate,
-  adminDonePreCancerousMeds,
-} from "src/api/precancerous";
+import { Save, Calendar, ArrowLeft } from "lucide-react";
+
+import { adminGetPreCancerousMedsDetail } from "src/api/precancerous";
+import api from "src/api/axiosInstance";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import SystemLoader from "src/components/SystemLoader";
 import DateModal from "src/components/Modal/DateModal";
 
-import api from "src/api/axiosInstance";
-
 const PreCancerousView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [patient, setPatient] = useState(null);
+  const [preCancerous, setPreCancerous] = useState(null);
   const [error, setError] = useState("");
 
-  // --- local state for release date, status, modal, and toast ---
-  const [preCancerous, setPreCancerous] = useState([]);
+  // --- State ---
   const [releaseDate, setReleaseDate] = useState("");
   const [status, setStatus] = useState("Pending");
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // 'save' | 'done' | null
-  const [toast, setToast] = useState(null); // { type: 'success'|'error', message: string }
-
-  // Loading & Notification
+  
+  // Modals
   const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState("");
-  const [notificationType, setNotificationType] = useState(location.state?.type || "");
-
-  // Confirmation Modal
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("Confirm Action?");
-  const [modalDesc, setModalDesc] = useState("");
-  const [modalAction, setModalAction] = useState(null);
-
-  // Notification Modal
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState({
     type: "info",
     title: "Info",
-    message: "The form has been submitted successfully.",
+    message: "",
   });
 
-  // Treatment Date Modal
-  const [dateModalOpen, setDateModalOpen] = useState(false);
-  const [dateModalTitle, setDateModalTitle] = useState("Set Medicine Release Date");
+  const [modalOpen, setModalOpen] = useState(false); // Confirmation
+  const [modalText, setModalText] = useState("Confirm Action?");
+  const [modalDesc, setModalDesc] = useState("");
+  const [modalAction, setModalAction] = useState(null);
 
-  // fetch detail
+  const [dateModalOpen, setDateModalOpen] = useState(false);
+
+  // --- Data Loading ---
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -60,11 +45,11 @@ const PreCancerousView = () => {
         setLoading(true);
         const data = await adminGetPreCancerousMedsDetail(id);
         if (!mounted) return;
-        setPreCancerous(data)
-        // setPatient(data);
-        setReleaseDate(data.release_date_of_meds || null);
+        
+        setPreCancerous(data);
+        // Ensure we handle null dates gracefully
+        setReleaseDate(data.release_date_of_meds || "");
         setStatus(data.status);
-        console.log("Data: ", data);
       } catch (e) {
         if (!mounted) return;
         setError("Failed to load request details.");
@@ -72,17 +57,10 @@ const PreCancerousView = () => {
         if (mounted) setLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [id]);
 
-  // Auto-hide toast after 3s
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), 3000);
-    return () => clearTimeout(t);
-  }, [toast]);
+  // --- Handlers ---
 
   const handleStatusChange = (e) => {
     const selectedStatus = e.target.value;
@@ -96,100 +74,87 @@ const PreCancerousView = () => {
     }
   };
 
-  const handleDateModalConfirm = async () => {
+  const handleDateModalConfirm = () => {
     if (!releaseDate) {
       alert("Please select a date before proceeding.");
       return;
     }
-
-    // setReleaseDate(tempDate);
     setModalAction((prev) => ({ ...prev, newReleaseDate: releaseDate }));
-    // setIsNewDate(true);
     setDateModalOpen(false);
   };
 
-  // Open confirmation modal for Save
   const handleSaveClick = () => {
-    // setConfirmAction("save");
-    // setConfirmOpen(true);
-
     setModalText("Save changes?");
     setModalDesc("Confirm to save the changes.");
     setModalOpen(true);
-    setModalAction({ newStatus: null });
+    // setModalAction({ newStatus: null }); // Keep existing changes
   };
 
-  // Open confirmation modal for Mark as done
-  const handleMarkDoneClick = () => {
-    setConfirmAction("done");
-    setConfirmOpen(true);
-  };
-
-  // Confirm handler for either action
   const handleModalConfirm = async () => {
     try {
-      setLoading(true);
       setModalOpen(false);
+      setLoading(true);
 
-      let payload = {
-        status: modalAction.newStatus || status,
-        release_date_of_meds: modalAction.newReleaseDate || releaseDate,
+      const payload = {
+        status: modalAction?.newStatus || status,
+        release_date_of_meds: modalAction?.newReleaseDate || releaseDate,
       };
-      console.log("Payload: ", payload);
 
-      // Stop here for now
       await api.patch(`/precancerous/update/${preCancerous.id}/`, payload);
 
-      setNotificationType("success");
-      setNotification("Success.");
-      fetchData();
+      navigate("/admin/treatment-assistance/pre-cancerous", {
+        state: {
+          flash: "Updated Successfully.", // Changed to 'flash' for consistency
+        },
+      });
     } catch (error) {
-      setNotificationType("error");
-      setNotification("Something went wrong while submitting the changes.");
+      setModalInfo({
+        type: "error",
+        title: "Error",
+        message: "Something went wrong while submitting the changes.",
+      });
+      setShowModal(true);
     } finally {
       setLoading(false);
       setModalAction(null);
     }
-  }
+  };
 
   if (error || !preCancerous) {
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-[#F8F9FA]">
-        <div className="bg-white p-6 rounded shadow">
-          <p className="font-semibold">{error || "Record not found."}</p>
-        </div>
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-gray">
+        {loading && <SystemLoader />}
+        {/* <div className="bg-white p-6 rounded shadow text-gray-600">
+          <p className="font-semibold">{error || "Loading record..."}</p>
+        </div> */}
       </div>
     );
   }
 
-  const statusPillClasses =
-    preCancerous?.status === "Completed"
-      ? "bg-green-100 text-green-700 border border-green-200"
-      : preCancerous?.status === "Follow-up Required"
-      ? "bg-blue-100 text-blue-700 border border-blue-200"
-      : preCancerous?.status === "Approved"
-      ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-      : preCancerous?.status === "Closed"
-      ? "bg-gray-100 text-gray-700 border border-gray-200"
-      : preCancerous?.status === "Pending"
-      ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-      : preCancerous?.status === "Rejected"
-      ? "bg-red-100 text-red-700 border border-red-200"
-      : "bg-yellow-100 text-yellow-700";
+  // --- Helpers ---
+  
+  const getStatusColor = (st) => {
+    switch (st) {
+      case "Completed": return "bg-green-100 text-green-700 border-green-200";
+      case "Approved": return "bg-blue-100 text-blue-700 border-blue-200";
+      case "Rejected": return "bg-red-100 text-red-700 border-red-200";
+      case "Pending": return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      default: return "bg-gray-100 text-gray-700 border-gray-200";
+    }
+  };
 
   const statusLevels = {
     "Pending": 0,
     "Approved": 1,
     "Completed": 2,
   };
-
-  // Get the numeric level of the SAVED record status
-  const currentLevel = statusLevels[preCancerous?.status] || 0;
+  const currentLevel = statusLevels[preCancerous.status] || 0;
 
   return (
     <>
       {loading && <SystemLoader />}
-      {/* Modals */}
+
+      {/* --- Modals --- */}
       <ConfirmationModal
         open={modalOpen}
         title={modalText}
@@ -197,7 +162,6 @@ const PreCancerousView = () => {
         onConfirm={handleModalConfirm}
         onCancel={() => setModalOpen(false)}
       />
-      {/* <Notification message={notification} type={notificationType} /> */}
 
       <NotificationModal
         show={showModal}
@@ -209,277 +173,153 @@ const PreCancerousView = () => {
 
       <DateModal
         open={dateModalOpen}
-        title={dateModalTitle}
+        title="Set Medicine Release Date"
         value={releaseDate}
         onChange={setReleaseDate}
         onConfirm={handleDateModalConfirm}
         onCancel={() => setDateModalOpen(false)}
       />
-      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray overflow-auto">
-        {/* Toast (uses your markup) */}
-        {toast && (
-          <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
-            <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-              <img
-                src="/images/logo_white_notxt.png"
-                alt="Rafi Logo"
-                className="h-[25px]"
-              />
-              <span>{toast.message}</span>
-            </div>
-          </div>
-        )}
 
-        <div className="bg-white w-full rounded-md shadow border border-black/10">
-          <div className="border-b border-black/10 px-5 py-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Request Pre-Cancerous Meds</h2>
-            <span className={`text-xs px-2 py-1 rounded ${statusPillClasses}`}>
-              {preCancerous?.status}
-            </span>
-          </div>
+      {/* --- Main Content --- */}
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
+          {/* Top Title */}
+          <h2 className="text-xl font-semibold mb-6 text-gray-800">Application Details</h2>
 
-          <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-            <div className="flex gap-2">
-              <span className="font-medium w-40">Patient ID</span>
-              <span className="text-gray-700">{preCancerous?.patient?.patient_id || "---"}</span>
-            </div>
-            <div className="flex gap-2">
-              <span className="font-medium w-40">Patient Name</span>
-              <span className="text-gray-700">{preCancerous?.patient?.full_name || "---"}</span>
-            </div>
-            <div className="flex gap-2">
-              <span className="font-medium w-40">Diagnosis</span>
-              <span className="text-gray-700">
-                {preCancerous?.patient?.diagnosis?.[0]?.diagnosis || "---"}
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
+            
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
+              <h1 className="font-bold text-[24px] md:text-3xl text-yellow">
+                Pre-Cancerous Meds
+              </h1>
+              <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wider ${getStatusColor(status)}`}>
+                {status}
               </span>
             </div>
-            {/* <div className="flex gap-2">
-              <span className="font-medium w-40">Interpretation of Result</span>
-              <span className="text-gray-700">
-                {patient.contact_number || "—"}
-              </span>
-            </div> */}
-            <div className="flex gap-2">
-              <span className="font-medium w-40">Status</span>
-              <select
-                className="-ml-1 outline-none focus:ring-0 text-gray-700"
-                value={status}
-                onChange={handleStatusChange}
-                disabled={preCancerous?.status === "Completed"}
-              >
-                <option value="Pending" disabled={currentLevel > 0}>Pending</option>
-                <option value="Approved" disabled={currentLevel > 1}>Approved</option>
-                <option value="Completed">Completed</option>
-              </select>
-            </div>
-            {/* Stop here for now */}
-            <div className="flex gap-2">
-              <span className="font-medium w-40">Date Submitted</span>
-              <span className="text-gray-700">
-                {preCancerous?.created_at
-                  ? new Date(preCancerous?.created_at).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })
-                  : "---"}
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <span className="font-medium w-40">Release Date</span>
-              <span className="text-gray-700">{releaseDate || "---"}</span>
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white w-full rounded-md shadow border border-black/10">
-          <div className="border-b border-black/10 px-5 py-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Additional Information</h2>
-          </div>
+            {/* Grid Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
+              
+              {/* Left Column: Patient & Status */}
+              <div className="space-y-8">
+                
+                {/* Patient Information */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Patient Information
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <span className="text-gray-500 font-medium">Patient ID</span>
+                    <span className="col-span-2 text-gray-900 font-semibold">{preCancerous.patient?.patient_id || "---"}</span>
+                    
+                    <span className="text-gray-500 font-medium">Full Name</span>
+                    <span className="col-span-2 text-gray-900 font-semibold">{preCancerous.patient?.full_name || "---"}</span>
 
-          <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-            <div className="flex gap-2">
-              <span className="font-medium w-45">Interpretation of Result</span>
-              <span className="text-gray-700">{preCancerous?.interpretation_of_result || "---"}</span>
-            </div>
-    
-            <div className="flex gap-2">
-              <span className="font-medium w-40">Requested To</span>
-              <span className="text-gray-700">
-                {preCancerous?.request_destination === "Rural Health Unit" ? 
-                  ("RHU - ") : 
-                  ("")} 
-                {preCancerous?.destination_name || "---"}
-              </span>
-            </div>
-          </div>
-        </div>
+                    <span className="text-gray-500 font-medium">Diagnosis</span>
+                    <span className="col-span-2 text-gray-900">{preCancerous.patient?.diagnosis?.[0]?.diagnosis || "---"}</span>
 
-        {/* Patient Row Table */}
-        {/* <div className="bg-white w-full rounded-md shadow border border-black/10">
-          <table className="min-w-full border-separate border-spacing-0">
-            <thead>
-              <tr className="bg-gray/30">
-                <th className="text-left text-sm font-semibold px-4 py-3">No.</th>
-                <th className="text-left text-sm font-semibold px-4 py-3">
-                  Patient No.
-                </th>
-                <th className="text-left text-sm font-semibold px-4 py-3">
-                  Last Name
-                </th>
-                <th className="text-left text-sm font-semibold px-4 py-3">
-                  First Name
-                </th>
-                <th className="text-left text-sm font-semibold px-4 py-3">
-                  Middle Initial
-                </th>
-                <th className="text-left text-sm font-semibold px-4 py-3">
-                  Date of Birth
-                </th>
-                <th className="text-left text-sm font-semibold px-4 py-3">
-                  Interpretation of Result
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-t">
-                <td className="px-4 py-3 text-sm">1</td>
-                <td className="px-4 py-3 text-sm">{patient.patient_id}</td>
-                <td className="px-4 py-3 text-sm">{patient.last_name}</td>
-                <td className="px-4 py-3 text-sm">{patient.first_name}</td>
-                <td className="px-4 py-3 text-sm">
-                  {patient.middle_initial || "—"}
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  {new Date(patient.date_of_birth).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  {patient.interpretation_of_result}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div> */}
+                    <span className="text-gray-500 font-medium">Date Submitted</span>
+                    <span className="col-span-2 text-gray-900">
+                      {preCancerous.created_at
+                        ? new Date(preCancerous.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+                        : "---"}
+                    </span>
+                  </div>
+                </div>
 
-        {/* Release Date input */}
-        {/* <div className="bg-white w-full rounded-md shadow border border-black/10 p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-            <label className="flex items-center gap-4">
-              <span className="font-medium w-40">Release Date</span>
-              <input
-                type="date"
-                className="border rounded px-3 py-2 w-full md:w-auto"
-                value={releaseDate}
-                onChange={(e) => setReleaseDate(e.target.value)}
-              />
-            </label>
-          </div>
-        </div> */}
+                {/* Status Management */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Status Management
+                  </h3>
+                  <div className="grid grid-cols-3 gap-3 text-sm items-center">
+                    <span className="text-gray-500 font-medium">Update Status</span>
+                    <div className="col-span-2">
+                      <select
+                        className="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:ring-2 focus:ring-primary outline-none transition-shadow"
+                        value={status}
+                        onChange={handleStatusChange}
+                        disabled={preCancerous.status === "Completed"}
+                      >
+                        <option value="Pending" disabled={currentLevel > 0}>Pending</option>
+                        <option value="Approved" disabled={currentLevel > 1}>Approved</option>
+                        <option value="Completed">Completed</option>
+                      </select>
+                    </div>
 
-        {/* Bottom actions */}
-        <div className="w-full flex flex-col md:flex-row gap-3 justify-between md:justify-around">
-          <Link
-            className="text-center bg-white text-black py-2 md:w-[30%] w-full border border-black hover:border-black/15 rounded-md"
-            to="/admin/treatment-assistance/pre-cancerous"
-          >
-            BACK
-          </Link>
-
-          <button
-            type="button"
-            onClick={handleSaveClick}
-            disabled={!releaseDate}
-            className={`text-center py-2 md:w-[30%] w-full rounded-md shadow ${
-              !releaseDate
-                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                : "bg-primary text-white hover:opacity-90"
-            }`}
-          >
-            Save changes
-          </button>
-
-          {/* <button
-            type="button"
-            onClick={handleMarkDoneClick}
-            disabled={status !== "Verified"}
-            title={
-              status !== "Verified"
-                ? "Only available when status is Verified"
-                : ""
-            }
-            className={`text-center py-2 md:w-[30%] w-full rounded-md shadow ${
-              status !== "Verified"
-                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                : "bg-primary text-white hover:opacity-90"
-            }`}
-          >
-            Mark as done
-          </button> */}
-        </div>
-
-        {/* Confirmation Modal */}
-        {confirmOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div
-              className="absolute inset-0 bg-black/40"
-              onClick={() => {
-                setConfirmOpen(false);
-                setConfirmAction(null);
-              }}
-            />
-            <div className="relative bg-white w-[92%] max-w-md rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold mb-2">
-                {confirmAction === "done" ? "Mark as done?" : "Confirm save"}
-              </h3>
-
-              {confirmAction === "done" ? (
-                <p className="text-sm text-gray-700 mb-4">
-                  Mark the request for{" "}
-                  <strong>
-                    {patient.first_name} {patient.last_name}
-                  </strong>{" "}
-                  (ID: {patient.patient_id}) as <strong>Done</strong>? This will
-                  update the current status.
-                </p>
-              ) : (
-                <p className="text-sm text-gray-700 mb-4">
-                  Save changes for{" "}
-                  <strong>
-                    {patient.first_name} {patient.last_name}
-                  </strong>{" "}
-                  (ID: {patient.patient_id})
-                  {releaseDate ? ` with release date ${releaseDate}` : ""}?
-                </p>
-              )}
-
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50"
-                  onClick={() => {
-                    setConfirmOpen(false);
-                    setConfirmAction(null);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className={`px-4 py-2 rounded text-white hover:opacity-90 ${
-                    confirmAction === "done" ? "bg-green-600" : "bg-primary"
-                  }`}
-                  onClick={handleConfirmAction}
-                >
-                  Confirm
-                </button>
+                    <span className="text-gray-500 font-medium">Release Date</span>
+                    <div className="col-span-2 flex items-center justify-between bg-gray-50 border border-gray-200 rounded px-3 py-2">
+                      <span className="text-gray-900 font-medium">
+                        {releaseDate
+                          ? new Date(releaseDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+                          : "Not Set"}
+                      </span>
+                      {status === "Approved" && (
+                        <button 
+                          onClick={() => setDateModalOpen(true)}
+                          className="p-1 hover:bg-gray-200 rounded text-blue-600"
+                          title="Edit Release Date"
+                        >
+                          <Calendar className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              {/* Right Column: Additional Info */}
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Request Details
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <span className="block text-xs font-bold text-gray-500 uppercase mb-1">Interpretation of Result</span>
+                      <p className="text-sm text-gray-900 leading-relaxed">
+                        {preCancerous.interpretation_of_result || "No details provided."}
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex flex-col gap-1">
+                      <span className="block text-xs font-bold text-gray-500 uppercase">Requested To</span>
+                      <p className="text-sm text-gray-900 font-medium">
+                        {preCancerous.request_destination === "Rural Health Unit" ? "RHU - " : ""}
+                        {preCancerous.destination_name || "---"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </div>
+
           </div>
-        )}
+          {/* Footer Actions */}
+          <div className="flex justify-around print:hidden mt-5">
+            <Link
+              to="/admin/treatment-assistance/pre-cancerous"
+              className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Back
+            </Link>
+            <button
+              onClick={handleSaveClick}
+              disabled={!releaseDate && status === 'Approved'}
+              className={"py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer disabled:opacity-50"}
+            >
+              {/* <Save className="w-4 h-4" /> */}
+              Save Changes
+            </button>
+          </div>
+        </div>
+
+        {/* Decorative Footer */}
+        {/* <div className="h-16 bg-secondary shrink-0"></div> */}
       </div>
     </>
   );

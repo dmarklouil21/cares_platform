@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
-// import LOAPrintTemplate from "../generate/LOAPrintTemplate";
+import { Save, Calendar, ArrowLeft, FileText } from "lucide-react";
+
 import api from "src/api/axiosInstance";
 
 // Components
@@ -12,17 +13,19 @@ import DateModal from "src/components/Modal/DateModal";
 const HormonalView = () => {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Data
-  const [data, setData] = useState({});
+  const [data, setData] = useState(null);
   const [status, setStatus] = useState("");
   const [releaseDate, setReleaseDate] = useState(null);
-  const [isNewDate, setIsNewDate] = useState(false);
 
   // Loading & Notification
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState("");
-  const [notificationType, setNotificationType] = useState(location.state?.type || "");
+  const [notificationType, setNotificationType] = useState(
+    location.state?.type || ""
+  );
 
   // Confirmation Modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -32,25 +35,29 @@ const HormonalView = () => {
 
   // Treatment Date Modal
   const [dateModalOpen, setDateModalOpen] = useState(false);
-  const [tempDate, setTempDate] = useState("");
-  const [dateModalTitle, setDateModalTitle] = useState("Set Medicine Release Date");
 
   // Fetch Data
   const fetchData = async () => {
     try {
-      const { data } = await api.get(`/survivorship/hormonal-replacement/view/${id}/`);
+      setLoading(true);
+      const { data } = await api.get(
+        `/survivorship/hormonal-replacement/view/${id}/`
+      );
       setData(data);
       setStatus(data.status);
       setReleaseDate(data.released_date || null);
-      console.log("Data: ", data);
     } catch (error) {
       console.error("Error fetching record:", error);
+      setNotificationType("error");
+      setNotification("Failed to load record details.");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [id]);
 
   // Auto-hide notification
   useEffect(() => {
@@ -59,7 +66,8 @@ const HormonalView = () => {
     return () => clearTimeout(timer);
   }, [notification]);
 
-  // Handlers
+  // --- Handlers ---
+
   const handleStatusChange = (e) => {
     const selectedStatus = e.target.value;
     if (selectedStatus === "Approved") {
@@ -72,14 +80,12 @@ const HormonalView = () => {
     }
   };
 
-  const handleDateModalConfirm = async () => {
+  const handleDateModalConfirm = () => {
     if (!releaseDate) {
       alert("Please select a date before proceeding.");
       return;
     }
-    // setReleaseDate(tempDate);
     setModalAction((prev) => ({ ...prev, newReleaseDate: releaseDate }));
-    // setIsNewDate(true);
     setDateModalOpen(false);
   };
 
@@ -87,7 +93,7 @@ const HormonalView = () => {
     setModalText("Save changes?");
     setModalDesc("Confirm to save the changes.");
     setModalOpen(true);
-    setModalAction({ newStatus: null });
+    // setModalAction({ newStatus: null }); // Preserve existing changes
   };
 
   const handleModalConfirm = async () => {
@@ -96,11 +102,14 @@ const HormonalView = () => {
       setModalOpen(false);
 
       let payload = {
-        status: modalAction.newStatus || status,
-        released_date: modalAction.newReleaseDate || releaseDate,
+        status: modalAction?.newStatus || status,
+        released_date: modalAction?.newReleaseDate || releaseDate,
       };
 
-      await api.patch(`/survivorship/hormonal-replacement/update/${data.id}/`, payload);
+      await api.patch(
+        `/survivorship/hormonal-replacement/update/${data.id}/`,
+        payload
+      );
 
       setNotificationType("success");
       setNotification("Success.");
@@ -112,37 +121,44 @@ const HormonalView = () => {
       setLoading(false);
       setModalAction(null);
     }
-  }
-
-  const statusPillClasses =
-    data?.status === "Completed"
-      ? "bg-green-100 text-green-700 border border-green-200"
-      : data?.status === "Follow-up Required"
-      ? "bg-blue-100 text-blue-700 border border-blue-200"
-      : data?.status === "Approved"
-      ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-      : data?.status === "Closed"
-      ? "bg-gray-100 text-gray-700 border border-gray-200"
-      : data?.status === "Pending"
-      ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-      : data?.status === "Rejected"
-      ? "bg-red-100 text-red-700 border border-red-200"
-      : "bg-yellow-100 text-yellow-700";
-
-  const statusLevels = {
-    "Pending": 0,
-    "Approved": 1,
-    "Completed": 2,
   };
 
-  // Get the numeric level of the SAVED record status
+  if (!data && !loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <p className="text-gray-500">Record not found.</p>
+      </div>
+    );
+  }
+
+  // Helper for Status Badge Color
+  const getStatusColor = (st) => {
+    switch (st) {
+      case "Completed":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "Approved":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "Rejected":
+        return "bg-red-100 text-red-700 border-red-200";
+      case "Pending":
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-200";
+    }
+  };
+
+  const statusLevels = {
+    Pending: 0,
+    Approved: 1,
+    Completed: 2,
+  };
   const currentLevel = statusLevels[data?.status] || 0;
 
   return (
     <>
       {loading && <SystemLoader />}
 
-      {/* Modals */}
+      {/* --- Modals --- */}
       <ConfirmationModal
         open={modalOpen}
         title={modalText}
@@ -150,157 +166,218 @@ const HormonalView = () => {
         onConfirm={handleModalConfirm}
         onCancel={() => setModalOpen(false)}
       />
+
       <Notification message={notification} type={notificationType} />
+
       <DateModal
         open={dateModalOpen}
-        title={dateModalTitle}
+        title="Set Medicine Release Date"
         value={releaseDate}
         onChange={setReleaseDate}
         onConfirm={handleDateModalConfirm}
         onCancel={() => setDateModalOpen(false)}
       />
 
-      {/* <LOAPrintTemplate loaData={loaData} /> */}
+      {/* --- Main Content --- */}
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
+          {/* Top Title */}
+          <h2 className="text-xl font-semibold mb-6 text-gray-800">
+            Application Details
+          </h2>
 
-      {/* Page Content */}
-      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray overflow-auto">
-        {/* Header */}
-        {/* <div className="h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Treatment Info</h1>
-          <Link to={"/admin/treatment-assistance/post-treatment"}>
-            <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
-          </Link>
-        </div> */}
-
-        {/* Treatment Info */}
-        <div className="h-fit w-full flex flex-col gap-4">
-          <div className="bg-white rounded-md shadow border border-black/10">
-            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Hormonal Replacement Medication Request</h2>
-              <span className={`text-xs px-2 py-1 rounded ${statusPillClasses}`}>
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
+              <h1 className="font-bold text-[24px] md:text-3xl text-yellow">
+                Hormonal Replacement
+              </h1>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wider ${getStatusColor(
+                  data?.status
+                )}`}
+              >
                 {data?.status}
               </span>
-              {/* <div className="flex gap-2">
-                <h2 className="text-lg font-semibold">Post-Treatment Laboratory Request</h2>
-                <span className={`text-xs px-2 py-1 rounded ${statusPillClasses}`}>
-                  {data?.status}
-                </span>
-              </div>
-              <div>
-                <Link to={"/admin/treatment-assistance/post-treatment"}>
-                  <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
-                </Link>
-              </div> */}
             </div>
-            {/* Info Fields */}
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Patient ID</span>
-                <span className="text-gray-700">{data?.patient?.patient_id || "---"}</span>
+
+            {/* Grid Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
+              {/* Left Column: Patient & Status */}
+              <div className="space-y-8">
+                {/* Patient Information */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Patient Information
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <span className="text-gray-500 font-medium">
+                      Patient ID
+                    </span>
+                    <span className="col-span-2 text-gray-900 font-semibold">
+                      {data?.patient?.patient_id || "---"}
+                    </span>
+
+                    <span className="text-gray-500 font-medium">Full Name</span>
+                    <span className="col-span-2 text-gray-900 font-semibold">
+                      {data?.patient?.full_name || "---"}
+                    </span>
+
+                    <span className="text-gray-500 font-medium">Diagnosis</span>
+                    <span className="col-span-2 text-gray-900">
+                      {data?.patient?.diagnosis?.[0]?.diagnosis || "---"}
+                    </span>
+
+                    <span className="text-gray-500 font-medium">
+                      Date Submitted
+                    </span>
+                    <span className="col-span-2 text-gray-900">
+                      {data?.date_submitted
+                        ? new Date(data.date_submitted).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            }
+                          )
+                        : "---"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Status Management */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Status Management
+                  </h3>
+                  <div className="grid grid-cols-3 gap-3 text-sm items-center">
+                    <span className="text-gray-500 font-medium">
+                      Update Status
+                    </span>
+                    <div className="col-span-2">
+                      <select
+                        className="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:ring-2 focus:ring-primary outline-none transition-shadow"
+                        value={status}
+                        onChange={handleStatusChange}
+                        disabled={data?.status === "Completed"}
+                      >
+                        <option value="Pending" disabled={currentLevel > 0}>
+                          Pending
+                        </option>
+                        <option value="Approved" disabled={currentLevel > 1}>
+                          Approved
+                        </option>
+                        <option value="Completed">Completed</option>
+                      </select>
+                    </div>
+
+                    <span className="text-gray-500 font-medium">
+                      Release Date
+                    </span>
+                    <div className="col-span-2 flex items-center justify-between bg-gray-50 border border-gray-200 rounded px-3 py-2">
+                      <span className="text-gray-900 font-medium">
+                        {releaseDate
+                          ? new Date(releaseDate).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })
+                          : "Not Set"}
+                      </span>
+                      {status === "Approved" && (
+                        <button
+                          onClick={() => setDateModalOpen(true)}
+                          className="p-1 hover:bg-gray-200 rounded text-blue-600"
+                          title="Edit Release Date"
+                        >
+                          <Calendar className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Patient Name</span>
-                <span className="text-gray-700">{data?.patient?.full_name || "---"}</span>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Diagnosis</span>
-                <span className="text-gray-700">
-                  {data?.patient?.diagnosis?.[0]?.diagnosis || "---"}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Service Completed</span>
-                <span className="text-gray-700">{data?.service_completed}</span>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Status</span>
-                <select
-                  className="-ml-1 outline-none focus:ring-0 text-gray-700"
-                  value={status}
-                  onChange={handleStatusChange}
-                  disabled={data?.status === "Completed"}
-                >
-                  <option value="Pending" disabled={currentLevel > 0}>Pending</option>
-                  <option value="Approved" disabled={currentLevel > 1}>Approved</option>
-                  <option value="Completed">Completed</option>
-                </select>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Date Submitted</span>
-                <span className="text-gray-700">
-                  {data?.date_submitted
-                    ? new Date(data?.date_submitted).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : "---"}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Medicines Requested</span>
-                <span className="text-gray-700 break-words flex-1">
-                  {data?.medicines_requested}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Released Date</span>
-                <span className="text-gray-700">
-                  {releaseDate
-                    ? new Date(releaseDate).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : "---"}
-                </span>
-                {status === "Approved" && releaseDate && (
-                  <span
-                    className="text-sm text-blue-700 cursor-pointer"
-                    onClick={() => setDateModalOpen(true)}
-                  >
-                    Edit
-                  </span>
-                )}
+
+              {/* Right Column: Request Details & Docs */}
+              <div className="space-y-8">
+                {/* Request Details */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Request Details
+                  </h3>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <span className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                        Medicines Requested
+                      </span>
+                      <p className="text-sm text-gray-900 leading-relaxed">
+                        {data?.medicines_requested || "None specified."}
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex flex-col gap-1">
+                      <span className="block text-xs font-bold text-gray-500 uppercase">
+                        Service Status
+                      </span>
+                      <p className="text-sm text-gray-900 font-medium">
+                        {data?.service_completed || "Pending"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Documents & Links */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Documents & Links
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    <Link
+                      to={`/admin/survivorship/hormonal-replacement/view/${data?.id}/doctors-prescription`}
+                      state={data}
+                      className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-primary/50 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        {/* <div className="text-gray-400 group-hover:text-primary">
+                          <FileText className="w-4 h-4" />
+                        </div> */}
+                        <span className="text-sm font-medium text-gray-700 group-hover:text-primary">
+                          Doctor's Prescription
+                        </span>
+                      </div>
+                      <div className="text-gray-400 group-hover:text-primary">
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      {/* <ArrowLeft className="w-4 h-4 text-gray-300 rotate-180 group-hover:text-primary" /> */}
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-
-          {/* Additional Info */}
-          <div className="bg-white rounded-md shadow border border-black/10">
-            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Additional Information</h2>
-            </div>
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Doctor's Prescription</span>
-                <Link
-                  className="text-blue-700"
-                  to={`/admin/survivorship/hormonal-replacement/view/${data.id}/doctors-prescription`}
-                  state={data}
-                >
-                  View
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex justify-around print:hidden">
+          {/* Footer Actions */}
+          <div className="flex justify-around print:hidden mt-5">
             <Link
-              to={`/admin/survivorship/hormonal-replacement`}
-              className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md"
+              to="/admin/survivorship/hormonal-replacement"
+              className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
             >
               Back
             </Link>
             <button
               onClick={handleSaveChanges}
-              className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer"
+              className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer disabled:opacity-50"
             >
+              {/* <Save className="w-4 h-4" /> */}
               Save Changes
             </button>
           </div>
         </div>
+
+        {/* Decorative Footer */}
+        {/* <div className="h-16 bg-secondary shrink-0"></div> */}
       </div>
     </>
   );

@@ -66,28 +66,16 @@ const ViewPreScreeningForm = () => {
         onClose={() => setShowModal(false)}
       />
       <LoadingModal open={loading} text="Submitting changes..." />
-      <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
-        {/* <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Cancer Management</h1>
-          <div className="p-3">
-            <Link to={`/admin/cancer-screening/view/details`} state={{ record: record }} >
-              <img
-                src="/images/back.png"
-                alt="Back button icon"
-                className="h-6"
-              />
-            </Link>
-          </div>
-        </div> */}
-
+      <div className="h-screen w-full flex flex-col justify-between items-center bg-gray overflow-auto">
         <div className="h-full w-full p-5 flex flex-col justify-between">
-          <form className="border border-black/15 p-3 bg-white rounded-sm">
-            <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-              <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">Pre Screening Form</h2>
+          <form className="border border-black/15 p-3 bg-white rounded-lg">
+            <div className="mb-6 mt-5 border-b border-gray-200 px-5">
+              <h2 className="text-3xl text-yellow font-bold">
                 Cancer Data
               </h2>
             </div>
-
+{/* Stop here for now */}
             <div className="flex flex-col gap-8 p-4">
               <div className="flex flex-row gap-8">
                 <div className="flex flex-col gap-3 w-1/2">
@@ -98,7 +86,7 @@ const ViewPreScreeningForm = () => {
                     <input
                       type="text"
                       name="referred_from"
-                      className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                      className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray/50"
                       value={pre_screening_form?.referred_from}
                       onChange={handleInputChange}
                       readOnly

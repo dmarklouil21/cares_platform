@@ -24,32 +24,8 @@ const CancerAwareness = () => {
 
   return (
     <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-      {/* <div className="md:hidden">
-        <BeneficiarySidebar
-          isSidebarOpen={isSidebarOpen}
-          setIsSidebarOpen={setIsSidebarOpen}
-        />
-      </div>
-
-      <div className="bg-white py-4 px-10 flex justify-between items-center ">
-        <img
-          className="md:hidden size-5 cursor-pointer"
-          src="/images/menu-line.svg"
-          onClick={() => setIsSidebarOpen(true)}
-        />
-
-        <div className="font-bold">Beneficiary</div>
-        <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-          <img
-            src="/images/Avatar.png"
-            alt="User Profile"
-            className="rounded-full"
-          />
-        </div>
-      </div> */}
-
       <div className="h-full flex flex-col justify-between overflow-auto ">
-        <div className="py-6 p-5 md:px-10">
+        <div className="py-5 p-5 md:px-5">
           <h1 className="text-lg font-bold mb-6">Cancer Awareness</h1>
           <div className="bg-white rounded-lg p-5 md:p-10 mb-8 shadow-sm">
             <h2 className="md:text-2xl font-bold text-yellow mb-4 text-[18px]">

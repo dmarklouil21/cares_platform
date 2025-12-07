@@ -51,24 +51,7 @@ const NavigationGuide = () => {
         />
       </div>
 
-      {/* <div className="bg-white py-4 px-10 flex justify-between items-center ">
-        <img
-          className="md:hidden size-5 cursor-pointer"
-          src="/images/menu-line.svg"
-          onClick={() => setIsSidebarOpen(true)}
-        />
-
-        <div className="font-bold">Beneficiary</div>
-        <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-          <img
-            src="/images/Avatar.png"
-            alt="User Profile"
-            className="rounded-full"
-          />
-        </div>
-      </div> */}
-
-      <div className="py-6 overflow-auto md:px-10 px-5">
+      <div className="overflow-auto md:px-5 p-5 space-y-5">
         <h1 className="text-[16px] md:text-lg font-bold mb-6 uppercase">
           CANCER PATIENT NAVIGATION GUIDE
         </h1>

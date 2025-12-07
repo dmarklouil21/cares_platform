@@ -1,375 +1,296 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import React, { useEffect, useMemo, useState, useRef } from "react";
-import { UserPlus, UserMinus } from "lucide-react";
+// src/pages/mass-screening/MassScreeningAttendance.jsx
+import { useState, useEffect, useMemo } from "react";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, Save, Search, UserPlus, UserMinus, FileSignature } from "lucide-react";
+
+import SystemLoader from "src/components/SystemLoader";
+import Notification from "src/components/Notification";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import api from "src/api/axiosInstance";
 import {
   getMassScreeningAttendance,
   saveMassScreeningAttendance,
-} from "../../../../../api/massScreening";
-import api from "src/api/axiosInstance";
+} from "src/api/massScreening";
 
-/* Notification (no close button) */
-function Notification({ message }) {
-  if (!message) return null;
-  return (
-    <div className="fixed top-1 left-1/2 -translate-x-1/2 z-50 transition-all duration-500">
-      <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="Rafi Logo"
-          className="h-[25px]"
-        />
-        <span>{message}</span>
-      </div>
-    </div>
-  );
-}
-
-const ApplicationAttendance = () => {
+const MassScreeningAttendance = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const record = state?.record || state || null;
 
-  const initialPatients = useMemo(() => {
-    return Array.isArray(state?.patients) && state.patients.length
-      ? state.patients.map((p) =>
-          typeof p === "string"
-            ? { name: p, result: "" }
-            : { name: p.name, result: p.result ?? "" }
-        )
-      : [];
-  }, [state]);
-
-  const [patients, setPatients] = useState(initialPatients);
+  const [patients, setPatients] = useState([]); // Current Attendees
+  const [patientList, setPatientList] = useState([]); // Available Database
+  const [searchTerm, setSearchTerm] = useState("");
+  
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [rhuLgu, setRhuLgu] = useState("");
-  const [patientList, setPatientList] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
 
-  useEffect(() => setPatients(initialPatients), [initialPatients]);
-
-  // Load existing attendance from backend
+  // --- Logic: Load Data ---
   useEffect(() => {
-    const load = async () => {
-      if (!record?.id) return;
+    if (!record?.id) return;
+    
+    const loadData = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        setError("");
-        const data = await getMassScreeningAttendance(record.id);
-        if (Array.isArray(data) && data.length) {
-          setPatients(
-            data.map((e) => ({ name: e.name, result: e.result || "" }))
-          );
+        // 1. Fetch Existing Attendance
+        const attendanceData = await getMassScreeningAttendance(record.id);
+        if (Array.isArray(attendanceData)) {
+          setPatients(attendanceData.map((e) => ({ name: e.name, result: e.result || "" })));
         }
-      } catch (e) {
-        setError(e?.response?.data?.detail || "Failed to load attendance.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [record?.id]);
 
-  useEffect(() => {
-    const run = async () => {
-      try {
+        // 2. Fetch Available Patients (Smart Logic from original code)
         const prof = await api.get("/rhu/profile/");
         const lgu = prof?.data?.lgu || "";
-        console.log("RHU LGU:", lgu);
-        setRhuLgu(lgu);
         const toCity = (s) => String(s || "").replace(/^RHU\s+/i, "").split(",")[0].trim();
         const norm = (s) => toCity(s).toLowerCase();
         const cityExact = toCity(lgu);
 
         let list = [];
         try {
-          const res = await api.get("/rhu/patients/");
-          list = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.results) ? res.data.results : []);
-        } catch {}
+           // Try generic RHU list first
+           const res = await api.get("/rhu/patients/");
+           list = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.results) ? res.data.results : []);
+        } catch(err) { console.warn(err); }
 
         if (!Array.isArray(list) || list.length === 0) {
-          try {
-            const resCity = await api.get(`/patient/list/`, { params: { registered_by: lgu } });
-            list = Array.isArray(resCity?.data) ? resCity.data : (Array.isArray(resCity?.data?.results) ? resCity.data.results : []);
-            if (!list.length) {
-              const resAllRhu = await api.get(`/patient/list/`, { params: { registered_by: lgu } });
-              const allRhu = Array.isArray(resAllRhu?.data) ? resAllRhu.data : (Array.isArray(resAllRhu?.data?.results) ? resAllRhu.data.results : []);
-              list = allRhu.filter((p) => norm(p.city) === norm(cityExact) || norm(p.city).includes(norm(cityExact)));
-            }
-          } catch {}
+           // Fallback to searching by registered_by or city
+           try {
+             const resCity = await api.get(`/patient/list/`, { params: { registered_by: lgu } });
+             list = Array.isArray(resCity?.data) ? resCity.data : (resCity?.data?.results || []);
+             
+             if (!list.length) {
+               // Fallback: fetch all and filter client-side (last resort)
+               const resAll = await api.get(`/patient/list/`);
+               const all = Array.isArray(resAll?.data) ? resAll.data : (resAll?.data?.results || []);
+               list = all.filter((p) => norm(p.city).includes(norm(cityExact)));
+             }
+           } catch(err) { console.warn(err); }
         }
-
         setPatientList(list || []);
-        if (!list || list.length === 0) {
-          setNotif("No RHU patients found for your LGU.");
-        }
-      } catch {}
+
+      } catch (error) {
+        console.error("Error loading data:", error);
+        setNotification("Failed to load patient data.");
+        setNotificationType("error");
+      } finally {
+        setLoading(false);
+      }
     };
-    run();
-  }, []);
 
-  const updateResult = (idx, value) => {
-    setPatients((list) =>
-      list.map((p, i) => (i === idx ? { ...p, result: value } : p))
-    );
-  };
+    loadData();
+  }, [record?.id]);
 
-  const removePatient = (idx) => {
-    setPatients((list) => list.filter((_, i) => i !== idx));
-  };
-
-  // Available patients panel filtering (exclude already added)
+  // --- Filtering Logic ---
   const addedNames = useMemo(() => new Set(patients.map((p) => (p.name || "").toLowerCase())), [patients]);
+  
   const filteredPatients = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    const all = Array.isArray(patientList) ? patientList : [];
-    return all
+    return patientList
       .filter((p) => {
         const full = (p.full_name || `${p.first_name || ""} ${p.last_name || ""}`).trim();
         if (!full) return false;
+        // Exclude if already in attendees list
         if (addedNames.has(full.toLowerCase())) return false;
+        // Search Filter
         if (!term) return true;
         return full.toLowerCase().includes(term) || String(p.patient_id || "").includes(term);
       })
-      .slice(0, 200);
+      .slice(0, 100); // Limit rendering for performance
   }, [patientList, searchTerm, addedNames]);
 
+  // --- Handlers ---
   const addAttendee = (patient) => {
     const full = (patient.full_name || `${patient.first_name || ""} ${patient.last_name || ""}`).trim();
-    if (!full) return;
-    if (addedNames.has(full.toLowerCase())) return;
-    setPatients((list) => [...list, { name: full, result: "" }]);
-    setNotif("Patient added.");
+    if (!full || addedNames.has(full.toLowerCase())) return;
+    
+    setPatients(prev => [...prev, { name: full, result: "" }]);
   };
 
-  /* Save + confirmation + notification */
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [notif, setNotif] = useState("");
-  useEffect(() => {
-    if (!notif) return;
-    const t = setTimeout(() => setNotif(""), 2500);
-    return () => clearTimeout(t);
-  }, [notif]);
+  const removeAttendee = (idx) => {
+    setPatients(prev => prev.filter((_, i) => i !== idx));
+  };
 
-  const handleSave = () => setShowConfirm(true);
-  const confirmSave = async () => {
-    if (!record?.id) {
-      setNotif("Missing mass screening ID.");
-      setShowConfirm(false);
-      return;
-    }
+  const updateResult = (idx, value) => {
+    setPatients(prev => prev.map((p, i) => (i === idx ? { ...p, result: value } : p)));
+  };
+
+  const handleSave = async () => {
+    setModalOpen(false);
     try {
       setSaving(true);
       const entries = patients
-        .map((p) => ({
-          name: String(p.name || "").trim(),
-          result: String(p.result || "").trim(),
-        }))
+        .map((p) => ({ name: String(p.name || "").trim(), result: String(p.result || "").trim() }))
         .filter((p) => p.name);
+      
       await saveMassScreeningAttendance(record.id, entries);
-      setNotif("Attendance saved successfully.");
-      setShowConfirm(false);
-    } catch (e) {
-      const msg =
-        e?.response?.data?.detail ||
-        e?.response?.data?.error ||
-        "Failed to save attendance.";
-      setNotif(String(msg));
+      
+      setNotification("Attendance and results saved successfully!");
+      setNotificationType("success");
+      setTimeout(() => navigate(-1), 1500); // Go back after success
+    } catch (error) {
+      setNotification("Failed to save attendance.");
+      setNotificationType("error");
     } finally {
       setSaving(false);
     }
   };
 
-  if (!record) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center bg-gray">
-        <div className="bg-white rounded-xl shadow p-6">No record data.</div>
-      </div>
-    );
-  }
+  if (!record) return <div className="p-10 text-center">Record ID missing.</div>;
+  if (loading) return <SystemLoader />;
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-gray relative">
-      <Notification message={notif} />
+    <>
+      {saving && <SystemLoader />}
+      <ConfirmationModal
+        open={modalOpen}
+        title="Save Attendance"
+        desc="This will update the attendance list and save any encoded results. Continue?"
+        onConfirm={handleSave}
+        onCancel={() => setModalOpen(false)}
+      />
+      <Notification message={notification} type={notificationType} />
 
-      {/* Top bar */}
-      {/* <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
-        <h1 className="text-md font-bold h-full flex items-center">RHU</h1>
-      </div> */}
-
-      {/* Content */}
-      <div className="w-full flex-1 py-5 flex flex-col justify-start gap-5 px-5 overflow-auto">
-        <h2 className="text-xl font-bold text-left w-full pl-5">Attendance</h2>
-
-        {/* Context */}
-        <div className="bg-white rounded-2xl shadow-md px-5 py-5">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <ContextField label="Mass ID" value={record.id} />
-            <ContextField label="Title" value={record.title} />
-            <ContextField label="Date" value={record.date} />
+      <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray overflow-auto">
+        
+        {/* Header */}
+        {/* <div className="flex justify-between items-center w-full">
+          <div className="flex items-center gap-4">
+             <button onClick={() => navigate(-1)} className="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded transition-colors">
+               <ArrowLeft className="w-4 h-4" />
+             </button>
+             <div>
+               <h2 className="text-xl font-bold text-gray-800">Attendance: {record.title}</h2>
+               <p className="text-sm text-gray-600 mt-1">{record.date}</p>
+             </div>
           </div>
-        </div>
+          <button
+            onClick={() => setModalOpen(true)}
+            disabled={saving}
+            className="bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+          >
+            <Save className="w-4 h-4" />
+            Save Attendance
+          </button>
+        </div> */}
 
-        {/* Two-pane layout: Available (left) | Current attendees (right) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Available patients */}
-          <section className="bg-white rounded-2xl shadow-md border border-gray-200">
+          
+          {/* LEFT: Available Patients */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-[80vh]">
             <div className="px-5 py-3 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-yellow-600">Available Patients</h3>
             </div>
-            <div className="p-4">
-              <div className="mb-3">
+            <div className="p-4 flex-1 flex flex-col min-h-0">
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="text"
+                  placeholder="Search by name or ID..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search patients by name or ID..."
-                  className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary w-full text-sm"
+                  className="border border-gray-300 py-2 pl-10 pr-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-full text-sm"
                 />
               </div>
-              <div className="max-h-96 overflow-y-auto">
+
+              <div className="flex-1 overflow-y-auto pr-2">
                 {filteredPatients.length === 0 ? (
-                  <p className="text-gray-500 text-sm text-center py-6">No patients found.</p>
+                  <p className="text-gray-500 text-sm text-center py-4">
+                    {searchTerm ? "No matching patients found." : "No patients available."}
+                  </p>
                 ) : (
                   <div className="space-y-2">
-                    {filteredPatients.map((p) => {
-                      const full = (p.full_name || `${p.first_name || ""} ${p.last_name || ""}`).trim();
-                      return (
-                        <div key={p.patient_id || full} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
-                          <div>
-                            <p className="text-sm font-medium text-gray-800">{full}</p>
-                            <p className="text-xs text-gray-500">ID: {p.patient_id || "N/A"}</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => addAttendee(p)}
-                            className="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded transition-colors"
-                            title="Add Attendee"
-                          >
-                            <UserPlus className="w-4 h-4" />
-                          </button>
+                    {filteredPatients.map((patient) => (
+                      <div key={patient.patient_id || patient.full_name} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200 hover:border-green-300 transition-colors">
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">
+                             {patient.full_name || `${patient.first_name} ${patient.last_name}`}
+                          </p>
+                          <p className="text-xs text-gray-500">ID: {patient.patient_id || "N/A"}</p>
                         </div>
-                      );
-                    })}
+                        <button
+                          onClick={() => addAttendee(patient)}
+                          className="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded transition-colors"
+                          title="Add to list"
+                        >
+                          <UserPlus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
             </div>
-          </section>
+          </div>
 
-          {/* Current attendees with results */}
-          <section className="bg-white rounded-2xl shadow-md border border-gray-200">
-            <div className="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-yellow-600">Current Attendees</h3>
-              <span className="text-sm text-gray-600">{patients.length} patients</span>
+          {/* RIGHT: Current Attendees & Results */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-[80vh]">
+            <div className="px-5 py-3 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-yellow-600">Current List</h3>
+              <span className="text-sm font-medium bg-primary/10 text-primary px-2 py-1 rounded">
+                {patients.length} Attendees
+              </span>
             </div>
-            <div className="p-4">
-              <div className="border border-gray-200 rounded-md overflow-hidden">
-                <div className="hidden md:grid md:grid-cols-12 font-semibold text-sm px-3 py-2 bg-gray-50">
-                  <div className="md:col-span-4">Name</div>
-                  <div className="md:col-span-7">Result / Notes</div>
-                  <div className="md:col-span-1 text-right pr-2">Actions</div>
-                </div>
-                {patients.map((p, idx) => (
-                  <div key={p.name + idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center p-3 border-t first:border-t-0">
-                    <div className="md:col-span-4 font-medium">{p.name}</div>
-                    <div className="md:col-span-7">
-                      <input
-                        type="text"
-                        value={p.result}
-                        onChange={(e) => updateResult(idx, e.target.value)}
-                        placeholder="Encode result…"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
-                      />
-                    </div>
-                    <div className="md:col-span-1 flex md:justify-end">
-                      <button
-                        type="button"
-                        onClick={() => removePatient(idx)}
-                        className="bg-red-500 hover:bg-red-600 text-white p-1.5 rounded transition-colors"
-                        title="Remove Attendee"
-                      >
-                        <UserMinus className="w-4 h-4" />
-                      </button>
-                    </div>
+            <div className="p-4 flex-1 flex flex-col min-h-0">
+              <div className="flex-1 overflow-y-auto pr-2">
+                {patients.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                     <FileSignature className="w-12 h-12 mb-2 opacity-50" />
+                     <p className="text-sm">No attendees added yet.</p>
                   </div>
-                ))}
+                ) : (
+                  <div className="space-y-3">
+                    {patients.map((attendee, idx) => (
+                      <div key={idx} className="p-3 bg-white rounded border border-gray-200 shadow-sm">
+                        <div className="flex justify-between items-start mb-2">
+                             <p className="text-sm font-medium text-gray-800">{attendee.name}</p>
+                             <button
+                               onClick={() => removeAttendee(idx)}
+                               className="text-red-400 hover:text-red-600 transition-colors"
+                               title="Remove"
+                             >
+                               <UserMinus className="w-4 h-4" />
+                             </button>
+                        </div>
+                        {/* Result Input Field */}
+                        <div>
+                           <input 
+                             type="text"
+                             value={attendee.result}
+                             onChange={(e) => updateResult(idx, e.target.value)}
+                             placeholder="Enter screening result / notes..."
+                             className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                           />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="flex justify-end mt-3">
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className={`px-4 py-2 rounded-md bg-primary text-white font-semibold ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
-                >
-                  {saving ? "Saving…" : "Save Attendance"}
-                </button>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <div className="w-full flex justify-end gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="px-4 py-2 rounded-md w-[30%] text-center bg-gray-300 text-gray-800 font-semibold"
-          >
-            Back
-          </button>
-          <Link
-            to="/rhu/application/mass-screening"
-            className="px-4 py-2 rounded-md w-[30%] text-center bg-primary text-white font-semibold"
-          >
-            Back to List
-          </Link>
-        </div>
-      </div>
-
-      {/* Confirm modal */}
-      {showConfirm && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-white w-[min(420px,92vw)] rounded-xl shadow-xl p-6 z-50 text-center">
-            <h4 className="text-lg font-semibold mb-2">Save attendance?</h4>
-            <p className="text-sm text-gray2 mb-6">
-              This will save encoded results for all patients.
-            </p>
-            <div className="flex justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 rounded-md border border-gray2"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmSave}
-                disabled={saving}
-                className={`px-4 py-2 rounded-md bg-primary text-white font-semibold ${
-                  saving ? "opacity-60 cursor-not-allowed" : ""
-                }`}
-              >
-                {saving ? "Saving…" : "Confirm"}
-              </button>
             </div>
           </div>
+
         </div>
-      )}
-    </div>
+        
+        <div className="flex justify-around print:hidden mt-2">
+            <button
+               onClick={() => navigate(-1)}
+               className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
+            >
+               Back
+            </button>
+            <button
+               onClick={() => setModalOpen(true)}
+               disabled={saving}
+               className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer disabled:opacity-50"
+            >
+               {saving ? "Saving..." : "Save Attendance"}
+            </button>
+        </div>
+      </div>
+    </>
   );
 };
 
-export default ApplicationAttendance;
-
-/* ----------------------------- Helpers ----------------------------- */
-function ContextField({ label, value }) {
-  return (
-    <div>
-      <div className="text-gray2 text-sm mb-1">{label}</div>
-      <div className="border border-gray-200 rounded-md px-4 py-2">
-        {value ?? "—"}
-      </div>
-    </div>
-  );
-}
+export default MassScreeningAttendance;

@@ -221,8 +221,9 @@ const ViewAttachments = () => {
       {loading && <SystemLoader />}
 
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 overflow-auto items-center bg-gray">
-        <div className="h-full w-full flex flex-col gap-5 justify-between">
-          <div className="border border-black/15 p-3 bg-white rounded-sm">
+        <div className="h-full w-full flex flex-col gap-5">
+          <h2 className="text-xl font-semibold text-gray-800">Required Documents</h2>
+          <div className="border border-black/15 p-3 bg-white rounded-lg">
             <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
               <h2 className="text-3xl text-yellow font-bold">
                 Submitted Documents
@@ -241,7 +242,7 @@ const ViewAttachments = () => {
                     >
                       <div className="flex items-center gap-3">
                         <CheckIcon active={!!uploaded} />
-                        <span className="text-gray-900 font-medium">
+                        <span className="text-gray-900 text-sm">
                           {d.label}
                         </span>
                       </div>

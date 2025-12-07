@@ -604,12 +604,14 @@ class AdminMassScreeningStatusView(APIView):
     ms.save(update_fields=['status'])
     # Notify RHU or Private applicant via email
     try:
-      if ms.rhu_id:
+      if ms.rhu:
+        print('Reperesentative: ', ms.rhu.representatives)
         send_mass_screening_status_email(ms.rhu, ms.status, request_obj=ms, remarks=remarks)
       elif ms.private_id:
+        print('Or here?')
         send_mass_screening_status_email_private(ms.private, ms.status, request_obj=ms, remarks=remarks)
     except Exception:
-      pass
+      print('I gues not')
     return Response(MassScreeningRequestSerializer(ms).data, status=status.HTTP_200_OK)
 
 class AdminMassScreeningAttendanceView(APIView):

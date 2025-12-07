@@ -184,7 +184,7 @@ const ViewResults = () => {
 
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
         <div className="h-full w-full flex flex-col justify-between">
-          <div className="border border-black/15 p-3 bg-white rounded-sm">
+          <div className="border border-black/15 p-3 bg-white rounded-lg">
             <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
               <h2 className="text-3xl text-yellow font-bold">Screening Result</h2>
               <p className="font-bold italic">

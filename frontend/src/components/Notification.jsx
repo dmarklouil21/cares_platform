@@ -3,7 +3,7 @@ import { CheckCircle, XCircle, Info, CircleCheck, CircleX } from "lucide-react";
 const iconMap = {
   success: <CircleCheck className="h-[20px] text-primary" />,
   error: <CircleX className="h-[20px] text-red-500" />,
-  info: <Info className="h-[20px] text-red-500" />,
+  info: <Info className="h-[20px] text-[#fcb814]" />,
 };
 
 export default function Notification ({ message, type = "success" }) {

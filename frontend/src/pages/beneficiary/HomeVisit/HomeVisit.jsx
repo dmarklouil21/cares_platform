@@ -157,7 +157,7 @@ const PatientHomeVisit = () => {
       <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
         {/* Header */}
         <div className="flex justify-between items-center w-full">
-          <h2 className="text-xl font-bold text-gray-800">
+          <h2 className="text-lg font-bold">
             Home Visit
           </h2>
         </div>

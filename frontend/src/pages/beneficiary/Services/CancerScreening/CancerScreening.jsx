@@ -52,7 +52,10 @@ const CancerScreening = () => {
   // }, []);
 
   return (
-    <div className="h-full flex flex-col gap-3 w-full bg-gray  p-5 md:p-8">
+    <div className="h-full flex flex-col gap-3 w-full bg-gray  p-5 md:p-5">
+      <h2 className="text-xl font-semibold mb-6">
+        Cancer Screening
+      </h2>
       <h3 className="text-[18px] md:text-2xl font-bold text-secondary">
         CANCER SCREENING MANAGEMENT OPTION
       </h3>
@@ -64,7 +67,7 @@ const CancerScreening = () => {
         {screeningOptions.map((option) => (
           <div
             key={option.id}
-            className="rounded-xl custom-shadow gap-5 flex flex-col justify-between py-4 px-12 items-center"
+            className="rounded-lg custom-shadow gap-5 flex flex-col justify-between py-4 px-12 items-center"
           >
             <img
               src={option.icon}

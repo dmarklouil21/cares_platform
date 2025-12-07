@@ -239,14 +239,14 @@ export default function ViewIndividualStatus() {
 
       {/* Main Container mirroring IndividualScreening layout */}
       <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        <div className="py-6 px-5 md:px-10 flex flex-col flex-1">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
           {/* Top Title similar to "Cancer Screening Application" */}
           <h2 className="text-xl font-semibold mb-6">
             Application Status
           </h2>
 
           {/* White Card Container */}
-          <div className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-5 md:px-8 flex-1 overflow-auto">
+          <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto">
             
             {/* Header similar to "Individual Screening" */}
             <h1 className="font-bold text-[24px] md:text-3xl text-yellow">

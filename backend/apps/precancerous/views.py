@@ -99,6 +99,14 @@ class AdminPreCancerousMedsUpdateView(generics.UpdateAPIView):
       )
       
     patient.save()
+
+    email_status = send_precancerous_meds_status_email(
+      patient, instance.status, instance.date_approved
+    )
+    
+    if email_status is not True:
+      logger.error(f"Email failed to send: {email_status}")
+
     user = patient.user
     if user:
       create_notification(user, f'Pre Cancerous Medication {instance.status.title()}', f'Your pre cancerous medication request has been {instance.status}.')

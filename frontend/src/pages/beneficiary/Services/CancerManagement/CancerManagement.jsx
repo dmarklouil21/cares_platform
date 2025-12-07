@@ -128,12 +128,12 @@ const CancerManagementPage = () => {
         onClose={() => setShowModal(false)}
       />
       <div className="w-full h-screen bg-gray overflow-auto">
-        <div className="py-6 p-5 md:px-10 bg-gray">
+        <div className="py-5 p-5 md:px-5 bg-gray">
           <h2 className="text-xl font-semibold mb-6">
             Cancer Management & Treatment Assistance
           </h2>
 
-          <div className="flex flex-col gap-7 w-full bg-white rounded-2xl py-10 px-8">
+          <div className="flex flex-col gap-7 w-full bg-white rounded-lg py-10 px-8">
             <h3 className="text-2xl font-bold text-secondary">
               CANCER TREATMENT OPTIONS
             </h3>
