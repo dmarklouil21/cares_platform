@@ -31,12 +31,12 @@ const ViewUser = () => {
               {/* <div className="p-2 bg-yellow/10 rounded-full text-yellow">
                 <User className="w-6 h-6" />
               </div> */}
-              <h1 className="font-bold text-[24px] md:text-3xl text-yellow">
+              <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
                 User Profile
               </h1>
             </div>
             <span
-              className={`px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wider ${getStatusColor(
+              className={`px-3 py-1 rounded-full text-xs font-bold border uppercase ${getStatusColor(
                 user.status || "active"
               )}`}
             >
@@ -59,7 +59,7 @@ const ViewUser = () => {
                     <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
                       First Name
                     </label>
-                    <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 font-medium">
+                    <div className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 font-medium">
                       {user.firstName || "---"}
                     </div>
                   </div>
@@ -68,7 +68,7 @@ const ViewUser = () => {
                     <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
                       Last Name
                     </label>
-                    <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 font-medium">
+                    <div className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 font-medium">
                       {user.lastName || "---"}
                     </div>
                   </div>
@@ -77,7 +77,7 @@ const ViewUser = () => {
                     <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
                       Email Address
                     </label>
-                    <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 flex items-center gap-2">
+                    <div className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 flex items-center gap-2">
                       <Mail className="w-4 h-4 text-gray-400" />
                       {user.email || "---"}
                     </div>
@@ -98,7 +98,7 @@ const ViewUser = () => {
                     <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
                       Username
                     </label>
-                    <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800">
+                    <div className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800">
                       {user.username || "---"}
                     </div>
                   </div>
@@ -108,7 +108,7 @@ const ViewUser = () => {
                       <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
                         Role
                       </label>
-                      <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 capitalize">
+                      <div className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 capitalize">
                         {user.role || "Admin"}
                       </div>
                     </div>
@@ -116,7 +116,7 @@ const ViewUser = () => {
                       <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
                         Status
                       </label>
-                      <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 capitalize flex items-center gap-2">
+                      <div className="w-full  text-sm p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 capitalize flex items-center gap-2">
                         <Activity className="w-4 h-4 text-gray-400" />
                         {user.status || "Active"}
                       </div>

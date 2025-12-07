@@ -94,72 +94,66 @@ const RadioTherapyWellBeingTool = () => {
 
   return (
     <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
-      {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
-        <h1 className="text-md font-bold">Cancer Management</h1>
-        <Link to={`/admin/survivorship/view/${id}`}>
-          <img src="/images/back.png" alt="Back button icon" className="h-6" />
-        </Link>
-      </div> */}
-
       <div className="h-full w-full flex flex-col justify-between">
-        <div className="border border-black/15 p-3 bg-white rounded-sm">
+        <h2 className="text-xl font-semibold text-gray-800 mb-6">Wellbeing Form</h2>
+        <div className="border border-black/15 p-3 bg-white rounded-lg">
           {/* Header */}
           <div className="flex w-full justify-between gap-6 p-4">
             <div className="flex flex-col w-[85%] gap-3">
               <div className="flex w-full items-center gap-2">
-                <label className="font-medium text-gray-700 whitespace-nowrap">
+                <label className="font-medium text-sm text-gray-700 whitespace-nowrap">
                   Name:
                 </label>
                 <input
-                  type="text"
+                  type="text" text-sm
                   value={patient?.full_name}
-                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                  className="outline-none text-sm w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
-                <label className="font-medium text-gray-700 whitespace-nowrap">
+                <label className="font-medium text-sm text-gray-700 whitespace-nowrap">
                   Date:
                 </label>
                 <input
                   type="text"
                   value={formatDate(new Date(wellBeingAssessment?.created_at))}
-                  className="outline-none w-40 border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                  className="outline-none text-sm w-40 border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
               </div>
 
               <div className="flex w-full items-center gap-2">
-                <label className="font-medium text-gray-700 whitespace-nowrap">
+                <label className="font-medium text-sm text-gray-700 whitespace-nowrap">
                   Address:
                 </label>
                 <input
                   type="text"
                   value={patient?.address}
-                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                  className="outline-none text-sm w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
               </div>
 
               <div className="flex w-full items-center gap-2">
-                <label className="font-medium text-gray-700 whitespace-nowrap">
+                <label className="font-medium text-sm text-gray-700 whitespace-nowrap">
                   Diagnosis:
                 </label>
                 <input
                   type="text"
                   value={patient?.diagnosis[0]?.diagnosis}
-                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                  className="outline-none text-sm w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   readOnly
                 />
               </div>
 
               <div className="flex w-full items-center gap-2">
-                <label className="font-medium text-gray-700 whitespace-nowrap">
+                <label className="font-medium text-sm text-gray-700 whitespace-nowrap">
                   General Status/Name:
                 </label>
                 <input
                   type="text"
                   value={wellBeingAssessment?.general_status}
                   onChange={updateForm("generalStatus")}
-                  className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                  className="outline-none text-sm w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                 />
               </div>
             </div>
@@ -175,14 +169,14 @@ const RadioTherapyWellBeingTool = () => {
           </div>
 
           <div className="flex flex-col gap-3 p-4">
-            <h1 className="font-semibold text-lg">
+            <h1 className="font-semibold text-md">
               THE CURRENT WELL-BEING OF THE CANCER PATIENT
             </h1>
-            <p>
+            <p className="text-sm">
               Encircle the number from 1 to 4 that you agree with what you have
               been currently experiencing for the past 2 weeks.
             </p>
-            <p className="text-primary">
+            <p className="text-primary text-sm">
               Lingini ang numero 1 hangtud 4 nga mo-angay sa imong gibati sulod
               sa 2 ka semana.
             </p>
@@ -256,7 +250,7 @@ const RadioTherapyWellBeingTool = () => {
               </table>
             </div>
 
-            <div className="py-6">
+            <div className="py-6 text-sm">
               <p>
                 1. How do you think you can further improve your physical health
                 and well being? Give specific activities/Scenarios.

@@ -225,7 +225,7 @@ const ViewAttachments = () => {
           <h2 className="text-xl font-semibold text-gray-800">Required Documents</h2>
           <div className="border border-black/15 p-3 bg-white rounded-lg">
             <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
-              <h2 className="text-3xl text-yellow font-bold">
+              <h2 className="text-2xl text-yellow font-bold">
                 Submitted Documents
               </h2>
               <p className="font-bold italic">

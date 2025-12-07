@@ -291,11 +291,11 @@ const EditUser = () => {
               {/* <div className="p-2 bg-yellow/10 rounded-full text-yellow">
                 <User className="w-6 h-6" />
               </div> */}
-              <h1 className="font-bold text-[24px] md:text-3xl text-yellow">
+              <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
                 Edit User
               </h1>
             </div>
-            <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wider ${
+            <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase ${
               form.status === 'active' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'
             }`}>
               {form.status}
@@ -426,28 +426,28 @@ const EditUser = () => {
             </div>
           </div>
 
-          {/* Footer Actions */}
-          <div className="flex justify-around print:hidden mt-5">
-            <Link
-              to="/admin/user-management"
-              className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer disabled:opacity-5"
-            >
-              {/* <Save className="w-4 h-4" /> */}
-              Save Changes
-            </button>
-          </div>
-
         </form>
+        {/* Footer Actions */}
+        <div className="flex justify-around print:hidden mt-5">
+          <Link
+            to="/admin/user-management"
+            className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </Link>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer disabled:opacity-5"
+          >
+            {/* <Save className="w-4 h-4" /> */}
+            Save Changes
+          </button>
+        </div>
       </div>
 
       {/* Decorative Footer */}
-      <div className="h-16 bg-secondary shrink-0"></div>
+      {/* <div className="h-16 bg-secondary shrink-0"></div> */}
     </div>
   );
 };

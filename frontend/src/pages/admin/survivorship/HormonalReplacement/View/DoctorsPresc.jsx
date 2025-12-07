@@ -238,10 +238,11 @@ const LabRequest = () => {
         </div> */}
 
         {/* Main content */}
-        <div className="h-full w-full flex flex-col justify-between">
-          <div className="border border-black/15 p-3 bg-white rounded-sm">
+        <div className="h-full w-full flex flex-col">
+          <h2 className="text-xl font-semibold mb-6 text-gray-800">Required Documents</h2>
+          <div className="border border-black/15 p-3 bg-white rounded-lg">
             <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
-              <h2 className="text-3xl text-yellow font-bold">
+              <h2 className="text-2xl text-yellow font-bold">
                 Doctors Prescription
               </h2>
               <p className="font-bold italic">
@@ -258,7 +259,7 @@ const LabRequest = () => {
                     >
                       <div className="flex items-center gap-3">
                         <CheckIcon active={!!uploaded} />
-                        <span className="text-gray-900 font-medium">
+                        <span className="text-gray-900 text-sm font-medium">
                           {d.label}
                         </span>
                       </div>
@@ -304,7 +305,7 @@ const LabRequest = () => {
           </div>
 
           {/* Actions */}
-          <div className="w-full flex justify-around">
+          <div className="w-full flex justify-around mt-5">
             <Link
               to={`/admin/survivorship/hormonal-replacement/view/${record.id}`}
               className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"

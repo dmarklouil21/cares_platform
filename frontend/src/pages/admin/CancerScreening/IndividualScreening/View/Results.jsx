@@ -183,10 +183,11 @@ const ViewResults = () => {
       {loading && <SystemLoader />}
 
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray">
-        <div className="h-full w-full flex flex-col justify-between">
+        <div className="h-full w-full flex flex-col">
+          <h2 className="text-xl font-semibold mb-6 text-gray-800">Submitted Result</h2>
           <div className="border border-black/15 p-3 bg-white rounded-lg">
             <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
-              <h2 className="text-3xl text-yellow font-bold">Screening Result</h2>
+              <h2 className="text-2xl text-yellow font-bold">Screening Result</h2>
               <p className="font-bold italic">
                 View or update the uploaded result of the patient.
               </p>
@@ -195,7 +196,7 @@ const ViewResults = () => {
                 <div className="flex items-center gap-3 justify-between bg-gray-50 px-4 py-3 rounded-lg shadow-sm">
                   <div className="flex items-center gap-3">
                     <CheckIcon active={!!files} />
-                    <span className="text-gray-900 font-medium">
+                    <span className="text-gray-900 font-medium text-sm">
                       Patient Result
                     </span>
                   </div>
@@ -237,7 +238,7 @@ const ViewResults = () => {
             </div>
           </div>
 
-          <div className="w-full flex justify-around">
+          <div className="w-full flex justify-around mt-5">
             <Link
               to={`/admin/cancer-screening/view/${record.id}`}
               className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"

@@ -30,7 +30,8 @@ const ViewPreScreeningForm = () => {
   useEffect(() => {
     if (record) {
       setPatient(record.patient);
-      setPre_screening_form(record.pre_screening_form);
+      console.log("Pre Screening Form Record:", record);
+      setPre_screening_form(record.patient?.pre_screening_form);
     }
   }, [record]);
 
@@ -68,9 +69,10 @@ const ViewPreScreeningForm = () => {
       <div className="h-screen w-full flex flex-col justify-between p-5 gap-3 items-center bg-gray overflow-auto">
 
         <div className="h-full w-full flex flex-col justify-between">
-          <form className="border border-black/15 p-3 bg-white rounded-sm">
-            <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-              <h2 className="text-md font-bold tracking-wide uppercase pb-1">
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">Pre Screening Form</h2>
+          <form className="border border-black/15 p-3 bg-white rounded-lg">
+            <div className="mb-6 mt-5 border-b border-gray-200 px-5">
+              <h2 className="text-2xl text-yellow font-bold">
                 Cancer Data
               </h2>
             </div>
@@ -85,7 +87,7 @@ const ViewPreScreeningForm = () => {
                     <input
                       type="text"
                       name="referred_from"
-                      className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                      className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray/50"
                       value={pre_screening_form?.referred_from}
                       onChange={handleInputChange}
                       readOnly
@@ -97,7 +99,7 @@ const ViewPreScreeningForm = () => {
                     </label>
                     <textarea
                       name="reason_for_referral"
-                      className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                      className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray/50"
                       value={pre_screening_form?.reason_for_referral}
                       onChange={handleInputChange}
                       readOnly
@@ -127,7 +129,7 @@ const ViewPreScreeningForm = () => {
                       <input
                         type="date"
                         name="date_of_consultation"
-                        className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50 pl-10"
+                        className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray/50 pl-10"
                         // className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
                         placeholder="Select date"
                         value={pre_screening_form?.date_of_consultation}
@@ -145,7 +147,7 @@ const ViewPreScreeningForm = () => {
                     <input
                       type="text"
                       name="referring_doctor_or_facility"
-                      className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                      className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray/50"
                       value={pre_screening_form?.referring_doctor_or_facility}
                       onChange={handleInputChange}
                       readOnly
@@ -158,7 +160,7 @@ const ViewPreScreeningForm = () => {
                     <textarea
                       type="text"
                       name="chief_complaint"
-                      className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                      className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray/50"
                       value={pre_screening_form?.chief_complaint}
                       onChange={handleInputChange}
                       readOnly
@@ -188,7 +190,7 @@ const ViewPreScreeningForm = () => {
                       <input
                         type="date"
                         name="date_of_diagnosis"
-                        className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50 pl-10 pl-10"
+                        className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray/50 pl-10 pl-10"
                         placeholder="Select date"
                         value={pre_screening_form?.date_of_diagnosis}
                         onChange={handleInputChange}
@@ -557,7 +559,7 @@ const ViewPreScreeningForm = () => {
                     <input
                       type="text"
                       name="primary_sites_other"
-                      className="border-b-[1px] border-gray-700 focus:outline-none"
+                      className="border-b-[1px] text-sm border-gray-700 focus:outline-none"
                       value={pre_screening_form?.primary_sites_other}
                     />
                   </p>
@@ -650,7 +652,7 @@ const ViewPreScreeningForm = () => {
                   <input
                     type="text"
                     name="histology"
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                    className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray/50"
                     value={pre_screening_form?.histology}
                   />
                 </div>
@@ -659,7 +661,7 @@ const ViewPreScreeningForm = () => {
                   <div className="relative">
                     <select
                       name="staging"
-                      className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                      className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray/50"
                       value={pre_screening_form?.staging}
                     >
                       <option value="" disabled>
@@ -688,7 +690,7 @@ const ViewPreScreeningForm = () => {
                       id="tInput"
                       name="t_system"
                       maxLength="1"
-                      className="border-b outline-none px-2 w-[20%] text-center"
+                      className="border-b text-sm outline-none px-2 w-[20%] text-center"
                       value={pre_screening_form?.t_system}
                     />
                     N
@@ -697,7 +699,7 @@ const ViewPreScreeningForm = () => {
                       id="nInput"
                       name="n_system"
                       maxLength="1"
-                      className="border-b outline-none px-2 w-[20%] text-center"
+                      className="border-b text-sm outline-none px-2 w-[20%] text-center"
                       value={pre_screening_form?.n_system}
                     />
                     M
@@ -706,7 +708,7 @@ const ViewPreScreeningForm = () => {
                       id="mInput"
                       name="m_system"
                       maxLength="1"
-                      className="border-b outline-none px-2 w-[20%] text-center"
+                      className="border-b text-sm outline-none px-2 w-[20%] text-center"
                       value={pre_screening_form?.m_system}
                     />
                   </div>
@@ -831,7 +833,7 @@ const ViewPreScreeningForm = () => {
                     <label className="text-sm">Final Diagnosis</label>
                     <textarea
                       name="final_diagnosis"
-                      className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                      className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray/50"
                       value={pre_screening_form?.final_diagnosis}
                     ></textarea>
                   </div>
@@ -842,7 +844,7 @@ const ViewPreScreeningForm = () => {
                     <input
                       type="text"
                       name="final_diagnosis_icd10"
-                      className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                      className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray/50"
                       value={pre_screening_form?.final_diagnosis_icd10}
                     />
                   </div>
@@ -913,7 +915,7 @@ const ViewPreScreeningForm = () => {
                     <input
                       type="text"
                       name="treatment_purpose_other"
-                      className="border-b-[1px] border-gray-700 focus:outline-none"
+                      className="border-b-[1px] text-sm border-gray-700 focus:outline-none"
                       value={pre_screening_form?.treatment_purpose_other}
                     />
                   </p>
@@ -927,7 +929,7 @@ const ViewPreScreeningForm = () => {
                   <input
                     type="text"
                     name="primary_assistance_by_ejacc"
-                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
+                    className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray/50"
                     value={pre_screening_form?.primary_assistance_by_ejacc}
                   />
                 </div>
@@ -953,7 +955,7 @@ const ViewPreScreeningForm = () => {
                     <input
                       type="date"
                       name="date_of_assistance"
-                      className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50 pl-10"
+                      className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-gray/50 pl-10"
                       // className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5"
                       placeholder="Select date"
                       value={pre_screening_form?.date_of_assistance}
@@ -1068,7 +1070,7 @@ const ViewPreScreeningForm = () => {
                     <input
                       type="text"
                       name="adjuvant_treatments_other"
-                      className="border-b-[1px] focus:outline-none"
+                      className="border-b-[1px] text-sm focus:outline-none"
                       value={pre_screening_form?.adjuvant_treatments_other}
                     />
                   </p>
@@ -1171,7 +1173,7 @@ const ViewPreScreeningForm = () => {
                     <input
                       type="text"
                       name="other_source_treatments_other"
-                      className="border-b-[1px] focus:outline-none"
+                      className="border-b-[1px] text-sm focus:outline-none"
                       value={pre_screening_form?.other_source_treatments_other}
                     />
                   </p>

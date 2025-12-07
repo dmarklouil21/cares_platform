@@ -1,7 +1,6 @@
-// src/pages/admin/Services/CancerScreening/AdminMassAttendanceView.jsx
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, FileSignature } from "lucide-react";
+import { ArrowLeft, Users, FileSignature, AlertCircle } from "lucide-react";
 
 import SystemLoader from "src/components/SystemLoader";
 import { getAdminMassScreeningAttendance } from "src/api/massScreening";
@@ -38,102 +37,148 @@ export default function AdminMassAttendanceView() {
     run();
   }, [requestId]);
 
-  if (!requestId) return (
+  if (!requestId)
+    return (
       <div className="h-screen w-full flex items-center justify-center bg-gray flex-col gap-4">
-          <div className="bg-white p-8 rounded-lg shadow text-center">
-              <h3 className="text-lg font-bold text-gray-800 mb-2">No Record Selected</h3>
-              <p className="text-gray-500 mb-4">Please select a mass screening request first.</p>
-              <Link to="/admin/cancer-screening/mass-screening" className="text-primary hover:underline">Return to list</Link>
-          </div>
+        <div className="bg-white p-8 rounded-lg shadow text-center max-w-md">
+          <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+          <h3 className="text-lg font-bold text-gray-800 mb-2">
+            No Record Selected
+          </h3>
+          <p className="text-gray-500 mb-6 text-sm">
+            Please select a mass screening request from the list to view attendance.
+          </p>
+          <Link
+            to="/admin/cancer-screening/mass-screening"
+            className="inline-block px-6 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
+          >
+            Return to List
+          </Link>
+        </div>
       </div>
-  );
+    );
 
   return (
-    <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray overflow-auto">
-      
-      {/* Header */}
-      {/* <div className="flex items-center gap-4 mb-2">
-        <button onClick={() => navigate(-1)} className="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-        </button>
-        <div>
-            <h2 className="text-xl font-bold text-gray-800">Attendance List</h2>
-            <p className="text-sm text-gray-600">ID: {requestId} • {screening?.title}</p>
-        </div>
-      </div> */}
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+      <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
+        {/* Top Title */}
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">
+          Activity Attendance
+        </h2>
 
-      {/* Main Content Card */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="px-5 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-yellow-600">Participants</h3>
-              <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium border border-blue-100">
-                  <Users className="w-3.5 h-3.5" />
-                  {patients.length} Total
+        {/* White Card Container */}
+        <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
+          {/* Header Area */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
+            <div className="flex flex-col gap-1">
+              <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
+                Attendance List
+              </h1>
+              <p className="text-sm text-gray-500 flex items-center gap-2">
+                ID: <span className="font-mono text-gray-700">{requestId}</span>
+                <span className="text-gray-300">•</span>
+                <span className="font-medium text-gray-700">
+                  {screening?.title || "Unknown Activity"}
+                </span>
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-xs font-bold border border-blue-100 uppercase">
+              <Users className="w-3.5 h-3.5" />
+              {patients.length} Participants
+            </div>
+          </div>
+
+          {/* Content Area */}
+          <div className="flex-1 overflow-auto min-h-[300px]">
+            {loading && (
+              <div className="h-full flex items-center justify-center">
+                <SystemLoader />
               </div>
-          </div>
+            )}
 
-          <div className="p-0">
-             {loading && <div className="p-10"><SystemLoader /></div>}
-             
-             {error && !loading && (
-                <div className="p-8 text-center text-red-600 bg-red-50 m-4 rounded border border-red-100">
-                    {error}
+            {error && !loading && (
+              <div className="p-8 text-center bg-red-50 rounded-lg border border-red-100 mx-4 mt-4">
+                <p className="text-red-600 font-medium">{error}</p>
+              </div>
+            )}
+
+            {!loading && !error && patients.length === 0 && (
+              <div className="h-full flex flex-col items-center justify-center text-center p-12">
+                <div className="bg-gray-50 p-4 rounded-full mb-4">
+                  <FileSignature className="w-10 h-10 text-gray-300" />
                 </div>
-             )}
+                <h3 className="text-lg font-medium text-gray-900 mb-1">
+                  No attendance records found
+                </h3>
+                <p className="text-sm text-gray-500 max-w-xs">
+                  The partner organization has not encoded any attendees for this
+                  activity yet.
+                </p>
+              </div>
+            )}
 
-             {!loading && !error && patients.length === 0 && (
-                 <div className="p-12 text-center flex flex-col items-center">
-                     <FileSignature className="w-12 h-12 text-gray-300 mb-3" />
-                     <p className="text-gray-500 font-medium">No attendance records found.</p>
-                     <p className="text-sm text-gray-400">The partner has not encoded any attendees yet.</p>
-                 </div>
-             )}
+            {!loading && !error && patients.length > 0 && (
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                {/* Table Header */}
+                <div className="grid grid-cols-12 bg-gray-50 px-6 py-3 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <div className="col-span-1 text-center text-gray-400">#</div>
+                  <div className="col-span-4 md:col-span-5">Patient Name</div>
+                  <div className="col-span-7 md:col-span-6">
+                    Screening Result / Notes
+                  </div>
+                </div>
 
-             {!loading && !error && patients.length > 0 && (
-                 <div className="min-w-full">
-                     {/* Table Header */}
-                     <div className="grid grid-cols-12 bg-gray-50 px-6 py-3 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                         <div className="col-span-4 md:col-span-5">Patient Name</div>
-                         <div className="col-span-8 md:col-span-7">Screening Result / Notes</div>
-                     </div>
-                     
-                     {/* Rows */}
-                     <div className="divide-y divide-gray-100">
-                         {patients.map((p, i) => (
-                             <div key={i} className="grid grid-cols-12 px-6 py-4 hover:bg-gray-50 transition-colors items-center">
-                                 <div className="col-span-4 md:col-span-5 font-medium text-gray-900">
-                                     {p.name}
-                                 </div>
-                                 <div className="col-span-8 md:col-span-7 text-sm text-gray-600">
-                                     {p.result ? (
-                                         <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded border border-gray-200 inline-block">
-                                             {p.result}
-                                         </span>
-                                     ) : (
-                                         <span className="text-gray-400 italic">— No result encoded —</span>
-                                     )}
-                                 </div>
-                             </div>
-                         ))}
-                     </div>
-                     
-                     {/* Footer */}
-                     <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 text-xs text-gray-500 text-right">
-                         Generated from Mass Screening ID {requestId}
-                     </div>
-                 </div>
-             )}
+                {/* Table Body */}
+                <div className="divide-y divide-gray-100 bg-white">
+                  {patients.map((p, i) => (
+                    <div
+                      key={i}
+                      className="grid grid-cols-12 px-6 py-4 hover:bg-gray-50 transition-colors items-center group"
+                    >
+                      <div className="col-span-1 text-center text-xs text-gray-400 group-hover:text-gray-600">
+                        {i + 1}
+                      </div>
+                      <div className="col-span-4 md:col-span-5 font-medium text-gray-900 text-sm">
+                        {p.name}
+                      </div>
+                      <div className="col-span-7 md:col-span-6 text-sm">
+                        {p.result ? (
+                          <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-md border border-blue-100 text-xs font-medium inline-block">
+                            {p.result}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 italic text-xs">
+                            — No result encoded —
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Table Footer */}
+                <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 text-xs text-gray-500 text-right font-medium">
+                    Total Records: {patients.length}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        {/* Footer Actions */}
+          <div className="flex justify-end print:hidden mt-5">
+            <button
+              onClick={() => navigate(-1)}
+              className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
+            >
+              {/* <ArrowLeft className="w-4 h-4" /> */}
+              Back
+            </button>
           </div>
       </div>
-
-      <div className="flex justify-end mt-2 print:hidden">
-          <button
-             onClick={() => navigate(-1)}
-             className="text-center cursor-pointer bg-white text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
-           >
-             Back
-           </button>
-      </div>
+{/* Stop here for now */}
+      {/* Decorative Footer */}
+      <div className="h-16 bg-secondary shrink-0"></div>
     </div>
   );
 }

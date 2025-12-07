@@ -1,14 +1,13 @@
-// src/pages/admin/Services/CancerScreening/AdminMassScreeningView.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
-  ArrowLeft, 
   Calendar, 
   MapPin, 
   FileText, 
   Download, 
   Users, 
-  ClipboardList 
+  ClipboardList,
+  ArrowLeft
 } from "lucide-react";
 
 import SystemLoader from "src/components/SystemLoader";
@@ -94,153 +93,169 @@ export default function AdminMassScreeningView() {
   if (loading) return <SystemLoader />;
 
   return (
-    <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray overflow-auto">
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
       
-      {/* Header */}
-      {/* <div className="flex items-center gap-4 mb-2">
-        <Link to="/admin/cancer-screening/mass-screening" className="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-        </Link>
-        <div>
-            <h2 className="text-xl font-bold text-gray-800">Request Review</h2>
-            <p className="text-sm text-gray-600">Review submitted requirements for cancer screening qualification.</p>
-        </div>
-      </div> */}
-
+      {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <div className="mx-5 mt-5 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
           <span className="block sm:inline">{error}</span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
+        {/* Top Title */}
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">
+          Application Details
+        </h2>
+
+        {/* White Card Container */}
+        <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
           
-          {/* Main Content: Details */}
-          <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                  <div className="px-5 py-3 border-b border-gray-200 flex justify-between items-center">
-                      <h3 className="text-lg font-semibold text-yellow-600">Request Information</h3>
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(record.status)}`}>
-                        {record.status || "Pending"}
-                      </span>
-                  </div>
-                  
-                  <div className="p-6 space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                              <h4 className="text-sm font-semibold text-gray-500 mb-1">Activity Title</h4>
-                              <p className="text-gray-900 font-medium">{record.title}</p>
-                          </div>
-                          <div>
-                              <h4 className="text-sm font-semibold text-gray-500 mb-1 flex items-center gap-2">
-                                <Calendar className="w-3.5 h-3.5" /> Date
-                              </h4>
-                              <p className="text-gray-900">{prettyDate(record.date)}</p>
-                          </div>
-                          <div>
-                              <h4 className="text-sm font-semibold text-gray-500 mb-1 flex items-center gap-2">
-                                <MapPin className="w-3.5 h-3.5" /> Venue
-                              </h4>
-                              <p className="text-gray-900">{record.venue || "—"}</p>
-                          </div>
-                          <div>
-                              <h4 className="text-sm font-semibold text-gray-500 mb-1">Target Beneficiaries</h4>
-                              <p className="text-gray-900">{record.beneficiaries}</p>
-                          </div>
-                      </div>
-
-                      <div>
-                          <h4 className="text-sm font-semibold text-gray-500 mb-1">Description</h4>
-                          <p className="text-gray-900 leading-relaxed whitespace-pre-wrap">{record.description || "No description provided."}</p>
-                      </div>
-
-                      <div>
-                          <h4 className="text-sm font-semibold text-gray-500 mb-1">RAFI Support Need</h4>
-                          <div className="bg-yellow-50 p-3 rounded-md border border-yellow-100">
-                             <p className="text-gray-800 text-sm italic">{record.supportNeed || "None specified."}</p>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-
-              {/* Attachments Section */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                  <div className="px-5 py-3 border-b border-gray-200">
-                      <h3 className="text-lg font-semibold text-yellow-600">Attachments</h3>
-                  </div>
-                  <div className="p-4">
-                      {attachmentsToShow.length === 0 ? (
-                          <p className="text-gray-500 text-sm text-center py-4">No attachments uploaded.</p>
-                      ) : (
-                          <div className="space-y-2">
-                              {attachmentsToShow.map((att, idx) => (
-                                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200 hover:border-blue-200 transition-colors">
-                                      <div className="flex items-center gap-3 overflow-hidden">
-                                          <div className="bg-white p-2 rounded border border-gray-200">
-                                              <FileText className="w-5 h-5 text-primary" />
-                                          </div>
-                                          <div className="truncate">
-                                              <p className="text-sm font-medium text-gray-800 truncate">{att.name}</p>
-                                          </div>
-                                      </div>
-                                      <a 
-                                          href={att.url} 
-                                          target="_blank" 
-                                          rel="noopener noreferrer"
-                                          className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors"
-                                      >
-                                          <Download className="w-4 h-4" /> Download
-                                      </a>
-                                  </div>
-                              ))}
-                          </div>
-                      )}
-                  </div>
-              </div>
+          {/* Header Area */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
+            <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
+              Mass Screening Activity
+            </h1>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-bold border uppercase ${getStatusColor(
+                record.status
+              )}`}
+            >
+              {record.status || "Pending"}
+            </span>
           </div>
 
-          {/* Sidebar: Actions */}
-          <div className="lg:col-span-1 space-y-6">
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-sm font-semibold text-gray-700">Attendance</h4>
-                      <div className="flex items-center text-sm text-gray-600">
-                          <Users className="w-4 h-4 mr-1" />
-                          <span>View List</span>
-                      </div>
+          {/* Grid Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
+            
+            {/* Left Column: Activity Details */}
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                  Activity Details
+                </h3>
+                
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <span className="text-gray-500 font-medium">Activity Title</span>
+                  <span className="col-span-2 text-gray-900 font-semibold">{record.title}</span>
+
+                  <span className="text-gray-500 font-medium">Date</span>
+                  <span className="col-span-2 text-gray-900 flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                    {prettyDate(record.date)}
+                  </span>
+
+                  <span className="text-gray-500 font-medium">Venue</span>
+                  <span className="col-span-2 text-gray-900 flex items-center gap-2">
+                    <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                    {record.venue || "---"}
+                  </span>
+
+                  <span className="text-gray-500 font-medium">Beneficiaries</span>
+                  <span className="col-span-2 text-gray-900">{record.beneficiaries}</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                  Description & Support
+                </h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <span className="text-xs font-bold text-gray-500 uppercase mb-1 block">Description</span>
+                    <p className="text-sm text-gray-900 leading-relaxed bg-gray-50 p-3 rounded border border-gray-100">
+                      {record.description || "No description provided."}
+                    </p>
                   </div>
-                  
+
+                  <div>
+                    <span className="text-xs font-bold text-gray-500 uppercase mb-1 block">RAFI Support Need</span>
+                    <div className="bg-yellow-50 p-3 rounded border border-yellow-100">
+                      <p className="text-sm text-gray-800 italic">{record.supportNeed || "None specified."}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Attendance & Attachments */}
+            <div className="space-y-8">
+              
+              {/* Attendance Action */}
+              <div className="space-y-4">
+                <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-gray-400" /> Attendance Management
+                </h3>
+                
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <p className="text-xs text-gray-500 mb-4">
-                      View the list of patients and their screening results for this activity.
+                    View and manage the list of patients and their screening results for this activity.
                   </p>
-
                   <button
-                      onClick={() => navigate("/admin/cancer-screening/view/mass-attendance-view", {
-                          state: { screening: record }
-                      })}
-                      className="w-full bg-secondary cursor-pointer hover:bg-secondary/90 text-white py-2 px-4 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    onClick={() => navigate("/admin/cancer-screening/view/mass-attendance-view", {
+                      state: { screening: record }
+                    })}
+                    className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 py-2 px-4 rounded text-sm font-medium transition-all flex items-center justify-center gap-2 shadow-sm"
                   >
-                      <ClipboardList className="w-4 h-4" />
-                      View Attendance
+                    <ClipboardList className="w-4 h-4 text-primary" />
+                    View Attendance List
                   </button>
+                </div>
               </div>
 
-              {/* ID Card */}
-              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Record ID</h4>
-                 <p className="text-sm font-mono text-gray-800 select-all bg-gray-50 p-1 rounded border border-gray-100">{record.id}</p>
+              {/* Attachments */}
+              <div className="space-y-4">
+                <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                  Attachments
+                </h3>
+                
+                <div className="flex flex-col gap-3">
+                  {attachmentsToShow.length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">No documents attached.</p>
+                  ) : (
+                    attachmentsToShow.map((att, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-primary/50 transition-all group">
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <div className="text-gray-400 group-hover:text-primary">
+                            <FileText className="w-4 h-4" />
+                          </div>
+                          <span className="text-sm font-medium text-gray-700 group-hover:text-primary truncate max-w-[200px]">
+                            {att.name}
+                          </span>
+                        </div>
+                        <a 
+                          href={att.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="p-1.5 text-gray-400 hover:text-primary hover:bg-white rounded transition-colors"
+                          title="Download"
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
+
+            </div>
           </div>
+
+        </div>
+        {/* Footer Actions */}
+        <div className="flex justify-end print:hidden mt-5">
+          <Link
+            to="/admin/cancer-screening/mass-screening"
+            className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Back
+          </Link>
+        </div>
       </div>
 
-      <div className="flex justify-end mt-4 print:hidden">
-           <Link
-             to="/admin/cancer-screening/mass-screening"
-             className="text-center bg-white cursor-pointer text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
-           >
-             Back
-           </Link>
-      </div>
+      {/* Decorative Footer */}
+      {/* <div className="h-16 bg-secondary shrink-0"></div> */}
     </div>
   );
 }

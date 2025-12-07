@@ -249,7 +249,7 @@ export default function ViewIndividualStatus() {
           <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto">
             
             {/* Header similar to "Individual Screening" */}
-            <h1 className="font-bold text-[24px] md:text-3xl text-yellow">
+            <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
               Screening Progress
             </h1>
 

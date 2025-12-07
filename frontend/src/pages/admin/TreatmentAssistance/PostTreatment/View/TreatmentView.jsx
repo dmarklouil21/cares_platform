@@ -349,10 +349,10 @@ const PostTreatmentView = () => {
             
             {/* Header Area */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
-              <h1 className="font-bold text-[24px] md:text-3xl text-yellow">
+              <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
                 Post-Treatment Request
               </h1>
-              <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wider ${getStatusColor(data?.status)}`}>
+              <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase ${getStatusColor(data?.status)}`}>
                 {data?.status}
               </span>
             </div>
