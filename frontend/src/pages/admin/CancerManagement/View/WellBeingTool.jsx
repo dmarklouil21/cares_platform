@@ -293,8 +293,6 @@ const RadioTherapyWellBeingTool = () => {
         <br />
       </div>
     </div>
-    {/* Decorative Footer */}
-    <div className="h-16 bg-secondary shrink-0"></div>
     </>
   );
 };
