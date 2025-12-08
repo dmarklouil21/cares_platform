@@ -425,29 +425,28 @@ const EditUser = () => {
               </div>
             </div>
           </div>
-
+          {/* Footer Actions */}
+          <div className="flex justify-around print:hidden mt-5">
+            <Link
+              to="/admin/user-management"
+              className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+            >
+              Cancel
+            </Link>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+            >
+              {/* <Save className="w-4 h-4" /> */}
+              Save Changes
+            </button>
+          </div>
         </form>
-        {/* Footer Actions */}
-        <div className="flex justify-around print:hidden mt-5">
-          <Link
-            to="/admin/user-management"
-            className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </Link>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer disabled:opacity-5"
-          >
-            {/* <Save className="w-4 h-4" /> */}
-            Save Changes
-          </button>
-        </div>
       </div>
 
       {/* Decorative Footer */}
-      {/* <div className="h-16 bg-secondary shrink-0"></div> */}
+      <div className="h-16 bg-secondary shrink-0"></div>
     </div>
   );
 };

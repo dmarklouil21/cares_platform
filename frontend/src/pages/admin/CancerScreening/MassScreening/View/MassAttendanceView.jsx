@@ -164,19 +164,18 @@ export default function AdminMassAttendanceView() {
               </div>
             )}
           </div>
+          {/* Footer Actions */}
+        <div className="flex justify-end print:hidden mt-5">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-[35%] cursor-pointer text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+          >
+            {/* <ArrowLeft className="w-4 h-4" /> */}
+            Back
+          </button>
         </div>
-        {/* Footer Actions */}
-          <div className="flex justify-end print:hidden mt-5">
-            <button
-              onClick={() => navigate(-1)}
-              className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
-            >
-              {/* <ArrowLeft className="w-4 h-4" /> */}
-              Back
-            </button>
-          </div>
+        </div>
       </div>
-{/* Stop here for now */}
       {/* Decorative Footer */}
       <div className="h-16 bg-secondary shrink-0"></div>
     </div>

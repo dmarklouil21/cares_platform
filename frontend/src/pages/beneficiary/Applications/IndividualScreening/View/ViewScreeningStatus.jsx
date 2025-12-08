@@ -303,17 +303,16 @@ export default function ViewIndividualStatus() {
               <Link
                 to="/beneficiary/applications/individual-screening"
                 // Styled to match the "Cancel" button in the other component
-                className="border border-black/15 py-3 rounded-md text-center px-6 hover:bg-black/10 hover:border-black w-full md:w-[40%]"
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
               >
                 Back
               </Link>
             </div>
           </div>
         </div>
-
-        {/* Bottom decorative strip */}
-        <div className="h-16 bg-secondary"></div>
       </div>
+      {/* Bottom decorative strip */}
+        <div className="h-16 bg-secondary"></div>
     </>
   );
 }

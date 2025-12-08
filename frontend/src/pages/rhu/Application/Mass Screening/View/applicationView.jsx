@@ -1,4 +1,3 @@
-// src/pages/mass-screening/ViewMassScreening.jsx
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { 
@@ -10,7 +9,8 @@ import {
   Download, 
   Trash2, 
   Users, 
-  ClipboardList 
+  ClipboardList,
+  AlertCircle
 } from "lucide-react";
 
 import SystemLoader from "src/components/SystemLoader";
@@ -43,8 +43,9 @@ const ViewMassScreening = () => {
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [statusValue, setStatusValue] = useState(selected?.status || "");
+  const [statusValue, setStatusValue] = useState(selected?.status || "Pending");
   const [attachments, setAttachments] = useState([]);
+  
   const [notification, setNotification] = useState("");
   const [notificationType, setNotificationType] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -85,7 +86,7 @@ const ViewMassScreening = () => {
           description: data.description || "",
           supportNeed: data.support_need || "",
         });
-        setStatusValue(data.status || "");
+        setStatusValue(data.status || "Pending");
         const atts = Array.isArray(data.attachments) ? data.attachments : [];
         setAttachments(atts.map(toAttachment));
       } catch (e) {
@@ -171,6 +172,7 @@ const ViewMassScreening = () => {
       // 3. Refresh
       const data = await getMyMassScreeningDetail(form.id);
       setAttachments((data.attachments || []).map(toAttachment));
+      setStatusValue(data.status);
 
       setNotification("Mass screening details updated successfully!");
       setNotificationType("success");
@@ -188,6 +190,7 @@ const ViewMassScreening = () => {
   return (
     <>
       {saving && <SystemLoader />}
+      
       <ConfirmationModal
         open={modalOpen}
         title="Confirm Save"
@@ -195,221 +198,229 @@ const ViewMassScreening = () => {
         onConfirm={saveChanges}
         onCancel={() => setModalOpen(false)}
       />
+      
       <Notification message={notification} type={notificationType} />
 
-      <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray overflow-auto">
-        
-        {/* Header with Status */}
-        {/* <div className="flex justify-between items-center w-full">
-             <div className="flex items-center gap-4">
-                <Link to="/rhu/application/mass-screening" className="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded transition-colors">
-                  <ArrowLeft className="w-4 h-4" />
-                </Link>
-                <div>
-                   <h2 className="text-xl font-bold text-gray-800">Mass Screening</h2>
-                   <div className={`mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(statusValue)}`}>
-                      {statusValue || "Pending"}
-                   </div>
-                </div>
-             </div>
-             <button
-               onClick={() => setModalOpen(true)}
-               disabled={saving}
-               className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
-             >
-               <Save className="w-4 h-4" />
-               Save Changes
-             </button>
-        </div> */}
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
+          
+          {/* Top Title */}
+          <h2 className="text-xl font-semibold mb-6 text-gray-800">
+            Mass Screening Management
+          </h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Content: Details */}
-            <div className="lg:col-span-2 space-y-6">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div className="px-5 py-3 border-b border-gray-200">
-                        <h3 className="text-lg font-semibold text-yellow-600">Details</h3>
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
+            
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
+              <div className="flex flex-col gap-1">
+                <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
+                  {form.title || "Activity Details"}
+                </h1>
+                <p className="text-sm text-gray-500 flex items-center gap-2">
+                   ID: <span className="font-mono text-gray-700">{form.id}</span>
+                </p>
+              </div>
+              
+              <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase ${getStatusColor(statusValue)}`}>
+                {statusValue}
+              </span>
+            </div>
+
+            {/* Grid Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-12 gap-y-8">
+              
+              {/* Left Column: Form Details (2/3) */}
+              <div className="lg:col-span-2 space-y-8">
+                
+                {/* Activity Details */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-gray-400" /> Activity Info
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Activity Title</label>
+                        <input 
+                            name="title"
+                            value={form.title} 
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                            placeholder="Enter title"
+                        />
                     </div>
-                    <div className="p-6 space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-sm font-semibold text-gray-700 mb-1 block">Title</label>
-                                <input 
-                                    name="title"
-                                    value={form.title} 
-                                    onChange={handleChange}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-primary focus:border-primary"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-sm font-semibold text-gray-700 mb-1 block flex items-center gap-2">
-                                    <Calendar className="w-4 h-4 text-gray-500"/> Date
-                                </label>
-                                <input 
-                                    type="date"
-                                    name="date"
-                                    value={form.date} 
-                                    onChange={handleChange}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-primary focus:border-primary"
-                                />
-                            </div>
-                        </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="text-sm font-semibold text-gray-700 mb-1 block">Target Beneficiaries</label>
+                            <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Date</label>
+                            <input 
+                                type="date"
+                                name="date"
+                                value={form.date} 
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Beneficiaries</label>
                             <input 
                                 name="beneficiaries"
                                 value={form.beneficiaries} 
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-primary focus:border-primary"
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                placeholder="Target audience"
                             />
                         </div>
+                    </div>
+                  </div>
+                </div>
 
-                        <div>
-                            <label className="text-sm font-semibold text-gray-700 mb-1 block">Description</label>
-                            <textarea 
-                                name="description"
-                                rows={4}
-                                value={form.description} 
-                                onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-primary focus:border-primary resize-none"
-                            />
-                        </div>
+                {/* Narrative Section */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-gray-400" /> Narrative & Needs
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Description</label>
+                        <textarea 
+                            name="description"
+                            rows={4}
+                            value={form.description} 
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"
+                            placeholder="Describe the activity..."
+                        />
+                    </div>
 
-                        <div>
-                            <label className="text-sm font-semibold text-gray-700 mb-1 block">RAFI Support Need</label>
+                    <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">RAFI Support Need</label>
+                        <div className="bg-yellow-50/50 rounded-md p-1">
                             <textarea 
                                 name="supportNeed"
                                 rows={3}
                                 value={form.supportNeed} 
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-primary focus:border-primary resize-none"
+                                className="w-full border border-yellow-200 bg-white rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all resize-none"
+                                placeholder="Specify support needed..."
                             />
                         </div>
                     </div>
+                  </div>
                 </div>
 
-                {/* Attachments Section */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div className="px-5 py-3 border-b border-gray-200 flex justify-between items-center">
-                        <h3 className="text-lg font-semibold text-yellow-600">Attachments</h3>
-                        <button 
-                            onClick={() => fileInputRef.current?.click()}
-                            className="text-sm text-primary hover:underline flex items-center gap-1"
-                        >
-                            <Upload className="w-4 h-4" /> Add File
-                        </button>
-                        <input 
-                            ref={fileInputRef} 
-                            type="file" 
-                            multiple 
-                            className="hidden" 
-                            onChange={handleFileChange}
-                        />
-                    </div>
-                    <div className="p-4">
-                        {attachments.length === 0 ? (
-                            <p className="text-gray-500 text-sm text-center py-4">No attachments uploaded.</p>
-                        ) : (
-                            <div className="space-y-2">
-                                {attachments.map((att, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
-                                        <div className="flex items-center gap-3 overflow-hidden">
-                                            <div className="bg-white p-2 rounded border border-gray-200">
-                                                <FileText className="w-5 h-5 text-primary" />
-                                            </div>
-                                            <div className="truncate">
-                                                <p className="text-sm font-medium text-gray-800 truncate">{att.name}</p>
-                                                {att.size && <p className="text-xs text-gray-500">{(att.size / 1024 / 1024).toFixed(2)} MB</p>}
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            {att.url && att.url !== "#" && (
-                                                <a 
-                                                    href={att.url} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer"
-                                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                                    title="Download"
-                                                >
-                                                    <Download className="w-4 h-4" />
-                                                </a>
-                                            )}
-                                            <button 
-                                                onClick={() => removeAttachment(idx)}
-                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                                title="Remove"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
+              </div>
 
-            {/* Sidebar: Attendance & Actions */}
-            <div className="lg:col-span-1 space-y-6">
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-sm font-semibold text-gray-700">Attendance</h4>
-                        <div className="flex items-center text-sm text-gray-600">
-                            <Users className="w-4 h-4 mr-1" />
-                            <span>Manage List</span>
-                        </div>
-                    </div>
-                    
-                    <p className="text-xs text-gray-500 mb-4">
-                        Manage patient attendance and encode screening results for this activity.
+              {/* Right Column: Attendance & Attachments (1/3) */}
+              <div className="lg:col-span-1 space-y-8">
+                
+                {/* Attendance Card */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-gray-400" /> Attendance
+                  </h3>
+                  
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+                        Manage patient attendance for this mass screening event. Ensure all participants are recorded.
                     </p>
-
                     <button
                         onClick={() => navigate("/rhu/application/mass-screening/view/attendance", {
                             state: { record: form }
                         })}
-                        className="w-full bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 py-2 px-4 rounded text-sm font-medium transition-all flex items-center justify-center gap-2 shadow-sm"
                     >
-                        <ClipboardList className="w-4 h-4" />
-                        Manage Attendance
+                        <ClipboardList className="w-4 h-4 text-primary" />
+                        Check Attendance
                     </button>
+                  </div>
                 </div>
 
-                {/* Quick Info / Readonly */}
-                <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">System Info</h4>
-                   <div className="space-y-3">
-                        <div>
-                            <span className="text-xs text-gray-500 block">Mass ID</span>
-                            <span className="text-sm font-mono text-gray-800">{form.id}</span>
+                {/* Attachments Card */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-gray-100 pb-1">
+                      <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+                        <Upload className="w-4 h-4 text-gray-400" /> Attachments
+                      </h3>
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-xs text-primary hover:text-primary/80 font-bold uppercase tracking-wide flex items-center gap-1 cursor-pointer"
+                      >
+                        + Add
+                      </button>
+                      <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileChange} />
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    {attachments.length === 0 ? (
+                        <div className="text-center p-4 bg-gray-50 rounded border border-dashed border-gray-200">
+                            <p className="text-xs text-gray-400">No files attached.</p>
                         </div>
-                        <div>
-                            <span className="text-xs text-gray-500 block">Status</span>
-                            <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-medium border ${getStatusColor(statusValue)}`}>
-                                {statusValue || "N/A"}
-                            </span>
-                        </div>
-                   </div>
+                    ) : (
+                        attachments.map((att, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all group">
+                                <div className="flex items-center gap-3 overflow-hidden">
+                                    <FileText className="w-4 h-4 text-gray-400 shrink-0" />
+                                    <div className="overflow-hidden">
+                                        <p className="text-sm font-medium text-gray-700 truncate max-w-[120px]">{att.name}</p>
+                                        {att.size && <p className="text-[10px] text-gray-400">{(att.size / 1024 / 1024).toFixed(2)} MB</p>}
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    {att.url && att.url !== "#" && (
+                                        <a 
+                                            href={att.url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                                            title="Download"
+                                        >
+                                            <Download className="w-3.5 h-3.5" />
+                                        </a>
+                                    )}
+                                    <button 
+                                        onClick={() => removeAttachment(idx)}
+                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                                        title="Remove"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                  </div>
                 </div>
+
+              </div>
             </div>
+
+            {/* Footer Actions */}
+            <div className="flex justify-around print:hidden mt-6">
+              <Link
+                to="/rhu/application/mass-screening"
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+              >
+                Back
+              </Link>
+              <button
+                onClick={() => setModalOpen(true)}
+                disabled={saving}
+                className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+              >
+                {/* <Save className="w-4 h-4" /> */}
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+
+          </div>
         </div>
 
-        <div className="flex justify-around print:hidden mt-2">
-             <Link
-               to="/rhu/application/mass-screening"
-               className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
-             >
-               Back
-             </Link>
-             <button
-               onClick={() => setModalOpen(true)}
-               disabled={saving}
-               className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer disabled:opacity-50"
-             >
-               {saving ? 'Saving...' : 'Save Changes'}
-             </button>
-        </div>
+        {/* Decorative Footer */}
+        <div className="h-16 bg-secondary shrink-0"></div>
       </div>
     </>
   );

@@ -1,7 +1,16 @@
-// src/pages/mass-screening/MassScreeningAttendance.jsx
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Save, Search, UserPlus, UserMinus, FileSignature } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Save, 
+  Search, 
+  UserPlus, 
+  UserMinus, 
+  FileSignature, 
+  Users,
+  User,
+  AlertCircle
+} from "lucide-react";
 
 import SystemLoader from "src/components/SystemLoader";
 import Notification from "src/components/Notification";
@@ -40,7 +49,7 @@ const MassScreeningAttendance = () => {
           setPatients(attendanceData.map((e) => ({ name: e.name, result: e.result || "" })));
         }
 
-        // 2. Fetch Available Patients (Smart Logic from original code)
+        // 2. Fetch Available Patients (Specific logic for RHU)
         const prof = await api.get("/rhu/profile/");
         const lgu = prof?.data?.lgu || "";
         const toCity = (s) => String(s || "").replace(/^RHU\s+/i, "").split(",")[0].trim();
@@ -128,7 +137,7 @@ const MassScreeningAttendance = () => {
       
       setNotification("Attendance and results saved successfully!");
       setNotificationType("success");
-      setTimeout(() => navigate(-1), 1500); // Go back after success
+      setTimeout(() => navigate(-1), 1500); 
     } catch (error) {
       setNotification("Failed to save attendance.");
       setNotificationType("error");
@@ -137,12 +146,22 @@ const MassScreeningAttendance = () => {
     }
   };
 
-  if (!record) return <div className="p-10 text-center">Record ID missing.</div>;
+  if (!record) return (
+    <div className="h-screen flex items-center justify-center bg-gray">
+        <div className="bg-white p-6 rounded-lg shadow text-center">
+            <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-3"/>
+            <p className="text-gray-600 font-medium">Record ID missing.</p>
+            <button onClick={() => navigate(-1)} className="text-primary hover:underline mt-2">Go Back</button>
+        </div>
+    </div>
+  );
+
   if (loading) return <SystemLoader />;
 
   return (
     <>
       {saving && <SystemLoader />}
+      
       <ConfirmationModal
         open={modalOpen}
         title="Save Attendance"
@@ -150,144 +169,163 @@ const MassScreeningAttendance = () => {
         onConfirm={handleSave}
         onCancel={() => setModalOpen(false)}
       />
+      
       <Notification message={notification} type={notificationType} />
 
-      <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray overflow-auto">
-        
-        {/* Header */}
-        {/* <div className="flex justify-between items-center w-full">
-          <div className="flex items-center gap-4">
-             <button onClick={() => navigate(-1)} className="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded transition-colors">
-               <ArrowLeft className="w-4 h-4" />
-             </button>
-             <div>
-               <h2 className="text-xl font-bold text-gray-800">Attendance: {record.title}</h2>
-               <p className="text-sm text-gray-600 mt-1">{record.date}</p>
-             </div>
-          </div>
-          <button
-            onClick={() => setModalOpen(true)}
-            disabled={saving}
-            className="bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
-          >
-            <Save className="w-4 h-4" />
-            Save Attendance
-          </button>
-        </div> */}
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
           
-          {/* LEFT: Available Patients */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-[80vh]">
-            <div className="px-5 py-3 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-yellow-600">Available Patients</h3>
-            </div>
-            <div className="p-4 flex-1 flex flex-col min-h-0">
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search by name or ID..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="border border-gray-300 py-2 pl-10 pr-4 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent w-full text-sm"
-                />
-              </div>
+          {/* Top Title */}
+          <h2 className="text-xl font-semibold mb-6 text-gray-800">
+            Mass Screening Management
+          </h2>
 
-              <div className="flex-1 overflow-y-auto pr-2">
-                {filteredPatients.length === 0 ? (
-                  <p className="text-gray-500 text-sm text-center py-4">
-                    {searchTerm ? "No matching patients found." : "No patients available."}
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {filteredPatients.map((patient) => (
-                      <div key={patient.patient_id || patient.full_name} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200 hover:border-green-300 transition-colors">
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">
-                             {patient.full_name || `${patient.first_name} ${patient.last_name}`}
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
+            
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
+              <div className="flex flex-col gap-1">
+                <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
+                  Manage Attendance
+                </h1>
+                <p className="text-sm text-gray-500 flex items-center gap-2">
+                   Activity: <span className="font-medium text-gray-700">{record.title}</span>
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-xs font-bold border border-blue-100 uppercase">
+                <Users className="w-3.5 h-3.5" />
+                {patients.length} Participants
+              </div>
+            </div>
+
+            {/* Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 min-h-0">
+              
+              {/* Left Column: Available Patients */}
+              <div className="flex flex-col h-full bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                <div className="p-4 border-b border-gray-200 bg-white">
+                  <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide mb-3 flex items-center gap-2">
+                    <User className="w-4 h-4 text-gray-400" /> Search Local Patients
+                  </h3>
+                  
+                  {/* Search Bar */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      placeholder="Search by name or ID..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-gray-50">
+                  {filteredPatients.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                        <p className="text-sm text-gray-500">
+                          {searchTerm ? "No matching patients found." : "No patients available."}
+                        </p>
+                    </div>
+                  ) : (
+                    filteredPatients.map((patient, idx) => (
+                      <div 
+                        key={idx} 
+                        className="flex items-center justify-between p-3 bg-white rounded border border-gray-200 shadow-sm hover:border-green-300 hover:shadow-md transition-all"
+                      >
+                        <div className="overflow-hidden">
+                          <p className="text-sm font-medium text-gray-800 truncate">
+                            {patient.full_name || `${patient.first_name} ${patient.last_name}`}
                           </p>
-                          <p className="text-xs text-gray-500">ID: {patient.patient_id || "N/A"}</p>
+                          <p className="text-xs text-gray-500 truncate font-mono">
+                            ID: {patient.patient_id || "N/A"}
+                          </p>
                         </div>
                         <button
                           onClick={() => addAttendee(patient)}
-                          className="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded transition-colors"
+                          className="bg-green-50 text-green-600 hover:bg-green-100 p-2 rounded-full transition-colors"
                           title="Add to list"
                         >
                           <UserPlus className="w-4 h-4" />
                         </button>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* RIGHT: Current Attendees & Results */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-[80vh]">
-            <div className="px-5 py-3 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-yellow-600">Current List</h3>
-              <span className="text-sm font-medium bg-primary/10 text-primary px-2 py-1 rounded">
-                {patients.length} Attendees
-              </span>
-            </div>
-            <div className="p-4 flex-1 flex flex-col min-h-0">
-              <div className="flex-1 overflow-y-auto pr-2">
-                {patients.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                     <FileSignature className="w-12 h-12 mb-2 opacity-50" />
-                     <p className="text-sm">No attendees added yet.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {patients.map((attendee, idx) => (
-                      <div key={idx} className="p-3 bg-white rounded border border-gray-200 shadow-sm">
+              {/* Right Column: Attendance List */}
+              <div className="flex flex-col h-full bg-blue-50/30 rounded-lg border border-blue-100 overflow-hidden">
+                <div className="p-4 border-b border-blue-100 bg-white">
+                  <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+                    <FileSignature className="w-4 h-4 text-gray-400" /> Attendance & Results
+                  </h3>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50/50">
+                  {patients.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                      <FileSignature className="w-12 h-12 text-gray-300 mb-3 opacity-50" />
+                      <p className="text-sm text-gray-500">Attendance list is empty.</p>
+                      <p className="text-xs text-gray-400 mt-1">Search and add patients from the left panel.</p>
+                    </div>
+                  ) : (
+                    patients.map((p, idx) => (
+                      <div key={idx} className="p-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow group">
                         <div className="flex justify-between items-start mb-2">
-                             <p className="text-sm font-medium text-gray-800">{attendee.name}</p>
-                             <button
-                               onClick={() => removeAttendee(idx)}
-                               className="text-red-400 hover:text-red-600 transition-colors"
-                               title="Remove"
-                             >
-                               <UserMinus className="w-4 h-4" />
-                             </button>
+                           <p className="text-sm font-bold text-gray-800">{p.name}</p>
+                           <button 
+                             onClick={() => removeAttendee(idx)}
+                             className="text-gray-400 hover:text-red-500 p-1 rounded hover:bg-red-50 transition-colors"
+                             title="Remove"
+                           >
+                             <UserMinus className="w-4 h-4" />
+                           </button>
                         </div>
-                        {/* Result Input Field */}
-                        <div>
-                           <input 
-                             type="text"
-                             value={attendee.result}
-                             onChange={(e) => updateResult(idx, e.target.value)}
-                             placeholder="Enter screening result / notes..."
-                             className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                           />
+                        <div className="relative">
+                            <input 
+                              type="text"
+                              value={p.result}
+                              onChange={(e) => updateResult(idx, e.target.value)}
+                              placeholder="Enter screening result / notes..."
+                              className="w-full text-xs border border-gray-300 rounded px-3 py-2 bg-gray-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                            />
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
 
+            </div>
+
+            {/* Footer Actions */}
+            <div className="flex justify-around print:hidden mt-6">
+              <button
+                onClick={() => navigate(-1)}
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+              >
+                {/* <ArrowLeft className="w-4 h-4" /> */}
+                Cancel
+              </button>
+              <button
+                onClick={() => setModalOpen(true)}
+                disabled={saving}
+                className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+              >
+                {/* <Save className="w-4 h-4" /> */}
+                {saving ? "Saving..." : "Save Attendance"}
+              </button>
+            </div>
+
+          </div>
         </div>
-        
-        <div className="flex justify-around print:hidden mt-2">
-            <button
-               onClick={() => navigate(-1)}
-               className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
-            >
-               Back
-            </button>
-            <button
-               onClick={() => setModalOpen(true)}
-               disabled={saving}
-               className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer disabled:opacity-50"
-            >
-               {saving ? "Saving..." : "Save Attendance"}
-            </button>
-        </div>
+
+        {/* Decorative Footer */}
+        <div className="h-16 bg-secondary shrink-0"></div>
       </div>
     </>
   );

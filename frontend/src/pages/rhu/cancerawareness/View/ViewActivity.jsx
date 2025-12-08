@@ -1,7 +1,13 @@
-// src/pages/cancer-awareness/ViewActivity.jsx
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, Users, Download, Edit } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Calendar, 
+  Users, 
+  Image as ImageIcon,
+  UserCog,
+  FileText
+} from "lucide-react";
 
 import SystemLoader from "src/components/SystemLoader";
 import Notification from "src/components/Notification";
@@ -20,6 +26,7 @@ const ViewActivity = () => {
   const fetchActivity = async () => {
     try {
       setLoading(true);
+      // Using the endpoints from your provided code
       const [activityResponse, attendeesResponse] = await Promise.all([
         api.get(`/partners/cancer-awareness/activity/${id}/`),
         api.get(`/partners/cancer-awareness/activity/${id}/attendees/`)
@@ -53,22 +60,15 @@ const ViewActivity = () => {
     });
   };
 
-  if (loading) {
-    return <SystemLoader />;
-  }
+  if (loading) return <SystemLoader />;
 
   if (!activity) {
     return (
-      <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
-        <div className="text-center py-12">
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">
-            Activity not found
-          </h3>
-          <Link
-            to="/rhu/cancer-awareness"
-            className="text-primary hover:underline"
-          >
-            Return to activities list
+      <div className="min-h-screen w-full flex flex-col items-center justify-center p-5 bg-gray">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">Activity not found</h3>
+          <Link to="/rhu/cancer-awareness" className="text-primary hover:underline">
+            Return to list
           </Link>
         </div>
       </div>
@@ -79,140 +79,142 @@ const ViewActivity = () => {
     <>
       <Notification message={notification} type={notificationType} />
       
-      <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray overflow-auto">
-        {/* Header */}
-        {/* <div className="flex justify-between items-center w-full">
-          <div className="flex items-center gap-4">
-            <Link
-              to="/rhu/cancer-awareness"
-              className="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded transition-colors"
-              title="Back to Activities"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">
-                {activity.title}
-              </h2>
-              <div className="flex items-center text-sm text-gray-600 mt-1">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span>{formatDate(activity.date)}</span>
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
+          {/* Top Title */}
+          <h2 className="text-xl font-semibold mb-6 text-gray-800">
+            Cancer Awareness
+          </h2>
+
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
+            
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
+              <div className="flex flex-col gap-1">
+                <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
+                  {activity.title}
+                </h1>
+                <p className="text-sm text-gray-500 flex items-center gap-2">
+                   Activity ID: <span className="font-mono text-gray-700">{activity.id}</span>
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-xs font-bold border border-blue-100 uppercase">
+                <Calendar className="w-3.5 h-3.5" />
+                {formatDate(activity.created_at)}
               </div>
             </div>
-          </div>
-          <div className="flex gap-2">
-            <Link
-              to={`/rhu/cancer-awareness/edit/${id}`}
-              className="bg-yellow hover:bg-yellow/90 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
-            >
-              <Edit className="w-4 h-4" />
-              Edit Activity
-            </Link>
-            {activity.attachment && (
-              <a
-                href={activity.attachment}
-                download
-                className="bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                Download Attachment
-              </a>
-            )}
-          </div>
-        </div> */}
 
-        {/* Main Content Card */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full">
-          <div className="px-5 py-3 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-yellow-600">
-              Activity Details
-            </h3>
-          </div>
-
-          <div className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Activity Information */}
-              <div className="lg:col-span-2 space-y-6">
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Description</h4>
-                  <p className="text-gray-800 leading-relaxed">{activity.description}</p>
+            {/* Grid Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-12 gap-y-8">
+              
+              {/* Left Column: Details (Takes 2/3 width) */}
+              <div className="lg:col-span-2 space-y-8">
+                
+                {/* Description */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-gray-400" /> Activity Details
+                  </h3>
+                  
+                  <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                    <span className="text-xs font-bold text-gray-500 uppercase mb-2 block">Description</span>
+                    <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+                      {activity.description || "No description provided."}
+                    </p>
+                  </div>
                 </div>
 
+                {/* Photo Section */}
                 {activity.photo && (
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Photo</h4>
-                    <img
-                      src={activity.photo}
-                      alt={activity.title}
-                      className="w-full max-w-md rounded-lg shadow-sm border border-gray-200"
-                    />
+                  <div className="space-y-4">
+                    <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1 flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-gray-400" /> Photo Documentation
+                    </h3>
+                    <div className="bg-gray-50 p-2 rounded-lg border border-gray-200 inline-block">
+                      <img
+                        src={activity.photo}
+                        alt={activity.title}
+                        className="w-full max-w-md h-auto rounded shadow-sm object-cover"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Attendees Section */}
-              <div className="lg:col-span-1">
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-sm font-semibold text-gray-700">Attendees</h4>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Users className="w-4 h-4 mr-1" />
-                      <span>{attendees.length} patients</span>
+              {/* Right Column: Attendance (Takes 1/3 width) */}
+              <div className="lg:col-span-1 space-y-8">
+                
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-gray-400" /> Participants
+                  </h3>
+
+                  <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col h-[400px]">
+                    <div className="p-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                        <span className="text-xs font-bold text-gray-500 uppercase">Attendees List</span>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                          {attendees.length}
+                        </span>
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto p-2 space-y-2">
+                        {attendees.length === 0 ? (
+                          <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                             <Users className="w-8 h-8 text-gray-300 mb-2" />
+                             <p className="text-sm text-gray-500">No participants yet.</p>
+                          </div>
+                        ) : (
+                          attendees.map((attendee) => (
+                            <div key={attendee.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100 transition-colors">
+                               <div className="w-8 h-8 rounded-full bg-yellow/10 flex items-center justify-center text-yellow font-bold text-xs shrink-0">
+                                  {attendee.patient?.full_name?.charAt(0) || "?"}
+                               </div>
+                               <div className="overflow-hidden">
+                                  <p className="text-sm font-medium text-gray-800 truncate">
+                                    {attendee.patient?.full_name || 'Unknown'}
+                                  </p>
+                                  <p className="text-[10px] text-gray-500 truncate">
+                                    ID: {attendee.patient?.patient_id || 'N/A'}
+                                  </p>
+                               </div>
+                            </div>
+                          ))
+                        )}
+                    </div>
+
+                    <div className="p-3 border-t border-gray-200 bg-gray-50">
+                       <button
+                          onClick={() => navigate(`/rhu/cancer-awareness/${id}/manage-attendees`)}
+                          className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 py-2 px-4 rounded text-sm font-medium transition-all shadow-sm"
+                       >
+                          <UserCog className="w-4 h-4 text-primary" />
+                          Manage Attendees
+                       </button>
                     </div>
                   </div>
-
-                  <div className="max-h-64 overflow-y-auto">
-                    {attendees.length === 0 ? (
-                      <p className="text-gray-500 text-sm text-center py-4">
-                        No attendees registered yet.
-                      </p>
-                    ) : (
-                      <div className="space-y-2">
-                        {attendees.map((attendee) => (
-                          <div
-                            key={attendee.id}
-                            className="flex items-center justify-between p-2 bg-white rounded border border-gray-200"
-                          >
-                            <div>
-                              <p className="text-sm font-medium text-gray-800">
-                                {attendee.patient?.full_name || 'Unknown Patient'}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                ID: {attendee.patient?.patient_id || 'N/A'}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <Link
-                    to={`/rhu/cancer-awareness/${id}/manage-attendees`}
-                    className="w-full mt-4 bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Users className="w-4 h-4" />
-                    Manage Attendees
-                  </Link>
                 </div>
+
               </div>
             </div>
+
+            {/* Footer Actions */}
+            <div className="flex justify-end print:hidden mt-6">
+              <Link
+                to="/rhu/cancer-awareness"
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+              >
+                {/* <ArrowLeft className="w-4 h-4" /> */}
+                Back
+              </Link>
+            </div>
+
           </div>
         </div>
-        <div className="flex justify-end print:hidden">
-          <Link
-            to={`/rhu/cancer-awareness`}
-            className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md"
-          >
-            Back
-          </Link>
-          {/* <button
-            // onClick={handleSaveClick}
-            className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer"
-          >
-            Save Changes
-          </button> */}
-        </div>
+
+        {/* Decorative Footer */}
+        <div className="h-16 bg-secondary shrink-0"></div>
       </div>
     </>
   );

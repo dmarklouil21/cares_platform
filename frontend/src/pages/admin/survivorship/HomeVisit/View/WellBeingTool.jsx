@@ -93,6 +93,7 @@ const RadioTherapyWellBeingTool = () => {
   };
 
   return (
+    <>
     <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
       <div className="h-full w-full flex flex-col justify-between">
         <h2 className="text-xl font-semibold text-gray-800 mb-6">Wellbeing Form</h2>
@@ -280,18 +281,22 @@ const RadioTherapyWellBeingTool = () => {
               </div>
             </div>
           </div>
-        </div>
-        <div className="w-full flex justify-end mt-5">
+          <div className="w-full flex justify-end mt-6 mb-2">
           <Link
             to={`/admin/survivorship/view/${id}`}
-            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
+            className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
           >
             Back
           </Link>
         </div>
+        </div>
         <br />
       </div>
+      
     </div>
+    {/* Decorative Footer */}
+    <div className="h-16 bg-secondary shrink-0"></div>
+    </>
   );
 };
 

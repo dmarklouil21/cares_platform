@@ -214,10 +214,10 @@ const ViewActivity = () => {
             <div className="mt-auto pt-8 border-t border-gray-100 flex items-center justify-end gap-4">
               <Link
                 to="/admin/PychosocialSupport"
-                className="flex items-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition-all"
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
               >
-                <ArrowLeft className="w-4 h-4" />
-                Back to List
+                {/* <ArrowLeft className="w-4 h-4" /> */}
+                Back
               </Link>
             </div>
 

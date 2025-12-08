@@ -151,20 +151,20 @@ const ViewUser = () => {
               </div>
             </div>
           </div>
-        </div>
-        {/* Footer Actions */}
-        <div className="flex justify-end print:hidden mt-5">
-          <Link
-            to="/admin/user-management"
-            className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md hover:bg-gray-50 transition-colors"
-          >
-            Back
-          </Link>
+          {/* Footer Actions */}
+          <div className="flex justify-end print:hidden mt-5">
+            <Link
+              to="/admin/user-management"
+              className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+            >
+              Back
+            </Link>
+          </div>
         </div>
       </div>
 
       {/* Decorative Footer Strip */}
-      {/* <div className="h-16 bg-secondary shrink-0"></div> */}
+      <div className="h-16 bg-secondary shrink-0"></div>
     </div>
   );
 };

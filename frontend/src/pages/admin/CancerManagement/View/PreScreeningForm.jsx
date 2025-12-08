@@ -1180,19 +1180,21 @@ const ViewPreScreeningForm = () => {
                 </div>
               </div>
             </div>
+            <div className="w-full flex justify-end mt-6 mb-2">
+              <Link
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+                to={`/admin/cancer-management/view/${id}`}
+                state={{ record: record }}
+              >
+                Back
+              </Link>
+            </div>
           </form>
-          <div className="w-full flex justify-end mt-5">
-            <Link
-              className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
-              to={`/admin/cancer-management/view/${id}`}
-              state={{ record: record }}
-            >
-              Back
-            </Link>
-          </div>
           <br />
         </div>
       </div>
+      {/* Decorative Footer */}
+      <div className="h-16 bg-secondary shrink-0"></div>
     </>
   );
 };

@@ -273,19 +273,19 @@ const ManageAttendees = () => {
             </div>
 
             {/* Footer Actions */}
-            <div className="mt-6 flex items-center justify-end gap-4 border-t border-gray-100 pt-6">
+            <div className="mt-6 flex items-center justify-around gap-4 border-t border-gray-100 pt-6">
               <Link
                 to={`/admin/PychosocialSupport/view/${id}`}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition-all"
+                className="text-center w-[35%] gap-2 px-6 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
               >
-                <ArrowLeft className="w-4 h-4" />
+                {/* <ArrowLeft className="w-4 h-4" /> */}
                 Cancel
               </Link>
               <button
                 onClick={handleSaveClick}
-                className="flex items-center gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+                className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
               >
-                <Save className="w-4 h-4" />
+                {/* <Save className="w-4 h-4" /> */}
                 Save Attendees
               </button>
             </div>
