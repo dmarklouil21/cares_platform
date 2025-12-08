@@ -92,7 +92,7 @@ export default function ViewIndividualStatus() {
                       })
                     : "N/A"}
                 </b>
-                . Please make sure to arrive at least 15 minutes early and bring any
+                . Please make sure to arrive at the designated date and bring any
                 required identification.
               </>
             );
@@ -312,7 +312,7 @@ export default function ViewIndividualStatus() {
         </div>
       </div>
       {/* Bottom decorative strip */}
-        <div className="h-16 bg-secondary"></div>
+        {/* <div className="h-16 bg-secondary"></div> */}
     </>
   );
 }

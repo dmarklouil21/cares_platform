@@ -1,261 +1,331 @@
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
-import { useAuth } from "src/context/AuthContext";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { 
+  Save, 
+  ArrowLeft, 
+  FileText, 
+  User, 
+  Stethoscope, 
+  Activity, 
+  AlertCircle, 
+  Calendar,
+  CheckSquare
+} from "lucide-react";
 
 import api from "src/api/axiosInstance";
-
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
-import Notification from "src/components/Notification";
 import SystemLoader from "src/components/SystemLoader";
 
+// --- Constants ---
+const DIAGNOSIS_BASIS_OPTIONS = [
+  "None Microscopic", "Death Certificates Only", "Clinical Investigation",
+  "Specific Tumor Markers", "Microscopic", "Cytology or Hermotology",
+  "Histology of Metastasis", "Histology of Primary"
+];
+
+const PRIMARY_SITES_OPTIONS = [
+  "Colon", "Brain", "Bladder", "Skin", "Kidney", "Testis", "Liver",
+  "Corpus Uteri", "Urinary", "Prostate", "Nasopharnyx", "Oral Cavity",
+  "Ovary", "Lung", "Gull", "Thyroid", "Rectum", "Blood", "Stomach",
+  "Pancreas", "Esophagus", "Breast", "Uterine Cervix"
+];
+
+const METASTASIS_OPTIONS = [
+  "None", "Destant Lymph Nodes", "Bone", "Liver(Pleura)", "Kidney",
+  "Brain", "Ovary", "Skin", "Prostate", "Unknown"
+];
+
+const ADJUVANT_OPTIONS = [
+  "Surgery", "Radiotherapy", "Chemotherapy", "Immunotherapy/Cytrotherapy",
+  "Hormonal", "None", "Unknown"
+];
+
+// --- Reusable UI Components ---
+
+const SectionHeader = ({ icon: Icon, title }) => (
+  <div className="flex items-center gap-2 border-b border-gray-100 pb-2 mb-4 mt-6 first:mt-0">
+    <Icon className="w-5 h-5 text-yellow-600" />
+    <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide">{title}</h3>
+  </div>
+);
+
+const InputGroup = ({ label, name, type = "text", value, onChange, required, error, ...props }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input
+      type={type}
+      name={name}
+      value={value || ""}
+      onChange={onChange}
+      className={`w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
+        error ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'
+      }`}
+      {...props}
+    />
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
+const TextAreaGroup = ({ label, name, value, onChange, required, error, rows = 3 }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <textarea
+      name={name}
+      value={value || ""}
+      onChange={onChange}
+      rows={rows}
+      className={`w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none ${
+        error ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'
+      }`}
+    />
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
+const SelectGroup = ({ label, name, value, onChange, options, required, error }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <select
+      name={name}
+      value={value || ""}
+      onChange={onChange}
+      className={`w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-white ${
+        error ? 'border-red-500 bg-red-50' : 'border-gray-300'
+      }`}
+    >
+      <option value="" disabled>Select</option>
+      {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+    </select>
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
+const CheckboxGroup = ({ label, groupName, options, currentValues, onChange, error }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">
+      {label} {error && <span className="text-red-500 ml-2 normal-case font-normal">{error}</span>}
+    </label>
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+      {options.map((opt) => {
+         const isChecked = Array.isArray(currentValues) && currentValues.some(item => item.name === opt);
+         return (
+            <label key={opt} className={`flex items-center gap-2 p-2 rounded border cursor-pointer transition-colors ${isChecked ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:border-blue-300'}`}>
+              <input
+                type="checkbox"
+                className="w-4 h-4 accent-primary"
+                checked={isChecked}
+                onChange={() => onChange(groupName, opt)}
+              />
+              <span className="text-xs font-medium text-gray-700">{opt}</span>
+            </label>
+         );
+      })}
+    </div>
+  </div>
+);
+
+const RadioGroup = ({ label, name, options, value, onChange, required, error }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <div className="flex flex-wrap gap-4">
+      {options.map((opt) => (
+        <label key={opt} className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name={name}
+            value={opt}
+            checked={String(value) === String(opt)}
+            onChange={onChange}
+            className="w-4 h-4 accent-primary"
+          />
+          <span className="text-sm text-gray-700">{opt}</span>
+        </label>
+      ))}
+    </div>
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
 const PreScreeningForm = () => {
-  // Notification Modal
   const navigate = useNavigate();
   const location = useLocation();
   const generalData = location.state?.formData;
-  const photoUrl = location.state?.photoUrl;
-  const state = location.state;
-  const [showModal, setShowModal] = useState(false);
-  const [modalInfo, setModalInfo] = useState({
-    type: "success",
-    title: "Success!",
-    message: "The form has been submitted successfully.",
+  const photoUrl = location.state?.photoUrl; 
+
+  // Form State
+  const [form, setForm] = useState({
+    referred_from: "",
+    reason_for_referral: "",
+    date_of_consultation: "",
+    referring_doctor_or_facility: "",
+    chief_complaint: "",
+    date_of_diagnosis: "",
+    diagnosis_basis: [], 
+    primary_sites: [],
+    primary_sites_other: "",
+    laterality: "",
+    multiple_primaries: "",
+    histology: "",
+    staging: "",
+    t_system: "",
+    n_system: "",
+    m_system: "",
+    distant_metastasis_sites: [],
+    distant_metastasis_sites_other: "",
+    final_diagnosis: "",
+    final_diagnosis_icd10: "",
+    treatment_purpose: "",
+    treatment_purpose_other: "",
+    primary_assistance_by_ejacc: "",
+    date_of_assistance: "",
+    adjuvant_treatments_received: [],
+    adjuvant_treatments_other: "",
+    other_source_treatments: [],
+    other_source_treatments_other: "",
+    consentAgreement: false
   });
-  // Loading Modal
+
   const [loading, setLoading] = useState(false);
-  // Confirmation Modal
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalAction, setModalAction] = useState(null);
-  const [modalDesc, setModalDesc] = useState(
-    "Please confirm before proceeding."
-  );
-
-  // Notification
-  const [notification, setNotification] = useState("");
-  const [notificationType, setNotificationType] = useState(
-    location.state?.type || ""
-  );
-  const [notificationMessage, setNotificationMessage] = useState(
-    location.state?.message || ""
-  );
-
   const [errors, setErrors] = useState({});
+  const [modalOpen, setModalOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({ type: "success", title: "Success", message: "" });
 
-  const handleSubmit = async (e) => {
+  // Redirect if Step 1 data is missing
+  useEffect(() => {
+    if (!generalData) {
+        navigate("/beneficiary/pre-enrollment");
+    }
+  }, [generalData, navigate]);
+
+  // --- Handlers ---
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({ 
+        ...prev, 
+        [name]: type === 'checkbox' && name === 'consentAgreement' ? checked : value 
+    }));
+    if(errors[name]) setErrors(prev => ({...prev, [name]: null}));
+  };
+
+  const handleCheckboxChange = (groupName, value) => {
+    setForm((prev) => {
+      const currentValues = prev[groupName] || [];
+      const exists = currentValues.some((v) => v.name === value);
+      
+      const updatedValues = exists
+        ? currentValues.filter((v) => v.name !== value)
+        : [...currentValues, { name: value }];
+
+      return { ...prev, [groupName]: updatedValues };
+    });
+    if(errors[groupName]) setErrors(prev => ({...prev, [groupName]: null}));
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
+    const newErrors = {};
 
-    const form = document.getElementById("pre-screening-form");
-    const formElements = form.elements;
-
-    const newErrors = {}; // collect all errors here
-
-    // --- Checkbox groups to validate ---
-    const checkboxGroupsInput = [
-      {
-        name: "diagnosis_basis",
-        message: "Select at least one diagnosis basis.",
-      },
-      {
-        name: "primary_sites",
-        message: "Select at least one primary site.",
-      },
-      {
-        name: "distant_metastasis_sites",
-        message: "Select 'None' if no distant metastasis.",
-      },
-      {
-        name: "adjuvant_treatments_received",
-        message: "Select 'None' if none received.",
-      },
-      {
-        name: "other_source_treatments",
-        message: "Select 'None' if none received.",
-      },
-      {
-        name: "consentAgreement",
-        message: "Agree to the Data and privacy notice.",
-      },
+    // --- Validation ---
+    const requiredText = [
+        "referred_from", "referring_doctor_or_facility", "reason_for_referral", "chief_complaint",
+        "date_of_consultation", "date_of_diagnosis", "histology", "laterality", "staging",
+        "final_diagnosis", "final_diagnosis_icd10", "treatment_purpose",
+        "primary_assistance_by_ejacc", "multiple_primaries"
     ];
 
-    checkboxGroupsInput.forEach((group) => {
-      const boxes = Array.from(formElements).filter(
-        (el) =>
-          el.name && el.name.startsWith(group.name) && el.type === "checkbox"
-      );
-      const isChecked = boxes.some((el) => el.checked);
-      if (!isChecked) {
-        newErrors[group.name] = group.message;
-      }
+    requiredText.forEach(field => {
+        if (!form[field]) newErrors[field] = "Required";
     });
 
-    // --- Text / textarea / date inputs to validate ---
-    const textFields = [
-      { name: "referred_from", message: "Referred from is required." },
-      {
-        name: "referring_doctor_or_facility",
-        message: "Name of referring doctor/facility is required.",
-      },
-      {
-        name: "reason_for_referral",
-        message: "Reason for referral is required.",
-      },
-      { name: "chief_complaint", message: "Chief complaint is required." },
-      {
-        name: "date_of_consultation",
-        message: "Date of consultation/admission is required.",
-      },
-      { name: "date_of_diagnosis", message: "Date of diagnosis is required." },
-      { name: "multiple_primaries", message: "This field is required." },
-      { name: "histology", message: "Histology is required." },
-      { name: "laterality", message: "This field is required." },
-      { name: "staging", message: "Staging is required." },
-      { name: "tnm_system", message: "This field is required." },
-      { name: "final_diagnosis", message: "Final diagnosis is required." },
-      { name: "final_diagnosis_icd10", message: "This field is required." },
-      { name: "treatment_purpose", message: "This field is required." },
-      {
-        name: "primary_assistance_by_ejacc",
-        message: "Put 'None' if none recieved.",
-      },
+    if(!form.t_system || !form.n_system || !form.m_system) {
+        newErrors.tnm_system = "All fields required";
+    }
+
+    const requiredChecks = [
+        { key: "diagnosis_basis", label: "Diagnosis Basis" },
+        { key: "primary_sites", label: "Primary Site" },
+        { key: "distant_metastasis_sites", label: "Metastasis Site" },
+        { key: "adjuvant_treatments_received", label: "Adjuvant Treatment" },
+        { key: "other_source_treatments", label: "Other Treatment" }
     ];
 
-    textFields.forEach((field) => {
-      const input = formElements[field.name];
-      if (input && !input.value.trim()) {
-        newErrors[field.name] = field.message;
-      }
+    requiredChecks.forEach(group => {
+        if (!form[group.key] || form[group.key].length === 0) {
+            newErrors[group.key] = `Select at least one option.`;
+        }
     });
 
-    if (
-      formElements["date_of_consultation"].value >
-      new Date().toISOString().split("T")[0]
-    )
-      newErrors["date_of_consultation"] = "Date should not be in the future.";
-    if (
-      formElements["date_of_diagnosis"].value >
-      new Date().toISOString().split("T")[0]
-    )
-      newErrors["date_of_diagnosis"] = "Date should not be in the future.";
-    if (
-      formElements["date_of_assistance"].value >
-      new Date().toISOString().split("T")[0]
-    )
-      newErrors["date_of_assistance"] = "Date should not be in the future.";
+    if(!form.consentAgreement) {
+        newErrors.consentAgreement = "You must agree to the data privacy notice.";
+    }
 
-    // --- If any errors exist, stop submission ---
+    // Date Validation
+    const today = new Date().toISOString().split('T')[0];
+    if (form.date_of_consultation > today) newErrors.date_of_consultation = "Cannot be future date";
+    if (form.date_of_diagnosis > today) newErrors.date_of_diagnosis = "Cannot be future date";
+    if (form.date_of_assistance && form.date_of_assistance > today) newErrors.date_of_assistance = "Cannot be future date";
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setModalInfo({ type: "error", title: "Validation Error", message: "Please fill in all required fields." });
+      setShowModal(true);
       return;
     }
 
-    setModalText("Make sure all your inputs are correct!");
-    setModalAction({ type: "submit" });
     setModalOpen(true);
   };
 
-  const handleModalConfirm = async () => {
-    if (modalAction?.type === "submit") {
-      try {
-        const form = document.getElementById("pre-screening-form");
-        const formElements = form.elements;
+  const handleConfirmSubmit = async () => {
+    setModalOpen(false);
+    setLoading(true);
 
-        const data = {
-          general_data: generalData,
-          cancer_data: {},
-        };
+    try {
+        const formData = new FormData();
+        
+        // Prepare payload
+        const finalCancerData = { ...form };
+        if(!finalCancerData.date_of_assistance) finalCancerData.date_of_assistance = null;
+        // Remove consent bool from payload if not needed by backend, or keep it
+        delete finalCancerData.consentAgreement; 
 
-        const checkboxGroups = [
-          "diagnosis_basis",
-          "primary_sites",
-          "distant_metastasis_sites",
-          "adjuvant_treatments_received",
-          "other_source_treatments",
-        ];
+        formData.append("cancer_data", JSON.stringify(finalCancerData));
+        formData.append("general_data", JSON.stringify(generalData));
+        
+        if (photoUrl) {
+            formData.append("photo_url", photoUrl);
+        }
 
-        checkboxGroups.forEach((group) => {
-          data.cancer_data[group] = [];
+        await api.post("/beneficiary/pre-enrollment/", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
         });
 
-        for (let i = 0; i < formElements.length; i++) {
-          const element = formElements[i];
-          const { name, id, type, checked, value } = element;
+        navigate("/beneficiary", { state: { flash: "Registration successful! Record created." }});
 
-          if (name) {
-            const isCheckboxGroup = checkboxGroups.find((group) =>
-              name.startsWith(group)
-            );
-            if (type === "checkbox" && isCheckboxGroup && checked) {
-              data.cancer_data[isCheckboxGroup].push({ name: value });
-            } else if (type === "radio" && checked) {
-              data.cancer_data[name] = value;
-            } else if (type !== "checkbox" && type !== "radio") {
-              data.cancer_data[name] = value;
-              if (!data.cancer_data["date_of_assistance"])
-                data.cancer_data["date_of_assistance"] = null;
-            }
-          } else if (id) {
-            data.cancer_data[id] = value;
-          }
-        }
-        const formData = new FormData();
-        formData.append("cancer_data", JSON.stringify(data.cancer_data));
-        formData.append("general_data", JSON.stringify(data.general_data));
-        formData.append("photoUrl", photoUrl);
+    } catch (error) {
+        console.error(error);
+        let msg = "Something went wrong while submitting the form.";
+        if (error.response?.data?.non_field_errors) msg = error.response.data.non_field_errors[0];
+        else if (error.response?.data?.detail) msg = error.response.data.detail;
 
-        setModalOpen(false);
-        setLoading(true);
-
-        const response = await api.post(
-          "/beneficiary/pre-enrollment/",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-
-        navigate("/beneficiary");
-      } catch (error) {
-        let errorMessage = "Something went wrong while submitting the form.";
-
-        if (error.response && error.response.data) {
-          if (error.response.data.non_field_errors) {
-            errorMessage = error.response.data.non_field_errors[0];
-            // setNotificationMessage(error.response.data.non_field_errors[0])
-          } else if (error.response.data.detail) {
-            errorMessage = error.response.data.detail;
-          }
-        }
-        // setModalInfo({
-        //   type: "error",
-        //   title: "Submission Failed",
-        //   message: errorMessage,
-        // });
-        // setShowModal(true);
-
-        // setNotificationMessage(notificationMessage);
-        setNotification(errorMessage);
-        setNotificationType("error");
-        // navigate(location.pathname, { replace: true, state: {} });
-        setTimeout(() => setNotification(""), 2000);
-        console.error("Error submitting form:", error);
-      } finally {
+        setModalInfo({
+          type: "error",
+          title: "Submission Failed",
+          message: msg,
+        });
+        setShowModal(true);
+    } finally {
         setLoading(false);
-      }
-    }
-
-    setModalOpen(false);
-    setModalAction(null);
-    setModalText("");
-  };
-
-  const handleTNMInput = (e) => {
-    // Limit input to 1 character
-    if (e.target.value.length > 1) {
-      e.target.value = e.target.value.slice(0, 1);
     }
   };
 
@@ -263,16 +333,11 @@ const PreScreeningForm = () => {
     <>
       <ConfirmationModal
         open={modalOpen}
-        title={modalText}
-        desc={modalDesc}
-        onConfirm={handleModalConfirm}
-        onCancel={() => {
-          setModalOpen(false);
-          setModalAction(null);
-          setModalText("");
-        }}
+        title="Submit Registration?"
+        desc="Ensure all information is correct. This will create your beneficiary record."
+        onConfirm={handleConfirmSubmit}
+        onCancel={() => setModalOpen(false)}
       />
-      <Notification message={notification} type={notificationType} />
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -280,1198 +345,240 @@ const PreScreeningForm = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      {/* <LoadingModal open={loading} text="Submitting your data..." /> */}
       {loading && <SystemLoader />}
-      <div className="h-screen w-full lg:w-[75%] flex flex-col gap-3 md:gap-12 bg-gray py-12 px-5 overflow-auto">
-        <form
-          id="pre-screening-form"
-          onSubmit={handleSubmit}
-          className="bg-white py-5 px-3 md:p-9 flex flex-col gap-10 rounded-2xl"
-        >
-          <div className="">
-            <h2 className="text-md font-bold border-b pb-1 mb-5">
-              CANCER DATA
+
+      <div className="lg:w-[80%] h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1 max-w-7xl mx-auto w-full">
+            
+            {/* Top Title */}
+            <h2 className="text-xl font-semibold mb-6 text-gray-800">
+                Patient Registration
             </h2>
-            {/* <p className="text-sm text-gray-600 italic">
-              Note: Please put <span className="font-semibold">"NA"</span> for not applicable fields.
-            </p>
-            <br /> */}
-            <div className="grid grid-cols-2 gap-x-5 md:gap-x-10 gap-y-5 ">
-              <div className="flex gap-2 flex-col text-[12px] md:text-[16px] justify-between">
-                <label>
-                  Referred From <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="referred_from"
-                  className="border-[#6B7280] border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-                />
-                {errors.referred_from && (
-                  <span className="text-red-500 text-xs">
-                    {errors.referred_from}
-                  </span>
-                )}
-              </div>
-              <div className="flex gap-2 flex-col">
-                <label className="text-[12px] md:text-[16px]">
-                  Name of Referring Doctor / Facility{" "}
-                  <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="referring_doctor_or_facility"
-                  className="border-[#6B7280] border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-                />
-                {errors.referring_doctor_or_facility && (
-                  <span className="text-red-500 text-xs">
-                    {errors.referring_doctor_or_facility}
-                  </span>
-                )}
-              </div>
 
-              <div className="flex gap-2 flex-col">
-                <label className="text-[12px] md:text-[16px]">
-                  Reason for Referral <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  name="reason_for_referral"
-                  className="border-[#6B7280] border-[1px] rounded-md p-2 resize-none h-28 text-[12px] md:text-[16px]"
-                ></textarea>
-                {errors.reason_for_referral && (
-                  <span className="text-red-500 text-xs">
-                    {errors.reason_for_referral}
-                  </span>
-                )}
-              </div>
+            {/* Main Form Card */}
+            <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
+                
+                {/* Header */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-yellow/10 rounded-full text-yellow">
+                            <Activity className="w-6 h-6" />
+                        </div>
+                        <div className="flex flex-col">
+                            <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
+                                Cancer Data
+                            </h1>
+                            <p className="text-sm text-gray-500">
+                                Pre-Screening Information (Step 2 of 2)
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
-              <div className="flex gap-2 flex-col">
-                <label className="text-[12px] md:text-[16px]">
-                  Chief Complaint <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  name="chief_complaint"
-                  className="border-[#6B7280] border-[1px] rounded-md p-2 resize-none h-28 text-[12px] md:text-[16px]"
-                ></textarea>
-                {errors.chief_complaint && (
-                  <span className="text-red-500 text-xs">
-                    {errors.chief_complaint}
-                  </span>
-                )}
-              </div>
+                {/* Form Content */}
+                <form className="grid grid-cols-1 xl:grid-cols-2 gap-x-12 gap-y-10">
+                    
+                    {/* Left Column */}
+                    <div className="space-y-8">
+                        {/* Referral */}
+                        <div className="space-y-4">
+                            <SectionHeader icon={User} title="Referral Information" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <InputGroup label="Referred From" name="referred_from" value={form.referred_from} onChange={handleInputChange} required error={errors.referred_from} />
+                                <InputGroup label="Date of Consultation" name="date_of_consultation" type="date" value={form.date_of_consultation} onChange={handleInputChange} required error={errors.date_of_consultation} />
+                                <div className="col-span-1 md:col-span-2">
+                                    <InputGroup label="Referring Doctor/Facility" name="referring_doctor_or_facility" value={form.referring_doctor_or_facility} onChange={handleInputChange} required error={errors.referring_doctor_or_facility} />
+                                </div>
+                                <div className="col-span-1 md:col-span-2">
+                                    <TextAreaGroup label="Reason for Referral" name="reason_for_referral" value={form.reason_for_referral} onChange={handleInputChange} required error={errors.reason_for_referral} />
+                                </div>
+                            </div>
+                        </div>
 
-              <div className="flex gap-2 flex-col">
-                <label className="text-[12px] md:text-[16px]">
-                  Date of Consultation / Admission{" "}
-                  <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg
-                      className="w-5 h-5 text-gray-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
+                        {/* Diagnosis */}
+                        <div className="space-y-4">
+                            <SectionHeader icon={Stethoscope} title="Diagnosis Details" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <InputGroup label="Date of Diagnosis" name="date_of_diagnosis" type="date" value={form.date_of_diagnosis} onChange={handleInputChange} required error={errors.date_of_diagnosis} />
+                                <div className="col-span-1 md:col-span-2">
+                                    <TextAreaGroup label="Chief Complaint" name="chief_complaint" value={form.chief_complaint} onChange={handleInputChange} required error={errors.chief_complaint} />
+                                </div>
+                                <div className="col-span-1 md:col-span-2">
+                                    <CheckboxGroup 
+                                        label="Basis of Diagnosis *" 
+                                        groupName="diagnosis_basis" 
+                                        options={DIAGNOSIS_BASIS_OPTIONS} 
+                                        currentValues={form.diagnosis_basis} 
+                                        onChange={handleCheckboxChange} 
+                                        error={errors.diagnosis_basis}
+                                    />
+                                </div>
+                                <div className="col-span-1 md:col-span-2">
+                                    <TextAreaGroup label="Final Diagnosis" name="final_diagnosis" value={form.final_diagnosis} onChange={handleInputChange} required error={errors.final_diagnosis} />
+                                </div>
+                                <InputGroup label="ICD-10 Code" name="final_diagnosis_icd10" value={form.final_diagnosis_icd10} onChange={handleInputChange} required error={errors.final_diagnosis_icd10} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column */}
+                    <div className="space-y-8">
+                        {/* Pathology */}
+                        <div className="space-y-4">
+                            <SectionHeader icon={AlertCircle} title="Pathology & Staging" />
+                            
+                            <CheckboxGroup 
+                                label="Primary Sites *" 
+                                groupName="primary_sites" 
+                                options={PRIMARY_SITES_OPTIONS} 
+                                currentValues={form.primary_sites} 
+                                onChange={handleCheckboxChange} 
+                                error={errors.primary_sites}
+                            />
+                            <InputGroup label="Other Primary Sites" name="primary_sites_other" value={form.primary_sites_other} onChange={handleInputChange} placeholder="Specify other..." />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                                <RadioGroup 
+                                    label="Laterality *" 
+                                    name="laterality" 
+                                    options={["Left", "Right", "Bilateral", "Mild", "Not Stated"]} 
+                                    value={form.laterality} 
+                                    onChange={handleInputChange} 
+                                    error={errors.laterality}
+                                />
+                                <RadioGroup 
+                                    label="Multiple Primaries *" 
+                                    name="multiple_primaries" 
+                                    options={[1, 2, 3]} 
+                                    value={form.multiple_primaries} 
+                                    onChange={handleInputChange} 
+                                    error={errors.multiple_primaries}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <InputGroup label="Histology (Morphology)" name="histology" value={form.histology} onChange={handleInputChange} required error={errors.histology} />
+                                <SelectGroup 
+                                    label="Staging" 
+                                    name="staging" 
+                                    value={form.staging} 
+                                    onChange={handleInputChange} 
+                                    required 
+                                    error={errors.staging}
+                                    options={["In-Situ", "Localized", "Direct Extension", "Regional Lymph Node", "3+4", "Distant Metastasis", "Unknown"]}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">TNM System *</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div className="flex items-center gap-1 border rounded px-2"><span className="text-sm font-bold text-gray-400">T</span><input name="t_system" maxLength={1} value={form.t_system || ""} onChange={handleInputChange} className="w-full py-2 outline-none text-center" /></div>
+                                    <div className="flex items-center gap-1 border rounded px-2"><span className="text-sm font-bold text-gray-400">N</span><input name="n_system" maxLength={1} value={form.n_system || ""} onChange={handleInputChange} className="w-full py-2 outline-none text-center" /></div>
+                                    <div className="flex items-center gap-1 border rounded px-2"><span className="text-sm font-bold text-gray-400">M</span><input name="m_system" maxLength={1} value={form.m_system || ""} onChange={handleInputChange} className="w-full py-2 outline-none text-center" /></div>
+                                </div>
+                                {errors.tnm_system && <p className="text-xs text-red-500 mt-1">{errors.tnm_system}</p>}
+                            </div>
+
+                            <CheckboxGroup 
+                                label="Distant Metastasis *" 
+                                groupName="distant_metastasis_sites" 
+                                options={METASTASIS_OPTIONS} 
+                                currentValues={form.distant_metastasis_sites} 
+                                onChange={handleCheckboxChange} 
+                                error={errors.distant_metastasis_sites}
+                            />
+                            <InputGroup label="Other Metastasis" name="distant_metastasis_sites_other" value={form.distant_metastasis_sites_other} onChange={handleInputChange} placeholder="Specify other..." />
+                        </div>
+
+                        {/* Treatment */}
+                        <div className="space-y-4">
+                            <SectionHeader icon={Calendar} title="Treatment Plan" />
+                            
+                            <RadioGroup 
+                                label="Treatment Purpose *" 
+                                name="treatment_purpose" 
+                                options={["Curative-Complete", "Curative-Incomplete", "Palliative Only"]} 
+                                value={form.treatment_purpose} 
+                                onChange={handleInputChange} 
+                                error={errors.treatment_purpose}
+                            />
+                            <InputGroup label="Other Purpose" name="treatment_purpose_other" value={form.treatment_purpose_other} onChange={handleInputChange} />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <InputGroup label="Primary Assistance (RAFI-EJACC)" name="primary_assistance_by_ejacc" value={form.primary_assistance_by_ejacc} onChange={handleInputChange} required error={errors.primary_assistance_by_ejacc} />
+                                <InputGroup label="Date of Assistance" name="date_of_assistance" type="date" value={form.date_of_assistance} onChange={handleInputChange} error={errors.date_of_assistance} />
+                            </div>
+
+                            <div className="space-y-4 pt-2">
+                                <CheckboxGroup 
+                                    label="Adjuvant Treatments (RAFI-EJACC) *" 
+                                    groupName="adjuvant_treatments_received" 
+                                    options={ADJUVANT_OPTIONS} 
+                                    currentValues={form.adjuvant_treatments_received} 
+                                    onChange={handleCheckboxChange} 
+                                    error={errors.adjuvant_treatments_received}
+                                />
+                                <InputGroup label="Other Adjuvant" name="adjuvant_treatments_other" value={form.adjuvant_treatments_other} onChange={handleInputChange} />
+
+                                <CheckboxGroup 
+                                    label="Treatments from Other Sources *" 
+                                    groupName="other_source_treatments" 
+                                    options={ADJUVANT_OPTIONS} 
+                                    currentValues={form.other_source_treatments} 
+                                    onChange={handleCheckboxChange} 
+                                    error={errors.other_source_treatments}
+                                />
+                                <InputGroup label="Other Sources" name="other_source_treatments_other" value={form.other_source_treatments_other} onChange={handleInputChange} />
+                            </div>
+                        </div>
+                        
+                        {/* Consent Checkbox */}
+                        <div className="pt-4 border-t border-gray-100">
+                             <label className="flex items-center gap-3 cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    name="consentAgreement"
+                                    checked={form.consentAgreement}
+                                    onChange={handleInputChange}
+                                    className="w-5 h-5 accent-primary cursor-pointer"
+                                />
+                                <span className="text-sm text-gray-700">
+                                    I agree to the <span className="font-bold text-primary underline">Data Privacy Notice</span> and confirm the information is correct. <span className="text-red-500">*</span>
+                                </span>
+                             </label>
+                             {errors.consentAgreement && <p className="text-xs text-red-500 mt-1 ml-8">{errors.consentAgreement}</p>}
+                        </div>
+                    </div>
+                </form>
+
+                {/* Footer Actions */}
+                <div className="flex justify-around print:hidden mt-6">
+                    <button
+                        type="button"
+                        onClick={() => navigate("/beneficiary/pre-enrollment", { state: { formData: generalData, photoUrl } })}
+                        // className="flex items-center gap-2 px-6 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition-all"
+                        className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      ></path>
-                    </svg>
-                  </div>
-                  <input
-                    type="date"
-                    name="date_of_consultation"
-                    className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                    placeholder="Select date"
-                  />
-                </div>
-                {errors.date_of_consultation && (
-                  <span className="text-red-500 text-xs">
-                    {errors.date_of_consultation}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex gap-2 flex-col justify-between">
-                <label className="text-[12px] md:text-[16px]">
-                  Date of Diagnosis <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg
-                      className="w-5 h-5 text-gray-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
+                        {/* <ArrowLeft className="w-4 h-4" /> */}
+                        Back
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleSubmit}
+                        // className="flex items-center gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+                        className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      ></path>
-                    </svg>
-                  </div>
-                  <input
-                    type="date"
-                    name="date_of_diagnosis"
-                    className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                    placeholder="Select date"
-                  />
+                        {/* <Save className="w-4 h-4" /> */}
+                        Submit Application
+                    </button>
                 </div>
-                {errors.date_of_diagnosis && (
-                  <span className="text-red-500 text-xs">
-                    {errors.date_of_diagnosis}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col gap-5">
-            <h1 id="details_title" className="font-bold">
-              Diagnosis <span className="text-red-500">*</span>
-            </h1>
-            <p className="text-[#6B7280] ">
-              Most Valid Basis of Diagnosis{" "}
-              <span className="text-red-500">*</span>{" "}
-              {errors.diagnosis_basis && (
-                <span className="text-red-500 text-xs">
-                  {errors.diagnosis_basis}
-                </span>
-              )}
-            </p>
-            <div className="grid md:grid-cols-3 gap-x-10 gap-y-5 ">
-              <div className="flex gap-5 justify-center items-center w-fit ">
-                <input
-                  type="checkbox"
-                  name="diagnosis_basis_nonMicroscopic"
-                  value="None Microscopic"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6] "
-                />
-                <label className="text-[14px] md:text-[16px]">Non Microscopic</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="diagnosis_basis_deathCertificatesOnly"
-                  value="Death Certificates Only"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Death Certificates Only</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="diagnosis_basis_clinicalInvestigation"
-                  value="Clinical Investigation"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Clinical Investigation</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="diagnosis_basis_specificTumorMarkers"
-                  value="Specific Tumor Markers"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Specific Tumors Makers</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="diagnosis_basis_microscopic"
-                  value="Microscopic"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Microscopic</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="diagnosis_basis_cytologyHematology"
-                  value="Cytology or Hematology"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Cytology or Hermotology</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="diagnosis_basis_histologyMetastasis"
-                  value="Histology of Metastasis"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Histology of Metastasis</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="diagnosis_basis_histologyPrimary"
-                  value="Histology of Primary"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Histology of Primary</label>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col gap-5">
-            <p className="text-[#6B7280]">
-              Multiple Primaries <span className="text-red-500">*</span>{" "}
-              {errors.multiple_primaries && (
-                <span className="text-red-500 text-xs ">
-                  {errors.multiple_primaries}
-                </span>
-              )}
-            </p>
-            <div className="grid grid-cols-3 gap-x-10 gap-y-5 w-fit">
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="radio"
-                  name="multiple_primaries"
-                  value={1}
-                  className="w-4 h-4 text-[14px] md:text-[16px]"
-                />
-                <label className="text-[14px] md:text-[16px]">{1}</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="radio"
-                  name="multiple_primaries"
-                  value={2}
-                  className="w-4 h-4"
-                />
-                <label className="text-[14px] md:text-[16px]">{2}</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="radio"
-                  name="multiple_primaries"
-                  value={3}
-                  className="w-4 h-4"
-                />
-                <label className="text-[14px] md:text-[16px]">{3}</label>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col gap-5">
-            <p className="text-[#6B7280]">
-              Primary Sites <span className="text-red-500">*</span>{" "}
-              {errors.primary_sites && (
-                <span className="text-red-500 text-xs">
-                  {errors.primary_sites}
-                </span>
-              )}
-            </p>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-10 gap-y-5">
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_colon"
-                  value="Colon"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Colon</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_brain"
-                  value="Brain"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Brain</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_bladder"
-                  value="Bladder"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Bladder</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_skin"
-                  value="Skin"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Skin</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_kidney"
-                  value="Kidney"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Kidney</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_testis"
-                  value="Testis"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Testis</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_liver"
-                  value="Liver"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Liver</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_corpusUteri"
-                  value="Corpus Uteri"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Corpus Uteri</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_urinary"
-                  value="Urinary"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Urinary</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_prostate"
-                  value="Prostate"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Prostate</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_nasopharnyx"
-                  value="Nasopharnyx"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Nasopharnyx</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_oralCavity"
-                  value="Oral Cavity"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Oral Cavity</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_ovary"
-                  value="Ovary"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Ovary</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_lung"
-                  value="Lung"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Lung</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_gull"
-                  value="Gull"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Gull</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_thyroid"
-                  value="Thyroid"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Thyroid</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_rectum"
-                  value="Rectum"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Rectum</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_blood"
-                  value="Blood"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Blood</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_stomach"
-                  value="Stomach"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Stomach</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_pancreas"
-                  value="Pancreas"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Pancreas</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_esophagus"
-                  value="Esophagus"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Esophagus</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_breast"
-                  value="Breast"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Breast</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="primary_sites_uterineCervix"
-                  value="Uterine Cervix"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Uterine Cervix</label>
-              </div>
-            </div>
-            <div>
-              <p className="text-[14px] md:text-[16px] ">
-                Other's, specify
-                <input
-                  type="text"
-                  name="primary_sites_other"
-                  className="border-b-[1px] border-[#000] text-[12px] md:text-[16px] ml-2 "
-                />
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-col gap-5">
-            <p className="text-[#6B7280]">
-              Laterality <span className="text-red-500">*</span>{" "}
-              {errors.laterality && (
-                <span className="text-red-500 text-xs">
-                  {errors.laterality}
-                </span>
-              )}
-            </p>
-            <div className="flex flex-col gap-3">
-              <div className="flex gap-3 items-center">
-                <input
-                  type="radio"
-                  id="left"
-                  name="laterality"
-                  value="Left"
-                  className="peer hidden"
-                />
-                <label
-                  htmlFor="left"
-                  className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
-                ></label>
-                <span className="text-[14px] md:text-[16px]">Left</span>
-              </div>
-              <div className="flex gap-3 items-center">
-                <input
-                  type="radio"
-                  id="right"
-                  name="laterality"
-                  value="Right"
-                  className="peer hidden"
-                />
-                <label
-                  htmlFor="right"
-                  className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
-                ></label>
-                <span className="text-[14px] md:text-[16px]">Right</span>
-              </div>
-              <div className="flex gap-3 items-center">
-                <input
-                  type="radio"
-                  id="notsated"
-                  name="laterality"
-                  value="Not Stated"
-                  className="peer hidden"
-                />
-                <label
-                  htmlFor="notsated"
-                  className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
-                ></label>
-                <span className="text-[14px] md:text-[16px]">Not Stated</span>
-              </div>
-              <div className="flex gap-3 items-center">
-                <input
-                  type="radio"
-                  id="bilateral"
-                  name="laterality"
-                  value="Bilateral"
-                  className="peer hidden"
-                />
-                <label
-                  htmlFor="bilateral"
-                  className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
-                ></label>
-                <span className="text-[14px] md:text-[16px]">Bilateral</span>
-              </div>
-              <div className="flex gap-3 items-center">
-                <input
-                  type="radio"
-                  id="mild"
-                  name="laterality"
-                  value="Mild"
-                  className="peer hidden"
-                />
-                <label
-                  htmlFor="mild"
-                  className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
-                ></label>
-                <span className="text-[14px] md:text-[16px]">Mild</span>
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-x-10 gap-y-5">
-            <div className="flex gap-2 col-span-2 flex-col">
-              <label className="text-[#6B7280]">
-                Histology(Morphology) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="histology"
-                className="border-[#6B7280] border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-              />
-              {errors.histology && (
-                <span className="text-red-500 text-xs">{errors.histology}</span>
-              )}
-            </div>
-            <div className="flex gap-2 flex-col">
-              <label className="">
-                Staging <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  name="staging"
-                  className="border-[#6B7280] w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8 text-[12px] md:text-[16px]"
-                >
-                  <option value="" disabled selected>
-                    Select
-                  </option>
-                  <option value="In-Situ">In-Situ</option>
-                  <option value="Localized">Localized</option>
-                  <option value="Direct Extension">Direct Extension</option>
-                  <option value="Regional Lymph Node">
-                    Regional Lymph Node
-                  </option>
-                  <option value="3+4">3+4</option>
-                  <option value="Distant Metastasis">Distant Metastasis</option>
-                  <option value="Unknown">Unknown</option>
-                </select>
-              </div>
-              {errors.staging && (
-                <span className="text-red-500 text-xs">{errors.staging}</span>
-              )}
-            </div>
-            <div className="flex gap-2 flex-col">
-              <label className="text-[#6B7280] h-10">
-                TNM System <span className="text-red-500">*</span>
-              </label>
-              <div className="flex gap-2 items-center">
-                T
-                <input
-                  type="text"
-                  name="t_system"
-                  id="tInput"
-                  maxLength="1"
-                  onInput={handleTNMInput}
-                  className="border-b outline-none px-2 w-[20%] text-center text-[12px] md:text-[16px]"
-                  required
-                />
-                N
-                <input
-                  type="text"
-                  name="n_system"
-                  id="nInput"
-                  maxLength="1"
-                  onInput={handleTNMInput}
-                  className="border-b outline-none px-2 w-[20%] text-center text-[12px] md:text-[16px]"
-                  required
-                />
-                M
-                <input
-                  type="text"
-                  name="m_system"
-                  id="mInput"
-                  maxLength="1"
-                  onInput={handleTNMInput}
-                  className="border-b outline-none px-2 w-[20%] text-center text-[12px] md:text-[16px]"
-                  required
-                />
-              </div>
-              {errors.tnm_system && (
-                <span className="text-red-500 text-xs">
-                  {errors.tnm_system}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-col gap-5 ">
-            <p className="text-[#6B7280]">
-              Sites of Distant Metastasis{" "}
-              <span className="text-red-500">*</span>{" "}
-              {errors.distant_metastasis_sites && (
-                <span className="text-red-500 text-xs">
-                  {errors.distant_metastasis_sites}
-                </span>
-              )}
-            </p>
-            <div className="grid md:grid-cols-3 gap-x-10 gap-y-5">
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="distant_metastasis_sites_none"
-                  value="None"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">None</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="distant_metastasis_sites_distantLymphNodes"
-                  value="Destant Lymph Nodes"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Destant Lymph Nodes</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="distant_metastasis_sites_bone"
-                  value="Bone"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Bone</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="distant_metastasis_sites_liverPleura"
-                  value="Liver(Pleura)"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Liver(Pleura)</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="distant_metastasis_sites_kidneyMetastasis"
-                  value="Kidney"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Kidney</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="distant_metastasis_sites_brainMetastasis"
-                  value="Brain"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Brain</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="distant_metastasis_sites_ovaryMetastasis"
-                  value="Ovary"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Ovary</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="distant_metastasis_sites_skinMetastasis"
-                  value="Skin"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Skin</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="distant_metastasis_sites_prostateMetastasis"
-                  value="Prostate"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Prostate</label>
-              </div>
-              <div className="flex gap-5 justify-center items-center w-fit">
-                <input
-                  type="checkbox"
-                  name="distant_metastasis_sites_unknownMetastasis"
-                  value="Unknown"
-                  className="w-4 h-4 accent-[#749AB6] bg-[#749AB6] border-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label className="text-[14px] md:text-[16px]">Unknown</label>
-              </div>
-            </div>
-            <div>
-              <p className=" text-[14px] md:text-[16px]">
-                Other's, specify
-                <input
-                  type="text"
-                  name="distant_metastasis_sites_other"
-                  className="border-b-[1px] border-[#000] ml-2 text-[12px] md:text-[16px] "
-                />
-              </p>
-            </div>
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-5">
-                <label className="text-sm text-[#6B7280]">
-                  Final Diagnosis <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  name="final_diagnosis"
-                  className="border-[#6B7280] border-[1px] rounded-md p-2 h-36 md:w-[60%] resize-none text-[12px] md:text-[16px]"
-                ></textarea>
-                {errors.final_diagnosis && (
-                  <span className="text-red-500 text-xs">
-                    {errors.final_diagnosis}
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-col gap-5 md:w-[50%]">
-                <label className="text-sm text-[#6B7280]">
-                  Final Diagnosis: ICD-10 Code{" "}
-                  <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="final_diagnosis_icd10"
-                  className="border-[#6B7280] border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-                />
-                {errors.final_diagnosis_icd10 && (
-                  <span className="text-red-500 text-xs">
-                    {errors.final_diagnosis_icd10}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col gap-5">
-            <h1 className="font-bold">Treatment</h1>
-            <p className="text-[#6B7280] text-sm">
-              Treatment Purposes <span className="text-red-500">*</span>{" "}
-              {errors.treatment_purpose && (
-                <span className="text-red-500 text-xs">
-                  {errors.treatment_purpose}
-                </span>
-              )}
-            </p>
-            <div className="flex flex-col gap-3">
-              <div className="flex gap-3 items-center">
-                <input
-                  type="radio"
-                  id="curativeComplete"
-                  name="treatment_purpose"
-                  value="Curative-Complete"
-                  className="peer hidden"
-                />
-                <label
-                  htmlFor="curativeComplete"
-                  className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
-                ></label>
-                <span className="text-[14px] md:text-[16px]">Curative-Complete</span>
-              </div>
-              <div className="flex gap-3 items-center">
-                <input
-                  type="radio"
-                  id="curativeIncomplete"
-                  name="treatment_purpose"
-                  value="Curative-Incomplete"
-                  className="peer hidden"
-                />
-                <label
-                  htmlFor="curativeIncomplete"
-                  className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
-                ></label>
-                <span className="text-[14px] md:text-[16px]">Curative-Incomplete</span>
-              </div>
-              <div className="flex gap-3 items-center">
-                <input
-                  type="radio"
-                  id="palliative"
-                  name="treatment_purpose"
-                  value="Palliative Only"
-                  className="peer hidden"
-                />
-                <label
-                  htmlFor="palliative"
-                  className="relative w-5 h-5 rounded-full border-[1px] border-[#6B7280] flex items-center justify-center cursor-pointer peer-checked:border-[2px] peer-checked:border-[#749AB6] peer-checked:before:content-[''] peer-checked:before:absolute peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:bg-[#749AB6]"
-                ></label>
-                <span className="text-[14px] md:text-[16px]">Palliative Only</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-[14px] md:text-[16px]  ">
-                Other's, specify
-                <input
-                  type="text"
-                  name="treatment_purpose_other"
-                  className="border-b-[1px] border-[#000] ml-2 text-[12px] md:text-[16px] "
-                />
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-5 w-full flex-col md:flex-row  ">
-            <div className="flex gap-2 flex-col w-full">
-              <label className="text-[#6B7280] text-sm">
-                Primary Assistance given by RAFI-ELACC{" "}
-                <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="primary_assistance_by_ejacc"
-                className="border-[#6B7280] border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-              />
-              {errors.primary_assistance_by_ejacc && (
-                <span className="text-red-500 text-xs">
-                  {errors.primary_assistance_by_ejacc}
-                </span>
-              )}
-            </div>
-            <div className="flex gap-2 flex-col w-full">
-              <label className="text-[#6B7280] text-sm">
-                Date of Assistance
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <svg
-                    className="w-5 h-5 text-gray-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    ></path>
-                  </svg>
-                </div>
-                <input
-                  type="date"
-                  name="date_of_assistance"
-                  className="bg-white border border-[#6B7280] text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                  placeholder="Select date"
-                />
-              </div>
-              {errors.date_of_assistance && (
-                <span className="text-red-500 text-xs">
-                  {errors.date_of_assistance}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-col gap-4 ">
-            <p className="text-sm text-[#6B7280]">
-              Planned Additional/Adjuvant Treatment/s actually received from
-              RAFI-EJACC <span className="text-red-500">*</span>{" "}
-              {errors.adjuvant_treatments_received && (
-                <span className="text-red-500 text-xs">
-                  {errors.adjuvant_treatments_received}
-                </span>
-              )}
-            </p>
 
-            <div className="flex flex-wrap gap-x-8 gap-y-3 ">
-              <div className="flex items-center gap-2 w-fit">
-                <input
-                  type="checkbox"
-                  id="surgery"
-                  name="adjuvant_treatments_received_surgery"
-                  value="Surgery"
-                  className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label htmlFor="surgery" className="text-[#374151]  text-[14px] md:text-[16px]">
-                  Surgery
-                </label>
-              </div>
-              <div className="flex items-center gap-2 w-fit">
-                <input
-                  type="checkbox"
-                  id="radiotherapy"
-                  name="adjuvant_treatments_received_radiotherapy"
-                  value="Radiotherapy"
-                  className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label
-                  htmlFor="radiotherapy"
-                  className="text-[#374151] text-sm"
-                >
-                  Radiotherapy
-                </label>
-              </div>
-              <div className="flex items-center gap-2 w-fit">
-                <input
-                  type="checkbox"
-                  id="chemotherapy"
-                  name="adjuvant_treatments_received_chemotherapy"
-                  value="Chemotherapy"
-                  className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label
-                  htmlFor="chemotherapy"
-                  className="text-[#374151] text-sm"
-                >
-                  Chemotherapy
-                </label>
-              </div>
             </div>
+        </div>
 
-            <div className="flex flex-wrap gap-x-8 gap-y-3">
-              <div className="flex items-center gap-2 w-fit">
-                <input
-                  type="checkbox"
-                  id="immunotherapy"
-                  name="adjuvant_treatments_received_immunotherapy"
-                  value="Immunotherapy/Cytrotherapy"
-                  className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label
-                  htmlFor="immunotherapy"
-                  className="text-[#374151] text-sm"
-                >
-                  Immunotherapy/Cytrotherapy
-                </label>
-              </div>
-              <div className="flex items-center gap-2 w-fit">
-                <input
-                  type="checkbox"
-                  id="hormonal"
-                  name="adjuvant_treatments_received_hormonal"
-                  value="Hormonal"
-                  className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label htmlFor="hormonal" className="text-[#374151] text-sm">
-                  Hormonal
-                </label>
-              </div>
-              <div className="flex items-center gap-2 w-fit">
-                <input
-                  type="checkbox"
-                  id="none"
-                  name="adjuvant_treatments_received_noneTreatment"
-                  value="Unknown"
-                  className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label htmlFor="unknown" className="text-[#374151] text-sm">
-                  None
-                </label>
-              </div>
-            </div>
-            <div>
-              <p className="text-[#6B7280] text-sm">
-                Other's, specify
-                <input
-                  type="text"
-                  name="adjuvant_treatments_other"
-                  className="border-b-[1px] text-black  border-[#000] focus:outline-none "
-                />
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-col gap-4">
-            <p className="text-sm text-[#6B7280]">
-              Treatment/s received from other sources{" "}
-              <span className="text-red-500">*</span>{" "}
-              {errors.other_source_treatments && (
-                <span className="text-red-500 text-xs">
-                  {errors.other_source_treatments}
-                </span>
-              )}
-            </p>
-
-            <div className="flex flex-wrap gap-x-8 gap-y-3">
-              <div className="flex items-center gap-2 w-fit">
-                <input
-                  type="checkbox"
-                  id="surgeryOther"
-                  name="other_source_treatments_surgeryOther"
-                  value="Surgery"
-                  className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label
-                  htmlFor="surgeryOther"
-                  className="text-[#374151] text-sm"
-                >
-                  Surgery
-                </label>
-              </div>
-              <div className="flex items-center gap-2 w-fit">
-                <input
-                  type="checkbox"
-                  id="radiotherapyOther"
-                  name="other_source_treatments_radiotherapyOther"
-                  value="Radiotherapy"
-                  className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label
-                  htmlFor="radiotherapyOther"
-                  className="text-[#374151] text-sm"
-                >
-                  Radiotherapy
-                </label>
-              </div>
-              <div className="flex items-center gap-2 w-fit">
-                <input
-                  type="checkbox"
-                  id="chemotherapyOther"
-                  name="other_source_treatments_chemotherapyOther"
-                  value="Chemotherapy"
-                  className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label
-                  htmlFor="chemotherapyOther"
-                  className="text-[#374151] text-sm"
-                >
-                  Chemotherapy
-                </label>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-x-8 gap-y-3">
-              <div className="flex items-center gap-2 w-fit">
-                <input
-                  type="checkbox"
-                  id="immunotherapyOther"
-                  name="other_source_treatments_immunotherapyOther"
-                  value="Immunotherapy/Cytrotherapy"
-                  className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label
-                  htmlFor="immunotherapyOther"
-                  className="text-[#374151] text-sm"
-                >
-                  Immunotherapy/Cytrotherapy
-                </label>
-              </div>
-              <div className="flex items-center gap-2 w-fit">
-                <input
-                  type="checkbox"
-                  id="hormonalOther"
-                  name="other_source_treatments_hormonalOther"
-                  value="Hormonal"
-                  className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label
-                  htmlFor="hormonalOther"
-                  className="text-[#374151] text-sm"
-                >
-                  Hormonal
-                </label>
-              </div>
-              <div className="flex items-center gap-2 w-fit">
-                <input
-                  type="checkbox"
-                  id="noneOther"
-                  name="other_source_treatments_noneOther"
-                  value="Unknown"
-                  className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-                />
-                <label htmlFor="noneOther" className="text-[#374151] text-sm">
-                  None
-                </label>
-              </div>
-            </div>
-            <div>
-              <p className="text-[#6B7280] text-sm">
-                Other's, specify
-                <input
-                  type="text"
-                  name="other_source_treatments_other"
-                  className="border-b-[1px] border-[#000] focus:outline-none text-black ml-2"
-                />
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-col items-start gap-5">
-            <h1 className="font-bold">Consent and Privacy</h1>
-            <div className="flex justify-center items-center gap-2">
-              <input
-                type="checkbox"
-                name="consentAgreement"
-                className="w-4 h-4 accent-[#749AB6] text-white rounded focus:ring-[#749AB6]"
-              />
-              <label className="underline">
-                Form notice & Data privacy notice
-              </label>
-              <span className="text-red-500">*</span>
-              {errors.consentAgreement && (
-                <span className="text-red-500 text-xs">
-                  {errors.consentAgreement}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex w-full justify-between gap-8">
-            <Link
-              to="/beneficiary/pre-enrollment"
-              className=" border  py-3 rounded-md text-center w-full hover:bg-black/10 hover:border-white"
-            >
-              Back
-            </Link>
-            <button
-              type="submit"
-              className="bg-[#749AB6] text-center font-bold text-white py-2 w-full border-[1px] border-[#749AB6] hover:border-[#C5D7E5] hover:bg-[#C5D7E5] rounded-md cursor-pointer"
-            >
-              Submit
-            </button>
-          </div>
-        </form>
-      </div>
+        {/* Decorative Footer */}
+        <div className="h-16 bg-secondary shrink-0"></div>
+    </div>
     </>
   );
 };

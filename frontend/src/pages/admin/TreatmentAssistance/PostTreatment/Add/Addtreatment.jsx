@@ -1,103 +1,143 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { 
+  Upload, 
+  FileText, 
+  Check, 
+  Search, 
+  Pill,
+  Save,
+  ArrowLeft,
+  User
+} from "lucide-react";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
-import Notification from "src/components/Notification";
+import NotificationModal from "src/components/Modal/NotificationModal"; // Using standard modal
 import SystemLoader from "src/components/SystemLoader";
 
+import { REQUIRED_DOCS } from "src/constants/requiredDocs";
 import api from "src/api/axiosInstance";
 
-import { REQUIRED_DOCS } from "src/constants/requiredDocs";
+// --- Reusable UI Helpers ---
 
-/* =========================
-   Searchable Select (same UX pattern)
-   ========================= */
-const SearchableSelect = ({
-  label = "Patient Name",
-  placeholder = "Search patient...",
-  options = [],
-  value = null,
-  onChange,
-  errors = {},
-}) => {
+const InputGroup = ({ label, name, type = "text", value, onChange, required, error, placeholder, readOnly, ...props }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      readOnly={readOnly}
+      className={`w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
+        error ? 'border-red-500 bg-red-50' : readOnly ? 'bg-gray-100 text-gray-500 border-gray-200' : 'border-gray-300 bg-white'
+      }`}
+      {...props}
+    />
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
+const SelectGroup = ({ label, value, onChange, options, required, error }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <select
+      value={value}
+      onChange={onChange}
+      className={`w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-white ${
+        error ? 'border-red-500 bg-red-50' : 'border-gray-300'
+      }`}
+    >
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+  </div>
+);
+
+// --- Searchable Select Component ---
+const SearchableSelect = ({ label, placeholder, options = [], value, onChange, error }) => {
   const [open, setOpen] = useState(false);
-  const [q, setQ] = useState("");
+  const [query, setQuery] = useState("");
   const ref = useRef(null);
 
-  const filtered = useMemo(() => {
-    if (!q) return options;
-    const s = q.toLowerCase();
+  const filteredOptions = useMemo(() => {
+    if (!query) return options;
+    const lowerQuery = query.toLowerCase();
     return options.filter(
       (o) =>
-        o.full_name.toLowerCase().includes(s) ||
-        (o.email && o.email.toLowerCase().includes(s))
+        o.full_name.toLowerCase().includes(lowerQuery) ||
+        (o.email && o.email.toLowerCase().includes(lowerQuery))
     );
-  }, [q, options]);
+  }, [query, options]);
 
   useEffect(() => {
-    const onDocClick = (e) => {
+    const handleClickOutside = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     };
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <div className="w-full" ref={ref}>
-      <label className="text-sm font-medium block mb-1">{label} <span className="text-red-500">*</span></label>
-      <div className="relative">
-        <button
-          type="button"
-          className="w-full border border-gray-300 rounded px-3 py-2 bg-white text-left"
-          onClick={() => setOpen((o) => !o)}
-        >
-          {value ? value.full_name : "Select patient"}
-        </button>
-
-        {open && (
-          <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded shadow">
-            <div className="p-2 border-b border-gray-200">
-              <input
-                autoFocus
-                type="text"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={placeholder}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-              />
-            </div>
-            <ul className="max-h-56 overflow-auto">
-              {filtered.length === 0 && (
-                <li className="px-3 py-2 text-sm text-gray-500">No results</li>
-              )}
-              {filtered.map((opt) => (
-                <li
-                  key={opt.id}
-                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    onChange(opt);
-                    setOpen(false);
-                    setQ("");
-                  }}
-                >
-                  <div className="text-sm font-medium">{opt.full_name}</div>
-                  <div className="text-xs text-gray-500">{opt.email}</div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-      {errors.patient && !value && (
-        <span className="text-red-500 text-xs">
-          {errors.patient}
+    <div className="w-full relative" ref={ref}>
+      <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+        {label} <span className="text-red-500">*</span>
+      </label>
+      
+      <button
+        type="button" 
+        className={`w-full border rounded-md px-3 py-2 text-sm flex items-center justify-between cursor-pointer bg-white text-left ${
+            error ? 'border-red-500 bg-red-50' : 'border-gray-300'
+        }`}
+        onClick={() => setOpen(!open)}
+      >
+        <span className={value ? "text-gray-900 font-medium" : "text-gray-400"}>
+            {value ? value.full_name : placeholder}
         </span>
-      )}
-      {value && (
-        <p className="text-xs text-gray-500 mt-1">
-          Selected: <span className="font-medium">{value.full_name}</span>{" "}
-          <span className="text-gray-400">({value.email})</span>
-        </p>
+        <Search className="w-4 h-4 text-gray-400" />
+      </button>
+
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-hidden flex flex-col">
+          <div className="p-2 border-b border-gray-100 bg-gray-50">
+            <input
+              autoFocus
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Type to search..."
+              className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-primary"
+            />
+          </div>
+          <ul className="overflow-y-auto flex-1">
+            {filteredOptions.length === 0 ? (
+                <li className="px-4 py-3 text-xs text-gray-500 text-center">No patients found</li>
+            ) : (
+                filteredOptions.map((opt) => (
+                <li
+                    key={opt.patient_id}
+                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-0"
+                    onClick={() => {
+                        onChange(opt);
+                        setOpen(false);
+                        setQuery("");
+                    }}
+                >
+                    <div className="text-sm font-bold text-gray-800">{opt.full_name}</div>
+                    <div className="text-xs text-gray-500">{opt.patient_id} • {opt.email || "No Email"}</div>
+                </li>
+                ))
+            )}
+          </ul>
+        </div>
       )}
     </div>
   );
@@ -105,108 +145,93 @@ const SearchableSelect = ({
 
 const LIST_PATH = "/admin/treatment-assistance/post-treatment";
 
-const CheckIcon = ({ active }) => (
-  <img
-    src="/images/check.svg"
-    alt=""
-    className={`h-5 w-5 transition ${active ? "" : "grayscale opacity-50"}`}
-  />
-);
-
 const AdminPostTreatmentAdd = () => {
   const navigate = useNavigate();
 
-  // ===== LOA GENERATION (shown first) =====
-  const [patient, setPatient] = useState(null); // { id, full_name, email, age, address }
+  // State
   const [patientTable, setPatientTable] = useState([]);
-  const [age, setAge] = useState("");
-  const [patientAddress, setPatientAddress] = useState("");
-  const [date, setDate] = useState("");
-  const [providerName, setProviderName] = useState("Chong Hua Hospital Mandaue");
-  const [providerAddress, setProviderAddress] = useState("");
+  const [patient, setPatient] = useState(null);
+  
   const [diagnosis, setDiagnosis] = useState("");
   const [procedure, setProcedure] = useState("");
-  const [preparedBy, setPreparedBy] = useState("");
-  const [approvedBy, setApprovedBy] = useState("");
+  const [date, setDate] = useState("");
   const [status, setStatus] = useState("Approved");
-  // const [serviceProvider, setServiceProvider] = useState("Chong Hua Hospital Mandaue")
+  const [providerName, setProviderName] = useState("Chong Hua Hospital Mandaue");
 
-  const requiredDocs = REQUIRED_DOCS["Post Treatment"];
-
-  const [activeIdx, setActiveIdx] = useState(0);
-  const activeDoc = requiredDocs[activeIdx];
-
-  // helper to build a cleared files map
-  const makeEmptyFiles = () =>
-    requiredDocs.reduce((acc, d) => ({ ...acc, [d.key]: null }), {});
-  const [files, setFiles] = useState(makeEmptyFiles);
-
-  const allUploaded = useMemo(
-    () => requiredDocs.every((doc) => !!files[doc.key]),
-    [files, requiredDocs]
-  );
-  const inputRef = useRef(null);
-
-  // ===== Global UX =====
+  // UX State
   const [loading, setLoading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-
-  // Notification
-  const [notification, setNotification] = useState("");
-  const [notificationType, setNotificationType] = useState("info");
-
   const [errors, setErrors] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({ type: "success", title: "", message: "" });
 
-  const fetchData = async () => {
-    try {
-      const response = await api.get("/patient/list/");
-      setPatientTable(response.data);
-      console.log("Responses: ", response.data);
-    } catch (error) {
-      console.error("Error fetching patient data:", error);
-    }
-  };
+  // File Upload State
+  const requiredDocs = REQUIRED_DOCS["Post Treatment"] || [];
+  const [activeIdx, setActiveIdx] = useState(0);
+  const activeDoc = requiredDocs[activeIdx];
+  const inputRef = useRef(null);
 
+  const [files, setFiles] = useState(() => 
+    requiredDocs.reduce((acc, d) => ({ ...acc, [d.key]: null }), {})
+  );
+
+  const allUploaded = useMemo(
+    () => requiredDocs.length > 0 && requiredDocs.every((doc) => !!files[doc.key]),
+    [files, requiredDocs]
+  );
+
+  // Load Patients
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data } = await api.get("/patient/list/");
+        setPatientTable(data);
+      } catch (error) {
+        console.error("Error fetching patients:", error);
+      }
+    };
     fetchData();
   }, []);
 
-  const handleChooseFile = () => inputRef.current?.click();
+  // Update Diagnosis
+  useEffect(() => {
+    if (patient && patient.diagnosis && patient.diagnosis.length > 0) {
+        setDiagnosis(patient.diagnosis[0].diagnosis || "");
+    } else {
+        setDiagnosis("");
+    }
+  }, [patient]);
 
+  // Handlers
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
     if (file && activeDoc) {
       setFiles((prev) => ({ ...prev, [activeDoc.key]: file }));
     }
-    e.target.value = ""; // allow reselecting the same file
+    e.target.value = ""; 
   };
 
   const validate = () => {
     const newErrors = {};
+    if (!patient) newErrors.patient = "Required";
+    if (!procedure.trim()) newErrors.procedure_name = "Required";
+    if (!date) newErrors.laboratory_test_date = "Required";
 
-    if (!patient)
-      newErrors["patient"] = "Select a patient."
-    // if (!diagnosis.trim())
-    //   newErrors["diagnosis"] = "Diagnosis is required."
-    if (!procedure.trim())
-      newErrors["procedure_name"] = "Procedure is required."
-    if (!date.trim())
-      newErrors["laboratory_test_date"] = "Laboratory date is required."
-
-    if (date && date < new Date().toISOString().split('T')[0])
-      newErrors["laboratory_test_date"] = "Date should not be in the past.";
+    if (date && date < new Date().toISOString().split('T')[0]) {
+        newErrors.laboratory_test_date = "Cannot be in past";
+    }
 
     return newErrors;
   };
 
   const handleSave = () => {
     const validationErrors = validate();
-
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      setModalInfo({ type: "error", title: "Validation Error", message: "Please check all required fields." });
+      setShowModal(true);
       return;
     }
-
     setErrors({});
     setConfirmOpen(true);
   };
@@ -218,7 +243,7 @@ const AdminPostTreatmentAdd = () => {
     try {
       const formData = new FormData();
       formData.append("patient_id", patient.patient_id);
-      formData.append("status", "Approved");
+      formData.append("status", status); // "Approved"
       formData.append("procedure_name", procedure);
       formData.append("laboratory_test_date", date);
       formData.append("service_provider", providerName);
@@ -227,259 +252,222 @@ const AdminPostTreatmentAdd = () => {
         if (file) formData.append(`files.${key}`, file);
       });
 
-      await api.post(
-        `/post-treatment/create/`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      await api.post(`/post-treatment/create/`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-      navigate("/admin/treatment-assistance/post-treatment", {
-        state: { type: "success", message: "Created Successfully." },
+      navigate(LIST_PATH, {
+        state: { flash: "Record created successfully." },
       });
     } catch (error) {
-      let errorMessage = "Something went wrong while submitting the form.";
-
-      if (error.response && error.response.data) {
-        if (error.response.data.non_field_errors) {
-          errorMessage = error.response.data.non_field_errors[0];
-        }
-      }
-      setNotification(errorMessage);
-      setNotificationType("error");
-      setTimeout(() => setNotification(""), 3000);
       console.error(error);
+      let msg = "Something went wrong.";
+      if (error.response?.data?.non_field_errors) msg = error.response.data.non_field_errors[0];
+      setModalInfo({ type: "error", title: "Creation Failed", message: msg });
+      setShowModal(true);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
       {loading && <SystemLoader />}
-      {/* Global Modals (same components you already use) */}
+      
       <ConfirmationModal
         open={confirmOpen}
-        title="Create this post-treatment record?"
-        desc="Please review all details before submitting."
+        title="Create Post-Treatment Record?"
+        desc="This will create a new post-treatment lab request record."
         onConfirm={doSubmit}
         onCancel={() => setConfirmOpen(false)}
       />
-      <Notification message={notification} type={notificationType} />
 
-      <div className="h-screen w-full flex p-5 gap-4 flex-col justify-start items-center bg-gray overflow-auto">
-        <div className="bg-white w-full rounded-md shadow border border-black/10">
-          <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-            <h2 className="text-lg font-semibold">Post Treatment</h2>
-          </div>
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
+      />
 
-          <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            {/* Select Patient (Searchable) */}
-            <div className="w-full">
-              <SearchableSelect
-                label="Patient Name"
-                options={patientTable}
-                value={patient}
-                onChange={setPatient}
-                placeholder="Type to search by name or email..."
-                errors={errors}
-              />
-            </div>
+      <div className="py-5 px-5 md:px-5 flex flex-col flex-1 max-w-7xl mx-auto w-full">
+        
+        {/* Top Title */}
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">
+            Add Post Treatment
+        </h2>
 
-            {/* Auto-filled (editable) */}
-            <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                Diagnosis {/*<span className="text-red-500">*</span> */}
-              </label>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={patient?.diagnosis[0]?.diagnosis}
-                onChange={(e) => setDiagnosis(e.target.value)}
-                placeholder="e.g., Hypertension"
-              />
-              {/* {errors.diagnosis && (
-                <span className="text-red-500 text-xs">
-                  {errors.diagnosis}
-                </span>
-              )} */}
-            </div>
-
-            <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                Procedure <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={procedure}
-                onChange={(e) => setProcedure(e.target.value)}
-                placeholder="e.g., Basic Metabolic Panel"
-              />
-              {errors.procedure_name && (
-                <span className="text-red-500 text-xs">
-                  {errors.procedure_name}
-                </span>
-              )}
-            </div>
-
-            {/* <div className="w-full">
-              <label className="text-sm font-medium block mb-1">Status</label>
-              <select
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approve</option>
-                <option value="Completed">Complete</option>
-                <option value="Follow-up Required">Follow-up Required</option>
-                <option value="Reject">Reject</option>
-              </select>
-            </div> */}
-
-            <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                Lab Test Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-              {errors.laboratory_test_date && (
-                <span className="text-red-500 text-xs">
-                  {errors.laboratory_test_date}
-                </span>
-              )}
-            </div>
-
-            <div className="w-full">
-              <label className="text-sm font-medium block mb-1">Service Provider</label>
-              <select
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={status}
-                onChange={(e) => setProviderName(e.target.value)}
-              >
-                <option value="Chong Hua Hospital Mandaue">Chong Hua Hospital Mandaue</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* REQUEST POST-TREATMENT LABS (second) */}
-        <div className="bg-white w-full rounded-md shadow border border-black/10">
-          <div className="border-b border-black/10 px-5 py-3">
-            <h2 className="text-lg font-semibold">
-              Requirements
-            </h2>
-          </div>
-
-           <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-6">
-              {requiredDocs.map((d, idx) => {
-                const uploaded = !!files[d.key];
-                const isActive = idx === activeIdx;
-                return (
-                  <button
-                    key={d.key}
-                    type="button"
-                    onClick={() => setActiveIdx(idx)}
-                    className="flex items-center gap-3 text-left group"
-                  >
-                    <CheckIcon active={uploaded} />
-                    <span
-                      className={`${
-                        isActive ? "text-sm font-bold" : "text-sm"
-                      }`}
-                    >
-                      {d.label}
-                    </span>
-                    {isActive && (
-                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                        Current
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div
-              onClick={handleChooseFile}
-              className="m-5 border border-gray-200 rounded-xl bg-primary/20 hover:bg-gray-100 transition cursor-pointer flex flex-col items-center justify-center h-36"
-            >
-              <div className="px-1.5 py-1 bg-primary rounded-4xl">
-                <img
-                  src="/src/assets/images/services/cancerscreening/upload_icon.svg"
-                  alt="Upload"
-                  className="h-6"
-                />
-              </div>
-              <div className="text-sm text-gray-700">
-                Choose a file to upload
-              </div>
-              <div className="text-xs text-gray-400">Size limit: 10MB</div>
-
-              {files[activeDoc?.key] && (
-                <div className="mt-3 text-xs text-gray-700">
-                  Selected:{" "}
-                  <span className="font-medium">
-                    {files[activeDoc.key].name}
-                  </span>
+        {/* Main Content Card */}
+        <div className="flex flex-col gap-8 w-full bg-white rounded-lg py-8 px-6 md:px-10 shadow-sm border border-gray-100 flex-1">
+            
+            {/* Header / Status */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-6 gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-50 rounded-full text-purple-600">
+                        <Pill className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-800">New Lab Request</h1>
+                        <p className="text-xs text-gray-500 mt-1">Select patient and input procedure details.</p>
+                    </div>
                 </div>
-              )}
             </div>
 
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.odt,.ods"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                
+                {/* LEFT COLUMN: Request Information */}
+                <div className="space-y-6">
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-l-4 border-purple-500 pl-3 flex items-center gap-2">
+                        <User className="w-4 h-4 text-gray-400" /> Patient Details
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 gap-5">
+                        <SearchableSelect 
+                            label="Patient Name"
+                            placeholder="Search by name or ID..."
+                            options={patientTable}
+                            value={patient}
+                            onChange={setPatient}
+                            error={errors.patient}
+                        />
 
-        {/* Bottom actions */}
-        <div className="w-full flex justify-around pb-6">
-          <Link
-            className="text-center bg-white text-black py-2 w-full md:w-[30%] border border-black/15 hover:border-black rounded-md"
-            to={LIST_PATH}
-          >
-            Cancel
-          </Link>
-          {allUploaded ? (
-            <button
-              type="button"
-              onClick={handleSave}
-              className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-            >
-              Save
-            </button>
-          ) : (
-            <div className="text-[12px] md:text-sm text-gray-600 max-w-auto">
-              Please upload <span className="font-semibold">all</span>{" "}
-              required files to enable submit.
+                         <InputGroup 
+                            label="Diagnosis" 
+                            value={diagnosis} 
+                            readOnly 
+                            placeholder="Auto-filled upon selection"
+                        />
+
+                        <InputGroup 
+                            label="Procedure Name" 
+                            value={procedure} 
+                            onChange={(e) => setProcedure(e.target.value)} 
+                            placeholder="e.g. Basic Metabolic Panel"
+                            required
+                            error={errors.procedure_name}
+                        />
+
+                        <InputGroup 
+                            label="Lab Test Date" 
+                            type="date" 
+                            value={date} 
+                            onChange={(e) => setDate(e.target.value)} 
+                            required 
+                            error={errors.laboratory_test_date}
+                        />
+
+                        <SelectGroup 
+                            label="Service Provider"
+                            value={providerName}
+                            onChange={(e) => setProviderName(e.target.value)}
+                            options={[{ value: "Chong Hua Hospital Mandaue", label: "Chong Hua Hospital Mandaue" }]}
+                        />
+                    </div>
+                </div>
+
+                {/* RIGHT COLUMN: File Uploads */}
+                <div className="space-y-6 flex flex-col">
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-l-4 border-yellow-500 pl-3 flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-gray-400" /> Required Documents
+                    </h3>
+
+                    <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-5 flex flex-col">
+                        
+                        {/* Requirement List */}
+                        <div className="space-y-1 mb-6">
+                            {requiredDocs.map((doc, idx) => {
+                                const isUploaded = !!files[doc.key];
+                                const isActive = idx === activeIdx;
+                                return (
+                                    <button
+                                        key={doc.key}
+                                        type="button"
+                                        onClick={() => setActiveIdx(idx)}
+                                        className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-all ${
+                                            isActive 
+                                            ? "bg-white shadow-sm border border-blue-200" 
+                                            : "hover:bg-gray-100 border border-transparent"
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-1.5 rounded-full ${isUploaded ? "bg-green-100 text-green-600" : "bg-gray-200 text-gray-400"}`}>
+                                                <Check className="w-3 h-3" strokeWidth={4} />
+                                            </div>
+                                            <span className={`text-sm ${isActive ? "font-bold text-blue-700" : "text-gray-600"}`}>
+                                                {doc.label}
+                                            </span>
+                                        </div>
+                                        {isActive && <span className="text-[10px] uppercase font-bold text-blue-400">Uploading</span>}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Dropzone Area */}
+                        <div 
+                            onClick={() => inputRef.current?.click()}
+                            className="mt-auto border-2 border-dashed border-gray-300 rounded-xl bg-white p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary hover:bg-blue-50/50 transition-all group min-h-[160px]"
+                        >
+                            <div className="p-3 bg-blue-50 text-primary rounded-full mb-3 group-hover:scale-110 transition-transform">
+                                <Upload className="w-6 h-6" />
+                            </div>
+                            
+                            {files[activeDoc?.key] ? (
+                                <div className="space-y-1">
+                                    <p className="text-sm font-bold text-gray-800 break-all px-4">
+                                        {files[activeDoc.key].name}
+                                    </p>
+                                    <p className="text-xs text-green-600 font-medium">Ready to upload</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-gray-600 group-hover:text-primary">
+                                        Click to upload <span className="font-bold">{activeDoc?.label}</span>
+                                    </p>
+                                    <p className="text-xs text-gray-400">Supports PDF, JPG, PNG (Max 10MB)</p>
+                                </div>
+                            )}
+
+                            <input 
+                                ref={inputRef}
+                                type="file" 
+                                className="hidden" 
+                                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                onChange={handleFileSelect}
+                            />
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
-          )}
-          {/* <button
-            type="button"
-            onClick={() => setConfirmOpen(true)}
-            disabled={!isValid}
-            className={`text-center font-bold text-white py-2 w-full md:w-[30%] rounded-md shadow ${
-              !isValid
-                ? "bg-gray-300 cursor-not-allowed"
-                : "bg-primary hover:opacity-90"
-            }`}
-            // className={`text-center font-bold text-white py-2 w-full md:w-[30%] rounded-md shadow bg-primary hover:opacity-90`}
-            title={!isValid ? "Complete required fields" : ""}
-          >
-            Save
-          </button> */}
+
+            {/* Footer Actions */}
+            <div className="flex justify-around print:hidden mt-6">
+                <button
+                    type="button"
+                    onClick={() => navigate(LIST_PATH)}
+                    className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={requiredDocs.length > 0 && !allUploaded}
+                    className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+                >
+                    {/* <Save className="w-4 h-4" /> */}
+                    Create Record
+                </button>
+            </div>
+
         </div>
       </div>
-    </>
+      
+      {/* Decorative Footer */}
+      <div className="h-16 bg-secondary shrink-0"></div>
+    </div>
   );
 };
 

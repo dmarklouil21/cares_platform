@@ -156,76 +156,66 @@ const RadioTherapyWellBeingTool = () => {
       />
       <Notification message={notification} type={notificationType} />
       <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        {/* <div className="bg-white py-4 px-10 flex justify-between items-center">
-          <div className="font-bold">Beneficiary</div>
-          <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-            <img
-              src="/images/Avatar.png"
-              alt="User Profile"
-              className="rounded-full"
-            />
-          </div>
-        </div> */}
-
-        <div className="py-6 px-10 flex flex-col flex-1 overflow-auto">
-          <div className="bg-white rounded-2xl flex p-7 flex-col gap-7">
+        <div className="py-5 px-5 flex flex-col flex-1 overflow-auto">
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">Wellbeing Form</h2>
+          <div className="bg-white rounded-lg flex p-3 flex-col gap-7">
             {/* Header */}
             <div className="flex w-full justify-between gap-6 p-4  rounded-xl shadow-sm bg-gray-50">
               <div className="flex flex-col w-[85%] gap-3">
                 <div className="flex w-full items-center gap-2">
-                  <label className="font-medium text-gray-700 whitespace-nowrap">
+                  <label className="font-medium text-sm text-gray-700 whitespace-nowrap">
                     Name:
                   </label>
                   <input
                     type="text"
                     value={form.name}
-                    className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                    className="outline-none text-sm w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                     readOnly
                   />
-                  <label className="font-medium text-gray-700 whitespace-nowrap">
+                  <label className="font-medium text-sm text-gray-700 whitespace-nowrap">
                     Date:
                   </label>
                   <input
                     type="text"
                     value={formatDate(new Date())}
-                    className="outline-none w-40 border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                    className="outline-none text-sm w-40 border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                     readOnly
                   />
                 </div>
 
                 <div className="flex w-full items-center gap-2">
-                  <label className="font-medium text-gray-700 whitespace-nowrap">
+                  <label className="font-medium text-sm text-gray-700 whitespace-nowrap">
                     Address:
                   </label>
                   <input
                     type="text"
                     value={form.address}
-                    className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                    className="outline-none text-sm w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                     readOnly
                   />
                 </div>
 
                 <div className="flex w-full items-center gap-2">
-                  <label className="font-medium text-gray-700 whitespace-nowrap">
+                  <label className="font-medium text-sm text-gray-700 whitespace-nowrap">
                     Diagnosis:
                   </label>
                   <input
                     type="text"
                     value={form.diagnosis}
-                    className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                    className="outline-none text-sm w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                     readOnly
                   />
                 </div>
 
                 <div className="flex w-full items-center gap-2">
-                  <label className="font-medium text-gray-700 whitespace-nowrap">
+                  <label className="font-medium  text-sm text-gray-700 whitespace-nowrap">
                     General Status/Name:
                   </label>
                   <input
                     type="text"
                     value={form.generalStatus}
                     onChange={updateForm("generalStatus")}
-                    className="outline-none w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
+                    className="outline-none text-sm w-full border-b border-dashed border-gray-400 bg-transparent text-gray-900"
                   />
                 </div>
               </div>
@@ -240,15 +230,15 @@ const RadioTherapyWellBeingTool = () => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <h1 className="font-semibold text-lg">
+            <div className="flex flex-col gap-3 p-4">
+              <h1 className="font-semibold text-md">
                 THE CURRENT WELL-BEING OF THE CANCER PATIENT
               </h1>
-              <p>
+              <p className="text-sm">
                 Encircle the number from 1 to 4 that you agree with what you have
                 been currently experiencing for the past 2 weeks.
               </p>
-              <p className="text-primary">
+              <p className="text-primary text-sm">
                 Lingini ang numero 1 hangtud 4 nga mo-angay sa imong gibati sulod
                 sa 2 ka semana.
               </p>
@@ -322,7 +312,7 @@ const RadioTherapyWellBeingTool = () => {
                 </table>
               </div>
 
-              <div className="py-6">
+              <div className="py-6 text-sm">
                 <p>
                   1. How do you think you can further improve your physical health
                   and well being? Give specific activities/Scenarios.
@@ -356,17 +346,19 @@ const RadioTherapyWellBeingTool = () => {
               </div>
             </div>
 
-            <div className="flex w-full justify-between gap-8">
+            <div className="flex justify-around print:hidden mt-6">
               <Link
                 to={`/beneficiary/home-visit/view/${id}`}
-                className="border py-3 rounded-md text-center w-full hover:bg-black/10 hover:border-white"
+                // className="border py-3 rounded-md text-center w-full hover:bg-black/10 hover:border-white"
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
               >
                 Back
               </Link>
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="bg-[#749AB6] text-center font-bold text-white py-2 w-full border-[1px] border-[#749AB6] hover:border-[#C5D7E5] hover:bg-[#C5D7E5] rounded-md cursor-pointer"
+                // className="bg-[#749AB6] text-center font-bold text-white py-2 w-full border-[1px] border-[#749AB6] hover:border-[#C5D7E5] hover:bg-[#C5D7E5] rounded-md cursor-pointer"
+                className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
               >
                 Submit
               </button>

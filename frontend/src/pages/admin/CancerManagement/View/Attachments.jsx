@@ -310,7 +310,7 @@ const ViewAttachments = () => {
       </div>
       <br />
       {/* Decorative Footer */}
-      <div className="h-16 bg-secondary shrink-0"></div>
+      {/* <div className="h-16 bg-secondary shrink-0"></div> */}
     </>
   );
 };

@@ -143,7 +143,6 @@ const SearchableSelect = ({ label, placeholder, options = [], value, onChange, e
     </div>
   );
 };
-// Stop here for now
 const AdminCancerManagementAdd = () => {
   const navigate = useNavigate();
   const location = useLocation();

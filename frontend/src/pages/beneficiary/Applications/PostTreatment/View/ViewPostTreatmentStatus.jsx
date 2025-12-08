@@ -119,7 +119,7 @@ export default function ViewPostTreatmentStatus() {
                       )
                     : "N/A"}
                 </b>
-                . Please make sure to arrive at least 15 minutes early and bring
+                . Please make sure to arrive at the designated date and bring
                 any required identification.
               </>
             );
@@ -316,15 +316,15 @@ export default function ViewPostTreatmentStatus() {
       />
 
       <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        <div className="py-6 px-5 md:px-10 flex flex-col flex-1">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
           {/* Top Title */}
           <h2 className="text-xl font-semibold mb-6">Application Status</h2>
 
           {/* White Card Container */}
-          <div className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-5 md:px-8 flex-1 overflow-auto">
+          <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto">
             
             {/* Header */}
-            <h1 className="font-bold text-[24px] md:text-3xl text-yellow">
+            <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
               Post Treatment Progress
             </h1>
 
@@ -377,7 +377,8 @@ export default function ViewPostTreatmentStatus() {
             <div className="mt-6 flex justify-end">
               <Link
                 to="/beneficiary/applications/post-treatment"
-                className="border border-black/15 py-3 rounded-md text-center px-6 hover:bg-black/10 hover:border-black w-full md:w-[40%]"
+                // className="border border-black/15 py-3 rounded-md text-center px-6 hover:bg-black/10 hover:border-black w-full md:w-[40%]"
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
               >
                 Back
               </Link>

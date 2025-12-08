@@ -1,12 +1,69 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Calendar, 
+  CheckCircle,
+  ArrowLeft,
+  Save,
+  Check
+} from "lucide-react";
 
-import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
-import LoadingModal from "src/components/Modal/LoadingModal";
 import SystemLoader from "src/components/SystemLoader";
 
 import api from "src/api/axiosInstance";
+
+// --- Reusable UI Components (Admin Theme) ---
+
+const InputGroup = ({ label, name, type = "text", value, onChange, required, error, placeholder, icon: Icon }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <div className="relative">
+        <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className={`w-full border rounded-md px-3 py-2 pl-9 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
+            error ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'
+        }`}
+        />
+        {Icon && <Icon className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />}
+    </div>
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
+const SelectGroup = ({ label, name, value, onChange, options, required, error, icon: Icon }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <div className="relative">
+        <select
+            name={name}
+            value={value}
+            onChange={onChange}
+            className={`w-full border rounded-md px-3 py-2 pl-9 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-white appearance-none ${
+                error ? 'border-red-500 bg-red-50' : 'border-gray-300'
+            }`}
+        >
+            {options.map((opt) => (
+                <option key={opt.value} value={opt.value} disabled={opt.disabled}>{opt.label}</option>
+            ))}
+        </select>
+        {Icon && <Icon className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />}
+    </div>
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
 
 const Info101 = () => {
   const navigate = useNavigate();
@@ -25,64 +82,42 @@ const Info101 = () => {
 
   const [showPopup, setShowPopup] = useState(false);
   const [animationClass, setAnimationClass] = useState("bounce-in");
-  const [submitting, setSubmitting] = useState(false);
-
-  // Notification Modal
+  const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState({
     type: "success",
     title: "Success!",
-    message: "The form has been submitted successfully.",
+    message: "",
   });
-  // Loading Modal
-  const [loading, setLoading] = useState(false);
-  // Confirmation Modal
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalAction, setModalAction] = useState(null);
-
+  
   const [errors, setErrors] = useState({});
 
-  const validate = () => {
-    const newErrors = {};
-
-    // Required fields
-    const requiredFields = {
-      firstName: "First name is required.",
-      lastName: "Last name is required.",
-      birthDate: "Birthdate is required.",
-      address: "Address is required.",
-      lgu: "LGU is required.",
-      email: "Email is required.",
-      isResident: "This field is required.",
-      agreed: "You must agree to the privacy notice.",
-    };
-
-    // Validate form fields
-    Object.entries(requiredFields).forEach(([field, message]) => {
-      if (!formData[field] || !formData[field].toString().trim()) {
-        newErrors[field] = message;
-      }
-    });
-
-    if(formData.isResident === "no") {
-      newErrors.isResident = "Our cancer care services are currently limited to residents of Cebu.";
-    }
-
-    // Validate photo
-    // if (!photoUrl) {
-    //   newErrors.photoUrl = "2×2 photo is required.";
-    // }
-
-    return newErrors;
-  };
-
+  // Handlers
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+    if(errors[name]) setErrors(prev => ({...prev, [name]: undefined}));
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.firstName.trim()) newErrors.firstName = "First name is required.";
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required.";
+    if (!formData.birthDate) newErrors.birthDate = "Birthdate is required.";
+    if (!formData.address.trim()) newErrors.address = "Address is required.";
+    if (!formData.lgu.trim()) newErrors.lgu = "LGU is required.";
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
+    if (!formData.isResident) newErrors.isResident = "Required.";
+    if (!formData.agreed) newErrors.agreed = "You must agree to the terms.";
+
+    if (formData.isResident === "no") {
+      newErrors.isResident = "Services are currently limited to Cebu residents.";
+    }
+
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
@@ -93,22 +128,8 @@ const Info101 = () => {
       return;
     }
 
-    // const isValid = Object.values(formData).every((val) =>
-    //   typeof val === "boolean" ? val === true : val.trim() !== ""
-    // );
-
-    // if (!isValid) {
-    //   setModalInfo({
-    //     type: "info",
-    //     title: "Note",
-    //     message: "Please fill in all fields and agree to the privacy notice.",
-    //   });
-    //   setShowModal(true);
-    //   return;
-    // }
     setLoading(true);
     try {
-      // Map frontend fields to backend expected fields
       const payload = {
         first_name: formData.firstName,
         last_name: formData.lastName,
@@ -119,39 +140,25 @@ const Info101 = () => {
         lgu: formData.lgu,
       };
       await api.post("/api/registration/register/", payload);
-      setAnimationClass("bounce-in");
       setShowPopup(true);
     } catch (error) {
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        setModalInfo({
-          type: "error",
-          title: "Registration Failed",
-          message: error.response.data.message,
-        });
-        setShowModal(true);
-      } else {
-        setModalInfo({
-          type: "error",
-          title: "Registration Failed",
-          message: "Something went wrong while submitting your form",
-        });
-        setShowModal(true);
-      }
+      let msg = "Something went wrong while submitting your form";
+      if (error.response?.data?.message) msg = error.response.data.message;
+      
+      setModalInfo({
+        type: "error",
+        title: "Registration Failed",
+        message: msg,
+      });
+      setShowModal(true);
     } finally {
       setLoading(false);
     }
   };
 
   const handleOk = () => {
-    setAnimationClass("bounce-out");
-    setTimeout(() => {
-      setShowPopup(false);
-      navigate("/beneficiary-login");
-    }, 400); // same as bounce-out animation time
+    setShowPopup(false);
+    navigate("/beneficiary-login");
   };
 
   return (
@@ -166,271 +173,214 @@ const Info101 = () => {
         onClose={() => setShowModal(false)}
       />
 
-      <div className=" lg:w-[75%] flex flex-col  bg-gray py-12  overflow-auto h-screen md:min-h-screen gap-3 md:gap-12 md:px-12 px-2">
-        {/* <div className="w-full flex justify-between px-9">
-          <h1 className="font-bold text-[12px] md:text-2xl">
-            Beneficiary registration
-          </h1>
-          <div className="flex text-right flex-col">
-            <p className="text-[10px] md:text-sm">STEP 01/01</p>
-            <h1 className="font-bold text-gray-600 text-[12px] md:text-[16px]">
-              Info
-            </h1>
-          </div>
-        </div> */}
+      {/* Main Container - Adjusted to fit inside a parent flex layout (Sidebar safe) */}
+      <div className="lg:w-[80%] h-full bg-gray flex flex-col overflow-auto">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1 max-w-5xl mx-auto w-full">
+            
+            {/* Top Title */}
+            <h2 className="text-xl font-semibold mb-6 text-gray-800">
+                Registration
+            </h2>
 
-        <form
-          id="beneficiary-form"
-          onSubmit={handleSubmit}
-          className="bg-white p-5  md:p-9 flex flex-col gap-8 rounded-2xl"
-        >
-          <h1 className="font-bold md:text-2xl">Personal Details</h1>
-
-          <div className="grid grid-cols-2 gap-x-4 gap-y-5 md:gap-x-10  ">
-            <div className="flex gap-2 flex-col justify-between ">
-              <label className="text-[12px] md:text-[16px]">First Name <span className="text-red-500">*</span></label>
-              <input
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                type="text"
-              
-                className="border border-gray-600 rounded-md p-2 text-[12px] md:text-[16px]"
-              />
-              {errors.firstName && (
-                <span className="text-red-500 text-xs">
-                  {errors.firstName}
-                </span>
-              )}
-            </div>
-
-            <div className="flex gap-2 flex-col justify-between">
-              <label className="text-[12px] md:text-[16px]">Last Name <span className="text-red-500">*</span></label>
-              <input
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                type="text"
-              
-                className="border border-gray-600 rounded-md p-2 text-[12px] md:text-[16px]"
-              />
-              {errors.lastName && (
-                <span className="text-red-500 text-xs">
-                  {errors.lastName}
-                </span>
-              )}
-            </div>
-
-            <div className="flex gap-2 flex-col justify-between">
-              <label className="text-[12px] md:text-[16px]">Date of Birth <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <img
-                    src="/assets/images/input_icons/datebirth.svg"
-                    alt="Date Icon"
-                    className="md:w-5 md:h-5 w-4 h-4"
-                  />
-                </div>
-                <input
-                  name="birthDate"
-                  value={formData.birthDate}
-                  onChange={handleChange}
-                  type="date"
+            {/* Content Card */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col overflow-hidden">
                 
-                  className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                />
-              </div>
-              {errors.birthDate && (
-                <span className="text-red-500 text-xs">
-                  {errors.birthDate}
-                </span>
-              )}
-            </div>
-
-            {/* <div className="flex gap-2 flex-col">
-              <label className=" text-[12px] md:text-[16px]">Age</label>
-              <input
-                name="age"
-                value={formData.age}
-                onChange={handleChange}
-                type="text"
-              
-                className="border border-gray-600 rounded-md p-2 text-[12px] md:text-[16px]"
-              />
-            </div> */}
-
-            <div className="flex gap-2 flex-col justify-between">
-              <label className=" text-[12px] md:text-[16px]">Email <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <img
-                    src="/assets/images/input_icons/email.svg"
-                    alt="Email Icon"
-                    className="md:w-5 md:h-5 w-4 h-4"
-                  />
+                {/* Header */}
+                <div className="bg-white border-b border-gray-100 p-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                   <div>
+                        <h1 className="text-xl font-bold text-gray-800">Account Registration</h1>
+                        <p className="text-xs text-gray-500 mt-1">Please fill in your details to create an account.</p>
+                   </div>
+                   <img
+                        src="/images/logo_black_text.png"
+                        alt="RAFI Logo"
+                        className="h-23 object-contain opacity-80"
+                    />
                 </div>
-                <input
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  type="email"
-                
-                  className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                  placeholder="ejacc@gmail.com"
-                />
-              </div>
-              {errors.email && (
-                <span className="text-red-500 text-xs">
-                  {errors.email}
-                </span>
-              )}
-            </div>
 
-            <div className="flex gap-2 flex-col justify-between">
-              <label className="text-[12px] md:text-[16px]">
-                Phone Number
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <img
-                    src="/assets/images/input_icons/mobile.svg"
-                    alt="Phone Icon"
-                    className="w-5 h-5"
-                  />
-                </div>
-                <input
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  type="tel"
-                
-                  className="bg-white border border-gray-600 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                  placeholder="123-456-7890"
-                />
-              </div>
-            </div>
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="p-6 md:p-8 flex flex-col gap-8">
+                    
+                    {/* Section 1: Personal Details */}
+                    <div>
+                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-l-4 border-primary pl-3 mb-6">
+                            Personal Details
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <InputGroup 
+                                label="First Name" 
+                                name="firstName" 
+                                value={formData.firstName} 
+                                onChange={handleChange} 
+                                required 
+                                error={errors.firstName} 
+                                icon={User}
+                            />
+                            <InputGroup 
+                                label="Last Name" 
+                                name="lastName" 
+                                value={formData.lastName} 
+                                onChange={handleChange} 
+                                required 
+                                error={errors.lastName} 
+                                icon={User}
+                            />
+                            <InputGroup 
+                                label="Date of Birth" 
+                                name="birthDate" 
+                                type="date"
+                                value={formData.birthDate} 
+                                onChange={handleChange} 
+                                required 
+                                error={errors.birthDate} 
+                                icon={Calendar}
+                            />
+                        </div>
+                    </div>
 
-            <div className="flex justify-end gap-2 flex-col text-[12px] md:text-[16px] ">
-              <label className="text-[12px] md:text-[16px]">LGU <span className="text-red-500">*</span></label>
-              <input
-                name="lgu"
-                value={formData.lgu}
-                onChange={handleChange}
-                type="text"
-              
-                className="border border-gray-600 rounded-md p-2"
-              />
-              {errors.lgu && (
-                <span className="text-red-500 text-xs">
-                  {errors.lgu}
-                </span>
-              )}
-            </div>
+                    {/* Section 2: Contact Information */}
+                    <div>
+                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-l-4 border-yellow-500 pl-3 mb-6">
+                            Contact Information
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <InputGroup 
+                                label="Email Address" 
+                                name="email" 
+                                type="email"
+                                value={formData.email} 
+                                onChange={handleChange} 
+                                required 
+                                error={errors.email} 
+                                placeholder="e.g. name@example.com"
+                                icon={Mail}
+                            />
+                            <InputGroup 
+                                label="Phone Number" 
+                                name="phone" 
+                                type="tel"
+                                value={formData.phone} 
+                                onChange={handleChange} 
+                                placeholder="e.g. 0912 345 6789"
+                                icon={Phone}
+                            />
+                        </div>
+                    </div>
 
-            <div className="flex gap-2 flex-col justify-between">
-              <label className="text-[12px] md:text-[16px]">
-                Are you a resident of Cebu (province)? <span className="text-red-500">*</span>
-              </label>
-              {/* <p className="text-[8px] md:text-[11px] text-gray-400">
-                Our cancer care services are currently limited to residents of
-                Cebu.
-              </p> */}
-              <div className="relative">
-                <select
-                  name="isResident"
-                  value={formData.isResident}
-                  onChange={handleChange}
-                
-                  className="border border-gray-600 w-full rounded-md p-2 bg-white appearance-none pr-8 text-[12px] md:text-[16px]"
-                >
-                  <option value="" disabled>
-                    Select
-                  </option>
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                  <svg
-                    className="fill-current h-4 w-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                  </svg>
-                </div>
-              </div>
-              {errors.isResident && (
-                <span className="text-red-500 text-xs">
-                  {errors.isResident}
-                </span>
-              )}
-            </div>
-            {/* flex gap-2 flex-col col-span-2 /flex justify-end gap-2 flex-col text-[12px] md:text-[16px] */}
-            <div className="flex gap-2 flex-col justify-between">
-              <label className="text-[12px] md:text-[16px]">Address <span className="text-red-500">*</span></label>
-              <input
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                type="text"
-              
-                className="border border-gray-600 rounded-md p-2 text-[12px] md:text-[16px]"
-              />
-              {errors.address && (
-                <span className="text-red-500 text-xs">
-                  {errors.address}
-                </span>
-              )}
-            </div>
-          </div>
+                    {/* Section 3: Residency */}
+                    <div>
+                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-l-4 border-green-500 pl-3 mb-6">
+                            Address & Residency
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <InputGroup 
+                                label="Address" 
+                                name="address" 
+                                value={formData.address} 
+                                onChange={handleChange} 
+                                required 
+                                error={errors.address} 
+                                placeholder="Full street address"
+                                icon={MapPin}
+                            />
+                            <InputGroup 
+                                label="LGU" 
+                                name="lgu" 
+                                value={formData.lgu} 
+                                onChange={handleChange} 
+                                required 
+                                error={errors.lgu} 
+                                placeholder="City / Municipality"
+                                icon={MapPin}
+                            />
+                            <SelectGroup 
+                                label="Are you a resident of Cebu?"
+                                name="isResident"
+                                value={formData.isResident}
+                                onChange={handleChange}
+                                required
+                                error={errors.isResident}
+                                options={[
+                                    { value: "", label: "Select Option", disabled: true },
+                                    { value: "yes", label: "Yes" },
+                                    { value: "no", label: "No" }
+                                ]}
+                            />
+                        </div>
+                    </div>
 
-          <div className="flex flex-col gap-3">
-            <div className="flex gap-2 items-center">
-              <input
-                name="agreed"
-                type="checkbox"
-                checked={formData.agreed}
-                onChange={handleChange}
-              
-                className="accent-primary"
-              />
-              <div className="flex">
-                <p
-                  className="underline text-[10px] md:text-[12px] cursor-pointer"
-                  onClick={() =>
-                    setFormData((prev) => ({ ...prev, agreed: !prev.agreed }))
-                  }
-                >
-                  Form notice & Data privacy notice {" "}
-                </p>
-                {errors.agreed && (
-                  <span className="ml-1 text-red-500 text-xs">
-                    {errors.agreed}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+                    {/* Terms Agreement */}
+                    <div className="pt-4 border-t border-gray-100">
+                        <label className="flex items-start gap-3 cursor-pointer group">
+                            <div className="relative flex items-center pt-1">
+                                <input
+                                    type="checkbox"
+                                    name="agreed"
+                                    checked={formData.agreed}
+                                    onChange={handleChange}
+                                    className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-gray-300 shadow-sm transition-all checked:border-primary checked:bg-primary hover:border-primary"
+                                />
+                                <CheckCircle className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 w-3.5 h-3.5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                                    I agree to the <span className="text-primary font-semibold underline">Data Privacy Notice</span> and confirm the information is correct.
+                                </span>
+                                {errors.agreed && <span className="text-xs text-red-500 mt-1">{errors.agreed}</span>}
+                            </div>
+                        </label>
+                    </div>
 
-          <div className="flex justify-between w-full">
-            <Link
-              to="/beneficiary-login"
-              className="text-black text-center py-2 w-[45%] border hover:bg-gray border-black hover:border-white rounded-md"
-            >
-              Back
-            </Link>
+                    {/* Buttons */}
+                    <div className="flex justify-around print:hidden mt-6">
+                        <Link
+                            to="/beneficiary-login"
+                            // className="w-full py-3 rounded-lg border border-gray-300 text-gray-700 font-bold text-center hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                            className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+                        >
+                            {/* <ArrowLeft className="w-4 h-4" />  */}
+                            Back
+                        </Link>
+                        <button
+                            type="submit"
+                            // className="w-full py-3 rounded-lg bg-primary text-white font-bold hover:bg-primary/90 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                            className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+                        >
+                            {/* <Save className="w-4 h-4" />  */}
+                            Submit
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+            
+            {/* Decorative Footer to maintain consistent spacing */}
+            <div className="h-16 bg-transparent shrink-0"></div>
+        </div>
+      </div>
+
+      {/* Success Popup */}
+      {/* {showPopup && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center flex flex-col items-center gap-4 transform scale-100 transition-all border border-gray-100">
+             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-2">
+                <Mail className="w-8 h-8" />
+             </div>
+            <h2 className="text-2xl font-bold text-gray-800">Check Your Email</h2>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              We’ve sent your login credentials to <strong className="text-gray-900">{formData.email}</strong>. <br/>
+              Please check your inbox (and spam folder) to log in.
+            </p>
             <button
-              type="submit"
-              className="text-center font-bold bg-primary text-white py-2 w-[45%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-              // disabled={formData.isResident === "no"}
+              onClick={handleOk}
+              className="mt-4 w-full bg-primary text-white py-3 rounded-lg font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30"
             >
-              Submit
-              {/* {submitting ? "SUBMITTING..." : "SUBMIT"} */}
+              Back to Login
             </button>
           </div>
-        </form>
-
-        {showPopup && (
+        </div>
+      )} */}
+      {showPopup && (
           <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
             <div
               className={`bg-white py-5 px-20 rounded-xl shadow-xl text-center flex flex-col items-center gap-5 ${animationClass}`}
@@ -450,7 +400,6 @@ const Info101 = () => {
             </div>
           </div>
         )}
-      </div>
     </>
   );
 };

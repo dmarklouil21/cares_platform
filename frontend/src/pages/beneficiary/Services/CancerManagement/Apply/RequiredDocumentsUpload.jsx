@@ -1,351 +1,310 @@
-import { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { REQUIRED_DOCS } from "src/constants/requiredDocs";
+import { 
+  Upload, 
+  FileText, 
+  Check, 
+  Save, 
+  ArrowLeft,
+  Activity
+} from "lucide-react";
 
 import api from "src/api/axiosInstance";
+import { REQUIRED_DOCS } from "src/constants/requiredDocs";
 
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
 import SystemLoader from "src/components/SystemLoader";
 
-function Notification({ message, onClose }) {
-  if (!message) return null;
-  return (
-    <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
-      <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="Rafi Logo"
-          className="h-[25px]"
-        />
-        <span>{message}</span>
-      </div>
-    </div>
-  );
-}
-
-function ConfirmModal({
-  open,
-  onCancel,
-  onConfirm,
-  title = "Submit documents?",
-  desc = "Please confirm to submit all files.",
-}) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <div className="relative bg-white rounded-xl w-full max-w-md p-6 shadow-lg">
-        <h3 className="text-lg font-semibold mb-1">{title}</h3>
-        <p className="text-sm text-gray-600 mb-5">{desc}</p>
-        <div className="flex gap-3 justify-end">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-4 py-2 rounded-md bg-[#749AB6] text-white hover:bg-[#5f86a7]"
-          >
-            Confirm
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const CheckIcon = ({ active }) => (
-  <img
-    src="/images/check.svg"
-    alt=""
-    className={`h-6 w-6 transition ${active ? "" : "grayscale opacity-50"}`}
-  />
-);
-
 const RadioactiveDocument = () => {
-  const location = useLocation();
-  const id = location.state?.id || null;
   const navigate = useNavigate();
-  const { wellBeningData } = location.state || {};
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [notif, setNotif] = useState("");
-  const inputRef = useRef(null);
-
+  const location = useLocation();
+  
+  // Data State
+  const id = location.state?.id || null;
+  const { wellBeningData } = location.state || {}; // Note: typo 'wellBening' preserved from previous page
   const [serviceType, setServiceType] = useState(wellBeningData?.serviceType || "");
-  const requiredDocs = REQUIRED_DOCS[serviceType] || [];
-
   const [isResubmitting, setIsResubmitting] = useState(!!id);
 
+  // File State
+  const requiredDocs = REQUIRED_DOCS[serviceType] || [];
+  const [activeIdx, setActiveIdx] = useState(0);
   const activeDoc = requiredDocs[activeIdx];
+  const inputRef = useRef(null);
 
+  // Initialize files
+  const [files, setFiles] = useState(() => 
+    requiredDocs.reduce((acc, d) => ({ ...acc, [d.key]: null }), {})
+  );
+
+  const allUploaded = useMemo(
+    () => requiredDocs.length > 0 && requiredDocs.every((doc) => !!files[doc.key]),
+    [files, requiredDocs]
+  );
+
+  // UX State
   const [loading, setLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({ type: "success", title: "", message: "" });
 
-  const handleChooseFile = () => inputRef.current?.click();
-
-  // helper to build a cleared files map
-  const makeEmptyFiles = () =>
-    requiredDocs.reduce((acc, d) => ({ ...acc, [d.key]: null }), {});
-
-  const [files, setFiles] = useState(makeEmptyFiles);
-  const allUploaded = requiredDocs.every((d) => !!files[d.key]);
-
+  // Reset files if service type changes
   useEffect(() => {
-    setFiles(makeEmptyFiles());
+    setFiles(requiredDocs.reduce((acc, d) => ({ ...acc, [d.key]: null }), {}));
     setActiveIdx(0);
   }, [serviceType]);
 
+  // Fetch Existing Data (If Editing)
   useEffect(() => {
     if (!id) return;
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const { data } = await api.get(
-          `/beneficiary/cancer-treatment/details/`
-        );
-        // setProcedureName(data.procedure_name || "");
-        // setProcedureDetails(data.procedure_details || "");
-        // setCancerSite(data.cancer_site || "");
-        console.log("Fetched Data: ", data);
+        const { data } = await api.get(`/beneficiary/cancer-treatment/details/`);
+        
         if (data.attachments) {
           const mappedFiles = data.attachments.reduce((acc, doc) => {
             acc[doc.doc_type] = doc;
             return acc;
           }, {});
-          setServiceType(data.service_type || "");
           setFiles(mappedFiles);
         }
-
+        if (data.service_type) {
+            setServiceType(data.service_type);
+        }
       } catch (error) {
-        console.error("Error fetching screening data:", error);
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
-
     fetchData();
   }, [id]);
 
-  const onFilePicked = (f) => {
-    if (!f) return;
-    const docKey = activeDoc.key;
-    setFiles((prev) => ({ ...prev, [docKey]: f }));
-  };
+  // --- Handlers ---
 
-  const handleInputChange = (e) => {
-    const f = e.target.files?.[0];
-    onFilePicked(f);
-    e.target.value = ""; // allow re-picking the same file
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file && activeDoc) {
+      setFiles((prev) => ({ ...prev, [activeDoc.key]: file }));
+    }
+    e.target.value = ""; 
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    const f = e.dataTransfer.files?.[0];
-    onFilePicked(f);
+    const file = e.dataTransfer.files?.[0];
+    if (file && activeDoc) {
+        setFiles((prev) => ({ ...prev, [activeDoc.key]: file }));
+    }
   };
 
   const handleDragOver = (e) => e.preventDefault();
 
-  const submit = () => setConfirmOpen(true);
+  const handleSave = () => {
+      setConfirmOpen(true);
+  };
 
-  const confirmSubmit = async () => {
+  const onConfirmSubmit = async () => {
     setConfirmOpen(false);
+    setLoading(true);
 
     try {
       const formData = new FormData();
-      // append well-being data as JSON 
-      formData.append("well_being_data", JSON.stringify(wellBeningData));
-      // append files
-      for (const key in files) {
-        if (files[key]) {
-          formData.append(`files.${key}`, files[key]);
-        }
+      
+      // Append Wellbeing Data
+      if (wellBeningData) {
+        formData.append("well_being_data", JSON.stringify(wellBeningData));
       }
-      setLoading(true);
+
+      // Append Files
+      Object.entries(files).forEach(([key, file]) => {
+        if (file) formData.append(`files.${key}`, file);
+      });
+
       const endpoint = isResubmitting
-          ? `/beneficiary/cancer-treatment/update/${id}/`
-          : `/beneficiary/cancer-treatment/submit/`;
-        
-        const method = isResubmitting ? api.patch : api.post;
+        ? `/beneficiary/cancer-treatment/update/${id}/`
+        : `/beneficiary/cancer-treatment/submit/`;
+      
+      const method = isResubmitting ? api.patch : api.post;
 
       await method(endpoint, formData, { headers: { "Content-Type": "multipart/form-data" } });
-      // await method(endpoint, formData);
 
-        navigate("/beneficiary/applications/cancer-treatment", {
-        state: {
-          type: "success",
-          message: "Submitted Successfully.",
+      navigate("/beneficiary/applications/cancer-treatment", {
+        state: { 
+            flash: "Application submitted successfully." 
         },
       });
+
     } catch (error) {
       console.error("Submission error:", error);
+      let msg = "Something went wrong.";
+      setModalInfo({ type: "error", title: "Submission Failed", message: msg });
+      setShowModal(true);
     } finally {
       setLoading(false);
     }
-
-    // try {
-    //   await api.post("/beneficiary/cancer-treatment/submit/", formData, {
-    //     headers: {
-    //       "Content-Type": "multipart/form-data",
-    //     },
-    //   });
-    //   // alert("Submitted successfully");
-    //   navigate("/beneficiary/applications/cancer-treatment", {
-    //     state: {
-    //       type: "success",
-    //       message: "Submitted Successfully.",
-    //     },
-    //   });
-    // } catch (error) {
-    //   alert(error);
-    //   console.error();
-    // } finally {
-    //   setLoading(false);
-    // }
-
-    // 2) show success notification
-    // setNotif("Documents submitted successfully!");
-    // setTimeout(() => setNotif(""), 4000);
-
-    // 3) CLEAR everything
-    // setFiles(makeEmptyFiles()); // reset all uploaded files
-    setActiveIdx(0); // go back to Quotation
-    if (inputRef.current) inputRef.current.value = ""; // clear hidden input
   };
 
   return (
-    <>
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
       {loading && <SystemLoader />}
-      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        {/* <div className="bg-white py-4 px-10 flex justify-between items-center">
-          <div className="font-bold">Beneficiary</div>
-          <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white">
-            <img
-              src="/images/Avatar.png"
-              alt="User Profile"
-              className="rounded-full"
-            />
-          </div>
-        </div> */}
+      
+      <ConfirmationModal
+        open={confirmOpen}
+        title="Submit Application?"
+        desc="Please confirm that all documents are correct before submitting."
+        onConfirm={onConfirmSubmit}
+        onCancel={() => setConfirmOpen(false)}
+      />
 
-        <div className="py-6 px-5 md:px-10 flex flex-col flex-1 overflow-auto">
-          <h2 className="text-xl font-semibold mb-6">
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
+      />
+
+      <div className="py-5 px-5 md:px-5 flex flex-col flex-1 max-w-7xl mx-auto w-full">
+        
+        {/* Top Title */}
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">
             Cancer Treatment Application
-          </h2>
+        </h2>
 
-          <div className="rounded-2xl bg-white p-7 flex flex-col gap-3">
-            <h2 className="text-3xl text-yellow font-bold">{serviceType}</h2>
-            <p className="font-bold italic">
-              Please comply with the following requirements before submission
-            </p>
-            <h1 className="font-bold text-xl mb-4">
-              Upload the following documents one at a time
-            </h1>
+        {/* Main Content Card */}
+        <div className="flex flex-col gap-8 w-full bg-white rounded-lg py-8 px-6 md:px-10 shadow-sm border border-gray-100 flex-1">
+            
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-6 gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-yellow/10 rounded-full text-yellow">
+                        <Activity className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-800">{serviceType || "Treatment Request"}</h1>
+                        <p className="text-xs text-gray-500 mt-1">Please upload the required documents below.</p>
+                    </div>
+                </div>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-6">
-              {requiredDocs.map((d, idx) => {
-                const uploaded = !!files[d.key];
-                const isActive = idx === activeIdx;
-                return (
-                  <button
-                    key={d.key}
-                    type="button"
-                    onClick={() => setActiveIdx(idx)}
-                    className="flex items-center gap-3 text-left group"
-                  >
-                    <CheckIcon active={uploaded} />
-                    <span
-                      className={`${
-                        isActive ? "font-bold text-gray-900" : "text-gray-800"
-                      }`}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                
+                {/* Left Column: List of Requirements */}
+                <div className="flex flex-col h-full">
+                     <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-l-4 border-primary pl-3 mb-4">
+                        Required Documents
+                    </h3>
+                    <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-4 overflow-y-auto max-h-[500px]">
+                         <div className="space-y-2">
+                            {requiredDocs.map((doc, idx) => {
+                                const isUploaded = !!files[doc.key];
+                                const isActive = idx === activeIdx;
+                                return (
+                                    <button
+                                        key={doc.key}
+                                        type="button"
+                                        onClick={() => setActiveIdx(idx)}
+                                        className={`w-full flex items-center justify-between p-3.5 rounded-lg text-left transition-all ${
+                                            isActive 
+                                            ? "bg-white shadow-sm border border-blue-200 ring-1 ring-blue-100" 
+                                            : "hover:bg-gray-100 border border-transparent"
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-1 rounded-full ${isUploaded ? "bg-green-100 text-green-600" : "bg-gray-200 text-gray-400"}`}>
+                                                <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                                            </div>
+                                            <span className={`text-sm ${isActive ? "font-bold text-blue-700" : "text-gray-600"}`}>
+                                                {doc.label}
+                                            </span>
+                                        </div>
+                                        {isActive && <span className="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Uploading</span>}
+                                    </button>
+                                );
+                            })}
+                         </div>
+                    </div>
+                </div>
+
+                {/* Right Column: Dropzone */}
+                <div className="flex flex-col h-full">
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-l-4 border-yellow-500 pl-3 mb-4">
+                        Upload Area
+                    </h3>
+                    
+                    <div 
+                        onClick={() => inputRef.current?.click()}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                        className="flex-1 border-2 border-dashed border-gray-300 rounded-xl bg-white p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary hover:bg-blue-50/30 transition-all group min-h-[300px]"
                     >
-                      {d.label}
-                    </span>
-                    {isActive && (
-                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                        Current
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                        <div className="p-4 bg-blue-50 text-primary rounded-full mb-4 group-hover:scale-110 transition-transform shadow-sm">
+                            <Upload className="w-8 h-8" />
+                        </div>
+                        
+                        {files[activeDoc?.key] ? (
+                            <div className="space-y-2 animate-in fade-in zoom-in duration-300">
+                                <FileText className="w-8 h-8 text-gray-400 mx-auto" />
+                                <p className="text-sm font-bold text-gray-800 break-all px-4">
+                                    {files[activeDoc.key].name || "File Uploaded"}
+                                </p>
+                                <p className="text-xs text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full inline-block border border-green-100">
+                                    Ready to submit
+                                </p>
+                                <p className="text-xs text-gray-400 mt-2">Click to replace</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <p className="text-base font-medium text-gray-600 group-hover:text-primary transition-colors">
+                                    Click to upload <span className="font-bold text-gray-900">{activeDoc?.label}</span>
+                                </p>
+                                <p className="text-xs text-gray-400">or drag and drop file here</p>
+                                <p className="text-[10px] text-gray-300 uppercase tracking-widest mt-4">Max Size: 10MB</p>
+                            </div>
+                        )}
 
-            <div className="mb-2 text-sm text-gray-600">
-              Currently uploading:{" "}
-              <span className="font-semibold">{activeDoc?.label}</span>
-            </div>
-
-            <div
-              onClick={handleChooseFile}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              className="mt-2 border border-gray-200 rounded-xl bg-primary/20 hover:bg-gray-100 transition cursor-pointer flex flex-col items-center justify-center h-56"
-            >
-              <div className="px-1.5 py-1 bg-primary rounded-4xl">
-                <img
-                  src="/assets/images/services/cancerscreening/upload_icon.svg"
-                  alt="upload icon"
-                  className="h-6"
-                />
-              </div>
-              <div className="text-sm text-gray-700">
-                Choose file or drag here
-              </div>
-              <div className="text-xs text-gray-400">Size limit: 10MB</div>
-              {files[activeDoc?.key] && (
-                <div className="mt-3 text-xs text-gray-700">
-                  Selected:{" "}
-                  <span className="font-medium">
-                    {files[activeDoc.key].name}
-                  </span>
+                        <input 
+                            ref={inputRef}
+                            type="file" 
+                            className="hidden" 
+                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                            onChange={handleFileSelect}
+                        />
+                    </div>
                 </div>
-              )}
+
             </div>
 
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.odt,.ods"
-              onChange={handleInputChange}
-              className="hidden"
-            />
-
-            <div className="mt-6 flex items-center justify-between flex-col-reverse md:flex-row gap-5">
-              <Link
-                to="/beneficiary/services/cancer-management/apply/well-being-tool"
-                className="border border-black/15 py-3 rounded-md text-center px-6  hover:bg-black/10 hover:border-black w-full md:w-[40%]"
-                state={{serviceType, wellBeningData}}
-              >
-                Back
-              </Link>
-
-              {allUploaded ? (
-                <button
-                  type="button"
-                  onClick={submit}
-                  className="bg-[#749AB6] text-white font-bold py-3 px-8 rounded-md border border-[#749AB6] hover:bg-[#C5D7E5] hover:border-[#C5D7E5] w-full md:w-[40%]"
+            {/* Footer Actions */}
+            <div className="flex justify-around print:hidden mt-6">
+                <Link
+                    to="/beneficiary/services/cancer-management/apply/well-being-tool"
+                    state={{ wellBeningData, id }} // Pass back state so user doesn't lose wellbeing data
+                    // className="flex items-center gap-2 px-6 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition-all"
+                    className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
                 >
-                  Submit
+                    {/* <ArrowLeft className="w-4 h-4" /> */}
+                    Back
+                </Link>
+                <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={!allUploaded}
+                    className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+                >
+                    {/* <Save className="w-4 h-4" /> */}
+                    {isResubmitting ? "Update Application" : "Submit Application"}
                 </button>
-              ) : (
-                <div className="text-[12px] md:text-sm text-gray-600 max-w-auto">
-                  Please upload <span className="font-semibold">all</span>{" "}
-                  required files to enable submit.
-                </div>
-              )}
             </div>
-          </div>
-        </div>
 
-        <ConfirmModal
-          open={confirmOpen}
-          onCancel={() => setConfirmOpen(false)}
-          onConfirm={confirmSubmit}
-          title="Submit all documents?"
-          desc="Make sure each requirement has the correct file attached."
-        />
-        <Notification message={notif} onClose={() => setNotif("")} />
+        </div>
       </div>
-    </>
+      
+      {/* Decorative Footer */}
+      <div className="h-16 bg-secondary shrink-0"></div>
+    </div>
   );
 };
 

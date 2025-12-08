@@ -22,7 +22,7 @@ const survivorshipOptions = [
     icon: "/assets/images/patient/services/survivorship/utak.png",
     description:
       "Access mental health services like counseling or therapy to help manage emotional challenges during survivorship.",
-    link: "/beneficiary/services/survivorship/hormonal-replacement",
+    link: "/beneficiary/PychosocialSupport",
   },
 ];
 

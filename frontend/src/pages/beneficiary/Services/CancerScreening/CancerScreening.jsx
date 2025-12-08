@@ -50,7 +50,7 @@ const CancerScreening = () => {
 
   //   fetchScreeningData();
   // }, []);
-
+// Stop here for now
   return (
     <div className="h-full flex flex-col gap-3 w-full bg-gray  p-5 md:p-5">
       <h2 className="text-xl font-semibold mb-6">

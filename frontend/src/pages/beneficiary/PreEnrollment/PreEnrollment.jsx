@@ -1,34 +1,82 @@
-import { useEffect, useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
+import { 
+  User, 
+  MapPin, 
+  Briefcase, 
+  AlertCircle, 
+  Info, 
+  ArrowRight, 
+  Upload 
+} from "lucide-react";
 
 import barangayData from "src/constants/barangayData";
-
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
-import LoadingModal from "src/components/Modal/LoadingModal";
-import { use } from "react";
+import SystemLoader from "src/components/SystemLoader";
 
-export default function PatinetProfileForm() {
+const DEFAULT_CONTACT = {
+  name: "",
+  address: "",
+  relationship_to_patient: "",
+  email: "",
+  landline_number: "",
+  mobile_number: "",
+};
+
+// --- Reusable UI Helpers (Defined OUTSIDE) ---
+const InputGroup = ({ label, name, type = "text", value, onChange, required, error, placeholder, readOnly, ...props }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      readOnly={readOnly}
+      className={`w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
+        error ? 'border-red-500 bg-red-50' : readOnly ? 'bg-gray-100 text-gray-500 border-gray-200' : 'border-gray-300 bg-white'
+      }`}
+      {...props}
+    />
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
+const SelectGroup = ({ label, name, value, onChange, options, required, error, disabled }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <select
+      name={name}
+      value={value}
+      onChange={onChange}
+      disabled={disabled}
+      className={`w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-white ${
+        error ? 'border-red-500 bg-red-50' : 'border-gray-300'
+      }`}
+    >
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
+const PatientProfileForm = () => {
   const { user } = useAuth();
-  // Notification Modal
-  const [showModal, setShowModal] = useState(false);
-  const [modalInfo, setModalInfo] = useState({
-    type: "success",
-    title: "Success!",
-    message: "The form has been submitted successfully.",
-  });
-  // Loading Modal
-  const [loading, setLoading] = useState(false);
-  // Confirmation Modal
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalAction, setModalAction] = useState(null);
-  const [errors, setErrors] = useState({});
-
   const navigate = useNavigate();
+  const location = useLocation();
+  const fileInputRef = useRef(null);
+
+  // State
   const [formData, setFormData] = useState({
-    // user_id: user.user_id,
     first_name: "",
     middle_name: "",
     last_name: "",
@@ -50,92 +98,19 @@ export default function PatinetProfileForm() {
     monthly_income: "",
     registered_by: "self",
     emergency_contacts: [
-      {
-        name: "",
-        address: "",
-        relationship_to_patient: "",
-        email: "",
-        landline_number: "",
-        mobile_number: "",
-      },
-      {
-        name: "",
-        address: "",
-        relationship_to_patient: "",
-        email: "",
-        landline_number: "",
-        mobile_number: "",
-      },
+      { ...DEFAULT_CONTACT },
+      { ...DEFAULT_CONTACT },
     ],
   });
 
-  const [notification, setNotification] = useState("");
-  const location = useLocation();
+  const [photoUrl, setPhotoUrl] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({ type: "success", title: "", message: "" });
 
-  const record = location.state?.formData;
-
-  const validate = () => {
-    const newErrors = {};
-
-    // Required fields
-    const requiredFields = {
-      first_name: "First name is required.",
-      last_name: "Last name is required.",
-      date_of_birth: "Birthdate is required.",
-      sex: "Sex is required.",
-      civil_status: "Civil status is required.",
-      barangay: "Barangay is required.",
-      address: "Address is required.",
-      email: "Email is required.",
-      city: "City/Municipality is required.",
-      mobile_number: "Mobile number is required.",
-      source_of_information: "Source of information is required.",
-      highest_educational_attainment: "Educational attainment is required.",
-      occupation: "Occupation is required.",
-      source_of_income: "Source of income is required.",
-      monthly_income: "Monthly income is required.",
-    };
-
-    // Validate form fields
-    Object.entries(requiredFields).forEach(([field, message]) => {
-      if (!formData[field] || !formData[field].toString().trim()) {
-        newErrors[field] = message;
-      }
-    });
-    if (formData["date_of_birth"] > new Date().toISOString().split('T')[0])
-      newErrors["date_of_birth"] = "Date should not be in the future.";
-
-    // Validate photo
-    if (!photoUrl) {
-      newErrors.photoUrl = "2×2 photo is required.";
-    }
-
-    // Validate emergency contacts
-    formData.emergency_contacts.forEach((contact, index) => {
-      if (!contact.name.trim()) {
-        newErrors[`emergency_contact_${index}_name`] =
-          "Contact name is required.";
-      }
-      if (!contact.relationship_to_patient.trim()) {
-        newErrors[`emergency_contact_${index}_relationship`] =
-          "Relationship is required.";
-      }
-      if (!contact.address.trim()) {
-        newErrors[`emergency_contact_${index}_address`] =
-          "Address is required.";
-      }
-      if (!contact.mobile_number.trim()) {
-        newErrors[`emergency_contact_${index}_mobile_number`] =
-          "Mobile number is required.";
-      }
-      if (!contact.email.trim()) {
-        newErrors[`emergency_contact_${index}_email`] = "Email is required.";
-      }
-    });
-
-    return newErrors;
-  };
-
+  // Load User Data from Auth Context
   useEffect(() => {
     if (user) {
       setFormData((prev) => ({
@@ -146,12 +121,50 @@ export default function PatinetProfileForm() {
         address: user.address || "",
         mobile_number: user.phone_number || "",
         email: user.email || "",
-        barangay: "", // Reset barangay when city changes
+        barangay: "", // Reset barangay when loading defaults
       }));
     }
-  }, [user]);
+    
+    // Check if we are returning from next step with saved data
+    if (location.state?.formData) {
+        setFormData(location.state.formData);
+        if(location.state.photoUrl) {
+            // Re-creating blob url from file object if passed back
+            const url = URL.createObjectURL(location.state.photoUrl);
+            setPhotoUrl(url);
+            setImageFile(location.state.photoUrl);
+        }
+    }
 
-  console.log("User Data: ", user);
+  }, [user, location.state]);
+
+  // Data Helpers
+  const getBarangays = () => {
+    if (!formData.city) return [];
+    return (barangayData[formData.city] || []).map(b => ({ value: b, label: b }));
+  };
+
+  const getCities = () => Object.keys(barangayData).map(city => ({ 
+      value: city, 
+      label: city.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+  }));
+
+  // Handlers
+  function handle2x2Change(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPhotoUrl(url);
+    setImageFile(file);
+    if(errors.photoUrl) setErrors(prev => ({...prev, photoUrl: null}));
+  }
+
+  useEffect(() => {
+    return () => {
+      if (photoUrl) URL.revokeObjectURL(photoUrl);
+    };
+  }, [photoUrl]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -159,9 +172,12 @@ export default function PatinetProfileForm() {
       setFormData((prev) => ({
         ...prev,
         [name]: value,
-        barangay: "", // Reset barangay when city changes
+        barangay: "", 
       }));
-    } else if (name.startsWith("emergencyContact")) {
+      return;
+    }
+
+    if (name.startsWith("emergencyContact")) {
       const [contactKey, field] = name.split(".");
       const index = contactKey === "emergencyContact1" ? 0 : 1;
 
@@ -171,55 +187,73 @@ export default function PatinetProfileForm() {
           ...updatedContacts[index],
           [field]: value,
         };
-        return {
-          ...prev,
-          emergency_contacts: updatedContacts,
-        };
+        return { ...prev, emergency_contacts: updatedContacts };
       });
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: name === "children" ? parseInt(value) || 0 : value,
-      }));
+      
+      const errorKey = `emergency_contact_${index}_${field}`;
+      if (errors[errorKey]) setErrors(prev => ({...prev, [errorKey]: null}));
+      return;
     }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "number_of_children" ? parseInt(value) || 0 : value,
+    }));
+    
+    if(errors[name]) setErrors(prev => ({...prev, [name]: null}));
   };
 
-  const getBarangays = () => {
-    if (!formData.city) return [];
-    return barangayData[formData.city] || [];
-  };
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   setModalText("Submit this form?");
-  //   setModalAction({ type: "submit" });
-  //   setModalOpen(true);
-  // };
-
-  // 2×2 photo preview (UI only; no data changes)
-  const [photoUrl, setPhotoUrl] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
-
-  function handle2x2Change(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setPhotoUrl(url);
-    setImageFile(file);
-  }
-
-  // cleanup the blob URL to avoid leaks
-  useEffect(() => {
-    return () => {
-      if (photoUrl) URL.revokeObjectURL(photoUrl);
+  const validate = () => {
+    const newErrors = {};
+    const requiredFields = {
+      first_name: "First name is required.",
+      last_name: "Last name is required.",
+      date_of_birth: "Birthdate is required.",
+      sex: "Sex is required.",
+      civil_status: "Civil status is required.",
+      barangay: "Barangay is required.",
+      address: "Address is required.",
+      email: "Email is required.",
+      city: "City is required.",
+      mobile_number: "Mobile number is required.",
+      source_of_information: "Source is required.",
+      highest_educational_attainment: "Education is required.",
+      occupation: "Occupation is required.",
+      source_of_income: "Income source is required.",
+      monthly_income: "Income is required.",
     };
-  }, [photoUrl]);
+
+    Object.entries(requiredFields).forEach(([field, message]) => {
+      if (!formData[field] || !formData[field].toString().trim()) {
+        newErrors[field] = message;
+      }
+    });
+
+    if (formData["date_of_birth"] > new Date().toISOString().split('T')[0])
+      newErrors["date_of_birth"] = "Date cannot be in the future.";
+
+    if (!photoUrl) {
+      newErrors.photoUrl = "2×2 photo is required.";
+    }
+
+    // Validate emergency contacts
+    formData.emergency_contacts.forEach((contact, index) => {
+      if (!contact.name.trim()) newErrors[`emergency_contact_${index}_name`] = "Required";
+      if (!contact.relationship_to_patient.trim()) newErrors[`emergency_contact_${index}_relationship`] = "Required";
+      if (!contact.address.trim()) newErrors[`emergency_contact_${index}_address`] = "Required";
+      if (!contact.email.trim()) newErrors[`emergency_contact_${index}_email`] = "Required";
+      if (!contact.mobile_number.trim()) newErrors[`emergency_contact_${index}_mobile_number`] = "Required";
+    });
+
+    return newErrors;
+  };
 
   const handleNext = () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      setModalInfo({ type: "error", title: "Validation Error", message: "Please check highlighted fields." });
+      setShowModal(true);
       return;
     }
 
@@ -232,7 +266,9 @@ export default function PatinetProfileForm() {
   };
 
   return (
-    <>
+    <div className="lg:w-[80%] h-screen bg-gray flex flex-col overflow-auto">
+      {loading && <SystemLoader />}
+      
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -240,860 +276,209 @@ export default function PatinetProfileForm() {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      <LoadingModal open={loading} text="Submitting your data..." />
-      <div className="h-screen w-full lg:w-[75%] flex flex-col gap-3 md:gap-12 bg-gray py-12 px-3 md:px-5 overflow-auto">
-        <form
-          // onSubmit={handleSubmit}
-          className="bg-white py-5 px-3 md:p-9 flex flex-col gap-8 rounded-2xl "
-        >
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            {/* Left Side: Title + Note + Date md:text-2xl text-gray-800*/}
-            <div className="flex flex-col gap-2">
-              <h1 className="font-bold text-xl">PATIENT PROFILE</h1>
-              <p className="text-sm text-gray-600 italic">
-                Note: Please put <span className="font-semibold">"NA"</span> for
-                not applicable fields.
-              </p>
-            </div>
 
-            {/* Right Side: 2x2 Photo + Logo */}
-            <div className="flex items-center gap-6">
-              {/* 2x2 Upload */}
-              <label
-                htmlFor="photo2x2"
-                className="relative w-[120px] h-[120px] border-2 border rounded-md flex items-center justify-center text-xs text-gray-500 cursor-pointer overflow-hidden hover:bg-gray-50 transition"
-                title="Upload 2×2 photo"
-              >
-                {photoUrl ? (
-                  <img
-                    src={photoUrl}
-                    alt="2×2 preview"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="p-2 text-center leading-tight">
-                    {errors.photoUrl ? (
-                      <span className="text-red-500 text-xs">
-                        {errors.photoUrl}
-                      </span>
-                    ) : (
-                      <>
-                        Upload 2×2 photo
-                        <br />
-                        <span className="text-[11px] opacity-70">JPG/PNG</span>
-                      </>
-                    )}
-                  </span>
-                  // <span className="p-2 text-center leading-tight">
-                  //   Upload 2×2 photo
-                  //   <br />
-                  //   <span className="text-[11px] opacity-70">JPG/PNG</span>
-                  // </span>
-                )}
-                <input
-                  id="photo2x2"
-                  type="file"
-                  accept="image/*"
-                  onChange={handle2x2Change}
-                  className="hidden"
-                />
-              </label>
+      <div className="py-5 px-5 md:px-5 flex flex-col flex-1 max-w-5xl mx-auto w-full">
+        
+        {/* Top Title */}
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">
+            Pre-Enrollment Form
+        </h2>
 
-              {/* Logo */}
-              <img
-                src="/images/logo_black_text.png"
-                alt="rafi logo"
-                className="h-30 md:h-30 object-contain"
-              />
-            </div>
-          </div>
-
-          <h2 className="text-md font-bold border-b pb-1">GENERAL DATA</h2>
-
-          <div className="grid grid-cols-2 md:gap-x-10 gap-3">
-            <div className="flex gap-2 flex-col">
-              <label className="text-[12px] md:text-[16px]">First Name <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                name="first_name"
-                value={formData.first_name}
-                onChange={handleChange}
-                className="border-black  border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-              />
-              {errors.first_name && (
-                <span className="text-red-500 text-xs">
-                  {errors.first_name}
-                </span>
-              )}
-            </div>
-
-            {/* Middle Name */}
-            <div className="flex gap-2 flex-col">
-              <label className="text-black text-[12px] md:text-[16px]">
-                Middle Name
-              </label>
-              <input
-                type="text"
-                name="middle_name"
-                value={formData.middle_name}
-                onChange={handleChange}
-                className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-              />
-            </div>
-
-            {/* Last Name */}
-            <div className="flex gap-2 flex-col">
-              <label className="text-black text-[12px] md:text-[16px]">
-                Last Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="last_name"
-                value={formData.last_name}
-                onChange={handleChange}
-                className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-              />
-              {errors.last_name && (
-                <span className="text-red-500 text-xs">{errors.last_name}</span>
-              )}
-            </div>
-
-            {/* Suffix */}
-            <div className="flex gap-2 flex-col">
-              <label className="text-black text-[12px] md:text-[16px]">
-                Suffix
-              </label>
-              <input
-                type="text"
-                name="suffix"
-                value={formData.suffix}
-                onChange={handleChange}
-                className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-              />
-            </div>
-
-            {/* Date of Birth */}
-            <div className="flex gap-2 flex-col">
-              <label className="text-black         text-[12px] md:text-[16px]">
-                Date of Birth <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <img
-                    src="/assets/images/input_icons/datebirth.svg"
-                    alt="Date of Birth Icon"
-                    className="md:w-5 md:h-5 w-4 h-4"
-                  />
+        {/* Main Content Card */}
+        <div className="flex flex-col gap-8 w-full bg-white rounded-lg py-8 px-6 md:px-10 shadow-sm border border-gray-100 flex-1">
+            
+            {/* Header / Photo Upload */}
+            <div className="flex flex-col md:flex-row gap-6 items-center md:items-start border-b border-gray-100 pb-8">
+                <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                    <div className={`w-24 h-24 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors ${errors.photoUrl ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}>
+                        {photoUrl ? (
+                            <img src={photoUrl} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="text-center p-2">
+                                <Upload className={`w-6 h-6 mx-auto mb-1 ${errors.photoUrl ? 'text-red-400' : 'text-gray-400'}`} />
+                                <span className={`text-[10px] uppercase font-bold ${errors.photoUrl ? 'text-red-400' : 'text-gray-500'}`}>Upload Photo</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full shadow-sm">
+                        <Upload className="w-3 h-3" />
+                    </div>
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handle2x2Change} />
                 </div>
-                <input
-                  type="date"
-                  name="date_of_birth"
-                  value={formData.date_of_birth}
-                  onChange={handleChange}
-                  className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                  placeholder="Select date"
-                />
-              </div>
-              {errors.date_of_birth && (
-                <span className="text-red-500 text-xs">
-                  {errors.date_of_birth}
-                </span>
-              )}
+                
+                <div className="flex-1 text-center md:text-left">
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        Patient Profile
+                    </h1>
+                    <p className="text-sm text-gray-500 font-mono mt-1">ID: <span className="bg-gray-100 px-2 py-0.5 rounded text-gray-600 font-bold">New</span></p>
+                    <p className="text-xs text-gray-400 mt-2 italic">Please put "N/A" for not applicable fields.</p>
+                </div>
             </div>
 
-            {/* Age */}
-            {/* <div className="flex gap-2 flex-col">
-              <label className="text-black        text-[12px] md:text-[16px]">
-                Age
-              </label>
-              <input
-                type="text"
-                name="age"
-                value={formData.age}
-                onChange={handleChange}
-                className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-              />
-            </div> */}
+            {/* Form Grid */}
+            <form className="space-y-8">
+                
+                {/* 1. Basic Information */}
+                <div>
+                    <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
+                        <User className="w-4 h-4 text-gray-400" /> Basic Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <InputGroup label="First Name" name="first_name" value={formData.first_name} onChange={handleChange} required error={errors.first_name} />
+                        <InputGroup label="Middle Name" name="middle_name" value={formData.middle_name} onChange={handleChange} />
+                        <InputGroup label="Last Name" name="last_name" value={formData.last_name} onChange={handleChange} required error={errors.last_name} />
+                        
+                        <InputGroup label="Suffix" name="suffix" value={formData.suffix} onChange={handleChange} />
+                        <SelectGroup 
+                            label="Sex" 
+                            name="sex" 
+                            value={formData.sex} 
+                            onChange={handleChange}
+                            required 
+                            error={errors.sex}
+                            options={[{value: '', label: 'Select Sex'}, {value: 'male', label: 'Male'}, {value: 'female', label: 'Female'}]} 
+                        />
+                        <InputGroup label="Birthdate" name="date_of_birth" type="date" value={formData.date_of_birth} onChange={handleChange} required error={errors.date_of_birth} />
 
-            {/* Sex */}
-            <div className="flex gap-2 flex-col">
-              <label className="text-black text-[12px] md:text-[16px]">
-                Sex <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  name="sex"
-                  value={formData.sex}
-                  onChange={handleChange}
-                  className="border-black w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8 text-[12px] md:text-[16px] "
+                        <SelectGroup 
+                            label="Civil Status" 
+                            name="civil_status" 
+                            value={formData.civil_status} 
+                            onChange={handleChange}
+                            required 
+                            error={errors.civil_status}
+                            options={[
+                                {value: '', label: 'Select Status'},
+                                {value: 'single', label: 'Single'},
+                                {value: 'married', label: 'Married'},
+                                {value: 'widower', label: 'Widower'},
+                                {value: 'separated', label: 'Separated'},
+                                {value: 'co-habitation', label: 'Co-Habitation'},
+                                {value: 'annulled', label: 'Annulled'}
+                            ]} 
+                        />
+                        <InputGroup label="No. of Children" name="number_of_children" type="number" value={formData.number_of_children} onChange={handleChange} />
+                    </div>
+                </div>
+
+                {/* 2. Contact & Address */}
+                <div>
+                    <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-gray-400" /> Contact & Address
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="md:col-span-2">
+                           <InputGroup label="Permanent Address" name="address" value={formData.address} onChange={handleChange} required error={errors.address} />
+                        </div>
+                        <SelectGroup 
+                           label="City / Municipality" 
+                           name="city" 
+                           value={formData.city} 
+                           onChange={handleChange} 
+                           required 
+                           error={errors.city}
+                           options={[{value: '', label: 'Select City'}, ...getCities()]}
+                        />
+                        <SelectGroup 
+                           label="Barangay" 
+                           name="barangay" 
+                           value={formData.barangay} 
+                           onChange={handleChange} 
+                           required 
+                           error={errors.barangay}
+                           disabled={!formData.city}
+                           options={[{value: '', label: formData.city ? 'Select Barangay' : 'Select City First'}, ...getBarangays()]}
+                        />
+                        <InputGroup label="Mobile Number" name="mobile_number" value={formData.mobile_number} onChange={handleChange} required error={errors.mobile_number} />
+                        <InputGroup label="Email Address" name="email" value={formData.email} onChange={handleChange} required error={errors.email} />
+                    </div>
+                </div>
+
+                {/* 3. Socioeconomic */}
+                <div>
+                    <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
+                        <Briefcase className="w-4 h-4 text-gray-400" /> Socioeconomic Data
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <InputGroup label="Highest Education" name="highest_educational_attainment" value={formData.highest_educational_attainment} onChange={handleChange} required error={errors.highest_educational_attainment} />
+                        <InputGroup label="Occupation" name="occupation" value={formData.occupation} onChange={handleChange} required error={errors.occupation} />
+                        <InputGroup label="Source of Income" name="source_of_income" value={formData.source_of_income} onChange={handleChange} required error={errors.source_of_income} />
+                        <InputGroup label="Monthly Income" name="monthly_income" value={formData.monthly_income} onChange={handleChange} required error={errors.monthly_income} />
+                    </div>
+                </div>
+
+                {/* 4. Emergency Contacts */}
+                <div>
+                    <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-gray-400" /> Emergency Contacts
+                    </h3>
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        {/* Contact 1 */}
+                        <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 space-y-4 relative">
+                            <span className="absolute top-3 right-3 text-[10px] font-bold text-gray-400 uppercase">Primary Contact</span>
+                            <InputGroup label="Name" name="emergencyContact1.name" value={formData.emergency_contacts[0].name} onChange={handleChange} required error={errors['emergency_contact_0_name']} />
+                            <InputGroup label="Relationship" name="emergencyContact1.relationship_to_patient" value={formData.emergency_contacts[0].relationship_to_patient} onChange={handleChange} required error={errors['emergency_contact_0_relationship']} />
+                            <div className="grid grid-cols-2 gap-4">
+                                <InputGroup label="Mobile" name="emergencyContact1.mobile_number" value={formData.emergency_contacts[0].mobile_number} onChange={handleChange} required error={errors['emergency_contact_0_mobile_number']} />
+                                <InputGroup label="Landline" name="emergencyContact1.landline_number" value={formData.emergency_contacts[0].landline_number} onChange={handleChange} />
+                            </div>
+                            <InputGroup label="Email" name="emergencyContact1.email" value={formData.emergency_contacts[0].email} onChange={handleChange} required error={errors['emergency_contact_0_email']} />
+                            <InputGroup label="Address" name="emergencyContact1.address" value={formData.emergency_contacts[0].address} onChange={handleChange} required error={errors['emergency_contact_0_address']} />
+                        </div>
+
+                        {/* Contact 2 */}
+                        <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 space-y-4 relative">
+                            <span className="absolute top-3 right-3 text-[10px] font-bold text-gray-400 uppercase">Secondary Contact</span>
+                            <InputGroup label="Name" name="emergencyContact2.name" value={formData.emergency_contacts[1].name} onChange={handleChange} required error={errors['emergency_contact_1_name']} />
+                            <InputGroup label="Relationship" name="emergencyContact2.relationship_to_patient" value={formData.emergency_contacts[1].relationship_to_patient} onChange={handleChange} required error={errors['emergency_contact_1_relationship']} />
+                            <div className="grid grid-cols-2 gap-4">
+                                <InputGroup label="Mobile" name="emergencyContact2.mobile_number" value={formData.emergency_contacts[1].mobile_number} onChange={handleChange} required error={errors['emergency_contact_1_mobile_number']} />
+                                <InputGroup label="Landline" name="emergencyContact2.landline_number" value={formData.emergency_contacts[1].landline_number} onChange={handleChange} />
+                            </div>
+                            <InputGroup label="Email" name="emergencyContact2.email" value={formData.emergency_contacts[1].email} onChange={handleChange} required error={errors['emergency_contact_1_email']} />
+                            <InputGroup label="Address" name="emergencyContact2.address" value={formData.emergency_contacts[1].address} onChange={handleChange} required error={errors['emergency_contact_1_address']} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* 5. Additional Info */}
+                <div>
+                    <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
+                        <Info className="w-4 h-4 text-gray-400" /> Additional Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <InputGroup label="Source of Information" name="source_of_information" value={formData.source_of_information} onChange={handleChange} required error={errors.source_of_information} />
+                        <InputGroup label="Other RAFI Programs Availed" name="other_rafi_programs_availed" value={formData.other_rafi_programs_availed} onChange={handleChange} />
+                    </div>
+                </div>
+
+            </form>
+
+            {/* Footer Actions */}
+            <div className="flex justify-around print:hidden mt-6">
+                <Link
+                    to="/beneficiary/pre-enrollment/note"
+                    className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
                 >
-                  <option value="" disabled>
-                    Select
-                  </option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-black">
-                  <svg
-                    className="fill-current h-4 w-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                  </svg>
-                </div>
-              </div>
-              {errors.sex && (
-                <span className="text-red-500 text-xs">{errors.sex}</span>
-              )}
-            </div>
-
-            {/* Civil Status */}
-            <div className="flex gap-2 flex-col">
-              <label className="text-black      text-[12px] md:text-[16px]">
-                Civil Status <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  name="civil_status"
-                  value={formData.civil_status}
-                  onChange={handleChange}
-                  className="border-black w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8 text-[12px] md:text-[16px]"
+                    Cancel
+                </Link>
+                <button
+                    type="button"
+                    onClick={handleNext}
+                    className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
                 >
-                  <option value="" disabled>
-                    Select
-                  </option>
-                  <option value="single">Single</option>
-                  <option value="co-habitation">Co-Habitation</option>
-                  <option value="separated">Separated</option>
-                  <option value="widower">Widow/er</option>
-                  <option value="married">Married</option>
-                  <option value="annulled">Annulled</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-black">
-                  <svg
-                    className="fill-current h-4 w-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                  </svg>
-                </div>
-              </div>
-              {errors.civil_status && (
-                <span className="text-red-500 text-xs">
-                  {errors.civil_status}
-                </span>
-              )}
+                    Next
+                    {/* <ArrowRight className="w-4 h-4" /> */}
+                </button>
             </div>
 
-            {/* Number of Children */}
-            <div className="flex gap-2 flex-col">
-              <label className="text-black     text-[12px] md:text-[16px]">
-                Number of Children
-              </label>
-              <input
-                id="children-input"
-                type="number"
-                name="number_of_children"
-                value={formData.number_of_children}
-                onChange={handleChange}
-                className="text-[12px] md:text-[16px] border-black border-[1px] rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                min="0"
-              />
-            </div>
-          </div>
-
-          {/* Contact & Address Section */}
-          <div className="flex flex-col gap-10">
-            <div className="flex flex-col gap-5">
-              <h1 className="font-bold">Contact & Address</h1>
-              <div className="grid grid-cols-2 md:gap-x-10 gap-3">
-                {/* Permanent Address */}
-                <div className="flex gap-2 flex-col col-span-2">
-                  <label className="text-black    text-[12px] md:text-[16px]">
-                    Permanent Address (Number & Street) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-                  />
-                  {errors.address && (
-                    <span className="text-red-500 text-xs">
-                      {errors.address}
-                    </span>
-                  )}
-                </div>
-
-                {/* City/Municipality */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    City/Municipality <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      className="border-black w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8 text-[12px] md:text-[16px]"
-                    >
-                      <option value="" disabled>
-                        Select City/Municipality
-                      </option>
-                      {Object.keys(barangayData).map((city) => (
-                        <option key={city} value={city}>
-                          {city
-                            .split("_")
-                            .map(
-                              (word) =>
-                                word.charAt(0).toUpperCase() + word.slice(1)
-                            )
-                            .join(" ")}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-black">
-                      <svg
-                        className="fill-current h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                      </svg>
-                    </div>
-                  </div>
-                  {errors.city && (
-                    <span className="text-red-500 text-xs">{errors.city}</span>
-                  )}
-                </div>
-
-                {/* Barangay */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black  text-[12px] md:text-[16px]">
-                    Barangay <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      name="barangay"
-                      value={formData.barangay}
-                      onChange={handleChange}
-                      className="border-black w-full border-[1px] rounded-md p-2 bg-white appearance-none pr-8 text-[12px] md:text-[16px]"
-                      disabled={!formData.city}
-                    >
-                      <option value="">
-                        {formData.city
-                          ? "Select Barangay"
-                          : "Select City first"}
-                      </option>
-                      {getBarangays().map((barangay) => (
-                        <option key={barangay} value={barangay}>
-                          {barangay}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-black">
-                      <svg
-                        className="fill-current h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                      </svg>
-                    </div>
-                  </div>
-                  {errors.barangay && (
-                    <span className="text-red-500 text-xs">
-                      {errors.barangay}
-                    </span>
-                  )}
-                </div>
-
-                {/* Contact Number */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Landline Number/Mobile Number <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <img
-                        src="/assets/images/input_icons/telephone.svg"
-                        alt="Telephone Icon"
-                      />
-                    </div>
-                    <input
-                      type="tel"
-                      name="mobile_number"
-                      value={formData.mobile_number}
-                      onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                    />
-                  </div>
-                  {errors.mobile_number && (
-                    <span className="text-red-500 text-xs">
-                      {errors.mobile_number}
-                    </span>
-                  )}
-                </div>
-
-                {/* Email */}
-                <div className="flex gap-2 flex-col justify-between">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Email <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <img
-                        src="/assets/images/input_icons/email.svg"
-                        alt="Email Icon"
-                      />
-                    </div>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                      placeholder="ejacc@gmail.com"
-                    />
-                  </div>
-                  {errors.email && (
-                    <span className="text-red-500 text-xs">{errors.email}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Additional Info Section */}
-            <div className="flex flex-col gap-5 ">
-              <h1 className="font-bold">Additional Info</h1>
-              <div className="grid grid-cols-2 gap-x-10 gap-y-5 ">
-                {/* Source of Information */}
-                <div className="flex gap-2 flex-col col-span-2 ">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Source of Information (Where did you hear about
-                    RAFI-EJACC?): <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    name="source_of_information"
-                    value={formData.source_of_information}
-                    onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 h-36 resize-none text-[12px] md:text-[16px] w-full md:w-[60%]"
-                  />
-                  {errors.source_of_information && (
-                    <span className="text-red-500 text-xs">
-                      {errors.source_of_information}
-                    </span>
-                  )}
-                </div>
-
-                {/* Other RAFI Programs */}
-                <div className="flex gap-2 flex-col col-span-2">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Other RAFI programs you availed:
-                  </label>
-                  <textarea
-                    name="other_rafi_programs_availed"
-                    value={formData.other_rafi_programs_availed}
-                    onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 h-36 resize-none text-[12px] md:text-[16px] w-full md:w-[60%]"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Socioeconomic Info Section */}
-            <div className="flex flex-col gap-5">
-              <h1 className="font-bold">Socioeconomic Info</h1>
-              <div className="grid grid-cols-2 md:gap-x-10 gap-4">
-                {/* Education */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Highest Educational Attainment <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="highest_educational_attainment"
-                    value={formData.highest_educational_attainment}
-                    onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-                  />
-                  {errors.highest_educational_attainment && (
-                    <span className="text-red-500 text-xs">
-                      {errors.highest_educational_attainment}
-                    </span>
-                  )}
-                </div>
-
-                {/* Occupation */}
-                <div className="flex gap-2 flex-col justify-between">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Occupation <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="occupation"
-                    value={formData.occupation}
-                    onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2   text-[12px] md:text-[16px]"
-                  />
-                  {errors.occupation && (
-                    <span className="text-red-500 text-xs">
-                      {errors.occupation}
-                    </span>
-                  )}
-                </div>
-
-                {/* Income Source */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]  ">
-                    Source of Income <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="source_of_income"
-                    value={formData.source_of_income}
-                    onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-                  />
-                  {errors.source_of_income && (
-                    <span className="text-red-500 text-xs">
-                      {errors.source_of_income}
-                    </span>
-                  )}
-                </div>
-
-                {/* Income */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Income <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    name="monthly_income"
-                    value={formData.monthly_income}
-                    onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-                  />
-                  {errors.monthly_income && (
-                    <span className="text-red-500 text-xs">
-                      {errors.monthly_income}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Emergency Contact 1 Section */}
-            <div className="flex flex-col gap-5">
-              <h1 className="font-bold">Emergency Contact 1</h1>
-              <div className="grid grid-cols-2 md:gap-x-10 gap-3">
-                {/* Name */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="emergencyContact1.name"
-                    value={formData.emergency_contacts[0].name}
-                    onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-                  />
-                  {errors[`emergency_contact_0_name`] && (
-                    <span className="text-red-500 text-xs">
-                      {errors[`emergency_contact_0_name`]}
-                    </span>
-                  )}
-                </div>
-
-                {/* Address */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Address <span className="text-red-500">*</span>
-                  </label> 
-                  <input
-                    type="text"
-                    name="emergencyContact1.address"
-                    value={formData.emergency_contacts[0].address}
-                    onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-                  />
-                  {errors[`emergency_contact_0_address`] && (
-                    <span className="text-red-500 text-xs">
-                      {errors[`emergency_contact_0_address`]}
-                    </span>
-                  )}
-                </div>
-
-                {/* Relationship */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Relationship to Patient <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="emergencyContact1.relationship_to_patient"
-                    value={
-                      formData.emergency_contacts[0].relationship_to_patient
-                    }
-                    onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-                  />
-                  {errors[`emergency_contact_0_relationship`] && (
-                    <span className="text-red-500 text-xs">
-                      {errors[`emergency_contact_0_relationship`]}
-                    </span>
-                  )}
-                </div>
-
-                {/* Email */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Email <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <img
-                        src="/assets/images/input_icons/email.svg"
-                        alt="Email Icon"
-                      />
-                    </div>
-                    <input
-                      type="email"
-                      name="emergencyContact1.email"
-                      value={formData.emergency_contacts[0].email}
-                      onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                      placeholder="ejacc@gmail.com"
-                    />
-                  </div>
-                  {errors[`emergency_contact_0_email`] && (
-                    <span className="text-red-500 text-xs">
-                      {errors[`emergency_contact_0_email`]}
-                    </span>
-                  )}
-                </div>
-
-                {/* Landline */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Landline Number
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <img
-                        src="/assets/images/input_icons/telephone.svg"
-                        alt="Telephone Icon"
-                      />
-                    </div>
-                    <input
-                      type="tel"
-                      name="emergencyContact1.landline_number"
-                      value={formData.emergency_contacts[0].landline_number}
-                      onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                    />
-                  </div>
-                </div>
-
-                {/* Phone */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Phone Number <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <img
-                        src="/assets/images/input_icons/mobile.svg"
-                        alt="Mobile Icon"
-                      />
-                    </div>
-                    <input
-                      type="tel"
-                      name="emergencyContact1.mobile_number"
-                      value={formData.emergency_contacts[0].mobile_number}
-                      onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                    />
-                  </div>
-                  {errors[`emergency_contact_0_mobile_number`] && (
-                    <span className="text-red-500 text-xs">
-                      {errors[`emergency_contact_0_mobile_number`]}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Emergency Contact 2 Section */}
-            <div className="flex flex-col gap-5">
-              <h1 className="font-bold">Emergency Contact 2</h1>
-              <div className="grid grid-cols-2 md:gap-x-10 gap-3">
-                {/* Name */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="emergencyContact2.name"
-                    value={formData.emergency_contacts[1].name}
-                    onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-                  />
-                  {errors[`emergency_contact_1_name`] && (
-                    <span className="text-red-500 text-xs">
-                      {errors[`emergency_contact_0_name`]}
-                    </span>
-                  )}
-                </div>
-
-                {/* Address */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Address <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="emergencyContact2.address"
-                    value={formData.emergency_contacts[1].address}
-                    onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-                  />
-                  {errors[`emergency_contact_1_address`] && (
-                    <span className="text-red-500 text-xs">
-                      {errors[`emergency_contact_0_address`]}
-                    </span>
-                  )}
-                </div>
-
-                {/* Relationship */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Relationship to Patient <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="emergencyContact2.relationship_to_patient"
-                    value={
-                      formData.emergency_contacts[1].relationship_to_patient
-                    }
-                    onChange={handleChange}
-                    className="border-black border-[1px] rounded-md p-2 text-[12px] md:text-[16px]"
-                  />
-                  {errors[`emergency_contact_1_relationship`] && (
-                    <span className="text-red-500 text-xs">
-                      {errors[`emergency_contact_0_relationship`]}
-                    </span>
-                  )}
-                </div>
-
-                {/* Email */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Email <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <img
-                        src="/assets/images/input_icons/email.svg"
-                        alt="Email Icon"
-                      />
-                    </div>
-                    <input
-                      type="email"
-                      name="emergencyContact2.email"
-                      value={formData.emergency_contacts[1].email}
-                      onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                      placeholder="ejacc@gmail.com"
-                    />
-                  </div>
-                  {errors[`emergency_contact_1_email`] && (
-                    <span className="text-red-500 text-xs">
-                      {errors[`emergency_contact_0_email`]}
-                    </span>
-                  )}
-                </div>
-
-                {/* Landline */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Landline Number
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <img
-                        src="/assets/images/input_icons/telephone.svg"
-                        alt="Telephone Icon"
-                      />
-                    </div>
-                    <input
-                      type="tel"
-                      name="emergencyContact2.landline_number"
-                      value={formData.emergency_contacts[1].landline_number}
-                      onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                    />
-                  </div>
-                </div>
-
-                {/* Phone */}
-                <div className="flex gap-2 flex-col">
-                  <label className="text-black text-[12px] md:text-[16px]">
-                    Phone Number <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <img
-                        src="/assets/images/input_icons/mobile.svg"
-                        alt="Mobile Icon"
-                      />
-                    </div>
-                    <input
-                      type="tel"
-                      name="emergencyContact2.mobile_number"
-                      value={formData.emergency_contacts[1].mobile_number}
-                      onChange={handleChange}
-                      className="bg-white border border-black text-black text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 text-[12px] md:text-[16px]"
-                    />
-                  </div>
-                  {errors[`emergency_contact_1_mobile_number`] && (
-                    <span className="text-red-500 text-xs">
-                      {errors[`emergency_contact_0_mobile_number`]}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex w-full justify-between gap-9">
-            <Link
-              to="/beneficiary/pre-enrollment/note"
-              className=" border py-3 rounded-md text-center w-full hover:bg-black/10 hover:border-white"
-            >
-              Cancel
-            </Link>
-            <button
-              type="button"
-              // to="/beneficiary/pre-enrollment/cancer-data"
-              onClick={handleNext}
-              className="bg-[#749AB6] text-center font-bold text-white py-3 w-full border-[1px] border-[#749AB6] hover:border-[#C5D7E5] hover:bg-[#C5D7E5] rounded-md cursor-pointer"
-              // state={{
-              //   formData: formData,
-              //   photoUrl: imageFile
-              // }}
-            >
-              Next
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
-    </>
+      
+      {/* Decorative Footer */}
+      <div className="h-16 bg-secondary shrink-0"></div>
+    </div>
   );
-}
+};
+
+export default PatientProfileForm;

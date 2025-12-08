@@ -1,104 +1,143 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { 
+  FileText, 
+  Search, 
+  Save, 
+  ArrowLeft,
+  Pill,
+  User,
+  Calendar
+} from "lucide-react";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
-import Notification from "src/components/Notification";
-
+import NotificationModal from "src/components/Modal/NotificationModal"; // Using standard modal
 import SystemLoader from "src/components/SystemLoader";
 
+import { REQUIRED_DOCS } from "src/constants/requiredDocs";
 import api from "src/api/axiosInstance";
 
-import { REQUIRED_DOCS } from "src/constants/requiredDocs";
+// --- Reusable UI Helpers ---
 
-/* =========================
-   Searchable Select (same UX pattern)
-   ========================= */
-const SearchableSelect = ({
-  label = "Patient Name",
-  placeholder = "Search patient...",
-  options = [],
-  value = null,
-  onChange,
-  errors = {},
-}) => {
+const InputGroup = ({ label, name, type = "text", value, onChange, required, error, placeholder, readOnly, ...props }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      readOnly={readOnly}
+      className={`w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
+        error ? 'border-red-500 bg-red-50' : readOnly ? 'bg-gray-100 text-gray-500 border-gray-200' : 'border-gray-300 bg-white'
+      }`}
+      {...props}
+    />
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
+const SelectGroup = ({ label, value, onChange, options, required, error }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <select
+      value={value}
+      onChange={onChange}
+      className={`w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-white ${
+        error ? 'border-red-500 bg-red-50' : 'border-gray-300'
+      }`}
+    >
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
+// --- Styled Searchable Select ---
+const SearchableSelect = ({ label, placeholder, options = [], value, onChange, error }) => {
   const [open, setOpen] = useState(false);
-  const [q, setQ] = useState("");
+  const [query, setQuery] = useState("");
   const ref = useRef(null);
 
-  const filtered = useMemo(() => {
-    if (!q) return options;
-    const s = q.toLowerCase();
+  const filteredOptions = useMemo(() => {
+    if (!query) return options;
+    const lowerQuery = query.toLowerCase();
     return options.filter(
       (o) =>
-        o.full_name.toLowerCase().includes(s) ||
-        (o.email && o.email.toLowerCase().includes(s))
+        o.full_name.toLowerCase().includes(lowerQuery) ||
+        (o.email && o.email.toLowerCase().includes(lowerQuery))
     );
-  }, [q, options]);
+  }, [query, options]);
 
   useEffect(() => {
-    const onDocClick = (e) => {
+    const handleClickOutside = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     };
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <div className="w-full" ref={ref}>
-      <label className="text-sm font-medium block mb-1">{label} <span className="text-red-500">*</span></label>
-      <div className="relative">
-        <button
-          type="button"
-          className="w-full border border-gray-300 rounded px-3 py-2 bg-white text-left"
-          onClick={() => setOpen((o) => !o)}
-        >
-          {value ? value.full_name : "Select patient"}
-        </button>
-
-        {open && (
-          <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded shadow">
-            <div className="p-2 border-b border-gray-200">
-              <input
-                autoFocus
-                type="text"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={placeholder}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-              />
-            </div>
-            <ul className="max-h-56 overflow-auto">
-              {filtered.length === 0 && (
-                <li className="px-3 py-2 text-sm text-gray-500">No results</li>
-              )}
-              {filtered.map((opt) => (
-                <li
-                  key={opt.id}
-                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    onChange(opt);
-                    setOpen(false);
-                    setQ("");
-                  }}
-                >
-                  <div className="text-sm font-medium">{opt.full_name}</div>
-                  <div className="text-xs text-gray-500">{opt.email}</div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-      {errors.patient && !value && (
-        <span className="text-red-500 text-xs">
-          {errors.patient}
+    <div className="w-full relative" ref={ref}>
+      <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+        {label} <span className="text-red-500">*</span>
+      </label>
+      
+      <button
+        type="button" 
+        className={`w-full border rounded-md px-3 py-2 text-sm flex items-center justify-between cursor-pointer bg-white text-left ${
+            error ? 'border-red-500 bg-red-50' : 'border-gray-300'
+        }`}
+        onClick={() => setOpen(!open)}
+      >
+        <span className={value ? "text-gray-900 font-medium" : "text-gray-400"}>
+            {value ? value.full_name : placeholder}
         </span>
-      )}
-      {value && (
-        <p className="text-xs text-gray-500 mt-1">
-          Selected: <span className="font-medium">{value.full_name}</span>{" "}
-          <span className="text-gray-400">({value.email})</span>
-        </p>
+        <Search className="w-4 h-4 text-gray-400" />
+      </button>
+
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-hidden flex flex-col">
+          <div className="p-2 border-b border-gray-100 bg-gray-50">
+            <input
+              autoFocus
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Type to search..."
+              className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-primary"
+            />
+          </div>
+          <ul className="overflow-y-auto flex-1">
+            {filteredOptions.length === 0 ? (
+                <li className="px-4 py-3 text-xs text-gray-500 text-center">No patients found</li>
+            ) : (
+                filteredOptions.map((opt) => (
+                <li
+                    key={opt.patient_id}
+                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-0"
+                    onClick={() => {
+                        onChange(opt);
+                        setOpen(false);
+                        setQuery("");
+                    }}
+                >
+                    <div className="text-sm font-bold text-gray-800">{opt.full_name}</div>
+                    <div className="text-xs text-gray-500">{opt.patient_id} • {opt.email || "No Email"}</div>
+                </li>
+                ))
+            )}
+          </ul>
+        </div>
       )}
     </div>
   );
@@ -109,127 +148,66 @@ const LIST_PATH = "/admin/treatment-assistance/pre-cancerous";
 const AdminHormonalReplacementAdd = () => {
   const navigate = useNavigate();
 
-  // ===== LOA GENERATION (shown first) =====
-  const [patient, setPatient] = useState(null); // { id, full_name, email, age, address }
+  // State
   const [patientTable, setPatientTable] = useState([]);
-  const [age, setAge] = useState("");
-  const [patientAddress, setPatientAddress] = useState("");
-  const [date, setDate] = useState("");
-  const [medicines, setMedicines] = useState();
-  const [providerAddress, setProviderAddress] = useState("");
+  const [patient, setPatient] = useState(null);
+  
   const [diagnosis, setDiagnosis] = useState("");
-  const [procedure, setProcedure] = useState("");
-  const [preparedBy, setPreparedBy] = useState("");
-  const [approvedBy, setApprovedBy] = useState("");
+  const [date, setDate] = useState("");
   const [status, setStatus] = useState("Approved");
-  const [interpretationOfResult, setInterpretationOfResult] = useState("");
-  // const [serviceProvider, setServiceProvider] = useState("Chong Hua Hospital Mandaue")
+  const [interpretationOfResult, setInterpretationOfResult] = useState("Negative");
+  const [destinationName, setDestinationName] = useState("Rafi - EJACC"); // Default/Hidden if needed
 
-  const requiredDocs = REQUIRED_DOCS["Hormonal Replacement"];
-
-  const [activeIdx, setActiveIdx] = useState(0);
-  const activeDoc = requiredDocs[activeIdx];
-
-  // helper to build a cleared files map
-  const makeEmptyFiles = () =>
-    requiredDocs.reduce((acc, d) => ({ ...acc, [d.key]: null }), {});
-  const [files, setFiles] = useState(makeEmptyFiles);
-
-  const allUploaded = useMemo(
-    () => requiredDocs.every((doc) => !!files[doc.key]),
-    [files, requiredDocs]
-  );
-  const inputRef = useRef(null);
-
-  const [destinationName, setDestinationName] = useState("Rafi - EJACC");
-
-  // ===== Request Post-Treatment Labs (separate card) =====
-  // Send Report Modal
-  const [labRequestModal, setLabRequestModal] = useState(false);
-  const [labRequestFile, setLabRequestFile] = useState(null);
-  // const [labRequest, setLabRequest] = useState("");
-  const [labResult, setLabResult] = useState("");
-  const [schedule, setSchedule] = useState("");
-
-  // ===== Global UX =====
+  // UX State
   const [loading, setLoading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [notifyOpen, setNotifyOpen] = useState(false);
-  const [notifyInfo, setNotifyInfo] = useState({
-    type: "success",
-    title: "Success!",
-    message: "Record has been created.",
-  });
-
-  // Notification
-  const [notification, setNotification] = useState("");
-  const [notificationType, setNotificationType] = useState("info");
-
   const [errors, setErrors] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({ type: "success", title: "", message: "" });
 
-  const fetchData = async () => {
-    try {
-      const response = await api.get("/patient/list/");
-      setPatientTable(response.data);
-      console.log("Responses: ", response.data);
-    } catch (error) {
-      console.error("Error fetching patient data:", error);
-    }
-  };
-
+  // Load Patients
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data } = await api.get("/patient/list/");
+        setPatientTable(data);
+      } catch (error) {
+        console.error("Error fetching patients:", error);
+      }
+    };
     fetchData();
   }, []);
 
-  const handleChooseFile = () => inputRef.current?.click();
-
-  const handleFileSelect = (e) => {
-    const file = e.target.files?.[0];
-    if (file && activeDoc) {
-      setFiles((prev) => ({ ...prev, [activeDoc.key]: file }));
+  // Update Diagnosis when patient changes
+  useEffect(() => {
+    if (patient && patient.diagnosis && patient.diagnosis.length > 0) {
+        setDiagnosis(patient.diagnosis[0].diagnosis || "");
+    } else {
+        setDiagnosis("");
     }
-    e.target.value = ""; // allow reselecting the same file
-  };
-
-  const isValid = useMemo(() => {
-    return (
-      patient &&
-      date &&
-      interpretationOfResult
-    );
-  }, [
-    patient,
-    // age,
-    date,
-    interpretationOfResult,
-  ]);
+  }, [patient]);
 
   const validate = () => {
     const newErrors = {};
+    if (!patient) newErrors.patient = "Required";
+    if (!date) newErrors.release_date_of_meds = "Required";
+    if (!interpretationOfResult) newErrors.interpretation_of_result = "Required";
 
-    if (!patient)
-      newErrors["patient"] = "Select a patient."
-    if (!date)
-      newErrors["release_date_of_meds"] = "Release date is required."
-    if (!interpretationOfResult)
-      newErrors["interpretation_of_result"] = "Select one value."
-    if (!date)
-      newErrors["release_date_of_meds"] = "Release date is required."
-
-    if (date && date < new Date().toISOString().split('T')[0])
-      newErrors["release_date_of_meds"] = "Date should not be in the past.";
+    if (date && date < new Date().toISOString().split('T')[0]) {
+        newErrors.release_date_of_meds = "Cannot be in past";
+    }
 
     return newErrors;
   };
 
   const handleSave = () => {
     const validationErrors = validate();
-
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      setModalInfo({ type: "error", title: "Validation Error", message: "Please check all required fields." });
+      setShowModal(true);
       return;
     }
-
     setErrors({});
     setConfirmOpen(true);
   };
@@ -238,184 +216,165 @@ const AdminHormonalReplacementAdd = () => {
     setConfirmOpen(false);
     setLoading(true);
 
-    try { 
+    try {
       const formData = new FormData();
       formData.append("patient_id", patient.patient_id);
-      formData.append("status", "Approved");
+      formData.append("status", "Approved"); // Hardcoded as per your logic
       formData.append("interpretation_of_result", interpretationOfResult);
       formData.append("release_date_of_meds", date);
       formData.append("request_destination", "Rafi - EJACC");
       formData.append("destination_name", destinationName);
 
-      await api.post(
-        `/precancerous/create/`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      await api.post(`/precancerous/create/`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-      navigate("/admin/treatment-assistance/pre-cancerous", {
-        state: { type: "success", message: "Created Successfully." },
+      navigate(LIST_PATH, {
+        state: { flash: "Record created successfully." },
       });
     } catch (error) {
-      let errorMessage = "Something went wrong while submitting the form.";
-
-      if (error.response && error.response.data) {
-        console.log("1")
-        console.log(error.response)
-        if (error.response.data.non_field_errors) {
-          console.log("2")
-          errorMessage = error.response.data.non_field_errors[0];
-        }
-      }
-      setNotification(errorMessage);
-      setNotificationType("error");
-      setTimeout(() => setNotification(""), 3000);
       console.error(error);
+      let msg = "Something went wrong.";
+      if (error.response?.data?.non_field_errors) msg = error.response.data.non_field_errors[0];
+      setModalInfo({ type: "error", title: "Creation Failed", message: msg });
+      setShowModal(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const confirmSelectedFile = () => {
-    setLabRequestModal(false);
-    console.log("Selected File: ", labRequestFile)
-  };
-
   return (
-    <>
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
       {loading && <SystemLoader />}
-      {/* Global Modals (same components you already use) */}
+      
       <ConfirmationModal
         open={confirmOpen}
-        title="Create this post-treatment record?"
-        desc="Please review all details before submitting."
+        title="Create Medication Record?"
+        desc="This will create a new pre-cancerous medication record."
         onConfirm={doSubmit}
         onCancel={() => setConfirmOpen(false)}
       />
-      <Notification message={notification} type={notificationType} />
 
-      <div className="h-screen w-full flex p-5 gap-4 flex-col justify-start items-center bg-gray overflow-auto">
-        <div className="bg-white w-full rounded-md shadow border border-black/10">
-          <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-            <h2 className="text-lg font-semibold">Pre Cancerous Medication</h2>
-          </div>
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
+      />
 
-          <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            {/* Select Patient (Searchable) */}
-            <div className="w-full">
-              <SearchableSelect
-                label="Patient Name"
-                options={patientTable}
-                value={patient}
-                onChange={setPatient}
-                placeholder="Type to search by name or email..."
-                errors={errors}
-              />
+      <div className="py-5 px-5 md:px-5 flex flex-col flex-1 max-w-5xl mx-auto w-full">
+        
+        {/* Top Title */}
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">
+            Add Pre-Cancerous Medication
+        </h2>
+
+        {/* Main Content Card */}
+        <div className="flex flex-col gap-8 w-full bg-white rounded-lg py-8 px-6 md:px-10 shadow-sm border border-gray-100 flex-1">
+            
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-6 gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-50 rounded-full text-purple-600">
+                        <Pill className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-800">Medication Record</h1>
+                        <p className="text-xs text-gray-500 mt-1">Select patient and record medication details.</p>
+                    </div>
+                </div>
             </div>
 
-            {/* Auto-filled (editable) */}
-            <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                Diagnosis {/* <span className="text-red-500">*</span> */}
-              </label>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={patient?.diagnosis[0]?.diagnosis}
-                onChange={(e) => setDiagnosis(e.target.value)}
-                placeholder="Autofill field"
-                readOnly
-              />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                
+                {/* Left Column */}
+                <div className="space-y-6">
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-l-4 border-purple-500 pl-3 flex items-center gap-2">
+                        <User className="w-4 h-4 text-gray-400" /> Patient Details
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 gap-5">
+                        <SearchableSelect 
+                            label="Patient Name"
+                            placeholder="Search by name or ID..."
+                            options={patientTable}
+                            value={patient}
+                            onChange={setPatient}
+                            error={errors.patient}
+                        />
+
+                         {/* Diagnosis Auto-fill */}
+                         <InputGroup 
+                            label="Diagnosis" 
+                            value={diagnosis} 
+                            readOnly 
+                            placeholder="Auto-filled upon selection"
+                        />
+                    </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-6">
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-l-4 border-purple-500 pl-3 flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-gray-400" /> Treatment Details
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-5">
+                        <SelectGroup 
+                            label="Interpretation of Result"
+                            value={interpretationOfResult}
+                            onChange={(e) => setInterpretationOfResult(e.target.value)}
+                            required
+                            error={errors.interpretation_of_result}
+                            options={[
+                                { value: "Negative", label: "Negative" },
+                                { value: "ASC-US", label: "ASC-US" },
+                                { value: "HPV Positive", label: "HPV Positive" },
+                                { value: "Unsatisfactory", label: "Unsatisfactory" }
+                            ]}
+                        />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <InputGroup 
+                                label="Release Date" 
+                                type="date" 
+                                value={date} 
+                                onChange={(e) => setDate(e.target.value)} 
+                                required 
+                                error={errors.release_date_of_meds}
+                            />
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div className="w-full">
-              <label className="text-sm font-medium block mb-1">Interpretation of Result <span className="text-red-500">*</span></label>
-              <select
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={interpretationOfResult}
-                onChange={(e) => setInterpretationOfResult(e.target.value)}
-              >
-                <option value="Negative">Negative</option>
-                <option value="ASC-US">ASC-US</option>
-                <option value="HPV Positive">HPV Positive</option>
-                <option value="Unsatisfactory">Unsatisfactory</option>
-                {/* <option value="Reject">Reject</option> */}
-              </select>
-              {errors.interpretation_of_result && (
-                <span className="text-red-500 text-xs">
-                  {errors.interpretation_of_result}
-                </span>
-              )}
+            {/* Footer Actions */}
+            <div className="flex justify-around print:hidden mt-6">
+                <button
+                    type="button"
+                    onClick={() => navigate(LIST_PATH)}
+                    className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    onClick={handleSave}
+                    className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+                >
+                    {/* <Save className="w-4 h-4" /> */}
+                    Save Record
+                </button>
             </div>
 
-            {/* <div className="w-full">
-              <label className="text-sm font-medium block mb-1">Status</label>
-              <select
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approve</option>
-                <option value="Completed">Complete</option>
-                <option value="Follow-up Required">Follow-up Required</option>
-                <option value="Reject">Reject</option>
-              </select>
-            </div> */}
-
-            <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                Release Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-              {errors.release_date_of_meds && (
-                <span className="text-red-500 text-xs">
-                  {errors.release_date_of_meds}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom actions */}
-        <div className="w-full flex justify-around pb-6">
-          <Link
-            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
-            to={LIST_PATH}
-          >
-            Cancel
-          </Link>
-          <button
-            type="button"
-            onClick={handleSave}
-            className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-          >
-            Save
-          </button>
-          {/* <button
-            type="button"
-            onClick={() => setConfirmOpen(true)}
-            // disabled={!isValid}
-            className={`text-center font-bold text-white py-2 w-full md:w-[30%] rounded-md shadow ${
-              !true
-                ? "bg-gray-300 cursor-not-allowed"
-                : "bg-primary hover:opacity-90"
-            }`}
-            // className={`text-center font-bold text-white py-2 w-full md:w-[30%] rounded-md shadow bg-primary hover:opacity-90`}
-            title={!isValid ? "Complete required fields" : ""}
-          >
-            Save
-          </button> */}
         </div>
       </div>
-    </>
+      
+      {/* Decorative Footer */}
+      <div className="h-16 bg-secondary shrink-0"></div>
+    </div>
   );
 };
 
