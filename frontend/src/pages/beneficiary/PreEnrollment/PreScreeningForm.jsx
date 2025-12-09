@@ -119,7 +119,7 @@ const CheckboxGroup = ({ label, groupName, options, currentValues, onChange, err
             <label key={opt} className={`flex items-center gap-2 p-2 rounded border cursor-pointer transition-colors ${isChecked ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:border-blue-300'}`}>
               <input
                 type="checkbox"
-                className="w-4 h-4 accent-primary"
+                className="w-4 h-4"
                 checked={isChecked}
                 onChange={() => onChange(groupName, opt)}
               />
@@ -145,7 +145,7 @@ const RadioGroup = ({ label, name, options, value, onChange, required, error }) 
             value={opt}
             checked={String(value) === String(opt)}
             onChange={onChange}
-            className="w-4 h-4 accent-primary"
+            className="w-4 h-4"
           />
           <span className="text-sm text-gray-700">{opt}</span>
         </label>
@@ -206,7 +206,7 @@ const PreScreeningForm = () => {
         navigate("/beneficiary/pre-enrollment");
     }
   }, [generalData, navigate]);
-
+  console.log("Photo URL: ", photoUrl);
   // --- Handlers ---
 
   const handleInputChange = (e) => {
@@ -303,7 +303,7 @@ const PreScreeningForm = () => {
         formData.append("general_data", JSON.stringify(generalData));
         
         if (photoUrl) {
-            formData.append("photo_url", photoUrl);
+            formData.append("photoUrl", photoUrl);
         }
 
         await api.post("/beneficiary/pre-enrollment/", formData, {
@@ -347,7 +347,7 @@ const PreScreeningForm = () => {
       />
       {loading && <SystemLoader />}
 
-      <div className="lg:w-[80%] h-screen bg-gray flex flex-col overflow-auto">
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
         <div className="py-5 px-5 md:px-5 flex flex-col flex-1 max-w-7xl mx-auto w-full">
             
             {/* Top Title */}
@@ -540,7 +540,7 @@ const PreScreeningForm = () => {
                                     name="consentAgreement"
                                     checked={form.consentAgreement}
                                     onChange={handleInputChange}
-                                    className="w-5 h-5 accent-primary cursor-pointer"
+                                    className="w-5 h-5 cursor-pointer"
                                 />
                                 <span className="text-sm text-gray-700">
                                     I agree to the <span className="font-bold text-primary underline">Data Privacy Notice</span> and confirm the information is correct. <span className="text-red-500">*</span>

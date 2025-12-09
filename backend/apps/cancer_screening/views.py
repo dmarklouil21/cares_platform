@@ -42,6 +42,7 @@ from .serializers import (
 )
 
 import os
+import threading
 import logging
 logger = logging.getLogger(__name__)
 
@@ -124,13 +125,25 @@ class IndividualScreeningCreateView(generics.CreateAPIView):
             doc_type=key 
           )
         
-        email_status = send_service_registration_email(
-          patient=patient, 
-          service_name='Cancer Screening'
-        )
+        # Define a small helper function to run in the background
+        def send_email_in_background(patient_obj, svc):
+          try:
+            send_service_registration_email(patient_obj, svc)
+          except Exception as e:
+            logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+            print(f"Background email failed: {e}")
         
-        if email_status is not True:
-          logger.error(f"Email failed to send: {email_status}")
+        # Start the thread. The request proceeds immediately without waiting.
+        email_thread = threading.Thread(target=send_email_in_background, args=(patient, 'Cancer Screening'))
+        email_thread.start()
+
+        # email_status = send_service_registration_email(
+        #   patient=patient, 
+        #   service_name='Cancer Screening'
+        # )
+        
+        # if email_status is not True:
+        #   logger.error(f"Email failed to send: {email_status}")
           
     except ValidationError:
       raise
@@ -192,7 +205,19 @@ class IndividualScreeningDeleteView(generics.DestroyAPIView):
     patient.save()
 
     if remarks:
-      send_individual_screening_status_email(patient=patient, status=status_value, remarks=remarks)
+      # Define a small helper function to run in the background
+      def send_email_in_background(patient_obj, status_value, remarks):
+        try:
+          send_individual_screening_status_email(patient_obj, status_value, remarks)
+        except Exception as e:
+          logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+          print(f"Background email failed: {e}")
+      
+      # Start the thread. The request proceeds immediately without waiting.
+      email_thread = threading.Thread(target=send_email_in_background, args=(patient, status_value, remarks))
+      email_thread.start()
+
+      # send_individual_screening_status_email(patient=patient, status=status_value, remarks=remarks)
     return super().perform_destroy(instance)
 
 class ScreeningAttachmentUpdateView(APIView):
@@ -256,11 +281,23 @@ class IndividualScreeningStatusUpdateView(generics.UpdateAPIView):
     if user:
       create_notification(user, f'Individual Screening {instance.status.title()}', f'Your individual screening request has been {instance.status}.')
 
-    email_status = send_individual_screening_status_email(
-      instance.patient, instance.status, instance.screening_date, remarks
-    )
-    if email_status is not True:
-      logger.error(f"Email failed to send: {email_status}")
+    # Define a small helper function to run in the background
+    def send_email_in_background(patient_obj, status_value, screening_date, remarks):
+      try:
+        send_individual_screening_status_email(patient_obj, status_value, screening_date, remarks)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Background email failed: {e}")
+    
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(instance.patient, instance.status, instance.screening_date, remarks))
+    email_thread.start()
+    
+    # email_status = send_individual_screening_status_email(
+    #   instance.patient, instance.status, instance.screening_date, remarks
+    # )
+    # if email_status is not True:
+    #   logger.error(f"Email failed to send: {email_status}")
 
 class IndividualScreeningStatusRejectView(APIView):
   permission_classes = [IsAuthenticated, IsAdminUser]
@@ -279,7 +316,19 @@ class IndividualScreeningStatusRejectView(APIView):
     patient.save()
     individual_screening.save()
 
-    send_individual_screening_status_email(patient=patient, status=status_value, remarks=remarks)
+    # Define a small helper function to run in the background
+    def send_email_in_background(patient_obj, status_value, remarks):
+      try:
+        send_individual_screening_status_email(patient=patient_obj, status=status_value, remarks=remarks)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Background email failed: {e}")
+    
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(patient, status_value, remarks))
+    email_thread.start()
+
+    # send_individual_screening_status_email(patient=patient, status=status_value, remarks=remarks)
     return Response({"message": "Rejected successfully."})
 
 class ResultAttachmentUploadView(APIView):
@@ -371,11 +420,23 @@ class SendLOAView(APIView):
     if not email:
       return Response({"error": "No recipient email provided."}, status=400)
     
-    result = send_loa_email(email, file_obj, patient_name)
+    # Define a small helper function to run in the background
+    def send_email_in_background(email, file_obj, patient_name):
+      try:
+        send_loa_email(email, file_obj, patient_name)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Failed to send LOA: {e}")
+    
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(email, file_obj, patient_name))
+    email_thread.start()
 
-    if result is True:
-      return Response({"message": "LOA sent successfully."}, status=200)
-    return Response({"error": f"Failed to send LOA: {result}"}, status=500)
+    # result = send_loa_email(email, file_obj, patient_name)
+
+    # if result is True:
+    return Response({"message": "LOA sent successfully."}, status=200)
+    # return Response({"error": f"Failed to send LOA: {result}"}, status=500)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -391,9 +452,21 @@ def send_return_remarks(request, id):
   individual_screening.response_description = ''
   individual_screening.save()
 
-  email_status = send_return_remarks_email(patient, remarks)
-  if email_status is not True:
-    logger.error(f"Email failed to send: {email_status}")
+  # Define a small helper function to run in the background
+  def send_email_in_background(patient, remarks):
+    try:
+      send_return_remarks_email(patient, remarks)
+    except Exception as e:
+      logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+      print(f"Failed to send LOA: {e}")
+  
+  # Start the thread. The request proceeds immediately without waiting.
+  email_thread = threading.Thread(target=send_email_in_background, args=(patient, remarks))
+  email_thread.start()
+  
+  # email_status = send_return_remarks_email(patient, remarks)
+  # if email_status is not True:
+    # logger.error(f"Email failed to send: {email_status}")
 
   return Response({"message": "Return remarks sent and saved successfully.", "remarks": remarks})
 
@@ -606,10 +679,34 @@ class AdminMassScreeningStatusView(APIView):
     try:
       if ms.rhu:
         print('Reperesentative: ', ms.rhu.representatives)
-        send_mass_screening_status_email(ms.rhu, ms.status, request_obj=ms, remarks=remarks)
+        # Define a small helper function to run in the background
+        def send_email_in_background(ms_rhu, ms_status, ms, remarks):
+          try:
+            send_mass_screening_status_email(ms_rhu, ms_status, request_obj=ms, remarks=remarks)
+          except Exception as e:
+            logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+            print(f"Background email failed: {e}")
+        
+        # Start the thread. The request proceeds immediately without waiting.
+        email_thread = threading.Thread(target=send_email_in_background, args=(ms.rhu, ms.status, ms, remarks))
+        email_thread.start()
+
+        # send_mass_screening_status_email(ms.rhu, ms.status, request_obj=ms, remarks=remarks)
       elif ms.private_id:
         print('Or here?')
-        send_mass_screening_status_email_private(ms.private, ms.status, request_obj=ms, remarks=remarks)
+        # Define a small helper function to run in the background
+        def send_email_in_background(ms_private, ms_status, ms, remarks):
+          try:
+            send_mass_screening_status_email_private(ms_private, ms_status, request_obj=ms, remarks=remarks)
+          except Exception as e:
+            logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+            print(f"Background email failed: {e}")
+        
+        # Start the thread. The request proceeds immediately without waiting.
+        email_thread = threading.Thread(target=send_email_in_background, args=(ms.rhu, ms.status, ms, remarks))
+        email_thread.start()
+
+        # send_mass_screening_status_email_private(ms.private, ms.status, request_obj=ms, remarks=remarks)
     except Exception:
       print('I gues not')
     return Response(MassScreeningRequestSerializer(ms).data, status=status.HTTP_200_OK)
@@ -715,3 +812,45 @@ class AdminPreCancerousMedsDetailView(generics.RetrieveAPIView):
 #       logger.error(f"Email failed to send: {email_status}")
 
 #     return Response(PreCancerousMedsRequestSerializer(obj).data, status=status.HTTP_200_OK)
+
+class OngoingMassScreeningCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        today = timezone.now().date()
+
+        # 1. Base Query: Verified and Today or Future
+        ongoing_qs = MassScreeningRequest.objects.filter(
+            status='Verified',
+            date__gte=today
+        )
+
+        # 2. Apply Role-Based Filtering
+        if user.is_staff or user.is_superuser:
+            # Admin counts ALL ongoing screenings
+            pass
+
+        elif hasattr(user, 'representative'):
+            # RHU counts only their own screenings
+            try:
+                user_rhu = user.representative.rhu
+                ongoing_qs = ongoing_qs.filter(rhu=user_rhu)
+            except AttributeError:
+                ongoing_qs = ongoing_qs.none()
+
+        elif hasattr(user, 'privaterepresentative'):
+            # Private Partner counts only their own screenings
+            try:
+                user_private = user.privaterepresentative.private
+                ongoing_qs = ongoing_qs.filter(private=user_private)
+            except AttributeError:
+                ongoing_qs = ongoing_qs.none()
+        
+        else:
+            return Response({"ongoing_count": 0})
+
+        # 3. Return the Count
+        return Response({
+            "ongoing_count": ongoing_qs.count()
+        })

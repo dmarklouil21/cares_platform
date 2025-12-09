@@ -295,7 +295,7 @@ const PatientPreScreeningForm = () => {
         formData.append("general_data", JSON.stringify(generalData));
         
         if (photoUrl) {
-            formData.append("photo_url", photoUrl); // The actual File object from Step 1
+            formData.append("photoUrl", photoUrl); // The actual File object from Step 1
         }
 
         await api.post("/patient/pre-enrollment/", formData, {

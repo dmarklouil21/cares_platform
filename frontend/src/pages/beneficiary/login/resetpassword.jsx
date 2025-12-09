@@ -1,27 +1,75 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { resetPasswordAPI } from "src/services/authService";
+import { 
+  Eye, 
+  EyeOff, 
+  Lock, 
+  Check, 
+  ShieldCheck, 
+  KeyRound,
+  X,
+  CheckCircle // Used for the success popup
+} from "lucide-react";
 
+import { resetPasswordAPI } from "src/services/authService";
 import SystemLoader from "src/components/SystemLoader";
+
+// --- Sub-component for Password Strength ---
+const RequirementItem = ({ met, text }) => (
+  <li className={`flex items-center gap-2 text-xs transition-colors duration-200 ${met ? "text-green-600 font-medium" : "text-gray-400"}`}>
+    {met ? <Check className="w-3 h-3" /> : <div className="w-3 h-3 rounded-full border border-gray-300"></div>}
+    {text}
+  </li>
+);
+
+// --- Reusable Password Input ---
+const PasswordInput = ({ id, label, name, value, onChange, placeholder, onFocus, onBlur }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <div>
+      <label htmlFor={id} className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+        {label} <span className="text-red-500">*</span>
+      </label>
+      <div className="relative">
+        <Lock className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
+        <input
+          id={id}
+          name={name}
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={onChange}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          placeholder={placeholder}
+          className="w-full border border-gray-300 rounded-lg py-2.5 pl-10 pr-10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+        />
+        <button
+          type="button"
+          onClick={() => setShow(!show)}
+          className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 focus:outline-none"
+        >
+          {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const ResetPasswordPanel = () => {
   const navigate = useNavigate();
-  const [showPopup, setShowPopup] = useState(false);
-  const [animationClass, setAnimationClass] = useState("bounce-in");
-  const [showReqModal, setShowReqModal] = useState(false);
-  const [showOldPassword, setShowOldPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Loading Modal
-  const [loading, setLoading] = useState(false);
-
+  
+  // State
   const [formData, setFormData] = useState({
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
-
+  
+  const [loading, setLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [showReqModal, setShowReqModal] = useState(false);
+  
+  // Validation Logic
   const password = formData.newPassword || "";
   const criteria = {
     length: password.length >= 8,
@@ -29,14 +77,9 @@ const ResetPasswordPanel = () => {
     special: /[^A-Za-z0-9]/.test(password),
     upperLower: /[a-z]/.test(password) && /[A-Z]/.test(password),
   };
-  const allMet =
-    criteria.length &&
-    criteria.letterNumber &&
-    criteria.special &&
-    criteria.upperLower;
-  const passwordsMatch =
-    formData.confirmPassword.length > 0 &&
-    formData.newPassword === formData.confirmPassword;
+  
+  const allMet = criteria.length && criteria.letterNumber && criteria.special && criteria.upperLower;
+  const passwordsMatch = formData.confirmPassword.length > 0 && formData.newPassword === formData.confirmPassword;
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -47,18 +90,14 @@ const ResetPasswordPanel = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Get email from localStorage user
     const user = JSON.parse(localStorage.getItem("user"));
     const email = user?.email;
+
     if (!email) {
-      alert("User email not found. Please log in again.");
+      alert("User session expired. Please log in again.");
       return;
     }
-    if (
-      !formData.oldPassword ||
-      !formData.newPassword ||
-      !formData.confirmPassword
-    ) {
+    if (!formData.oldPassword || !formData.newPassword || !formData.confirmPassword) {
       alert("Please fill in all fields.");
       return;
     }
@@ -66,23 +105,19 @@ const ResetPasswordPanel = () => {
       alert("Password does not meet the required strength.");
       return;
     }
-    if (formData.newPassword !== formData.confirmPassword) {
+    if (!passwordsMatch) {
       alert("New passwords do not match.");
       return;
     }
+
     setLoading(true);
     try {
       await resetPasswordAPI(email, formData.oldPassword, formData.newPassword);
-      // Optimistically mark user as active in localStorage
       const updatedUser = { ...(user || {}), is_active: true };
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setShowPopup(true);
     } catch (error) {
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
+      if (error.response?.data?.message) {
         alert(error.response.data.message);
       } else {
         alert("Password reset failed. Please try again later.");
@@ -93,363 +128,161 @@ const ResetPasswordPanel = () => {
   };
 
   const handleContinue = () => {
-    setAnimationClass("bounce-out");
-    setTimeout(() => {
-      setShowPopup(false);
-      const currentUser = JSON.parse(localStorage.getItem("user"));
-      if (currentUser?.is_superuser) {
-        navigate("/admin");
-      } else if (currentUser?.is_rhu) {
-        navigate("/rhu");
-      } else if (currentUser?.is_private) {
-        navigate("/private");
-      } else {
-        navigate("/beneficiary/pre-enrollment/note");
-      }
-    }, 400);
+    setShowPopup(false);
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+    
+    if (currentUser?.is_superuser) {
+      navigate("/admin");
+    } else if (currentUser?.is_rhu) {
+      navigate("/rhu");
+    } else if (currentUser?.is_private) {
+      navigate("/private");
+    } else {
+      navigate("/beneficiary/pre-enrollment/note");
+    }
   };
 
   return (
     <>
       {loading && <SystemLoader />}
-      <div className="bg-gray w-full lg:w-[75%] h-screen flex flex-col items-center justify-center gap-5">
-        <div className="flex flex-col gap-2 items-center justify-center">
-          <h2 className="text-3xl font-bold">Reset Your Password</h2>
-          <p className="text-center text-base text-black">
-            You must change your password before accessing <br />
-            your account.
-          </p>
+
+      <div className="flex min-h-screen w-full bg-gray items-center justify-center p-6">
+        
+        <div className="w-full max-w-md bg-white p-8 md:p-10 rounded-lg shadow-xl border border-gray-100 relative">
+            
+            {/* Header */}
+            <div className="flex flex-col items-center mb-8 text-center gap-3">
+                <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center text-primary mb-2">
+                    <KeyRound className="w-7 h-7" />
+                </div>
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Reset Password</h2>
+                    <p className="text-sm text-gray-500 mt-2">
+                        Update your password to continue.
+                    </p>
+                </div>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-6">
+                
+                {/* Old Password */}
+                <PasswordInput 
+                    id="oldPassword"
+                    label="Current Password"
+                    name="oldPassword"
+                    value={formData.oldPassword}
+                    onChange={handleChange}
+                    placeholder="Enter current password"
+                />
+
+                {/* New Password with Floating Requirements */}
+                <div className="relative">
+                  <PasswordInput 
+                      id="newPassword"
+                      label="New Password"
+                      name="newPassword"
+                      value={formData.newPassword}
+                      onChange={handleChange}
+                      onFocus={() => setShowReqModal(true)}
+                      onBlur={() => setShowReqModal(false)}
+                      placeholder="Enter new password"
+                  />
+
+                   {/* Floating Requirements Popup */}
+                   {showReqModal && (
+                      <div className="absolute z-50 left-0 top-full mt-2 w-full bg-white rounded-xl shadow-xl p-4 border border-blue-100 animate-in fade-in zoom-in-95 duration-200">
+                        <h3 className="text-xs font-bold text-primary uppercase mb-3 border-b border-gray-100 pb-2 flex items-center gap-2">
+                          <ShieldCheck className="w-3 h-3" /> Password requirements
+                        </h3>
+                        <ul className="space-y-2 text-xs">
+                          <RequirementItem met={criteria.length} text="At least 8 characters" />
+                          <RequirementItem met={criteria.upperLower} text="Uppercase & lowercase letters" />
+                          <RequirementItem met={criteria.letterNumber} text="Combination of letters & numbers" />
+                          <RequirementItem met={criteria.special} text="Special character (!@#$)" />
+                        </ul>
+                        <div className={`mt-3 text-xs font-medium ${allMet ? "text-green-600" : "text-gray-400"}`}>
+                           {allMet ? "✓ Strong password" : "Keep typing..."}
+                        </div>
+                      </div>
+                    )}
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                    <PasswordInput 
+                        id="confirmPassword"
+                        label="Confirm New Password"
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        placeholder="Re-enter new password"
+                    />
+                    {formData.confirmPassword && (
+                        <p className={`text-xs font-medium mt-2 flex items-center gap-1 ${passwordsMatch ? "text-green-600" : "text-red-500"}`}>
+                            {passwordsMatch ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                            {passwordsMatch ? "Passwords match" : "Passwords do not match"}
+                        </p>
+                    )}
+                </div>
+
+                <button
+                    type="submit"
+                    className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary/90 shadow-md hover:shadow-lg transition-all transform active:scale-95"
+                >
+                    Update Password
+                </button>
+
+            </form>
         </div>
-
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col items-center gap-6 bg-white w-full max-w-md rounded-xl shadow px-8 py-6"
-        >
-          <div className="w-full space-y-3 mb-3">
-            <div className="flex gap-2 flex-col">
-              <label htmlFor="oldPassword">Old Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <img
-                    src="/assets/images/login/lock.svg"
-                    alt="Lock Icon"
-                  />
-                </div>
-                <input
-                  id="oldPassword"
-                  name="oldPassword"
-                  type={showOldPassword ? "text" : "password"}
-                  value={formData.oldPassword}
-                  onChange={handleChange}
-                  className="border-[#E2E2E2] border-[1px] rounded-md p-2 pl-10 pr-10 w-full"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowOldPassword((v) => !v)}
-                  className="absolute inset-y-0 right-2 flex items-center cursor-pointer"
-                  aria-pressed={showOldPassword}
-                  aria-label={
-                    showOldPassword ? "Hide password" : "Show password"
-                  }
-                  title={showOldPassword ? "Hide password" : "Show password"}
-                >
-                  {!showOldPassword ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 3l18 18M10.58 10.58A3 3 0 0012 15a3 3 0 001.42-.38M9.88 4.24A9.98 9.98 0 0112 4c5.52 0 10 4.48 10 8 0 1.32-.45 2.56-1.25 3.63M6.35 6.35C4.31 7.68 3 9.69 3 12c0 3.52 4.48 8 9 8 1.04 0 2.04-.17 2.97-.49"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
-                      />
-                      <circle cx="12" cy="12" r="3" strokeWidth="2" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex gap-2 flex-col">
-              <label htmlFor="newPassword">New Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <img
-                    src="/assets/images/login/lock.svg"
-                    alt="Lock Icon"
-                  />
-                </div>
-                <input
-                  id="newPassword"
-                  name="newPassword"
-                  type={showNewPassword ? "text" : "password"}
-                  value={formData.newPassword}
-                  onChange={handleChange}
-                  onFocus={() => setShowReqModal(true)}
-                  onBlur={() => setShowReqModal(false)}
-                  className="border-[#E2E2E2] border-[1px] rounded-md p-2 pl-10 pr-10 w-full"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword((v) => !v)}
-                  className="absolute inset-y-0 right-2 flex items-center cursor-pointer"
-                  aria-pressed={showNewPassword}
-                  aria-label={
-                    showNewPassword ? "Hide password" : "Show password"
-                  }
-                  title={showNewPassword ? "Hide password" : "Show password"}
-                >
-                  {!showNewPassword ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 3l18 18M10.58 10.58A3 3 0 0012 15a3 3 0 001.42-.38M9.88 4.24A9.98 9.98 0 0112 4c5.52 0 10 4.48 10 8 0 1.32-.45 2.56-1.25 3.63M6.35 6.35C4.31 7.68 3 9.69 3 12c0 3.52 4.48 8 9 8 1.04 0 2.04-.17 2.97-.49"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
-                      />
-                      <circle cx="12" cy="12" r="3" strokeWidth="2" />
-                    </svg>
-                  )}
-                </button>
-                {showReqModal && (
-                  <div className="absolute z-50 right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg p-4 border border-lightblue">
-                    <h3 className="text-sm font-semibold text-primary mb-2">
-                      Password requirements
-                    </h3>
-                    <ul className="space-y-1.5 text-sm">
-                      <li
-                        className={`flex items-center gap-2 ${
-                          criteria.length ? "text-green-600" : "text-gray-500"
-                        }`}
-                      >
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            criteria.length ? "bg-green-600" : "bg-gray-300"
-                          }`}
-                        ></span>
-                        <span>At least 8 characters</span>
-                      </li>
-                      <li
-                        className={`flex items-center gap-2 ${
-                          criteria.upperLower
-                            ? "text-green-600"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            criteria.upperLower ? "bg-green-600" : "bg-gray-300"
-                          }`}
-                        ></span>
-                        <span>Uppercase and lowercase letters</span>
-                      </li>
-                      <li
-                        className={`flex items-center gap-2 ${
-                          criteria.letterNumber
-                            ? "text-green-600"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            criteria.letterNumber
-                              ? "bg-green-600"
-                              : "bg-gray-300"
-                          }`}
-                        ></span>
-                        <span>Combination of letters and numbers</span>
-                      </li>
-                      <li
-                        className={`flex items-center gap-2 ${
-                          criteria.special ? "text-green-600" : "text-gray-500"
-                        }`}
-                      >
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            criteria.special ? "bg-green-600" : "bg-gray-300"
-                          }`}
-                        ></span>
-                        <span>At least one special character</span>
-                      </li>
-                    </ul>
-                    <div
-                      className={`mt-2 text-xs ${
-                        allMet ? "text-green-600" : "text-gray-500"
-                      }`}
-                    >
-                      {allMet ? "Strong password" : "Keep typing..."}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex gap-2 flex-col">
-              <label htmlFor="confirmPassword">Confirm New Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <img
-                    src="/assets/images/login/lock.svg"
-                    alt="Lock Icon"
-                  />
-                </div>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="border-[#E2E2E2] border-[1px] rounded-md p-2 pl-10 pr-10 w-full"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword((v) => !v)}
-                  className="absolute inset-y-0 right-2 flex items-center cursor-pointer"
-                  aria-pressed={showConfirmPassword}
-                  aria-label={
-                    showConfirmPassword ? "Hide password" : "Show password"
-                  }
-                  title={
-                    showConfirmPassword ? "Hide password" : "Show password"
-                  }
-                >
-                  {!showConfirmPassword ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 3l18 18M10.58 10.58A3 3 0 0012 15a3 3 0 001.42-.38M9.88 4.24A9.98 9.98 0 0112 4c5.52 0 10 4.48 10 8 0 1.32-.45 2.56-1.25 3.63M6.35 6.35C4.31 7.68 3 9.69 3 12c0 3.52 4.48 8 9 8 1.04 0 2.04-.17 2.97-.49"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
-                      />
-                      <circle cx="12" cy="12" r="3" strokeWidth="2" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              {formData.confirmPassword.length > 0 && (
-                <p
-                  className={`text-sm ${
-                    passwordsMatch ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {passwordsMatch
-                    ? "Passwords match"
-                    : "Passwords do not match"}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={!allMet || !passwordsMatch || !formData.oldPassword}
-            className={`font-bold py-2 w-[45%] border-[1px] rounded-md ${
-              !allMet || !passwordsMatch || !formData.oldPassword
-                ? "bg-gray-300 text-gray-600 border-gray-300 cursor-not-allowed"
-                : "bg-primary text-white border-primary hover:border-lightblue hover:bg-lightblue"
-            }`}
-          >
-            Reset Password
-          </button>
-        </form>
-        {showPopup && (
-          <div
-            className={`fixed inset-0 bg-white backdrop-blur-sm h-screen w-full flex flex-col items-center p-5 gap-5 bounce-in ${animationClass}`}
-          >
-            <img
-              src="/images/logo_black_text.png"
-              className="h-[70px] mb-10"
-              alt="RAFI LOGO"
-            />
-            <img
-              src="/assets/images/login/checkmark.svg"
-              className="h-[95px]"
-              alt="Check Mark"
-            />
-
-            <h2 className="text-5xl font-bold text-center">
-              Your <span className="text-primary">password</span> has been reset{" "}
-              <br />
-              successfully!
-            </h2>
-
-            <p className="text-sm">
-              You can now use your new password to log in.
-            </p>
-
-            <div className="w-full flex flex-col items-center justify-center gap-6">
-              <button
-                onClick={handleContinue}
-                className="text-center font-bold bg-primary text-white py-3 w-[25%] border-[1px] border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-              >
-                Continue
-              </button>
-              <hr className="w-[45%] border-[#6B7280]" />
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Success Popup - Styled exactly like previous one but cleaner */}
+      {showPopup && (
+        <div className="fixed inset-0 bg-white/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-5 animate-in fade-in zoom-in-95 duration-300">
+             
+             {/* 1. Logo */}
+             <img 
+                src="/images/logo_black_text.png" 
+                className="h-16 mb-8 object-contain"
+                alt="RAFI LOGO" 
+             />
+
+             {/* 2. Visual Indicator (Large Checkmark) */}
+             <div className="mb-6">
+                 {/* This uses Lucide to mimic the large checkmark asset cleanly */}
+                 {/* <CheckCircle className="w-24 h-24 text-primary" strokeWidth={1.5} /> */}
+                  <img
+                    src="/assets/images/login/checkmark.svg"
+                    className="h-[95px]"
+                    alt="Check Mark"
+                  />
+             </div>
+
+             {/* 3. Headline */}
+             <h2 className="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-4">
+                Your <span className="text-primary">password</span> has been <br className="hidden md:block"/>
+                reset successfully!
+             </h2>
+
+             {/* 4. Subtext */}
+             <p className="text-gray-500 text-lg mb-10 text-center">
+                You can now use your new password to log in.
+             </p>
+
+             {/* 5. Action Area */}
+             <div className="w-full max-w-sm flex flex-col items-center gap-8">
+                 <button
+                    onClick={handleContinue}
+                    className="w-full md:w-2/3 bg-primary text-white font-bold py-3.5 px-8 rounded-xl shadow-lg hover:bg-primary/90 hover:shadow-xl transition-all transform active:scale-95"
+                 >
+                    Continue
+                 </button>
+                 
+                 <div className="w-1/2 border-t border-gray-300"></div>
+             </div>
+        </div>
+      )}
     </>
   );
 };

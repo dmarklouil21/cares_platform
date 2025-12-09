@@ -176,6 +176,39 @@ const DetailedView = () => {
     }
   };
 
+  const handleReject = async () => {
+    setLoading(true);
+    setRemarksModalOpen(false);
+    try {
+      const payload = {
+        status: modalAction?.newStatus || status,
+        remarks,
+      };
+      await api.patch(
+        `/cancer-screening/individual-screening/status-update/${record.id}/`,
+        payload
+      );
+      navigate("/admin/cancer-screening", {
+        state: {
+          type: "success",
+          message: "Rejected Successfully.",
+        },
+      });
+      setNotificationType("success");
+      setNotificationMessage("Request Rejected");
+      fetchData();
+    } catch {
+      setModalInfo({
+        type: "error",
+        title: "Failed",
+        message: "Something went wrong while rejecting request.",
+      });
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePrint = () => {
     if (!record || !record.patient) {
       window.print();
@@ -266,7 +299,7 @@ const DetailedView = () => {
               </button>
               <button
                 className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
-                onClick={() => setRemarksModalOpen(false)}
+                onClick={handleReject}
               >
                 Confirm
               </button>
@@ -398,7 +431,9 @@ const DetailedView = () => {
                             <option value="Pending" disabled={record?.status !== "Pending"}>Pending</option>
                             <option value="Approved" disabled={record?.status === "Completed"}>Approve</option>
                             <option value="Completed">Complete</option>
-                            <option value="Rejected">Reject</option>
+                            {record?.status !== "Approved" && (
+                              <option value="Rejected">Reject</option>
+                            )}
                           </select>
                        </div>
 

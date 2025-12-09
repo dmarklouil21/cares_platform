@@ -22,6 +22,7 @@ from apps.precancerous.serializers import (
 )
 
 import logging
+import threading
 logger = logging.getLogger(__name__)
 
 class PreCancerousMedsCreateView(generics.CreateAPIView):
@@ -100,12 +101,24 @@ class AdminPreCancerousMedsUpdateView(generics.UpdateAPIView):
       
     patient.save()
 
-    email_status = send_precancerous_meds_status_email(
-      patient, instance.status, instance.date_approved
-    )
+    # Define a small helper function to run in the background
+    def send_email_in_background(patient, status, date_approved):
+      try:
+        send_precancerous_meds_status_email(patient, status, date_approved)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Background email failed: {e}")
     
-    if email_status is not True:
-      logger.error(f"Email failed to send: {email_status}")
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(patient, instance.status, instance.date_approved))
+    email_thread.start()
+
+    # email_status = send_precancerous_meds_status_email(
+    #   patient, instance.status, instance.date_approved
+    # )
+    
+    # if email_status is not True:
+    #   logger.error(f"Email failed to send: {email_status}")
 
     user = patient.user
     if user:

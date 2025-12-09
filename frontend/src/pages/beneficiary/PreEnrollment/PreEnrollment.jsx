@@ -256,7 +256,7 @@ const PatientProfileForm = () => {
       setShowModal(true);
       return;
     }
-
+    console.log("Image: ", imageFile);
     navigate(`/beneficiary/pre-enrollment/cancer-data`, {
       state: {
         formData: formData,
@@ -266,7 +266,7 @@ const PatientProfileForm = () => {
   };
 
   return (
-    <div className="lg:w-[80%] h-screen bg-gray flex flex-col overflow-auto">
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
       {loading && <SystemLoader />}
       
       <NotificationModal

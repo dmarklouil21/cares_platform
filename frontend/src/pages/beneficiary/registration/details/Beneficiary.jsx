@@ -174,7 +174,7 @@ const Info101 = () => {
       />
 
       {/* Main Container - Adjusted to fit inside a parent flex layout (Sidebar safe) */}
-      <div className="lg:w-[80%] h-full bg-gray flex flex-col overflow-auto">
+      <div className="w-full h-full bg-gray flex flex-col overflow-auto">
         <div className="py-5 px-5 md:px-5 flex flex-col flex-1 max-w-5xl mx-auto w-full">
             
             {/* Top Title */}
@@ -311,23 +311,23 @@ const Info101 = () => {
 
                     {/* Terms Agreement */}
                     <div className="pt-4 border-t border-gray-100">
-                        <label className="flex items-start gap-3 cursor-pointer group">
-                            <div className="relative flex items-center pt-1">
-                                <input
-                                    type="checkbox"
-                                    name="agreed"
-                                    checked={formData.agreed}
-                                    onChange={handleChange}
-                                    className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-gray-300 shadow-sm transition-all checked:border-primary checked:bg-primary hover:border-primary"
-                                />
-                                <CheckCircle className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 w-3.5 h-3.5" />
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
-                                    I agree to the <span className="text-primary font-semibold underline">Data Privacy Notice</span> and confirm the information is correct.
-                                </span>
-                                {errors.agreed && <span className="text-xs text-red-500 mt-1">{errors.agreed}</span>}
-                            </div>
+                      <label className="flex items-start gap-3 cursor-pointer group">
+                          <div className="relative flex items-center pt-1">
+                              <input
+                                  type="checkbox"
+                                  name="agreed"
+                                  checked={formData.agreed}
+                                  onChange={handleChange}
+                                  className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-gray-300 shadow-sm transition-all checked:border-primary checked:bg-primary hover:border-primary"
+                              />
+                              <CheckCircle className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 w-3.5 h-3.5" />
+                          </div>
+                          <div className="flex flex-col">
+                              <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                                  I agree to the <span className="text-primary font-semibold underline">Data Privacy Notice</span> and confirm the information is correct.
+                              </span>
+                              {errors.agreed && <span className="text-xs text-red-500 mt-1">{errors.agreed}</span>}
+                          </div>
                         </label>
                     </div>
 

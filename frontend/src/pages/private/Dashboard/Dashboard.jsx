@@ -441,10 +441,15 @@ const Dashboard = () => {
   const fetchStats = async () => {
     try {
       const { data } = await api.get("/patient/stats/");
+      const res = await api.get("/cancer-screening/mass-screening/rhu/stats/");
+      const activities = await api.get("/partners/cancer-awareness/activity-count/");
+      console.log("Activities: ", activities);
+      console.log("Response", res);
+
       setTotalPatients(data.total_patients);
-      setDueForHomeVisit(data.due_for_home_visit);
+      setDueForHomeVisit(res.data.ongoing_count);
       setActivePatients(data.active_patients);
-      setPendingPreEnrollment(data.pending_pre_enrollment);
+      setPendingPreEnrollment(activities.data.total_activities);
       setMonthlyData(data.monthly_data);
     } catch (error) {
       console.error("Error fetching patient stats:", error);

@@ -1,45 +1,98 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { 
+  ShieldAlert, 
+  Check, 
+  X, 
+  FileText 
+} from "lucide-react";
 
-const NotePanel = ({ onAccept, onDecline }) => {
+const NotePanel = ({ onAccept }) => {
   return (
-    <div className="  lg:w-[75%] bg-gray flex flex-col h-screen gap-5 px-8 py-8 items-center">
-      <div className="w-full flex justify-between px-1">
-        <h1 className="font-bold text-[16px] md:text-2xl">RHU Focal Person registration</h1>
-        {/* <div className="flex text-right flex-col">
-          <p className="text-[10px] md:text-sm">STEP 01/01</p>
-          <h1 className="font-bold text-gray-600 text-[12px] md:text-[16px]">NOTE</h1>
-        </div> */}
-      </div>
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+      
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col items-center justify-center p-5 md:p-8">
+        <div className="w-full max-w-2xl flex flex-col gap-6">
+            
+            {/* Header */}
+            <div className="text-center space-y-2">
+                <div className="inline-flex p-3 bg-blue-50 rounded-full text-primary mb-2">
+                    <FileText className="w-8 h-8" />
+                </div>
+                <h1 className="text-2xl font-bold text-gray-800">
+                    RHU Focal Person Registration
+                </h1>
+                <p className="text-gray-500 text-sm">
+                    Please review the following terms before proceeding.
+                </p>
+            </div>
 
-      <div className="flex flex-col justify-between gap-5 bg-white rounded-xl shadow px-8 py-6 w-auto h-auto">
-        <h1 className="font-bold text-[17px]">
-          NOTE: Completion of this form does not guarantee assistance from RAFI
-          and Eduardo J. Aboitiz Cancer Center (EJACC). All applications are
-          subject to review by the EJACC team.
-          <br />
-          <br />
-          Any personal information that you share within this registration form
-          will be treated as sensitive information and will only be used for
-          checking your eligibility, processing your application, and sending
-          you updates on your application. Your information will not be shared
-          outside of RAFI without your permission. This question is required.*
-        </h1>
-        <div className="flex justify-between w-full ">
-          <Link
-            to="/rhu-login"
-            className="text-black py-2 w-[45%] border-[1px] text-center hover:bg-gray border-black hover:border-white rounded-md"
-          >
-            I Don't Accept
-          </Link>
-          <Link
-            to={"/rhu-registration"}
-            id="i-accept-btn"
-            className="bg-primary font-bold text-center text-white py-2 w-[45%] border-[1px] border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-            onClick={onAccept}
-          >
-            I Accept
-          </Link>
+            {/* Card */}
+            <div className="bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden">
+                
+                {/* Body Content */}
+                <div className="p-8 space-y-6">
+                    
+                    {/* Important Note Box */}
+                    <div className="bg-orange-50 border border-orange-100 rounded-xl p-5 flex gap-4 items-start">
+                        <ShieldAlert className="w-6 h-6 text-orange-600 flex-shrink-0 mt-0.5" />
+                        <div className="space-y-2">
+                            <h3 className="text-sm font-bold text-orange-800 uppercase tracking-wide">
+                                Important Notice
+                            </h3>
+                            <p className="text-sm text-orange-900 leading-relaxed">
+                                Completion of this form <strong>does not guarantee assistance</strong> from RAFI and Eduardo J. Aboitiz Cancer Center (EJACC). All applications are subject to review by the EJACC team.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Data Privacy Text */}
+                    <div className="text-gray-600 text-sm leading-7 text-justify">
+                        <p>
+                            Any personal information that you share within this registration form will be treated as <span className="font-semibold text-gray-900">sensitive information</span> and will only be used for:
+                        </p>
+                        <ul className="list-disc pl-5 mt-2 space-y-1 marker:text-primary">
+                            <li>Checking eligibility</li>
+                            <li>Processing the application</li>
+                            <li>Sending updates on the application status</li>
+                        </ul>
+                        <p className="mt-4">
+                            Your information will <strong>not</strong> be shared outside of RAFI without your permission.
+                        </p>
+                    </div>
+
+                </div>
+
+                {/* Footer / Actions */}
+                <div className="flex justify-around print:hidden mt-6 mb-6">
+                    <Link
+                        to="/rhu-login"
+                        // className="w-full sm:w-auto px-6 py-2.5 rounded-lg border border-gray-300 text-gray-600 font-semibold hover:bg-gray-100 hover:text-gray-900 transition-all flex items-center justify-center gap-2"
+                        className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+                    >
+                        {/* <X className="w-4 h-4" /> */}
+                        I Don't Accept
+                    </Link>
+
+                    <Link
+                        to="/rhu-registration"
+                        id="i-accept-btn"
+                        onClick={onAccept}
+                        // className="w-full sm:w-auto px-8 py-2.5 rounded-lg bg-primary text-white font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2"
+                        className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+                    >
+                        {/* <Check className="w-4 h-4" /> */}
+                        I Accept
+                    </Link>
+                </div>
+
+            </div>
+
+            {/* Footer Text */}
+            <p className="text-center text-xs text-gray-400">
+                By clicking "I Accept", you agree to the RAFI-EJACC Data Privacy Policy.
+            </p>
         </div>
       </div>
     </div>

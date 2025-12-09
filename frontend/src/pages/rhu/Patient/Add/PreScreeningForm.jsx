@@ -295,7 +295,7 @@ const PatientPreScreeningForm = () => {
         formData.append("general_data", JSON.stringify(generalData));
         
         if (photoUrl) {
-            formData.append("photo_url", photoUrl); // photoUrl passed from state is the File object
+            formData.append("photoUrl", photoUrl); // photoUrl passed from state is the File object
         }
 
         // POST request to create new patient

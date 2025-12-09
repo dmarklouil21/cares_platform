@@ -190,6 +190,41 @@ const AdminCancerManagementView = () => {
     // We handle current state fallbacks in handleModalConfirm.
   };
 
+  const handleReject = async () => {
+    // setModalAction({ status: item.status, id: item.id })
+    setLoading(true);
+    setRemarksModalOpen(false);
+    try {
+      const payload = {
+        status: modalAction?.newStatus || status,
+        remarks,
+      };
+
+      await api.patch(
+        `/cancer-management/cancer-treatment/status-update/${record.id}/`,
+        payload
+      );
+      navigate("/admin/cancer-management", {
+        state: {
+          type: "success",
+          message: "Rejected Successfully.",
+        },
+      });
+      setNotificationType("success");
+      setNotificationMessage("Request Rejected");
+      fetchData();
+    } catch {
+      setModalInfo({
+        type: "error",
+        title: "Failed",
+        message: "Something went wrong while rejecting request.",
+      });
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleModalConfirm = async () => {
     setModalOpen(false);
     setLoading(true);
@@ -323,7 +358,7 @@ const AdminCancerManagementView = () => {
         value={remarks}
         onChange={(e) => setRemarks(e.target.value)}
         onCancel={() => setRemarksModalOpen(false)}
-        onConfirm={() => setRemarksModalOpen(false)}
+        onConfirm={handleReject}
         confirmText="Confirm"
       />
 
@@ -411,7 +446,10 @@ const AdminCancerManagementView = () => {
                         <option value="Interview Process" disabled={currentStep > 1}>Interview Process</option>
                         <option value="Case Summary Generation" disabled={currentStep > 2}>Case Summary Generation</option>
                         <option value="Approved" disabled={currentStep > 3}>Approve</option>
-                        <option value="Rejected">Reject</option>
+                        {record?.status !== "Approved" && (
+                          <option value="Rejected">Reject</option>
+                        )}
+                        {/* <option value="Rejected">Reject</option> */}
                         <option value="Completed">Complete</option>
                       </select>
                     </div>

@@ -72,6 +72,7 @@ const RadioTherapyWellBeingTool = () => {
             diagnosis: data.diagnosis[0]?.diagnosis,
           };
         });
+        console.log("Data: ", data);
       } catch (error) {
         console.error("Error fetching patient data:", error);
       }

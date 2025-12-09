@@ -223,6 +223,108 @@ class PatientDeleteView(generics.DestroyAPIView):
   permission_classes = [IsAuthenticated]
 
 class PatientStatsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        
+        # 1. Initialize the Base QuerySet
+        patients_qs = Patient.objects.all()
+
+        # 2. Apply Filters based on User Role
+        if user.is_staff or user.is_superuser:
+            # === ADMIN ===
+            # Admin sees all data, no filter applied
+            pass
+
+        elif hasattr(user, 'representative'):
+            # === RHU (Representative) ===
+            # Filter patients where registered_by matches the RHU's LGU name
+            try:
+                rhu_name = user.representative.rhu.lgu
+                patients_qs = patients_qs.filter(registered_by=rhu_name)
+            except AttributeError:
+                patients_qs = patients_qs.none()
+
+        elif hasattr(user, 'privaterepresentative'):
+            # === PRIVATE PARTNER ===
+            # Filter patients where registered_by matches the Private Institution name
+            try:
+                # Note: accessing .privaterepresentative (lowercase model name) due to OneToOneField
+                private_name = user.privaterepresentative.private.institution_name
+                patients_qs = patients_qs.filter(registered_by=private_name)
+            except AttributeError:
+                patients_qs = patients_qs.none()
+        
+        else:
+            # === UNKNOWN/REGULAR USER ===
+            # If the user doesn't fit any role, return no data (or handle differently)
+            patients_qs = patients_qs.none()
+
+        # 3. Calculate Stats using the FILTERED QuerySet
+        total_patients = patients_qs.count()
+        
+        # We filter Home Visits to only show visits belonging to the visible patients
+        # Assuming PatientHomeVisit has a ForeignKey to Patient named 'patient'
+        due_for_home_visit = PatientHomeVisit.objects.filter(
+            status="Processing",
+            patient__in=patients_qs
+        ).count()
+        
+        active_patients = patients_qs.filter(status="active").count()
+        pending_pre_enrollment = patients_qs.filter(status="pending").count()
+
+        # === Monthly Data (Filtered) ===
+        monthly_counts = (
+            patients_qs
+            .annotate(month=TruncMonth("created_at")) 
+            .values("month")
+            .annotate(count=Count("id"))
+            .order_by("month")
+        )
+
+        # Convert to chart-friendly format
+        monthly_data = []
+        month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        
+        # Initialize dictionary to map existing data
+        data_map = {}
+        for entry in monthly_counts:
+            if entry["month"]: # Check if month exists to avoid errors
+                month_index = entry["month"].month - 1
+                data_map[month_index] = entry["count"]
+
+        # Populate final list (ensuring all 12 months are represented, optional but good for charts)
+        # Or keep your original logic if you only want months with data:
+        for entry in monthly_counts:
+            if entry["month"]:
+                month_index = entry["month"].month - 1
+                monthly_data.append({
+                    "label": month_labels[month_index],
+                    "value": entry["count"]
+                })
+
+        return Response({
+            "role": self.get_user_role(user), # Optional: helpful for frontend debugging
+            "total_patients": total_patients,
+            "due_for_home_visit": due_for_home_visit,
+            "active_patients": active_patients,
+            "pending_pre_enrollment": pending_pre_enrollment,
+            "monthly_data": monthly_data
+        })
+
+    def get_user_role(self, user):
+        """Helper to return string representation of role"""
+        if user.is_staff or user.is_superuser:
+            return "Admin"
+        if hasattr(user, 'representative'):
+            return "RHU"
+        if hasattr(user, 'privaterepresentative'):
+            return "Private"
+        return "User"
+    
+class PatientStatsView2(APIView):
   permission_classes = [IsAuthenticated]
 
   def get(self, request, *args, **kwargs):

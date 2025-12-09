@@ -294,15 +294,17 @@ const AdminHeader = () => {
     const fetchProfile = async () => {
       try {
         const res = await api.get("/user/profile/");
+        const { data } = await api.get("/beneficiary/patient/details/");
+        console.log("Patient: ", res.data);
         const d = res.data;
         const name =
           `${d.first_name || ""} ${d.last_name || ""}`.trim() || "Beneficiary";
         const base = (api.defaults?.baseURL || "").replace(/\/$/, "");
-        const avatar = d.avatar
-          ? d.avatar.startsWith("http")
-            ? d.avatar
-            : `${base}${d.avatar}`
-          : "/images/Avatar.png";
+        const avatar = data.photo_url || "/images/Avatar.png";
+          // ? d.avatar.startsWith("http")
+          //   ? d.avatar
+          //   : `${base}${d.avatar}`
+          // : "/images/Avatar.png";
         setProfileName(name);
         setProfileAvatar(avatar);
       } catch (e) {

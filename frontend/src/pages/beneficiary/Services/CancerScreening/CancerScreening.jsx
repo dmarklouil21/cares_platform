@@ -63,7 +63,7 @@ const CancerScreening = () => {
         Navigate your treatment journey with expert-guided support
       </p>
 
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-3 bg-white">
         {screeningOptions.map((option) => (
           <div
             key={option.id}

@@ -27,7 +27,7 @@ class PatientSerializer(serializers.ModelSerializer):
       'patient_id', 'first_name', 'middle_name', 'last_name', 'suffix', 'date_of_birth', 'age', 
       'sex', 'civil_status', 'number_of_children', 'status', 'address', 'city', 'barangay', 'mobile_number', 
       'email', 'source_of_information', 'other_rafi_programs_availed', 'highest_educational_attainment', 'registered_by',
-      'occupation', 'source_of_income', 'monthly_income', 'created_at', 'full_name', 'emergency_contacts', 'diagnosis'
+      'occupation', 'source_of_income', 'monthly_income', 'photo_url', 'created_at', 'full_name', 'emergency_contacts', 'diagnosis'
     ]
     read_only_fields = ('created_at', 'patient_id',)
 
