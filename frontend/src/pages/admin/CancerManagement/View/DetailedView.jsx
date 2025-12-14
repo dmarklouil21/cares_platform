@@ -1,5 +1,14 @@
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { 
+  Printer, 
+  Send, 
+  FileText, 
+  Save, 
+  Calendar, 
+  ArrowLeft,
+  FilePlus 
+} from "lucide-react";
 
 import api from "src/api/axiosInstance";
 
@@ -18,81 +27,68 @@ const AdminCancerManagementView = () => {
   const { id } = useParams();
 
   const [record, setRecord] = useState(null);
-
   const [status, setStatus] = useState("Pending");
+  
+  // Dates
   const [treatmentDate, setTreatmentDate] = useState(null);
-  const [isNewDate, setIsNewDate] = useState(false);
-
-  const [dateModalTitle, setDateModalTitle] = useState("");
-
-  // Interview Date Modal
-  const [interviewModalOpen, setInterviewModalOpen] = useState(false);
   const [interviewDate, setInterviewDate] = useState("");
 
-  const [providerName, setProviderName] = useState(
-    "Chong Hua Hospital Mandaue"
-  );
+  const [providerName, setProviderName] = useState("Chong Hua Hospital Mandaue");
 
-  // Notification Modal
+  // --- Modals State ---
+  const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalInfo, setModalInfo] = useState({
     type: "success",
-    title: "Success!",
-    message: "The form has been submitted successfully.",
+    title: "Success",
+    message: "",
   });
 
-  // Loading State
-  const [loading, setLoading] = useState(false);
-
-  // Confirmation Modal State
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("Confirm Status Change?");
+  const [modalText, setModalText] = useState("");
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
-  // Treatment Date Modal State
-  const [dateModalOpen, setDateModalOpen] = useState(false);
-  const [tempDate, setTempDate] = useState("");
+  // Date Modals
+  const [dateModalOpen, setDateModalOpen] = useState(false); // Treatment
+  const [interviewModalOpen, setInterviewModalOpen] = useState(false); // Interview
 
-  // Remark Message Modal State
+  // Remarks
   const [remarksModalOpen, setRemarksModalOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
 
-  // Send LOA Modal State
+  // File Sending
   const [sendLOAModalOpen, setSendLOAModalOpen] = useState(false);
   const [loaFile, setLoaFile] = useState(null);
-
-  // Send Case Summary Modal State
-  const [sendCaseSummaryModalOpen, setSendCaseSummaryModalOpen] =
-    useState(false);
+  const [sendCaseSummaryModalOpen, setSendCaseSummaryModalOpen] = useState(false);
   const [caseSummaryFile, setCaseSummaryFile] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const { data } = await api.get(`/cancer-management/details/${id}/`);
-        console.log("Response Data: ", data);
         setRecord(data);
         setStatus(data.status);
-        setInterviewDate(data.interview_date);
-        setTreatmentDate(data.treatment_date);
+        setInterviewDate(data.interview_date || "");
+        setTreatmentDate(data.treatment_date || null);
+        if(data.service_provider) setProviderName(data.service_provider);
       } catch (error) {
         console.error("Error fetching screening data:", error);
       }
     };
 
     fetchData();
-  }, []);
+  }, [id]);
+
+  // --- Handlers ---
 
   const handleStatusChange = (e) => {
     const selectedStatus = e.target.value;
     if (selectedStatus === "Approved") {
-      // setTempDate(treatmentDate || "");
       setDateModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
       setStatus(selectedStatus);
     } else if (selectedStatus === "Interview Process") {
-      // setInterviewDate(record?.interview_date || "");
       setInterviewModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
       setStatus(selectedStatus);
@@ -101,12 +97,7 @@ const AdminCancerManagementView = () => {
       setModalAction({ newStatus: selectedStatus });
       setStatus(selectedStatus);
     } else {
-      // setModalText(`Mark this request as '${selectedStatus}'?`);
-      // setModalDesc(
-      //   "Marking this as complete means that the treatment is done."
-      // );
       setModalAction({ newStatus: selectedStatus });
-      // setModalOpen(true);
       setStatus(selectedStatus);
     }
   };
@@ -117,9 +108,6 @@ const AdminCancerManagementView = () => {
       return;
     }
     setModalAction((prev) => ({ ...prev, interviewDate: interviewDate }));
-    // setModalText(`Confirm Interview Date to ${interviewDate}?`);
-    // setIsNewDate(true);
-    // setModalOpen(true);
     setInterviewModalOpen(false);
   };
 
@@ -128,29 +116,21 @@ const AdminCancerManagementView = () => {
       alert("Please select a date before proceeding.");
       return;
     }
-    setModalAction((prev) => ({ ...prev, treatmentDate: treatmentDate }));
-    // setTreatmentDate(tempDate);
-    // setModalText(`Confirm Treatment Date to ${tempDate}?`);
-    // setIsNewDate(true);
-    // setModalOpen(true);
+    setModalAction((prev) => ({ ...prev, treatment_date: treatmentDate }));
     setDateModalOpen(false);
   };
 
   const handleSendLOA = async () => {
     if (!loaFile) {
       setSendLOAModalOpen(false);
-      setModalInfo({
-        type: "info",
-        title: "Note",
-        message: "Please select a file before sending.",
-      });
+      setModalInfo({ type: "info", title: "Note", message: "Please select a file before sending." });
       setShowModal(true);
       return;
     }
     setSendLOAModalOpen(false);
     setLoaFile(null);
-
     setLoading(true);
+
     try {
       const formData = new FormData();
       formData.append("file", loaFile);
@@ -158,23 +138,13 @@ const AdminCancerManagementView = () => {
       formData.append("email", record.patient.email);
 
       await api.post(`/cancer-management/send-loa/`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setModalInfo({
-        type: "success",
-        title: "LOA Sent",
-        message: "The LOA has been sent successfully.",
-      });
+      setModalInfo({ type: "success", title: "LOA Sent", message: "The LOA has been sent successfully." });
       setShowModal(true);
     } catch (error) {
-      setModalInfo({
-        type: "error",
-        title: "Failed",
-        message: "Something went wrong while sending the LOA.",
-      });
+      setModalInfo({ type: "error", title: "Failed", message: "Something went wrong while sending the LOA." });
       setShowModal(true);
     } finally {
       setLoading(false);
@@ -184,18 +154,14 @@ const AdminCancerManagementView = () => {
   const handleSendCaseSummary = async () => {
     if (!caseSummaryFile) {
       setSendCaseSummaryModalOpen(false);
-      setModalInfo({
-        type: "info",
-        title: "Note",
-        message: "Please select a file before sending.",
-      });
+      setModalInfo({ type: "info", title: "Note", message: "Please select a file before sending." });
       setShowModal(true);
       return;
     }
     setSendCaseSummaryModalOpen(false);
     setCaseSummaryFile(null);
-
     setLoading(true);
+
     try {
       const formData = new FormData();
       formData.append("file", caseSummaryFile);
@@ -203,23 +169,13 @@ const AdminCancerManagementView = () => {
       formData.append("email", record.patient.email);
 
       await api.post(`/cancer-management/send-case-summary/`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setModalInfo({
-        type: "success",
-        title: "Case Summary Sent",
-        message: "The case summary has been sent successfully.",
-      });
+      setModalInfo({ type: "success", title: "Case Summary Sent", message: "The case summary has been sent successfully." });
       setShowModal(true);
     } catch (error) {
-      setModalInfo({
-        type: "error",
-        title: "Failed",
-        message: "Something went wrong while sending the case summary.",
-      });
+      setModalInfo({ type: "error", title: "Failed", message: "Something went wrong while sending the case summary." });
       setShowModal(true);
     } finally {
       setLoading(false);
@@ -230,37 +186,68 @@ const AdminCancerManagementView = () => {
     setModalText("Save changes?");
     setModalDesc("Please confirm before proceeding.");
     setModalOpen(true);
-    setModalAction({ newStatus: null });
+    // Note: If user hasn't touched status, modalAction might be null. 
+    // We handle current state fallbacks in handleModalConfirm.
   };
 
-  const handleModalConfirm = async () => {
-    // if (modalAction?.newStatus) {
-    // setStatus(modalAction.newStatus);
-    setModalOpen(false);
+  const handleReject = async () => {
+    // setModalAction({ status: item.status, id: item.id })
     setLoading(true);
+    setRemarksModalOpen(false);
     try {
       const payload = {
-        status: modalAction.newStatus || status,
-        interview_date: modalAction.interviewDate || interviewDate,
-        treatment_date: modalAction.treatment_date || treatmentDate,
-        service_provider: modalAction.newProvider || providerName,
-        remarks: remarks || "",
+        status: modalAction?.newStatus || status,
+        remarks,
       };
-
-      // const payload = { status: modalAction.newStatus };
-      // if (treatmentDate) payload.treatment_date = treatmentDate;
-      // if (interviewDate) payload.interview_date = interviewDate;
 
       await api.patch(
         `/cancer-management/cancer-treatment/status-update/${record.id}/`,
         payload
       );
-      console.log(payload);
       navigate("/admin/cancer-management", {
         state: {
           type: "success",
-          message: "Updated Successfully.",
+          message: "Rejected Successfully.",
         },
+      });
+      setNotificationType("success");
+      setNotificationMessage("Request Rejected");
+      fetchData();
+    } catch {
+      setModalInfo({
+        type: "error",
+        title: "Failed",
+        message: "Something went wrong while rejecting request.",
+      });
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleModalConfirm = async () => {
+    setModalOpen(false);
+    setLoading(true);
+    try {
+      const payload = {
+        status: modalAction?.newStatus || status,
+        interview_date: modalAction?.interviewDate || interviewDate,
+        treatment_date: modalAction?.treatment_date || treatmentDate,
+        service_provider: modalAction?.newProvider || providerName,
+        remarks: remarks || "",
+      };
+
+      // Clean up nulls if necessary, but backend usually handles it.
+      // If dates are empty strings, DRF might complain depending on settings, 
+      // but usually for partial updates it's fine.
+
+      await api.patch(
+        `/cancer-management/cancer-treatment/status-update/${record.id}/`,
+        payload
+      );
+
+      navigate("/admin/cancer-management", {
+        state: { flash: "Updated Successfully." },
       });
     } catch (error) {
       setModalInfo({
@@ -271,153 +258,59 @@ const AdminCancerManagementView = () => {
       setShowModal(true);
     } finally {
       setLoading(false);
-    }
-    // } else if (isNewDate) {
-    // setModalOpen(false);
-    // setLoading(true);
-    // try {
-    //   await api.patch(
-    //     `/cancer-management/cancer-treatment/status-update/${record.id}/`,
-    //     { treatment_date: treatmentDate }
-    //   );
-
-    //   navigate("/admin/cancer-management", {
-    //     state: {
-    //       type: "success",
-    //       message: "Treatment date updated Successfully.",
-    //     },
-    //   });
-    // } catch (error) {
-    //   setModalInfo({
-    //     type: "error",
-    //     title: "Failed",
-    //     message: "Something went wrong while updating screening date.",
-    //   });
-    //   setShowModal(true);
-    // } finally {
-    //   setLoading(false);
-    // }
-    // }
-
-    setModalOpen(false);
-    setModalAction(null);
-    setModalText("");
-  };
-
-  const handleReturn = async () => {
-    if (modalAction?.newStatus === "Return") {
-      setModalOpen(false);
-      setLoading(true);
-      setRemarksModalOpen(false);
-      try {
-        await api.post(
-          `/cancer-screening/individual-screening/return-remarks/${record.id}/`,
-          { remarks }
-        );
-
-        navigate("/Admin/cancerscreening/AdminIndividualScreening", {
-          state: {
-            type: "success",
-            message: "Return remarks sent.",
-          },
-        });
-      } catch {
-        setModalInfo({
-          type: "error",
-          title: "Failed",
-          message: "Something went wrong while sending remarks.",
-        });
-        setShowModal(true);
-      } finally {
-        setLoading(false);
-      }
-    } else if (modalAction?.newStatus === "Reject") {
-      setStatus(modalAction.newStatus);
-      setModalOpen(false);
-      setLoading(true);
-      setRemarksModalOpen(false);
-      try {
-        await api.patch(
-          `/cancer-screening/individual-screening/status-reject/${record.id}/`,
-          { status: modalAction.newStatus, remarks }
-        );
-        navigate("/Admin/cancerscreening/AdminIndividualScreening", {
-          state: {
-            type: "success",
-            message: "Request Rejected.",
-          },
-        });
-      } catch {
-        setModalInfo({
-          type: "error",
-          title: "Failed",
-          message: "Something went wrong while rejecting request.",
-        });
-        setShowModal(true);
-      } finally {
-        setLoading(false);
-      }
+      setModalAction(null);
     }
   };
 
-  const statusPillClasses =
-    status === "Completed"
-      ? "bg-green-100 text-green-700 border border-green-200"
-      : status === "Interview Process"
-      ? "bg-blue-100 text-blue-700 border border-blue-200"
-      : status === "Approved"
-      ? "bg-indigo-100 text-indigo-700 border border-indigo-200"
-      : status === "Case Summary Generation"
-      ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-      : status === "Rejected"
-      ? "bg-red-100 text-red-700 border border-red-200"
-      : "bg-yellow-100 text-yellow-700";
-
-  if (!record) {
-    return <SystemLoader />;
-  }
-  // *** NEW FUNCTION ***
   const handlePrint = () => {
     if (!record || !record.patient) {
-      console.error("No record data to generate filename.");
-      window.print(); // Fallback to default print
+      window.print();
       return;
     }
-
-    // 1. Save the current document title
     const originalTitle = document.title;
-
-    // 2. Create the new title (filename)
     const newTitle = `LOA_${record.patient.patient_id}_${record.patient.full_name}`;
-
-    // 3. Set the new title
     document.title = newTitle;
-
-    // 4. Trigger the print dialog
     window.print();
-
-    // 5. Restore the original title after a short delay
     setTimeout(() => {
       document.title = originalTitle;
-    }, 1000); // 1 second delay
+    }, 1000);
   };
 
-  // Define the hierarchy of your workflow
+  if (!record) return <SystemLoader />;
+
+  // Workflow Steps Helper
   const statusSteps = {
     "Pending": 0,
     "Interview Process": 1,
     "Case Summary Generation": 2,
     "Approved": 3,
-    // Completed and Rejected are usually final steps
-    "Completed": 4, 
-    "Rejected": 5 
+    "Completed": 4,
+    "Rejected": 5
   };
+  const currentStep = statusSteps[record.status] || 0;
 
-  // Get the number for the CURRENT saved status
-  const currentStep = statusSteps[record?.status] || 0;
+  // Helper for Status Badge Color
+  const getStatusColor = (st) => {
+    switch (st) {
+      case "Completed": return "bg-green-100 text-green-700 border-green-200";
+      case "Approved": return "bg-blue-100 text-blue-700 border-blue-200";
+      case "Rejected": return "bg-red-100 text-red-700 border-red-200";
+      case "Interview Process": return "bg-purple-100 text-purple-700 border-purple-200";
+      case "Case Summary Generation": return "bg-orange-100 text-orange-700 border-orange-200";
+      default: return "bg-yellow-100 text-yellow-700 border-yellow-200";
+    }
+  };
 
   return (
     <>
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+        }
+      `}</style>
+
+      {/* --- Modals --- */}
       {loading && <SystemLoader />}
 
       <ConfirmationModal
@@ -428,9 +321,9 @@ const AdminCancerManagementView = () => {
         onCancel={() => {
           setModalOpen(false);
           setModalAction(null);
-          setModalText("");
         }}
       />
+
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -439,7 +332,7 @@ const AdminCancerManagementView = () => {
         onClose={() => setShowModal(false)}
       />
 
-      {/* Schedule Modal */}
+      {/* Dates */}
       <DateModal
         open={dateModalOpen}
         title="Set Treatment Date"
@@ -457,7 +350,7 @@ const AdminCancerManagementView = () => {
         onCancel={() => setInterviewModalOpen(false)}
       />
 
-      {/* Return remarks Modal */}
+      {/* Remarks */}
       <RemarksModal
         open={remarksModalOpen}
         title="Remarks"
@@ -465,299 +358,259 @@ const AdminCancerManagementView = () => {
         value={remarks}
         onChange={(e) => setRemarks(e.target.value)}
         onCancel={() => setRemarksModalOpen(false)}
-        onConfirm={() => setRemarksModalOpen(false)}
+        onConfirm={handleReject}
         confirmText="Confirm"
       />
 
-      {/* Send LOA Modal */}
+      {/* Uploads */}
       <FileUploadModal
         open={sendLOAModalOpen}
-        title="Send LOA"
+        title="Send LOA via Email"
         recipient={record?.patient?.email}
         onFileChange={setLoaFile}
         onConfirm={handleSendLOA}
         onCancel={() => setSendLOAModalOpen(false)}
       />
-
-      {/* Send Case Summary Modal */}
       <FileUploadModal
         open={sendCaseSummaryModalOpen}
-        title="Send Case Summary"
+        title="Send Case Summary via Email"
         recipient={record?.patient?.email}
         onFileChange={setCaseSummaryFile}
         onConfirm={handleSendCaseSummary}
         onCancel={() => setSendCaseSummaryModalOpen(false)}
       />
 
-      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray overflow-auto">
-        {/* Header */}
-        {/* <div className="h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Cancer Management</h1>
-          <div>
-            <Link to={"/admin/cancer-management"}>
-              <img
-                src="/images/back.png"
-                alt="Back"
-                className="h-6 cursor-pointer"
-              />
-            </Link>
-          </div>
-        </div> */}
+      {/* --- Main Layout --- */}
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto no-print">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
+          {/* Top Title */}
+          <h2 className="text-xl font-semibold mb-6 text-gray-800">Application Details</h2>
 
-        {/* Content */}
-        <div className="h-fit w-full flex flex-col gap-4">
-          <div className="bg-white rounded-md shadow border border-black/10">
-            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Request Information</h2>
-              <span
-                className={`text-xs px-2 py-1 rounded ${statusPillClasses}`}
-              >
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
+            
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
+              <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
+                Cancer Management
+              </h1>
+              <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase ${getStatusColor(status)}`}>
                 {status}
               </span>
             </div>
 
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Patient ID</span>
-                <span className="text-gray-700">
-                  {record?.patient?.patient_id || "---"}
-                </span>
+            {/* Grid Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
+              
+              {/* Left Column: Personal & Status */}
+              <div className="space-y-8">
+                {/* Patient Info */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Patient & Request
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <span className="text-gray-500 font-medium">Patient ID</span>
+                    <span className="col-span-2 text-gray-900 font-semibold">{record.patient.patient_id}</span>
+                    
+                    <span className="text-gray-500 font-medium">Full Name</span>
+                    <span className="col-span-2 text-gray-900 font-semibold">{record.patient.full_name}</span>
+
+                    <span className="text-gray-500 font-medium">Service</span>
+                    <span className="col-span-2 text-gray-900">{record.service_type || "---"}</span>
+
+                    <span className="text-gray-500 font-medium">Submitted</span>
+                    <span className="col-span-2 text-gray-900">
+                      {record.date_submitted
+                        ? new Date(record.date_submitted).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+                        : "---"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Status Management */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Status Management
+                  </h3>
+                  <div className="grid grid-cols-3 gap-3 text-sm items-center">
+                    <span className="text-gray-500 font-medium">Update Status</span>
+                    <div className="col-span-2">
+                      <select
+                        className="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:ring-2 focus:ring-primary outline-none transition-shadow"
+                        value={status}
+                        onChange={handleStatusChange}
+                        disabled={record?.status === "Completed" || record?.status === "Rejected"}
+                      >
+                        <option value="Pending" disabled={currentStep > 0}>Pending</option>
+                        <option value="Interview Process" disabled={currentStep > 1}>Interview Process</option>
+                        <option value="Case Summary Generation" disabled={currentStep > 2}>Case Summary Generation</option>
+                        <option value="Approved" disabled={currentStep > 3}>Approve</option>
+                        {record?.status !== "Approved" && (
+                          <option value="Rejected">Reject</option>
+                        )}
+                        {/* <option value="Rejected">Reject</option> */}
+                        <option value="Completed">Complete</option>
+                      </select>
+                    </div>
+
+                    <span className="text-gray-500 font-medium">Interview</span>
+                    <div className="col-span-2 flex items-center justify-between bg-gray-50 border border-gray-200 rounded px-3 py-2">
+                      <span className="text-gray-900 font-medium">
+                        {interviewDate
+                          ? new Date(interviewDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+                          : "Not Set"}
+                      </span>
+                      {(status === "Interview Process" || status === "Pending") && (
+                        <button onClick={() => setInterviewModalOpen(true)} className="p-1 hover:bg-gray-200 rounded text-blue-600">
+                          <Calendar className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    <span className="text-gray-500 font-medium">Treatment Date</span>
+                    <div className="col-span-2 flex items-center justify-between bg-gray-50 border border-gray-200 rounded px-3 py-2">
+                      <span className="text-gray-900 font-medium">
+                        {treatmentDate
+                          ? new Date(treatmentDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+                          : "Not Set"}
+                      </span>
+                      {status === "Approved" && (
+                        <button onClick={() => setDateModalOpen(true)} className="p-1 hover:bg-gray-200 rounded text-blue-600">
+                          <Calendar className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    <span className="text-gray-500 font-medium">Provider</span>
+                    <div className="col-span-2">
+                      <select
+                        className="w-full p-2 border border-gray-300 rounded text-sm bg-gray-50 focus:ring-2 focus:ring-primary outline-none"
+                        value={providerName}
+                        onChange={(e) => setProviderName(e.target.value)}
+                      >
+                        <option value="Chong Hua Hospital Mandaue">Chong Hua Hospital Mandaue</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Patient Name</span>
-                <span className="text-gray-700">
-                  {record?.patient?.full_name || "---"}
-                </span>
-              </div>
+              {/* Right Column: Documents & Actions */}
+              <div className="space-y-8">
+                
+                {/* Documents & Links */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Documents & Links
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    {[
+                      { title: "Pre-Screening Form", path: "pre-screening-form", icon: <FileText className="w-4 h-4" /> },
+                      { title: "Well Being Form", path: "well-being-form", icon: <FileText className="w-4 h-4" /> },
+                      { title: "Required Documents", path: "attachments", icon: <FileText className="w-4 h-4" /> },
+                      { title: "Lab Results", path: "results", icon: <FileText className="w-4 h-4" />, missing: !record.uploaded_result },
+                    ].map((item, idx) => (
+                      <Link
+                        key={idx}
+                        to={`/admin/cancer-management/view/${record.id}/${item.path}`}
+                        state={record}
+                        className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-primary/50 transition-all group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-gray-700 group-hover:text-primary">{item.title}</span>
+                          {/* <div className="text-gray-400 group-hover:text-primary">{item.icon}</div> */}
+                          {item.missing && <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">Missing</span>}
+                        </div>
+                        <div className="text-gray-400 group-hover:text-primary">{item.icon}</div>
+                        {/* <ArrowLeft className="w-4 h-4 text-gray-300 rotate-180 group-hover:text-primary" /> */}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
 
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Service Requested</span>
-                <span className="text-gray-700">
-                  {record?.service_type || "---"}
-                </span>
-              </div>
+                {/* Workflow Actions */}
+                {record.status !== "Pending" && (
+                  <div className="space-y-4">
+                    <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                      Workflow Actions
+                    </h3>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* LOA Section */}
+                      <div className="col-span-2 md:col-span-1 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                        <div className="font-semibold text-blue-900 mb-3 text-sm flex items-center gap-2">
+                          <Printer className="w-4 h-4" />
+                          Letter of Authority
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={handlePrint}
+                            className="text-xs bg-white border border-blue-200 text-blue-700 py-2 px-3 rounded hover:bg-blue-100 transition text-left"
+                          >
+                            Download / Print LOA
+                          </button>
+                          <button
+                            onClick={() => setSendLOAModalOpen(true)}
+                            className="text-xs bg-blue-600 text-white py-2 px-3 rounded hover:bg-blue-700 transition text-left flex justify-between items-center"
+                          >
+                            Send via Email <Send className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
 
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Date Submitted</span>
-                <span className="text-gray-700">
-                  {record?.date_submitted
-                    ? new Date(record?.date_submitted).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        }
-                      )
-                    : "---"}
-                </span>
-              </div>
-
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Status</span>
-                <select
-                  className="-ml-1 outline-none focus:ring-0 text-gray-700"
-                  value={status}
-                  onChange={handleStatusChange}
-                  disabled={record?.status === "Completed" || record?.status === "Rejected"}
-                >
-                  <option value="Pending" disabled={currentStep > 0}>Pending</option>
-                  <option value="Interview Process" disabled={currentStep > 1} >Interview Process</option>
-                  <option value="Case Summary Generation" disabled={currentStep > 2}>
-                    Case Summary Generation
-                  </option>
-                  <option value="Approved" disabled={currentStep > 3}>Approve</option>
-                  <option value="Rejected">Reject</option>
-                  <option value="Completed">Complete</option>
-                </select>
-              </div>
-
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Treatment Date</span>
-                <span className="text-gray-700">
-                  {treatmentDate
-                    ? new Date(treatmentDate).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : "---"}
-                </span>
-                {status === "Approved" && treatmentDate && (
-                  <span
-                    className="text-sm text-blue-700 cursor-pointer"
-                    onClick={() => setDateModalOpen(true)}
-                  >
-                    Edit
-                  </span>
+                      {/* Case Summary Section */}
+                      <div className="col-span-2 md:col-span-1 p-4 bg-orange-50 rounded-lg border border-orange-100">
+                        <div className="font-semibold text-orange-900 mb-3 text-sm flex items-center gap-2">
+                          <FilePlus className="w-4 h-4" />
+                          Case Summary
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <Link
+                            to={`/admin/cancer-management/view/${record?.id}/case-summary`}
+                            state={record}
+                            className="text-xs bg-white border border-orange-200 text-orange-700 py-2 px-3 rounded hover:bg-orange-100 transition text-left block"
+                          >
+                            Create / View
+                          </Link>
+                          <button
+                            onClick={() => setSendCaseSummaryModalOpen(true)}
+                            className="text-xs bg-orange-600 text-white py-2 px-3 rounded hover:bg-orange-700 transition text-left flex justify-between items-center"
+                          >
+                            Send via Email <Send className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
-
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Interview Schedule</span>
-                <span className="text-gray-700">
-                  {interviewDate
-                    ? new Date(interviewDate).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : "---"}
-                </span>
-                {status === "Interview Process" && interviewDate && (
-                  <span
-                    className="text-sm text-blue-700 cursor-pointer"
-                    onClick={() => setInterviewModalOpen(true)}
-                  >
-                    Edit
-                  </span>
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <label className="font-medium w-40">Service Provider</label>
-                <select
-                  className="-ml-1 outline-none focus:ring-0 text-gray-700"
-                  value={status}
-                  onChange={(e) => setProviderName(e.target.value)}
-                >
-                  <option value="Chong Hua Hospital Mandaue">
-                    Chong Hua Hospital Mandaue
-                  </option>
-                </select>
-              </div>
             </div>
-          </div>
-
-          {/* Additional Information (with documents) */}
-          <div className="bg-white rounded-md shadow border border-black/10">
-            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Additional Information</h2>
+            {/* Footer Actions */}
+            <div className="flex justify-around print:hidden mt-5">
+              <Link
+                to="/admin/cancer-management"
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+              >
+                Back
+              </Link>
+              <button
+                onClick={handleSaveChanges}
+                className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+              >
+                {/* <Save className="w-4 h-4" /> */}
+                Save Changes
+              </button>
             </div>
-
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Pre-Screening Form</span>
-                <Link
-                  className="text-blue-700"
-                  to={`/admin/cancer-management/view/${record?.id}/pre-screening-form`}
-                  state={record?.patient}
-                >
-                  View
-                </Link>
-              </div>
-
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Well Being Form</span>
-                <Link
-                  className="text-blue-700"
-                  to={`/admin/cancer-management/view/${record?.id}/well-being-form`}
-                  state={record}
-                >
-                  View
-                </Link>
-              </div>
-
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Required Documents</span>
-                <Link
-                  className="text-blue-700"
-                  to={`/admin/cancer-management/view/${record?.id}/attachments`}
-                  state={record}
-                >
-                  View
-                </Link>
-              </div>
-
-              <div className="flex gap-2">
-                <span className="font-medium w-40">
-                  Lab Results{" "}
-                  <span className="text-xs text-red-500">{record?.uploaded_result ? "" : "(Missing)"}</span>
-                </span>
-                <Link
-                  className="text-blue-700"
-                  to={`/admin/cancer-management/view/${record?.id}/results`}
-                  state={record}
-                >
-                  View
-                </Link>
-              </div>
-
-              {/* <div className="flex gap-2">
-                <span className="font-medium w-40">Signed Case Summary</span>
-                <Link
-                  className="text-blue-700"
-                  to={`/admin/cancer-management/view/${record?.id}/results`}
-                  state={record}
-                >
-                  View
-                </Link>
-              </div> */}
-            </div>
-          </div>
-
-          {/* LOA Actions */}
-          <div className="bg-white rounded-md shadow border border-black/10">
-            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">LOA Actions</h2>
-            </div>
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Letter of Authority</span>
-                <span
-                  className="text-blue-700 cursor-pointer"
-                  onClick={handlePrint}
-                >
-                  Download
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Send LOA</span>
-                <span
-                  className="text-blue-700 cursor-pointer"
-                  onClick={() => setSendLOAModalOpen(true)}
-                >
-                  Send
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Case Summary</span>
-                <Link
-                  className="text-blue-700 cursor-pointer"
-                  to={`/admin/cancer-management/view/${record?.id}/case-summary`}
-                  state={record}
-                  // onClick={() => setSendLOAModalOpen(true)}
-                >
-                  Create
-                </Link>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Send Case Summary</span>
-                <span
-                  className="text-blue-700 cursor-pointer"
-                  onClick={() => setSendCaseSummaryModalOpen(true)}
-                >
-                  Send
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex justify-around print:hidden">
-            <Link
-              to={`/admin/cancer-management`}
-              className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md"
-            >
-              Back
-            </Link>
-            <button
-              onClick={handleSaveChanges}
-              className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer"
-            >
-              Save Changes
-            </button>
           </div>
         </div>
+
+        {/* Decorative Footer */}
+        <div className="h-16 bg-secondary shrink-0"></div>
+      </div>
+
+      {/* Hidden Print Template */}
+      <div className="hidden print:block">
         <LOAPrintTemplate loaData={record} />
       </div>
     </>

@@ -1,457 +1,431 @@
-import React, { useState, useRef, useMemo, useEffect, use } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { 
+  User, 
+  MapPin, 
+  FileText, 
+  Search, 
+  Save, 
+  ArrowLeft,
+  Activity
+} from "lucide-react";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
-import Notification from "src/components/Notification";
+import NotificationModal from "src/components/Modal/NotificationModal"; 
+import SystemLoader from "src/components/SystemLoader";
 
 import api from "src/api/axiosInstance";
 
-import SystemLoader from "src/components/SystemLoader";
+// --- Reusable UI Helpers ---
 
-/* =========================
-   Searchable Select (inline)
-   ========================= */
-const SearchableSelect = ({
-  label = "Patient Name",
-  placeholder = "Search patient...",
-  options = [],
-  value = null,
-  onChange,
-  errors = {}
-}) => {
+const InputGroup = ({ label, name, type = "text", value, onChange, required, error, placeholder, readOnly, ...props }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      readOnly={readOnly}
+      className={`w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
+        error ? 'border-red-500 bg-red-50' : readOnly ? 'bg-gray-100 text-gray-500 border-gray-200' : 'border-gray-300 bg-white'
+      }`}
+      {...props}
+    />
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
+const TextAreaGroup = ({ label, name, value, onChange, required, error, placeholder, rows = 3 }) => (
+    <div>
+      <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <textarea
+        name={name}
+        value={value}
+        onChange={onChange}
+        rows={rows}
+        placeholder={placeholder}
+        className={`w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none ${
+          error ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'
+        }`}
+      />
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+    </div>
+);
+
+// --- Searchable Select Component ---
+const SearchableSelect = ({ label, placeholder, options = [], value, onChange, error }) => {
   const [open, setOpen] = useState(false);
-  const [q, setQ] = useState("");
+  const [query, setQuery] = useState("");
   const ref = useRef(null);
 
-  const filtered = useMemo(() => {
-    if (!q) return options;
-    const s = q.toLowerCase();
+  const filteredOptions = useMemo(() => {
+    if (!query) return options;
+    const lowerQuery = query.toLowerCase();
     return options.filter(
       (o) =>
-        o.full_name.toLowerCase().includes(s) ||
-        (o.email && o.email.toLowerCase().includes(s))
+        o.full_name.toLowerCase().includes(lowerQuery) ||
+        (o.email && o.email.toLowerCase().includes(lowerQuery))
     );
-  }, [q, options]);
+  }, [query, options]);
 
   useEffect(() => {
-    const onDocClick = (e) => {
+    const handleClickOutside = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     };
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <div className="w-full" ref={ref}>
-      <label className="text-sm font-medium block mb-1">{label} <span className="text-red-500">*</span></label>
-      <div className="relative">
-        <button
-          type="button"
-          className="w-full border border-gray-300 rounded px-3 py-2 bg-white text-left"
-          onClick={() => setOpen((o) => !o)}
-        >
-          {value ? value.full_name : "Select patient"}
-        </button>
-
-        {open && (
-          <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded shadow">
-            <div className="p-2 border-b border-gray-200">
-              <input
-                autoFocus
-                type="text"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={placeholder}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-              />
-            </div>
-            <ul className="max-h-56 overflow-auto">
-              {filtered.length === 0 && (
-                <li className="px-3 py-2 text-sm text-gray-500">No results</li>
-              )}
-              {filtered.map((opt) => (
-                <li
-                  key={opt.id}
-                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    onChange(opt);
-                    setOpen(false);
-                    setQ("");
-                  }}
-                >
-                  <div className="text-sm font-medium">{opt.full_name}</div>
-                  <div className="text-xs text-gray-500">{opt.email}</div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-      {errors.patient && !value && (
-        <span className="text-red-500 text-xs">
-          {errors.patient}
+    <div className="w-full relative" ref={ref}>
+      <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+        {label} <span className="text-red-500">*</span>
+      </label>
+      
+      <button
+        type="button" 
+        className={`w-full border rounded-md px-3 py-2 text-sm flex items-center justify-between cursor-pointer bg-white text-left ${
+            error ? 'border-red-500 bg-red-50' : 'border-gray-300'
+        }`}
+        onClick={() => setOpen(!open)}
+      >
+        <span className={value ? "text-gray-900 font-medium" : "text-gray-400"}>
+            {value ? value.full_name : placeholder}
         </span>
-      )}
-      {value && (
-        <p className="text-xs text-gray-500 mt-1">
-          Selected: <span className="font-medium">{value.full_name}</span>{" "}
-          <span className="text-gray-400">({value.email})</span>
-        </p>
+        <Search className="w-4 h-4 text-gray-400" />
+      </button>
+
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-hidden flex flex-col">
+          <div className="p-2 border-b border-gray-100 bg-gray-50">
+            <input
+              autoFocus
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Type to search..."
+              className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-primary"
+            />
+          </div>
+          <ul className="overflow-y-auto flex-1">
+            {filteredOptions.length === 0 ? (
+                <li className="px-4 py-3 text-xs text-gray-500 text-center">No patients found</li>
+            ) : (
+                filteredOptions.map((opt) => (
+                <li
+                    key={opt.patient_id}
+                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-0"
+                    onClick={() => {
+                        onChange(opt);
+                        setOpen(false);
+                        setQuery("");
+                    }}
+                >
+                    <div className="text-sm font-bold text-gray-800">{opt.full_name}</div>
+                    <div className="text-xs text-gray-500">{opt.patient_id} • {opt.email || "No Email"}</div>
+                </li>
+                ))
+            )}
+          </ul>
+        </div>
       )}
     </div>
   );
 };
 
-function Input({
-  label,
-  name,
-  value,
-  onChange,
-  type = "text",
-  placeholder = "",
-  rows,
-  errors = {},
-  readOnly=false,
-  required=false,
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium">{label} {required && <span className="text-red-500">*</span>}</label>
-      {rows ? (
-        <textarea
-          name={name}
-          rows={rows}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
-        />
-      ) : (
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none"
-          readOnly={readOnly}
-        />
-      )}
-      {errors[name] && (
-        <span className="text-red-500 text-xs">
-          {errors[name]} 
-        </span>
-      )}
-    </div>
-  );
-}
-
 const HomeVisitAdd = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const record = location.state;
+
+  // --- Form State ---
   const [form, setForm] = useState({
     patient_id: "",
     purpose_of_visit: "",
-    // findings: "",
-    // recommendations: "",
     prepared_by: "",
     approved_by: "",
     status: "Pending",
-    well_being_data: {}
+    well_being_data: {} // Default empty object
   });
 
-  const location = useLocation();
-  const record = location?.state;
-
   const [patientTable, setPatientTable] = useState([]);
-  const [patient, setPatient] = useState(null); // from SAMPLE_PATIENTS
-  const [errors, setErrors] = useState({});
+  const [patient, setPatient] = useState(null);
   
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("");
-  const [wellBeingData, setWellBeingData] = useState(null);
-
-  // Notification
-  const [notification, setNotification] = useState("");
-  const [notificationType, setNotificationType] = useState("info");
-
+  // --- UX State ---
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-
-  const required = ["patient_id"];
-
-  const fetchData = async () => {
-    try {
-      const response = await api.get("/patient/list/");
-      setPatientTable(response.data);
-      console.log("Responses: ", response.data);
-    } catch (error) {
-      console.error("Error fetching patient data:", error);
-    }
-  };
-
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({ type: "success", title: "", message: "" });
+  
+  // Fetch Patients
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data } = await api.get("/patient/list/");
+        setPatientTable(data);
+      } catch (error) {
+        console.error("Error fetching patients:", error);
+      }
+    };
     fetchData();
   }, []);
 
+  // Restore State logic (if coming back from Wellbeing)
   useEffect(() => {
-    if (record?.form) {
-      setForm(record.form);
-    }
-    if (record?.wellBeingData) {
-      // setWellBeingData(record.wellBeningData);
-      setForm((prev) => {
-        return {
-          ...prev,
-          well_being_data: record.wellBeingData
-        }
-      })
-      setPatient(record.patient);
+    if (record) {
+      if (record.form) setForm(record.form);
+      if (record.patient) setPatient(record.patient);
+      
+      // Merge new wellbeing data if available
+      if (record.wellBeingData) {
+         setForm(prev => ({ ...prev, well_being_data: record.wellBeingData }));
+      }
     }
   }, [record]);
-  console.log("Wellbeing Data: ", form.well_being_data);
-  console.log("Record: ", record);
+
+  // Handlers
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+    if(errors[name]) setErrors(prev => ({...prev, [name]: undefined}));
+  };
 
   const validate = () => {
     const newErrors = {};
-    // Required fields
-    const requiredFields = {
-      prepared_by: "This field is required.",
-      approved_by: "This field is required.",
-      purpose_of_visit: "This field is required.",
-    };
-
-    // Validate form fields
-    Object.entries(requiredFields).forEach(([field, message]) => {
-      if (!form[field] || !form[field].toString().trim()) {
-        newErrors[field] = message;
-      }
-    });
-    if (!patient)
-      newErrors["patient"] = "Select a patient."
-
+    if (!patient) newErrors.patient = "Required";
+    if (!form.purpose_of_visit.trim()) newErrors.purpose_of_visit = "Required";
+    if (!form.prepared_by.trim()) newErrors.prepared_by = "Required";
+    if (!form.approved_by.trim()) newErrors.approved_by = "Required";
+    
     return newErrors;
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((p) => ({ ...p, [name]: value }));
-    setErrors((p) => ({ ...p, [name]: undefined }));
-  };
-
-  const handleSubmit = (e) => {
+  const handleSave = (e) => {
     e.preventDefault();
-    // const v = validate();
-    // if (Object.keys(v).length) {
-    //   setErrors(v);
-    //   return;
-    // }
     const validationErrors = validate();
-
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      console.log("Errors: ", validationErrors);
+      setModalInfo({ type: "error", title: "Validation Error", message: "Please check all required fields." });
+      setShowModal(true);
       return;
     }
-
     setErrors({});
-    
-    setForm((prev) => {
-      return {
-        ...prev,
-        patient_id: patient.patient_id
-      }
-    })
-    setModalText("Add this home visit?");
-    setModalOpen(true);
+    setConfirmOpen(true);
   };
 
-  const handleModalConfirm = async () => {
-    setModalOpen(false);
+  const onConfirmCreate = async () => {
+    setConfirmOpen(false);
     setLoading(true);
+
     try {
-      console.log("Form Submitted: ", form);
-      await api.post("survivorship/home-visit/create/", form);
-      navigate("/admin/survivorship");
+      const payload = {
+        ...form,
+        patient_id: patient.patient_id // Ensure patient ID is synced
+      };
+
+      await api.post("survivorship/home-visit/create/", payload);
+      
+      navigate("/admin/survivorship", {
+        state: { flash: "Home visit record created." },
+      });
+
     } catch (error) {
-      let errorMessage = "Something went wrong while submitting the form.";
-      console.log("Errors: ", error)
-      if (error.response && error.response.data) {
-        if (error.response.data.non_field_errors) {
-          errorMessage = error.response.data.non_field_errors[0];
-        } else if (error.response.data.detail){
-          errorMessage = error.response.data.detail;
-        }
-      }
-      setNotification(errorMessage);
-      setNotificationType("error");
-      setTimeout(() => setNotification(""), 3000);
       console.error(error);
+      let msg = "Something went wrong.";
+      if (error.response?.data?.non_field_errors) msg = error.response.data.non_field_errors[0];
+      setModalInfo({ type: "error", title: "Creation Failed", message: msg });
+      setShowModal(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleModalCancel = () => {
-    setModalOpen(false);
-    setModalText("");
-  };
-
-  const handleAddWellbeingForm = () => {
+  const handleAddWellbeing = () => {
+    if(!patient) {
+        setErrors({patient: "Please select a patient first"});
+        return;
+    }
+    
     navigate("/admin/survivorship/add/well-being-form", { 
-      state: { form, patient }
+      state: { 
+          patient,
+          form // Pass current form state to preserve inputs
       }
-    )
+    });
   };
 
   return (
-    <>
-     {loading && <SystemLoader />}
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+      {loading && <SystemLoader />}
+      
       <ConfirmationModal
-        open={modalOpen}
-        title={modalText}
-        desc="Please confirm before proceeding."
-        onConfirm={handleModalConfirm}
-        onCancel={handleModalCancel}
+        open={confirmOpen}
+        title="Create Home Visit Record?"
+        desc="This will add a new home visit entry for the selected patient."
+        onConfirm={onConfirmCreate}
+        onCancel={() => setConfirmOpen(false)}
       />
-      <Notification message={notification} type={notificationType} />
 
-      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center bg-gray overflow-auto">
-        {/* {notification && (
-          <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500">
-            <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-              <img
-                src="/images/logo_white_notxt.png"
-                alt="Rafi Logo"
-                className="h-[25px]"
-              />
-              <span>{notification}</span>
-            </div>
-          </div>
-        )} */}
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
+      />
 
-        {/* <div className="bg-lightblue h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Add home visit</h1>
-        </div> */}
+      <div className="py-5 px-5 md:px-5 flex flex-col flex-1 max-w-5xl mx-auto w-full">
+        
+        {/* Top Title */}
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">
+            Add Home Visit
+        </h2>
 
-        <form
-          onSubmit={handleSubmit}
-          className="h-fit w-full flex flex-col gap-4"
-        >
-          <div className="bg-white rounded-md shadow border border-black/10">
-            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Patient Home Visit</h2>
+        {/* Main Content Card */}
+        <div className="flex flex-col gap-8 w-full bg-white rounded-lg py-8 px-6 md:px-10 shadow-sm border border-gray-100 flex-1">
+            
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-6 gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-50 rounded-full text-green-600">
+                        <MapPin className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-800">New Visit Record</h1>
+                        <p className="text-xs text-gray-500 mt-1">Record details for patient home visitation.</p>
+                    </div>
+                </div>
             </div>
 
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-              <Input
-                label="Patient ID"
-                name="patient_id"
-                value={patient?.patient_id}
-                onChange={handleChange}
-                placeholder="e.g., S-10231"
-                // error={errors.patient_id}
-                readOnly={true}
-              />
-              <SearchableSelect
-                label="Patient Name"
-                options={patientTable}
-                value={patient}
-                onChange={setPatient}
-                errors={errors}
-              />
-              <Input
-                label="Prepared by"
-                name="prepared_by"
-                value={form.prepared_by}
-                onChange={handleChange}
-                placeholder="e.g., Nurse Alma Cruz"
-                errors={errors}
-                required={true}
-              />
-              <Input
-                label="Approved by"
-                name="approved_by"
-                value={form.approved_by}
-                onChange={handleChange}
-                placeholder="e.g., Dr. Thea Ramos"
-                errors={errors}
-                required={true}
-              />
-            </div>
-          </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                
+                {/* LEFT COLUMN: Details */}
+                <div className="space-y-6">
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-l-4 border-green-500 pl-3 flex items-center gap-2">
+                        <User className="w-4 h-4 text-gray-400" /> Visit Information
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 gap-5">
+                        <SearchableSelect 
+                            label="Patient Name"
+                            placeholder="Search by name or ID..."
+                            options={patientTable}
+                            value={patient}
+                            onChange={setPatient}
+                            error={errors.patient}
+                        />
 
-          <div className="bg-white rounded-md shadow border border-black/10">
-            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Narrative</h2>
-            </div>
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-              <Input
-                label="Purpose of Visit"
-                name="purpose_of_visit"
-                value={form.purpose_of_visit}
-                onChange={handleChange}
-                placeholder="Enter purpose"
-                rows={3}
-                errors={errors}
-                required={true}
-              />
-              {/* <Input
-                label="Findings/Observation"
-                name="findings"
-                value={form.findings}
-                onChange={handleChange}
-                placeholder="Enter findings"
-                rows={4}
-              />
-              <Input
-                label="Recommendations"
-                name="recommendations"
-                value={form.recommendations}
-                onChange={handleChange}
-                placeholder="Enter recommendations"
-                rows={3}
-              /> */}
-            </div>
-          </div>
+                         <InputGroup 
+                            label="Patient ID" 
+                            value={patient?.patient_id || ""} 
+                            readOnly 
+                            placeholder="Auto-filled"
+                        />
 
-          <div className="bg-white rounded-md shadow border border-black/10">
-            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Additionl Option</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <InputGroup 
+                                label="Prepared By" 
+                                name="prepared_by"
+                                value={form.prepared_by} 
+                                onChange={handleChange}
+                                placeholder="e.g. Nurse Alma"
+                                required
+                                error={errors.prepared_by}
+                            />
+                            <InputGroup 
+                                label="Approved By" 
+                                name="approved_by"
+                                value={form.approved_by} 
+                                onChange={handleChange}
+                                placeholder="e.g. Dr. Ramos"
+                                required
+                                error={errors.approved_by}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* RIGHT COLUMN: Narrative & Extras */}
+                <div className="space-y-6 flex flex-col">
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-l-4 border-yellow-500 pl-3 flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-gray-400" /> Narrative Report
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-5">
+                        <TextAreaGroup 
+                            label="Purpose of Visit"
+                            name="purpose_of_visit"
+                            value={form.purpose_of_visit}
+                            onChange={handleChange}
+                            rows={4}
+                            placeholder="Enter purpose or objectives..."
+                            required
+                            error={errors.purpose_of_visit}
+                        />
+
+                        {/* Additional Option Box */}
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Activity className="w-5 h-5 text-primary" />
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-gray-700">Wellbeing Assessment</span>
+                                    <span className="text-xs text-gray-500">Optional assessment form</span>
+                                </div>
+                            </div>
+                            <button 
+                                type="button"
+                                onClick={handleAddWellbeing}
+                                className="text-xs font-bold text-white bg-primary px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+                            >
+                                {Object.keys(form.well_being_data).length > 0 ? "Edit Form" : "Add Form"}
+                            </button>
+                        </div>
+                        {Object.keys(form.well_being_data).length > 0 && (
+                            <p className="text-xs text-green-600 font-medium text-right mt-[-10px]">
+                                ✓ Form data attached
+                            </p>
+                        )}
+                    </div>
+                </div>
+
             </div>
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Wellbeing Form</span>
-                <button 
-                  // to={"/admin/survivorship/add/well-being-form"}
-                  // state={patient}
-                  onClick={handleAddWellbeingForm}
-                  className="text-blue-700 cursor-pointer"
+
+            {/* Footer Actions */}
+            <div className="w-full flex justify-around mt-6 mb-2">
+                <button
+                    type="button"
+                    onClick={() => navigate("/admin/survivorship")}
+                    // className="px-6 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition-all"
+                    className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
                 >
-                  {Object.keys(form.well_being_data).length === 0 ? (
-                    "Add"
-                  ) : "Edit"
-                  }
+                    Cancel
                 </button>
-              </div>
+                <button
+                    type="button"
+                    onClick={handleSave}
+                    // className="flex items-center gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+                    className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+                >
+                    {/* <Save className="w-4 h-4" /> */}
+                    Save Record
+                </button>
             </div>
-          </div>
-{/* Stop here for now */}
-          <div className="w-full flex justify-around pb-6">
-            <Link
-              className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
-              to="/admin/survivorship"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-            >
-              Save
-            </button>
-          </div>
-        </form>
+
+        </div>
       </div>
-    </>
+      
+      {/* Decorative Footer */}
+      <div className="h-16 bg-secondary shrink-0"></div>
+    </div>
   );
 };
 

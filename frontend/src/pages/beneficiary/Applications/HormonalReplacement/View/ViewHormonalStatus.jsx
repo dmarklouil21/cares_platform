@@ -1,31 +1,24 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import api from "src/api/axiosInstance";
 import { useAuth } from "src/context/AuthContext";
 
 import FileUploadModal from "src/components/Modal/FileUploadModal";
 import CheckupScheduleModal from "src/components/Modal/CheckupScheduleModal";
-
-import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import SystemLoader from "src/components/SystemLoader";
-
-// import LOAPrintTemplate from "../download/LOAPrintTemplate";
 
 // Map status to step index
 const STATUS_TO_STEP = {
   Pending: 0,
   Approved: 1,
   Completed: 2,
-  // "Follow-up Required": 3,
-  // Closed: 3,
 };
 
 const getStepIndexByStatus = (status) => STATUS_TO_STEP[status] ?? 0;
 
-export default function ViewhormonalReplacementStatus() {
+export default function ViewHormonalReplacementStatus() {
   const { user } = useAuth();
-  // const location = useLocation();
   const { id } = useParams();
   const [hormonalReplacement, setHormonalReplacement] = useState(null);
 
@@ -33,12 +26,6 @@ export default function ViewhormonalReplacementStatus() {
   const [resultFile, setResultFile] = useState(null);
 
   const [isCheckupModalOpen, setIsCheckupModalOpen] = useState(false);
-
-  // Confirmation Modal State
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("Confirm Status Change?");
-  const [modalDesc, setModalDesc] = useState("");
-  const [modalAction, setModalAction] = useState(null);
 
   // Notification Modal
   const [showModal, setShowModal] = useState(false);
@@ -57,73 +44,107 @@ export default function ViewhormonalReplacementStatus() {
     const baseSteps = [
       {
         title: "Pending",
-        description:
-          activeStep === 0 ? (
+        description: (() => {
+          // 1. PAST
+          if (activeStep > 0) {
+            return (
+              <>
+                Your request has been approved. You have been notified regarding
+                your medicines release details.
+              </>
+            );
+          }
+          // 2. CURRENT
+          return (
             <>
               Your request for hormonal replacement medication has been
               submitted and is currently under review. Once approved, you’ll
               receive instructions on the next steps.
             </>
-          ) : (
-            <>
-              Your request has been approved. You will be notified with your
-              medicines release date through email.
-            </>
-          ),
+          );
+        })(),
       },
       {
         title: "Approved",
-        description:
-          activeStep === 1 ? (
-            <>
-              Your hormonal replacement medication request has been approved.{" "}
-              Your medicines release date has been scheduled for{" "}
-              <b>
-                {new Date(
-                  hormonalReplacement?.released_date
-                ).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </b>
-              . Please make sure to arrive at least 15 minutes early and bring
-              any required identification.
-            </>
-          ) : (
-            <>
-              Your medicines release date has been scheduled for{" "}
-              <b>
-                {new Date(
-                  hormonalReplacement?.released_date
-                ).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </b>
-              . Please make sure to arrive at least 15 minutes early and bring
-              any required identification.
-            </>
-          ),
+        description: (() => {
+          // 1. PAST
+          if (activeStep > 1) {
+            return (
+              <>
+                Medicines release date scheduled for{" "}
+                <b>
+                  {hormonalReplacement?.released_date
+                    ? new Date(
+                        hormonalReplacement.released_date
+                      ).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "N/A"}
+                </b>{" "}
+                is marked as done.
+              </>
+            );
+          }
+          // 2. CURRENT
+          if (activeStep === 1) {
+            return (
+              <>
+                Your hormonal replacement medication request has been approved.
+                Your medicines release date has been scheduled for{" "}
+                <b>
+                  {hormonalReplacement?.released_date
+                    ? new Date(
+                        hormonalReplacement.released_date
+                      ).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "N/A"}
+                </b>
+                . Please make sure to arrive at the designated date and bring
+                any required identification.
+              </>
+            );
+          }
+          // 3. FUTURE
+          return (
+            <span className="text-gray-500">
+              Once approved, your release schedule will appear here.
+            </span>
+          );
+        })(),
       },
       {
         title: "Completed",
-        description:
-          activeStep === 2 ? (
-            <>
-              Your hormonal replacement medication request has been successfully
-              claimed.
-            </>
-          ) : activeStep > 2 ? (
-            <> Your hormonal replacement is complete. </>
-          ) : (
-            <>
-              {" "}
-              You will be notified through email if the medicine is available
-              for claiming.{" "}
-            </>
-          ),
+        description: (() => {
+          // 1. PAST (If extra steps exist)
+          if (activeStep > 2) {
+            return (
+              <p className="text-green-600 font-medium">
+                Medication claimed successfully.
+              </p>
+            );
+          }
+          // 2. CURRENT
+          if (activeStep === 2) {
+            return (
+              <p className="text-green-600 font-medium">
+                Your hormonal replacement medication request has been successfully
+                claimed.
+              </p>
+            );
+          }
+          // 3. FUTURE
+          return (
+            <span className="text-gray-500">
+              You will be notified through email once the medicine is available
+              for claiming.
+            </span>
+          );
+        })(),
       },
     ];
 
@@ -137,11 +158,6 @@ export default function ViewhormonalReplacementStatus() {
           `/beneficiary/hormonal-replacement/details/${id}/`
         );
         setHormonalReplacement(data);
-
-        if (data?.status === "Follow-up Required") {
-          STATUS_TO_STEP["Follow-up Required"] = 3;
-          STATUS_TO_STEP["Closed"] = 4;
-        }
       } catch (error) {
         console.error("Error fetching record data:", error);
       }
@@ -170,6 +186,7 @@ export default function ViewhormonalReplacementStatus() {
         const formData = new FormData();
         formData.append("file", resultFile);
 
+        // Note: Check backend endpoint. Currently using post-treatment endpoint as per original code.
         await api.patch(
           `/beneficiary/post-treatment/result/upload/${hormonalReplacement.id}/`,
           formData,
@@ -198,13 +215,10 @@ export default function ViewhormonalReplacementStatus() {
       }
     } catch (error) {
       console.error(error);
-    } finally {
-      // Stop here
     }
   };
 
   return (
-    // <div className="h-screen w-full flex flex-col bg-[#F8F9FA]">
     <>
       {loading && <SystemLoader />}
 
@@ -215,11 +229,10 @@ export default function ViewhormonalReplacementStatus() {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      {/* Upload Result Modal */}
+
       <FileUploadModal
         open={uploadResultModalOpen}
         title="Upload Result"
-        // recipient={data?.patient?.email}
         onFileChange={setResultFile}
         onConfirm={handleUpload}
         onCancel={() => setUploadResultModalOpen(false)}
@@ -230,32 +243,24 @@ export default function ViewhormonalReplacementStatus() {
         onClose={() => setIsCheckupModalOpen(false)}
         data={hormonalReplacement}
       />
-      <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 items-center bg-gray overflow-auto">
-        {/* <div className=" px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Post Treatment</h1>
-          <Link to="/beneficiary/applications/post-treatment">
-            <img
-              src="/images/back.png"
-              alt="Back"
-              className="h-6 cursor-pointer"
-            />
-          </Link>
-        </div> */}
 
-        {/* <div className="flex-1 w-full py-5 px-5 flex justify-center items-start"> */}
-        <div className="h-full w-full flex flex-col justify-between">
-          {/* <div className="bg-white flex flex-col gap-7 rounded-[4px] shadow-md p-6 w-full max-w-3xl"> */}
-          <div className="border border-black/15 p-3 bg-white rounded-sm">
-            <div className="w-full bg-white rounded-[4px] p-4 ">
-              <h2 className="text-md font-bold mb-3">
-                Hormonal Replacement Medication Request
-              </h2>
-              {/* <div className="flex justify-between items-center">
-                <h2 className="text-md font-bold mb-3">Screening Progress</h2>
-              </div> */}
+      {/* Main Container mirroring the modern design */}
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
+          {/* Top Title */}
+          <h2 className="text-xl font-semibold mb-6">Application Status</h2>
 
-              {/* Stepper */}
-              <div className="flex flex-col gap-0">
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto">
+            
+            {/* Header */}
+            <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
+              Hormonal Replacement Progress
+            </h1>
+
+            {/* Stepper Content */}
+            <div className="flex-1 w-full max-w-4xl">
+              <div className="flex flex-col gap-0 mt-4">
                 {stepList.map((step, idx) => {
                   const isActive = idx === activeStep;
                   const isLast = idx === stepList.length - 1;
@@ -284,31 +289,35 @@ export default function ViewhormonalReplacementStatus() {
                       </div>
 
                       {/* Step text */}
-                      <div className="flex flex-col gap-1 pb-8">
+                      <div className="flex flex-col gap-1 pb-10">
                         <h3 className="font-semibold text-md text-gray-800">
-                          {step?.title}
+                          {step.title}
                         </h3>
-                        <p className="text-gray-600 text-sm">
-                          {step?.description}
-                        </p>
+                        <div className="text-gray-600 text-sm">
+                          {step.description}
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="w-full h-full mt-4">
-                <Link
-                  to="/beneficiary/applications/hormonal-replacement"
-                  className="flex items-center justify-center border rounded-md w-[300px] py-3 mx-auto border-black/15 hover:bg-black/10 hover:border-black "
-                >
-                  Back
-                </Link>
-              </div>
+            </div>
+
+            {/* Actions / Footer Button */}
+            <div className="mt-6 flex justify-end">
+              <Link
+                to="/beneficiary/applications/hormonal-replacement"
+                // className="border border-black/15 py-3 rounded-md text-center px-6 hover:bg-black/10 hover:border-black w-full md:w-[40%]"
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+              >
+                Back
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* <LOAPrintTemplate loaData={individualScreening} /> */}
+        {/* Bottom decorative strip */}
+        <div className="h-16 bg-secondary"></div>
       </div>
     </>
   );

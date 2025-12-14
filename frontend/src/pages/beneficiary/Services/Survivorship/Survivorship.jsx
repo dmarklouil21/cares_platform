@@ -22,7 +22,7 @@ const survivorshipOptions = [
     icon: "/assets/images/patient/services/survivorship/utak.png",
     description:
       "Access mental health services like counseling or therapy to help manage emotional challenges during survivorship.",
-    link: "/beneficiary/services/survivorship/hormonal-replacement",
+    link: "/beneficiary/PychosocialSupport",
   },
 ];
 
@@ -30,7 +30,7 @@ const SurvivorshipPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex flex-col gap-3 h-full w-full bg-gray py-7 px-8 overflow-auto">
+    <div className="flex flex-col gap-3 h-full w-full bg-gray py-5 px-5 overflow-auto">
       <h3 className="text-2xl font-bold text-secondary">
         LIFE AFTER CANCER: YOUR SURVIVORSHIP JOURNEY
       </h3>

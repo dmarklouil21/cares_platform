@@ -12,265 +12,10 @@ import RemarksModal from "src/components/Modal/RemarksModal";
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import Notification from "src/components/Notification";
 import SystemLoader from "src/components/SystemLoader";
+import DateModal from "src/components/Modal/DateModal"; // Using your new DateModal
 
 import PreCancerousPrint from "./generate/generate";
 import api from "src/api/axiosInstance";
-
-// Lightweight inline calendar with month navigation and min-date support
-function MiniCalendar({ selected, min, onSelect }) {
-  const parse = (s) => (s ? new Date(s + "T00:00:00") : null);
-  const fmt = (d) => {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
-  const today = new Date();
-  const sel = parse(selected);
-  const minStr = min || null;
-
-  const init = sel || today;
-  const [y, setY] = useState(init.getFullYear());
-  const [m, setM] = useState(init.getMonth());
-
-  const first = new Date(y, m, 1);
-  const startWeekday = (first.getDay() + 6) % 7;
-  const daysInMonth = new Date(y, m + 1, 0).getDate();
-
-  const weeks = [];
-  let day = 1 - startWeekday;
-  for (let w = 0; w < 6; w++) {
-    const row = [];
-    for (let d = 0; d < 7; d++, day++) {
-      const inMonth = day >= 1 && day <= daysInMonth;
-      const dateObj = new Date(y, m, Math.max(1, Math.min(day, daysInMonth)));
-      const dateStr = fmt(new Date(y, m, day));
-      const isPastMin = minStr ? dateStr < minStr : false;
-      row.push({
-        inMonth,
-        dateStr,
-        dateObj,
-        disabled: !inMonth || isPastMin,
-      });
-    }
-    weeks.push(row);
-  }
-
-  const canGoPrev = (() => {
-    if (!minStr) return true;
-    const prevLastStr = fmt(new Date(y, m, 0));
-    return prevLastStr >= minStr;
-  })();
-
-  const goPrev = () => {
-    if (!canGoPrev) return;
-    const nm = m - 1;
-    if (nm < 0) {
-      setY(y - 1);
-      setM(11);
-    } else setM(nm);
-  };
-
-  const goNext = () => {
-    const nm = m + 1;
-    if (nm > 11) {
-      setY(y + 1);
-      setM(0);
-    } else setM(nm);
-  };
-
-  const weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-  return (
-    <div className="w-[220px] select-none text-[12px]">
-      <div className="flex items-center justify-between mb-1">
-        <button
-          type="button"
-          className={`px-1.5 py-0.5 rounded border ${
-            canGoPrev ? "hover:bg-gray-50" : "opacity-40 cursor-not-allowed"
-          }`}
-          onClick={goPrev}
-          disabled={!canGoPrev}
-          aria-label="Previous month"
-        >
-          ←
-        </button>
-        <div className="text-xs font-semibold">
-          {new Date(y, m, 1).toLocaleString("en-US", {
-            month: "long",
-            year: "numeric",
-          })}
-        </div>
-        <button
-          type="button"
-          className="px-1.5 py-0.5 rounded border hover:bg-gray-50"
-          onClick={goNext}
-          aria-label="Next month"
-        >
-          →
-        </button>
-      </div>
-      <div className="grid grid-cols-7 gap-[2px] text-[10px] text-gray-600 mb-1">
-        {weekday.map((w) => (
-          <div key={w} className="text-center">
-            {w}
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-[2px]">
-        {weeks.flat().map((cell, idx) => {
-          const fmt2 = (d) => {
-            const yyyy = d.getFullYear();
-            const mm = String(d.getMonth() + 1).padStart(2, "0");
-            const dd = String(d.getDate()).padStart(2, "0");
-            return `${yyyy}-${mm}-${dd}`;
-          };
-          const isToday = fmt2(new Date()) === cell.dateStr;
-          const isSelected = selected && selected === cell.dateStr;
-          const base =
-            "text-[11px] rounded w-7 h-7 flex items-center justify-center";
-          const tone = !cell.inMonth
-            ? "text-gray-300"
-            : cell.disabled
-            ? "text-gray-400"
-            : "text-gray-800 hover:bg-primary/10";
-          const badge = isSelected
-            ? "bg-primary text-white hover:bg-primary"
-            : isToday
-            ? "ring-1 ring-primary/60"
-            : "";
-          return (
-            <button
-              key={idx}
-              type="button"
-              className={`${base} ${tone} ${badge}`}
-              onClick={() => !cell.disabled && onSelect(cell.dateStr)}
-              disabled={cell.disabled}
-            >
-              {cell.dateObj.getDate()}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function VerifyModal({ open, onClose, onConfirm, value, onChange, loading }) {
-  if (!open) return null;
-  const today = (() => {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  })();
-  const [openCal, setOpenCal] = useState(false);
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px]">
-      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Set Release Date
-        </h3>
-        <p className="text-sm text-gray-600 mb-4">
-          Set the release date to verify this medication request.
-        </p>
-        <div className="relative">
-          <label
-            className="text-sm text-gray-700 font-medium"
-            htmlFor="releaseDate"
-          >
-            Release Date
-          </label>
-          <div className="mt-1 flex items-center gap-2">
-            <input
-              id="releaseDate"
-              type="text"
-              readOnly
-              placeholder="YYYY-MM-DD"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              value={value || ""}
-              onClick={() => setOpenCal((v) => !v)}
-              autoFocus
-            />
-            <button
-              type="button"
-              className="p-2 rounded-md border border-gray-300 hover:bg-gray-50 transition-colors"
-              onClick={() => setOpenCal((v) => !v)}
-              aria-label="Open calendar"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="w-5 h-5 text-gray-700"
-              >
-                <path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a3 3 0 0 1 3 3v11a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h1V3a1 1 0 0 1 1-1Zm13 7H4v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9ZM5 7h14a1 1 0 0 1 1 1v1H4V8a1 1 0 0 1 1-1Z" />
-              </svg>
-            </button>
-          </div>
-          <span className="text-xs text-gray-500 mt-1 block">
-            Pick a date from the calendar. Past dates are disabled.
-          </span>
-
-          {openCal && (
-            <div className="absolute right-0 mt-2 z-50">
-              <div className="bg-white border border-gray-200 shadow-lg rounded-md p-3">
-                <MiniCalendar
-                  selected={value}
-                  min={today}
-                  onSelect={(d) => {
-                    onChange(d);
-                    setOpenCal(false);
-                  }}
-                />
-                <div className="mt-2 flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    className="px-3 py-1 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-sm"
-                    onClick={() => {
-                      onChange(today);
-                      setOpenCal(false);
-                    }}
-                  >
-                    Today
-                  </button>
-                  <button
-                    type="button"
-                    className="px-3 py-1 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-sm"
-                    onClick={() => onChange("")}
-                  >
-                    Clear
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="flex gap-3 justify-end mt-6">
-          <button
-            className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors text-sm font-medium"
-            onClick={onClose}
-            disabled={loading}
-          >
-            Cancel
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md text-white text-sm font-medium transition-colors ${
-              value
-                ? "bg-primary hover:bg-primary/80"
-                : "bg-gray-400 cursor-not-allowed"
-            }`}
-            onClick={onConfirm}
-            disabled={!value || loading}
-          >
-            {loading ? "Verifying..." : "Confirm Verify"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const PreCancerous = () => {
   const navigate = useNavigate();
@@ -282,6 +27,35 @@ const PreCancerous = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Release Date Verification State
+  const [verifyId, setVerifyId] = useState(null);
+  const [releaseDateModalOpen, setReleaseDateModalOpen] = useState(false);
+  const [releaseDate, setReleaseDate] = useState("");
+  const [verifyLoading, setVerifyLoading] = useState(false);
+
+  // Notification State
+  const [notification, setNotification] = useState("");
+
+  // Filters & Pagination
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
+  const [weekFilter, setWeekFilter] = useState("");
+  const [availableWeeks, setAvailableWeeks] = useState([]);
+
+  // Action Modals
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("");
+  const [pendingAction, setPendingAction] = useState(null);
+
+  const [remarksModalOpen, setRemarksModalOpen] = useState(false);
+  const [remarks, setRemarks] = useState("");
+
+  // --- Data Loading ---
   const loadList = async (status) => {
     try {
       setLoading(true);
@@ -301,15 +75,12 @@ const PreCancerous = () => {
     loadList();
   }, []);
 
-  // Notification
-  const [notification, setNotification] = useState("");
+  // --- Notification Handling ---
   useEffect(() => {
     const flash = location.state?.flash;
     if (flash) {
       setNotification(flash);
       navigate(location.pathname, { replace: true, state: {} });
-      const t = setTimeout(() => setNotification(""), 3000);
-      return () => clearTimeout(t);
     }
   }, [location.state, location.pathname, navigate]);
 
@@ -319,39 +90,19 @@ const PreCancerous = () => {
     return () => clearTimeout(t);
   }, [notification]);
 
-  // Filters & Pagination
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [recordsPerPage, setRecordsPerPage] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [monthFilter, setMonthFilter] = useState("");
-  const [yearFilter, setYearFilter] = useState("");
-  const [dayFilter, setDayFilter] = useState("");
+  // --- Filters: Week Logic ---
+  const getWeekOfMonth = (date) => {
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const firstDayOfWeek = firstDay.getDay() || 7; // Sunday=7
+    const adjustedDate = date.getDate() + firstDayOfWeek - 1;
+    return Math.ceil(adjustedDate / 7);
+  };
 
-  // Modals
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("");
-  const [pendingAction, setPendingAction] = useState(null);
-
-  // Verify Modal
-  const [verifyOpen, setVerifyOpen] = useState(false);
-  const [verifyDate, setVerifyDate] = useState("");
-  const [verifyId, setVerifyId] = useState(null);
-  const [verifyLoading, setVerifyLoading] = useState(false);
-
-  const [remarksModalOpen, setRemarksModalOpen] = useState(false);
-  const [remarks, setRemarks] = useState("");
-
-  const [weekFilter, setWeekFilter] = useState("");
-  const [availableWeeks, setAvailableWeeks] = useState([]);
-
-  // ✅ Automatically update available weeks when month/year changes
   useEffect(() => {
     if (monthFilter && yearFilter && tableData.length > 0) {
       const weeksWithData = new Set();
-
       tableData.forEach((record) => {
-        const recordDate = new Date(record.created_at);
+        const recordDate = new Date(record.created_at || record.date_submitted);
         const recordMonth = recordDate.getMonth() + 1;
         const recordYear = recordDate.getFullYear();
 
@@ -363,41 +114,23 @@ const PreCancerous = () => {
           weeksWithData.add(weekNum);
         }
       });
-
-      // Sort and set available weeks (Week 1–4)
-      const sortedWeeks = Array.from(weeksWithData).sort((a, b) => a - b);
-      setAvailableWeeks(sortedWeeks);
+      setAvailableWeeks(Array.from(weeksWithData).sort((a, b) => a - b));
     } else {
       setAvailableWeeks([]);
       setWeekFilter("");
     }
   }, [monthFilter, yearFilter, tableData]);
 
-  // ✅ Function to get Week of Month (Week 1–4)
-  const getWeekOfMonth = (date) => {
-    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-    const firstDayOfWeek = firstDay.getDay() || 7; // Sunday=7
-    const adjustedDate = date.getDate() + firstDayOfWeek - 1;
-    return Math.ceil(adjustedDate / 7);
-  };
+  // --- Filtering Logic ---
   const filteredResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
 
-    const normDate = (v) => {
-      if (!v) return null;
-      try {
-        return new Date(v);
-      } catch {
-        return null;
-      }
-    };
+    const normDate = (v) => (v ? new Date(v) : null);
 
     const rows = tableData.filter((p) => {
       const matchesSearch =
         !q ||
-        String(p.patient.patient_id || "")
-          .toLowerCase()
-          .includes(q) ||
+        String(p.patient.patient_id || "").toLowerCase().includes(q) ||
         (p.patient.first_name || "").toLowerCase().includes(q) ||
         (p.patient.last_name || "").toLowerCase().includes(q);
 
@@ -413,7 +146,8 @@ const PreCancerous = () => {
       const matchesDay = !dayFilter || recordDay === parseInt(dayFilter);
       const matchesMonth =
         !monthFilter || recordMonth === parseInt(monthFilter);
-      const matchesYear = !yearFilter || recordYear === parseInt(yearFilter);
+      const matchesYear =
+        !yearFilter || recordYear === parseInt(yearFilter);
 
       return (
         matchesSearch &&
@@ -428,9 +162,6 @@ const PreCancerous = () => {
       const la = (a.patient.last_name || "").toLowerCase();
       const lb = (b.patient.last_name || "").toLowerCase();
       if (la !== lb) return la.localeCompare(lb);
-      const fa = (a.patient.first_name || "").toLowerCase();
-      const fb = (b.patient.first_name || "").toLowerCase();
-      if (fa !== fb) return fa.localeCompare(fb);
       return String(a.patient.patient_id || "").localeCompare(
         String(b.patient.patient_id || "")
       );
@@ -444,8 +175,10 @@ const PreCancerous = () => {
     yearFilter,
   ]);
 
+  // --- Pagination ---
   const totalRecords = filteredResults.length;
   const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
+
   useEffect(
     () => setCurrentPage(1),
     [recordsPerPage, searchQuery, statusFilter, totalRecords]
@@ -456,25 +189,57 @@ const PreCancerous = () => {
     currentPage * recordsPerPage
   );
 
-  // Actions
+  // --- Action Handlers ---
   const openConfirm = (id, action) => {
     if (action === "verify") {
       setVerifyId(id);
-      const d = new Date();
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const dd = String(d.getDate()).padStart(2, "0");
-      setVerifyDate(`${yyyy}-${mm}-${dd}`);
-      setVerifyOpen(true);
+      // Reset date to today or empty when opening modal
+      const today = new Date().toISOString().split('T')[0];
+      setReleaseDate(today);
+      setReleaseDateModalOpen(true);
       return;
     }
+    
     let text = "Confirm this action?";
     if (action === "reject") text = "Reject this patient?";
     if (action === "delete") text = "Delete this record?";
     if (action === "done") text = "Mark this request as Done?";
+    
     setModalText(text);
     setPendingAction({ id, action });
     setModalOpen(true);
+  };
+
+  const handleVerifyConfirm = async () => {
+    if (!releaseDate) {
+      alert("Please select a date before proceeding.");
+      return;
+    }
+
+    setReleaseDateModalOpen(false);
+    try {
+      setVerifyLoading(true);
+      // API call to verify
+      // await adminVerifyPreCancerousMeds(verifyId, {
+      //   release_date_of_meds: releaseDate,
+      // });
+      let payload = {
+        status: "Approved",
+        release_date_of_meds: releaseDate,
+      };
+
+      // Stop here for now
+      await api.patch(`/precancerous/update/${verifyId}/`, payload);
+
+      setNotification(`Request Approved successfully`);
+      await loadList(statusFilter); // Refresh list
+      setVerifyId(null);
+    } catch (e) {
+      console.error(e);
+      setNotification("Verification failed. Please try again.");
+    } finally {
+      setVerifyLoading(false);
+    }
   };
 
   const doAction = async () => {
@@ -488,46 +253,22 @@ const PreCancerous = () => {
       } else if (action === "delete") {
         await api.delete(`/precancerous/delete/${id}/`);
       }
-      await loadList(statusFilter);
+      
       const msg =
         action === "reject"
           ? "Rejected"
           : action === "done"
           ? "marked as Done"
           : "updated";
+          
       setNotification(`Request ${id} ${msg} successfully`);
+      await loadList(statusFilter);
     } catch (e) {
       setNotification("Action failed. Please try again.");
     } finally {
       setModalOpen(false);
       setPendingAction(null);
     }
-  };
-
-  const confirmVerify = async () => {
-    if (!verifyId || !verifyDate) return;
-    try {
-      setVerifyLoading(true);
-      await adminVerifyPreCancerousMeds(verifyId, {
-        release_date_of_meds: verifyDate,
-      });
-      await loadList(statusFilter);
-      setNotification(`Request ${verifyId} Verified successfully`);
-    } catch (e) {
-      setNotification(
-        "Verification failed. Please ensure release date is set and try again."
-      );
-    } finally {
-      setVerifyLoading(false);
-      setVerifyOpen(false);
-      setVerifyId(null);
-      setVerifyDate("");
-    }
-  };
-
-  const cancelAction = () => {
-    setModalOpen(false);
-    setPendingAction(null);
   };
 
   const handleView = (id) => {
@@ -543,31 +284,22 @@ const PreCancerous = () => {
     Completed: "bg-green-100 text-green-700",
     Default: "bg-gray-100 text-gray-700",
   };
-  const handlePrintReport = () => {
-    // 1. Save original title
-    const originalTitle = document.title;
 
-    // 2. Create new title
+  const handlePrintReport = () => {
+    const originalTitle = document.title;
     const today = new Date();
     const formattedDate = today.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
-    // You can change this title to whatever you like
-    const newTitle = `Pre_Cancerous_Request_Report - ${formattedDate}`;
-
-    // 3. Set new title
-    document.title = newTitle;
-
-    // 4. Call print
+    document.title = `Pre_Cancerous_Request_Report - ${formattedDate}`;
     window.print();
-
-    // 5. Restore title
     setTimeout(() => {
       document.title = originalTitle;
-    }, 1000); // 1-second delay
+    }, 1000);
   };
+
   return (
     <>
       <style>{`
@@ -581,8 +313,6 @@ const PreCancerous = () => {
         @media screen {
           #print-root { display: none !important; }
         }
-        .master-table { border-collapse: collapse; }
-        .master-table, .master-table th, .master-table td, .master-table tr { border: 0 !important; }
       `}</style>
 
       {/* PRINT CONTENT */}
@@ -597,25 +327,21 @@ const PreCancerous = () => {
           title={modalText}
           desc={modalDesc}
           onConfirm={doAction}
-          onCancel={cancelAction}
+          onCancel={() => setModalOpen(false)}
         />
 
-        <VerifyModal
-          open={verifyOpen}
-          onClose={() => {
-            if (!verifyLoading) {
-              setVerifyOpen(false);
-              setVerifyId(null);
-              setVerifyDate("");
-            }
-          }}
-          onConfirm={confirmVerify}
-          value={verifyDate}
-          onChange={setVerifyDate}
-          loading={verifyLoading}
+        {/* Using New DateModal for Verification Date */}
+        <DateModal
+          open={releaseDateModalOpen}
+          title="Set Medicine Release Date"
+          value={releaseDate}
+          onChange={setReleaseDate}
+          onConfirm={handleVerifyConfirm}
+          onCancel={() => setReleaseDateModalOpen(false)}
         />
 
         <Notification message={notification} />
+        
         <RemarksModal
           open={remarksModalOpen}
           title="Remarks"
@@ -623,11 +349,10 @@ const PreCancerous = () => {
           value={remarks}
           onChange={(e) => setRemarks(e.target.value)}
           onCancel={() => setRemarksModalOpen(false)}
-          // onConfirm={handleReject}
           confirmText="Confirm"
         />
 
-        {loading && <SystemLoader />}
+        {(loading || verifyLoading) && <SystemLoader />}
 
         <div className="min-h-screen w-full flex flex-col p-5 gap-4 bg-gray">
           {/* Header */}
@@ -716,6 +441,7 @@ const PreCancerous = () => {
                     </option>
                   ))}
                 </select>
+
                 <select
                   className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                   value={weekFilter}
@@ -729,6 +455,7 @@ const PreCancerous = () => {
                     </option>
                   ))}
                 </select>
+
                 <select
                   className="border border-gray-300 py-2 px-3 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                   value={yearFilter}
@@ -762,7 +489,6 @@ const PreCancerous = () => {
                   title="Clear Filters"
                   className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white cursor-pointer rounded-md text-sm font-medium transition-colors"
                 >
-                  {/* Clear Filters */}
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -816,10 +542,8 @@ const PreCancerous = () => {
                             {p.destination_name}
                           </div>
                           <div className="col-span-2 text-center text-gray-800">
-                            {p.patient.date_of_birth
-                              ? new Date(
-                                  p.patient.date_of_birth
-                                ).toLocaleDateString("en-US", {
+                            {p.created_at
+                              ? new Date(p.created_at).toLocaleDateString("en-US", {
                                   year: "numeric",
                                   month: "short",
                                   day: "numeric",
@@ -860,7 +584,6 @@ const PreCancerous = () => {
                                 title="Delete"
                                 className="bg-red-500 cursor-pointer hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
-                                {/* Delete */}
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             ) : (
@@ -869,7 +592,6 @@ const PreCancerous = () => {
                                 title="Cancel"
                                 className="bg-red-500 hover:bg-red-600 text-white py-1.5 px-2 rounded text-xs font-medium transition-colors"
                               >
-                                {/* Cancel */}
                                 <X className="w-3.5 h-3.5" />
                               </button>
                             )}

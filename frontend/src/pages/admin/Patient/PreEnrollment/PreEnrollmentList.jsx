@@ -312,7 +312,7 @@ const PreEnrollmentList = () => {
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                  <option value="all">All Status</option>
+                  {/* <option value="all">All Status</option> */}
                   <option value="pending">Pending</option>
                 </select>
 

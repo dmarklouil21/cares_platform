@@ -348,12 +348,12 @@ const AdminMassScreening = () => {
                 <Printer className="w-4 h-4" />
                 Print
               </button>
-              <Link
+              {/* <Link
                 to="/admin/cancer-screening/add/mass"
                 className="bg-yellow hover:bg-yellow/90 px-4 py-2 rounded-md text-white text-sm font-medium transition-colors"
               >
                 Add New
-              </Link>
+              </Link> */}
             </div>
           </div>
 

@@ -1,31 +1,52 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, Link, useParams } from "react-router-dom";
-import api from "src/api/axiosInstance";
+import { 
+  User, 
+  MapPin, 
+  Phone, 
+  Mail, 
+  Briefcase, 
+  ArrowLeft,
+  ArrowRight,
+  Info
+} from "lucide-react";
 
-import ConfirmationModal from "src/components/Modal/ConfirmationModal";
-import Notification from "src/components/Notification";
+import api from "src/api/axiosInstance";
+import SystemLoader from "src/components/SystemLoader";
+
+// Helper component for consistent data display
+const InfoGroup = ({ label, value, icon: Icon, fullWidth = false }) => (
+  <div className={`${fullWidth ? "col-span-full" : ""}`}>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 flex items-center gap-1">
+      {Icon && <Icon className="w-3 h-3" />} {label}
+    </label>
+    <div className="p-2.5 bg-gray-50 border border-gray-200 rounded-md text-sm font-medium text-gray-900 break-words">
+      {value || <span className="text-gray-400 italic">N/A</span>}
+    </div>
+  </div>
+);
 
 const PatientMasterListView = () => {
   const { patient_id } = useParams();
   const [patient, setPatient] = useState(null);
-  const location = useLocation();
+  const [loading, setLoading] = useState(true);
 
-  const raw = location.state?.patient ?? {};
-
-  const SAMPLE_2X2 = "https://placehold.co/600x600/png?text=2x2+Photo";
-  const photoUrl = SAMPLE_2X2;
+  const SAMPLE_2X2 = "https://placehold.co/600x600/png?text=No+Photo";
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchData = async () => {
       try {
+        setLoading(true);
         const response = await api.get(`/patient/details/${patient_id}/`);
         if (isMounted) {
           setPatient(response.data);
         }
       } catch (error) {
         console.error("Error fetching beneficiary data:", error);
+      } finally {
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -35,497 +56,176 @@ const PatientMasterListView = () => {
       isMounted = false;
     };
   }, [patient_id]);
-  console.log("Patient Data: ", patient);
+
+  if (loading) return <SystemLoader />;
+
+  if (!patient) return (
+    <div className="h-screen flex items-center justify-center bg-gray">
+      <p className="text-gray-500 font-medium">Patient record not found.</p>
+    </div>
+  );
+
+  // Helper formatting
+  const fullName = patient.full_name || `${patient.first_name} ${patient.middle_name || ''} ${patient.last_name}`;
 
   return (
-    <div className="h-screen w-full flex flex-col p-5 gap-3 justify-between items-center bg-[#F8F9FA] overflow-auto">
-      {/* <div className=" h-[10%] px-5 w-full flex justify-between items-center">
-        <h1 className="text-md font-bold">View Patient</h1>
-        <div>
-          <Link to={"/admin/patient/pre-enrollment"}>
-            <img
-              src="/images/back.png"
-              alt="Back"
-              className="h-6 cursor-pointer"
-            />
-          </Link>
-        </div>
-      </div> */}
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+      <div className="py-5 px-5 md:px-5 flex flex-col flex-1 max-w-7xl mx-auto w-full">
+        
+        {/* Top Title */}
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">
+          Pre-Enrollment
+        </h2>
 
-      <form className="h-full w-full flex flex-col justify-between gap-5 bg[#F8F9FA]">
-        <div className="border border-black/15 p-3 bg-white rounded-sm">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between py-3 px-5 items-start md:items-center gap-6 mb-6">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-xl font-bold">PATIENT PROFILE</h1>
-              <p className="text-sm text-gray-600">
-                Patient ID:{" "}
-                <span className="font-semibold">
-                  {patient?.patient_id || "N/A"}
-                </span>
-              </p>
-            </div>
-
-            <div className="flex items-center gap-6">
-              {/* Photo */}
-              <div className="w-[120px] h-[120px] border border-gray-300 rounded-lg overflow-hidden">
+        {/* White Card Container */}
+        <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
+          
+          {/* Header Area */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-6 gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-yellow-100 overflow-hidden shrink-0 shadow-sm">
                 <img
-                  src={patient?.photo_url_display}
-                  alt="2x2 ID"
+                  src={patient.photo_url || SAMPLE_2X2}
+                  alt="Patient"
                   className="w-full h-full object-cover"
                 />
               </div>
-              {/* Logo */}
-              <img
-                src="/images/logo_black_text.png"
-                alt="rafi logo"
-                className="h-30 md:h-30 object-contain"
-              />
+              <div className="flex flex-col">
+                <h1 className="font-bold text-2xl md:text-2xl text-yellow leading-tight">
+                  {fullName}
+                </h1>
+                <p className="text-sm text-gray-500 font-mono mt-1">
+                   ID: <span className="text-gray-700 font-semibold">{patient.patient_id}</span>
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3 opacity-80">
+               <img src="/images/logo_black_text.png" alt="rafi logo" className="h-23 object-contain" />
             </div>
           </div>
 
-          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
-              General Data
-            </h2>
-          </div>
+          {/* Grid Content */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            
+            {/* Left Column: Personal Snapshot */}
+            <div className="xl:col-span-1 space-y-6">
+               <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                  <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide mb-4 border-b border-gray-200 pb-2 flex items-center gap-2">
+                    <User className="w-4 h-4 text-primary" /> Personal Details
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <InfoGroup label="Sex" value={patient.sex} />
+                        <InfoGroup label="Age" value={patient.age} />
+                    </div>
+                    <InfoGroup label="Birthdate" value={patient.date_of_birth} />
+                    <InfoGroup label="Civil Status" value={patient.civil_status} />
+                    <InfoGroup label="Children" value={patient.number_of_children} />
+                  </div>
+               </div>
 
-          <div className="flex flex-row gap-8 p-4">
-            <div className="flex flex-col gap-3 w-1/2">
-              <div className="w-full">
-                <label className="text-sm font-medium block mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={patient?.full_name || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                />
-              </div>
-              <div className="w-full">
-                <label className="text-sm font-medium block mb-1">
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  value={patient?.first_name || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Middle Name
-                </label>
-                <input
-                  type="text"
-                  value={patient?.middle_name || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  value={patient?.last_name || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">Suffix</label>
-                <input
-                  type="text"
-                  value={patient?.suffix || "N/A"}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                />
-              </div>
+               <div className="bg-blue-50 rounded-xl p-5 border border-blue-100">
+                  <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wide mb-4 border-b border-blue-200 pb-2 flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-blue-600" /> Socioeconomic
+                  </h3>
+                  <div className="space-y-4">
+                    <InfoGroup label="Education" value={patient.highest_educational_attainment} fullWidth />
+                    <InfoGroup label="Occupation" value={patient.occupation} fullWidth />
+                    <div className="grid grid-cols-2 gap-4">
+                        <InfoGroup label="Source of Income" value={patient.source_of_income} />
+                        <InfoGroup label="Monthly Income" value={patient.monthly_income} />
+                    </div>
+                  </div>
+               </div>
             </div>
 
-            <div className="flex flex-col gap-3 w-1/2">
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Birthdate
-                </label>
-                <input
-                  type="text"
-                  value={patient?.date_of_birth || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">Age</label>
-                <input
-                  type="text"
-                  value={patient?.age || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">Sex</label>
-                <input
-                  type="text"
-                  value={patient?.sex || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                />
-              </div>
+            {/* Right Column: Contact & Additional Info */}
+            <div className="xl:col-span-2 space-y-8">
+                
+                {/* Contact & Address */}
+                <section>
+                    <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-gray-400" /> Contact & Address
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <InfoGroup label="Permanent Address" value={patient.address} fullWidth />
+                        <InfoGroup label="Barangay" value={patient.barangay} />
+                        <InfoGroup label="City / Municipality" value={patient.city} />
+                        <InfoGroup label="Mobile Number" value={patient.mobile_number} icon={Phone} />
+                        <InfoGroup label="Email Address" value={patient.email} icon={Mail} />
+                    </div>
+                </section>
 
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Number of Children
-                </label>
-                <input
-                  type="text"
-                  value={patient?.number_of_children || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Civil Status
-                </label>
-                <input
-                  type="text"
-                  value={patient?.civil_status || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray/50"
-                />
-              </div>
+                {/* Additional Info */}
+                <section>
+                    <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
+                        <Info className="w-4 h-4 text-gray-400" /> General Info
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <InfoGroup label="Source of Information" value={patient.source_of_information} />
+                        <InfoGroup label="Other RAFI Programs" value={patient.other_rafi_programs_availed} />
+                    </div>
+                </section>
+
+                {/* Emergency Contacts */}
+                <section>
+                    <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-400" /> Emergency Contacts
+                    </h3>
+                    
+                    {patient.emergency_contacts && patient.emergency_contacts.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {patient.emergency_contacts.map((contact, index) => (
+                                <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
+                                    <span className="absolute top-2 right-2 text-[10px] font-bold text-gray-400 uppercase">Contact {index + 1}</span>
+                                    <div className="space-y-3 mt-1">
+                                        <div>
+                                            <p className="text-sm font-bold text-gray-800">{contact.name}</p>
+                                            <p className="text-xs text-gray-500 uppercase">{contact.relationship_to_patient}</p>
+                                        </div>
+                                        <div className="text-xs text-gray-600 space-y-1">
+                                            <p className="flex items-center gap-2"><Phone className="w-3 h-3"/> {contact.mobile_number || "N/A"}</p>
+                                            <p className="flex items-center gap-2"><Mail className="w-3 h-3"/> {contact.email || "N/A"}</p>
+                                            <p className="flex items-center gap-2"><MapPin className="w-3 h-3"/> {contact.address || "N/A"}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-gray-500 italic">No emergency contacts recorded.</p>
+                    )}
+                </section>
+
             </div>
           </div>
 
-          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
-              Contact & Address
-            </h2>
-          </div>
-          <div className="flex flex-row gap-8 p-4">
-            <div className="flex flex-col gap-3 w-1/2">
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Permanent Address
-                </label>
-                <input
-                  type="text"
-                  value={patient?.address || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  City/Municipality
-                </label>
-                <input
-                  type="text"
-                  value={patient?.city || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Barangay
-                </label>
-                <input
-                  type="text"
-                  value={patient?.barangay || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 w-1/2">
-              <div>
-                <label className="text-sm font-medium block mb-1">Email</label>
-                <input
-                  type="text"
-                  value={patient?.email || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Mobile Number
-                </label>
-                <input
-                  type="text"
-                  value={patient?.mobile_number || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-            </div>
+          {/* Footer Actions */}
+          <div className="mt-8 flex items-center justify-between border-t border-gray-100 pt-6">
+            <Link
+              to="/admin/patient/pre-enrollment"
+              className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition-all"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Link>
+            
+            <Link
+              to="/admin/patient/view/pre-enrollment/cancer-data"
+              state={{ patient: patient }}
+              className="flex items-center gap-2 px-3 py-2 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+            >
+              Next
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
 
-          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
-              Additional Info
-            </h2>
-          </div>
-          <div className="flex flex-row gap-8 p-4">
-            <div className="flex flex-col gap-3 w-1/2">
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Source of Information (Where did you hear about RAFI-EJACC?)
-                </label>
-                <input
-                  type="text"
-                  value={patient?.source_of_information || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Other RAFI program you availed
-                </label>
-                <input
-                  type="text"
-                  value={patient?.other_rafi_programs_availed || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
-              Socioeconomic Info
-            </h2>
-          </div>
-          <div className="flex flex-row gap-8 p-4">
-            <div className="flex flex-col gap-3 w-1/2">
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Highest Educational Attainment
-                </label>
-                <input
-                  type="text"
-                  value={patient?.highest_educational_attainment || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Source of Income
-                </label>
-                <input
-                  type="text"
-                  value={patient?.source_of_income || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-            </div>
-            <div className="flex flex-col gap-3 w-1/2">
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Occupation
-                </label>
-                <input
-                  type="text"
-                  value={patient?.occupation || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">Income</label>
-                <input
-                  type="text"
-                  value={patient?.monthly_income || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-6 mt-8 border-b border-gray-200 px-5">
-            <h2 className="text-md font-bold tracking-wide uppercase pb-1">
-              Emergency Contacts
-            </h2>
-          </div>
-          <div className="flex flex-row gap-8 p-4">
-            <div className="flex flex-col gap-3 w-1/2">
-              <div>
-                <label className="text-sm font-medium block mb-1">Name</label>
-                <input
-                  type="text"
-                  value={patient?.emergency_contacts?.[0]?.name ?? ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Relationship to Patient
-                </label>
-                <input
-                  type="text"
-                  value={
-                    patient?.emergency_contacts?.[0]?.relationship_to_patient ??
-                    ""
-                  }
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Landline Number
-                </label>
-                <input
-                  type="text"
-                  value={
-                    patient?.emergency_contacts?.[0]?.landline_number ?? ""
-                  }
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  value={patient?.emergency_contacts?.[0]?.address ?? ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Email Address
-                </label>
-                <input
-                  type="text"
-                  value={patient?.emergency_contacts?.[0]?.email ?? ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Mobile Number
-                </label>
-                <input
-                  type="text"
-                  value={patient?.emergency_contacts?.[0]?.mobile_number ?? ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-            </div>
-
-            {/* Second Contact */}
-            <div className="flex flex-col gap-3 w-1/2">
-              <div>
-                <label className="text-sm font-medium block mb-1">Name</label>
-                <input
-                  type="text"
-                  value={patient?.emergency_contacts?.[1]?.name ?? ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Relationship to Patient
-                </label>
-                <input
-                  type="text"
-                  value={
-                    patient?.emergency_contacts?.[1]?.relationship_to_patient ??
-                    ""
-                  }
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Landline Number
-                </label>
-                <input
-                  type="text"
-                  value={
-                    patient?.emergency_contacts?.[1]?.landline_number ?? ""
-                  }
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  value={patient?.emergency_contacts?.[1]?.address ?? ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Email Address
-                </label>
-                <input
-                  type="text"
-                  value={patient?.emergency_contacts?.[1]?.email ?? ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">
-                  Mobile Number
-                </label>
-                <input
-                  type="text"
-                  value={patient?.emergency_contacts?.[1]?.mobile_number ?? ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-            </div>
-          </div>
         </div>
+      </div>
 
-        <div className="flex justify-around print:hidden">
-          <Link
-            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black rounded-md"
-            to="/admin/patient/pre-enrollment"
-            state={{ patient: patient }}
-          >
-            Back
-          </Link>
-          <Link
-            className="text-center bg-primary text-white py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
-            to="/admin/patient/view/pre-enrollment/cancer-data"
-            state={{ patient: patient }}
-          >
-            Next
-          </Link>
-        </div>
-        <br />
-      </form>
+      {/* Decorative Footer */}
+      <div className="h-16 bg-secondary shrink-0"></div>
     </div>
   );
 };

@@ -1,72 +1,51 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import React, { useEffect, useMemo, useState, useRef } from "react";
-import { UserPlus, UserMinus } from "lucide-react";
-import {
-  getMassScreeningAttendance,
-  saveMassScreeningAttendance,
-} from "../../../../../api/massScreening";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+import { 
+  ArrowLeft, 
+  Save, 
+  Search, 
+  UserPlus, 
+  UserMinus, 
+  Users, 
+  User,
+  FileSignature
+} from "lucide-react";
 
+import SystemLoader from "src/components/SystemLoader";
+import Notification from "src/components/Notification";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import api from "src/api/axiosInstance";
 
-/* Notification (no close button) */
-function Notification({ message }) {
-  if (!message) return null;
-  return (
-    <div className="fixed top-1 left-1/2 -translate-x-1/2 z-50 transition-all duration-500">
-      <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="Rafi Logo"
-          className="h-[25px]"
-        />
-        <span>{message}</span>
-      </div>
-    </div>
-  );
-}
-
-const ApplicationAttendance = () => {
+const PartnerManageAttendance = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const record = state?.record || state || null;
 
-  const initialPatients = useMemo(() => {
-    return Array.isArray(state?.patients) && state.patients.length
-      ? state.patients.map((p) =>
-          typeof p === "string"
-            ? { name: p, result: "" }
-            : { name: p.name, result: p.result ?? "" }
-        )
-      : [];
-  }, [state]);
-
-  const [patients, setPatients] = useState(initialPatients);
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-
-  const [eligible, setEligible] = useState([]);
-  const [eligibleLoading, setEligibleLoading] = useState(false);
+  const [patients, setPatients] = useState([]); // Current attendees
+  const [eligible, setEligible] = useState([]); // Search results
   const [search, setSearch] = useState("");
+  
+  const [loading, setLoading] = useState(false);
+  const [eligibleLoading, setEligibleLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
 
-  useEffect(() => setPatients(initialPatients), [initialPatients]);
-
-  // Load existing attendance from backend
+  // --- Initialize Data ---
   useEffect(() => {
+    if (!record?.id) return;
     const load = async () => {
-      if (!record?.id) return;
       try {
         setLoading(true);
-        setError("");
-        // const data = await getMassScreeningAttendance(record.id);
-        const { data } = await api.get(`/partners/cancer-screening/mass-screening/attendance/${record.id}/`)
+        const { data } = await api.get(`/partners/cancer-screening/mass-screening/attendance/${record.id}/`);
         if (Array.isArray(data) && data.length) {
-          setPatients(
-            data.map((e) => ({ name: e.name, result: e.result || "" }))
-          );
+          setPatients(data.map((e) => ({ name: e.name, result: e.result || "" })));
         }
       } catch (e) {
-        setError(e?.response?.data?.detail || "Failed to load attendance.");
+        setNotification("Failed to load existing attendance.");
+        setNotificationType("error");
       } finally {
         setLoading(false);
       }
@@ -74,286 +53,264 @@ const ApplicationAttendance = () => {
     load();
   }, [record?.id]);
 
-  const updateResult = (idx, value) => {
-    setPatients((list) =>
-      list.map((p, i) => (i === idx ? { ...p, result: value } : p))
-    );
+  // --- Search Logic (Debounced) ---
+  useEffect(() => {
+    let alive = true;
+    const loadEligible = async () => {
+      try {
+        setEligibleLoading(true);
+        const params = search?.trim() ? { q: search.trim() } : undefined;
+        // Fetch from the specific private partners endpoint
+        const { data } = await api.get(`/partners/private/eligible-patients/`, params ? { params } : undefined);
+        
+        if (!alive) return;
+        const list = Array.isArray(data?.patients) ? data.patients : [];
+        setEligible(list);
+      } catch (e) {
+        console.warn("Search failed", e);
+      } finally {
+        if (alive) setEligibleLoading(false);
+      }
+    };
+    
+    const t = setTimeout(loadEligible, 300); // 300ms debounce
+    return () => { alive = false; clearTimeout(t); };
+  }, [search]);
+
+  // --- Handlers ---
+  const addFromEligible = (item) => {
+    const name = String(item?.name || "").trim();
+    if (!name) return;
+    if (patients.some((p) => p.name === name)) {
+        setNotification("Patient already added to list.");
+        setNotificationType("info");
+        return;
+    }
+    setPatients((list) => [...list, { name, result: "" }]);
   };
 
   const removePatient = (idx) => {
     setPatients((list) => list.filter((_, i) => i !== idx));
   };
 
-  useEffect(() => {
-    let alive = true;
-    const load = async () => {
-      try {
-        setEligibleLoading(true);
-        const params = search?.trim() ? { q: search.trim() } : undefined;
-        const { data } = await api.get(
-          `/partners/private/eligible-patients/`,
-          params ? { params } : undefined
-        );
-        if (!alive) return;
-        const list = Array.isArray(data?.patients) ? data.patients : [];
-        setEligible(list);
-      } catch (e) {
-        // non-blocking
-      } finally {
-        if (alive) setEligibleLoading(false);
-      }
-    };
-    const t = setTimeout(load, 300); // debounce
-    return () => {
-      alive = false;
-      clearTimeout(t);
-    };
-  }, [search]);
-
-  const addFromEligible = (item) => {
-    const name = String(item?.name || "").trim();
-    if (!name) return;
-    if (patients.some((p) => p.name === name)) {
-      setNotif("Already added.");
-      return;
-    }
-    setPatients((list) => [...list, { name, result: "" }]);
-    setNotif("Patient added.");
+  const updateResult = (idx, value) => {
+    setPatients((list) => list.map((p, i) => (i === idx ? { ...p, result: value } : p)));
   };
 
-  /* Save + confirmation + notification */
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [notif, setNotif] = useState("");
-  useEffect(() => {
-    if (!notif) return;
-    const t = setTimeout(() => setNotif(""), 2500);
-    return () => clearTimeout(t);
-  }, [notif]);
+  const saveAttendance = async () => {
+    setModalOpen(false);
+    if (!record?.id) return;
 
-  const handleSave = () => setShowConfirm(true);
-  const confirmSave = async () => {
-    if (!record?.id) {
-      setNotif("Missing mass screening ID.");
-      setShowConfirm(false);
-      return;
-    }
     try {
       setSaving(true);
       const entries = patients
-        .map((p) => ({
-          name: String(p.name || "").trim(),
-          result: String(p.result || "").trim(),
-        }))
+        .map((p) => ({ name: String(p.name || "").trim(), result: String(p.result || "").trim() }))
         .filter((p) => p.name);
-      console.log("Entries: ", entries);
-      // await saveMassScreeningAttendance(record.id, entries);
-      const payload = { entries };
-      await api.put(`/partners/cancer-screening/mass-screening/attendance/${record.id}/`, payload)
-      setNotif("Attendance saved successfully.");
-      setShowConfirm(false);
+      
+      await api.put(`/partners/cancer-screening/mass-screening/attendance/${record.id}/`, { entries });
+      
+      setNotification("Attendance saved successfully.");
+      setNotificationType("success");
+      setTimeout(() => navigate(-1), 1500);
     } catch (e) {
-      const msg =
-        e?.response?.data?.detail ||
-        e?.response?.data?.error ||
-        "Failed to save attendance.";
-      setNotif(String(msg));
       console.error(e);
+      setNotification(e?.response?.data?.detail || "Failed to save attendance.");
+      setNotificationType("error");
     } finally {
       setSaving(false);
     }
   };
 
-  if (!record) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center bg-gray">
-        <div className="bg-white rounded-xl shadow p-6">No record data.</div>
-      </div>
-    );
-  }
+  if (!record) return (
+    <div className="h-screen flex items-center justify-center bg-gray">
+        <div className="bg-white p-6 rounded-lg shadow text-center">
+            <p className="text-gray-500 mb-4">Record information is missing.</p>
+            <button onClick={() => navigate(-1)} className="text-primary hover:underline">Go Back</button>
+        </div>
+    </div>
+  );
+
+  if (loading) return <SystemLoader />;
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-gray relative">
-      <Notification message={notif} />
+    <>
+      {saving && <SystemLoader />}
+      
+      <ConfirmationModal
+        open={modalOpen}
+        title="Confirm Save"
+        desc="This will update the attendance list and results. Continue?"
+        onConfirm={saveAttendance}
+        onCancel={() => setModalOpen(false)}
+      />
+      
+      <Notification message={notification} type={notificationType} />
 
-      {/* Top bar */}
-      {/* <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
-        <h1 className="text-md font-bold h-full flex items-center">RHU</h1>
-      </div> */}
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
+          
+          {/* Top Title */}
+          <h2 className="text-xl font-semibold mb-6 text-gray-800">
+            Mass Screening Management
+          </h2>
 
-      {/* Content */}
-      <div className="w-full flex-1 py-5 flex flex-col justify-start gap-5 px-5 overflow-auto">
-        <h2 className="text-xl font-bold text-left w-full pl-5">Attendance</h2>
-
-        {/* Context */}
-        <div className="bg-white rounded-2xl shadow-md px-5 py-5">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <ContextField label="Mass ID" value={record.id} />
-            <ContextField label="Title" value={record.title} />
-            <ContextField label="Date" value={record.date} />
-          </div>
-        </div>
-
-        {/* Two-pane layout: Add patient (left) | Current attendees (right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <section className="bg-white rounded-2xl shadow-md border border-gray-200">
-            <div className="px-5 py-3 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-yellow-600">Add Patient</h3>
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
+            
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
+              <div className="flex flex-col gap-1">
+                <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
+                  Manage Attendance
+                </h1>
+                <p className="text-sm text-gray-500 flex items-center gap-2">
+                   Activity: <span className="font-medium text-gray-700">{record.title}</span>
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-xs font-bold border border-blue-100 uppercasee">
+                <Users className="w-3.5 h-3.5" />
+                {patients.length} Registered
+              </div>
             </div>
-            <div className="p-4">
-              <div className="grid grid-cols-1 gap-3">
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search registered patients by name"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
-                />
-                <div className="border border-gray-200 rounded-md overflow-hidden">
-                  <div className="hidden md:grid md:grid-cols-12 font-semibold text-sm px-3 py-2 bg-gray-50">
-                    <div className="md:col-span-9">Name</div>
-                    <div className="md:col-span-3 text-right pr-2">Action</div>
+
+            {/* Grid Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 min-h-0">
+              
+              {/* Left Column: Available Patients (Search) */}
+              <div className="flex flex-col h-full bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                <div className="p-4 border-b border-gray-200 bg-white">
+                  <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide mb-3 flex items-center gap-2">
+                    <User className="w-4 h-4 text-gray-400" /> Search Patients
+                  </h3>
+                  
+                  {/* Search Bar */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      placeholder="Search registered patients..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                    />
                   </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-gray-50">
                   {eligibleLoading ? (
-                    <div className="p-3 text-sm text-gray-500">Loading…</div>
-                  ) : eligible.length ? (
-                    eligible.map((it, idx) => (
-                      <div key={it.patient_id + idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center p-3 border-t first:border-t-0">
-                        <div className="md:col-span-9">{it.name}</div>
-                        <div className="md:col-span-3 flex md:justify-end">
+                    <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                        <p className="text-sm text-gray-400">Searching...</p>
+                    </div>
+                  ) : eligible.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                        <p className="text-sm text-gray-500">No patients found.</p>
+                        <p className="text-xs text-gray-400 mt-1">Try a different search term.</p>
+                    </div>
+                  ) : (
+                    eligible.map((it, idx) => {
+                      const isAdded = patients.some(p => p.name === it.name);
+                      return (
+                        <div 
+                            key={idx} 
+                            className={`flex items-center justify-between p-3 rounded border transition-all ${
+                                isAdded 
+                                    ? 'bg-gray-100 border-gray-200 opacity-60' 
+                                    : 'bg-white border-gray-200 shadow-sm hover:border-green-300 hover:shadow-md'
+                            }`}
+                        >
+                          <span className="text-sm font-medium text-gray-800">{it.name}</span>
                           <button
-                            type="button"
                             onClick={() => addFromEligible(it)}
-                            disabled={patients.some((p) => p.name === it.name)}
-                            className="bg-green-500 hover:bg-green-600 disabled:bg-gray-200 disabled:text-gray-500 text-white p-2 rounded transition-colors flex items-center gap-2"
+                            disabled={isAdded}
+                            className={`p-1.5 rounded transition-colors ${
+                                isAdded 
+                                    ? 'text-gray-400 cursor-not-allowed' 
+                                    : 'bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700'
+                            }`}
+                            title={isAdded ? "Already Added" : "Add Patient"}
                           >
                             <UserPlus className="w-4 h-4" />
-                            <span>Add</span>
                           </button>
                         </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-3 text-sm text-gray-500">No patients found.</div>
+                      );
+                    })
                   )}
                 </div>
               </div>
-            </div>
-          </section>
 
-          {/* Right: Current Attendees */}
-          <section className="bg-white rounded-2xl shadow-md border border-gray-200">
-            <div className="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-yellow-600">Current Attendees</h3>
-              <span className="text-sm text-gray-600">{patients.length} patients</span>
-            </div>
-            <div className="p-4">
-              <div className="border border-gray-200 rounded-md overflow-hidden">
-                <div className="hidden md:grid md:grid-cols-12 font-semibold text-sm px-3 py-2 bg-gray-50">
-                  <div className="md:col-span-4">Name</div>
-                  <div className="md:col-span-7">Result / Notes</div>
-                  <div className="md:col-span-1 text-right pr-2">Actions</div>
+              {/* Right Column: Current Attendees List */}
+              <div className="flex flex-col h-full bg-blue-50/30 rounded-lg border border-blue-100 overflow-hidden">
+                <div className="p-4 border-b border-blue-100 bg-white">
+                  <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+                    <FileSignature className="w-4 h-4 text-gray-400" /> Attendance List
+                  </h3>
                 </div>
-                {patients.map((p, idx) => (
-                  <div key={p.name + idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center p-3 border-t first:border-t-0">
-                    <div className="md:col-span-4 font-medium">{p.name}</div>
-                    <div className="md:col-span-7">
-                      <input
-                        type="text"
-                        value={p.result}
-                        onChange={(e) => updateResult(idx, e.target.value)}
-                        placeholder="Encode result…"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none"
-                      />
+
+                <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50/50">
+                  {patients.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                      <FileSignature className="w-12 h-12 text-gray-300 mb-3 opacity-50" />
+                      <p className="text-sm text-gray-500">List is currently empty.</p>
+                      <p className="text-xs text-gray-400 mt-1">Search and add patients from the left panel.</p>
                     </div>
-                    <div className="md:col-span-1 flex md:justify-end">
-                      <button
-                        type="button"
-                        onClick={() => removePatient(idx)}
-                        className="bg-red-500 hover:bg-red-600 text-white p-1.5 rounded transition-colors"
-                        title="Remove Attendee"
-                      >
-                        <UserMinus className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ) : (
+                    patients.map((p, idx) => (
+                      <div key={idx} className="p-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow group">
+                        <div className="flex justify-between items-start mb-2">
+                           <p className="text-sm font-bold text-gray-800">{p.name}</p>
+                           <button 
+                             onClick={() => removePatient(idx)}
+                             className="text-gray-400 hover:text-red-500 p-1 rounded hover:bg-red-50 transition-colors"
+                             title="Remove"
+                           >
+                             <UserMinus className="w-4 h-4" />
+                           </button>
+                        </div>
+                        <div className="relative">
+                            <input 
+                              type="text"
+                              value={p.result}
+                              onChange={(e) => updateResult(idx, e.target.value)}
+                              placeholder="Enter screening result or notes..."
+                              className="w-full text-xs border border-gray-300 rounded px-3 py-2 bg-gray-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                            />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
-              <div className="flex justify-end mt-3">
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className={`px-4 py-2 rounded-md bg-primary text-white font-semibold ${
-                    saving ? "opacity-60 cursor-not-allowed" : ""
-                  }`}
-                >
-                  {saving ? "Saving…" : "Save Attendance"}
-                </button>
-              </div>
+
             </div>
-          </section>
-        </div>
 
-        <div className="w-full flex justify-end gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="px-4 py-2 rounded-md w-[30%] text-center bg-gray-300 text-gray-800 font-semibold"
-          >
-            Back
-          </button>
-          <Link
-            to="/Rhu/application"
-            className="px-4 py-2 rounded-md w-[30%] text-center bg-primary text-white font-semibold"
-          >
-            Back to List
-          </Link>
-        </div>
-      </div>
-
-      {/* Confirm modal */}
-      {showConfirm && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-white w-[min(420px,92vw)] rounded-xl shadow-xl p-6 z-50 text-center">
-            <h4 className="text-lg font-semibold mb-2">Save attendance?</h4>
-            <p className="text-sm text-gray2 mb-6">
-              This will save encoded results for all patients.
-            </p>
-            <div className="flex justify-center gap-3">
+            {/* Footer Actions */}
+            <div className="flex justify-around print:hidden mt-6">
               <button
-                type="button"
-                onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 rounded-md border border-gray2"
+                onClick={() => navigate(-1)}
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
               >
+                {/* <ArrowLeft className="w-4 h-4" /> */}
                 Cancel
               </button>
               <button
-                type="button"
-                onClick={confirmSave}
+                onClick={() => setModalOpen(true)}
                 disabled={saving}
-                className={`px-4 py-2 rounded-md bg-primary text-white font-semibold ${
-                  saving ? "opacity-60 cursor-not-allowed" : ""
-                }`}
+                className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
               >
-                {saving ? "Saving…" : "Confirm"}
+                {/* <Save className="w-4 h-4" /> */}
+                {saving ? "Saving..." : "Save Attendance"}
               </button>
             </div>
+
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Decorative Footer */}
+        <div className="h-16 bg-secondary shrink-0"></div>
+      </div>
+    </>
   );
 };
 
-export default ApplicationAttendance;
-
-/* ----------------------------- Helpers ----------------------------- */
-function ContextField({ label, value }) {
-  return (
-    <div>
-      <div className="text-gray2 text-sm mb-1">{label}</div>
-      <div className="border border-gray-200 rounded-md px-4 py-2">
-        {value ?? "—"}
-      </div>
-    </div>
-  );
-}
+export default PartnerManageAttendance;

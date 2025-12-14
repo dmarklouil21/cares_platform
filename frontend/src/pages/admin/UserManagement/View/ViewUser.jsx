@@ -1,153 +1,170 @@
 import React, { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
+import { Eye, EyeOff, User, Mail, Shield, Lock, Activity } from "lucide-react";
 
 const ViewUser = () => {
-  // Get user data from location state (passed from UserManagement View button)
   const location = useLocation();
   const user = location.state?.user || {};
   const [showPassword, setShowPassword] = useState(false);
 
-  return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-gray">
-      <form className="h-full w-full p-5 flex flex-col justify-between">
-        <div className="border border-black/15 p-3 bg-white rounded-sm">
-          <div className=" rounded-sm py-3 px-5 w-full flex justify-between items-center">
-            <h1 className="text-md font-bold">Account Information</h1>
-          </div>
-          <div className="flex flex-row gap-8 p-4">
-            {/* First Column */}
-            <div className="flex flex-col gap-3 w-1/2">
-              <div>
-                <label className="block text-gray-700 mb-1">First Name:</label>
-                <input
-                  type="text"
-                  value={user.firstName || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">Email:</label>
-                <input
-                  type="email"
-                  value={user.email || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">Role:</label>
-                <select
-                  value={user.role || "admin"}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 appearance-none"
-                >
-                  <option value="admin">Admin</option>
-                  <option value="beneficiary">Beneficiary</option>
-                  <option value="rhu">rhu</option>
-                  <option value="private">private</option>
-                </select>
-              </div>
+  // Helper for Status Badge
+  const getStatusColor = (st) => {
+    return st === "active"
+      ? "bg-green-100 text-green-700 border-green-200"
+      : "bg-red-100 text-red-700 border-red-200";
+  };
 
-              <div>
-                <label className="block text-gray-700 mb-1">Password:</label>
-                <div className="relative border border-gray-300 rounded px-3 py-2 bg-gray-100 flex items-center">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={user.password || "********"}
-                    disabled
-                    className="w-full bg-gray-100 focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="flex items-center cursor-pointer ml-2"
-                    aria-pressed={showPassword}
-                    aria-label={
-                      showPassword ? "Hide password" : "Show password"
-                    }
-                    title={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {!showPassword ? (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="w-5 h-5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M3 3l18 18M10.58 10.58A3 3 0 0012 15a3 3 0 001.42-.38M9.88 4.24A9.98 9.98 0 0112 4c5.52 0 10 4.48 10 8 0 1.32-.45 2.56-1.25 3.63M6.35 6.35C4.31 7.68 3 9.69 3 12c0 3.52 4.48 8 9 8 1.04 0 2.04-.17 2.97-.49"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="w-5 h-5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
-                        />
-                        <circle cx="12" cy="12" r="3" strokeWidth="2" />
-                      </svg>
-                    )}
-                  </button>
+  return (
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+      <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
+        {/* Top Title */}
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">
+          User Management
+        </h2>
+
+        {/* White Card Container */}
+        <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
+          
+          {/* Header Area */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
+            <div className="flex items-center gap-3">
+              {/* <div className="p-2 bg-yellow/10 rounded-full text-yellow">
+                <User className="w-6 h-6" />
+              </div> */}
+              <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
+                User Profile
+              </h1>
+            </div>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-bold border uppercase ${getStatusColor(
+                user.status || "active"
+              )}`}
+            >
+              {user.status || "active"}
+            </span>
+          </div>
+
+          {/* Grid Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
+            
+            {/* Left Column: Personal Info */}
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1 flex items-center gap-2">
+                  <User className="w-4 h-4 text-gray-400" /> Personal Information
+                </h3>
+                
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
+                      First Name
+                    </label>
+                    <div className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 font-medium">
+                      {user.firstName || "---"}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
+                      Last Name
+                    </label>
+                    <div className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 font-medium">
+                      {user.lastName || "---"}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
+                      Email Address
+                    </label>
+                    <div className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      {user.email || "---"}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            {/* Second Column */}
-            <div className="flex flex-col gap-3 w-1/2">
-              <div>
-                <label className="block text-gray-700 mb-1">Last Name:</label>
-                <input
-                  type="text"
-                  value={user.lastName || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">Username:</label>
-                <input
-                  type="text"
-                  value={user.username || ""}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">Status:</label>
-                <select
-                  value={user.status || "active"}
-                  disabled
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 appearance-none"
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+
+            {/* Right Column: Account Details */}
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1 flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-gray-400" /> Account Security
+                </h3>
+
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
+                      Username
+                    </label>
+                    <div className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800">
+                      {user.username || "---"}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
+                        Role
+                      </label>
+                      <div className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 capitalize">
+                        {user.role || "Admin"}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
+                        Status
+                      </label>
+                      <div className="w-full  text-sm p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 capitalize flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-gray-400" />
+                        {user.status || "Active"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md text-gray-800 flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-gray-400" />
+                        <span className="flex-1 font-mono text-sm">
+                          {showPassword ? (user.password || "********") : "••••••••••••••"}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+          {/* Footer Actions */}
+          <div className="flex justify-end print:hidden mt-5">
+            <Link
+              to="/admin/user-management"
+              className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+            >
+              Back
+            </Link>
+          </div>
         </div>
+      </div>
 
-        <div className="w-full flex justify-end">
-          <Link
-            className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black  rounded-md"
-            to="/admin/user-management"
-          >
-            BACK
-          </Link>
-        </div>
-      </form>
+      {/* Decorative Footer Strip */}
+      <div className="h-16 bg-secondary shrink-0"></div>
     </div>
   );
 };

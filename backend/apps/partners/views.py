@@ -524,3 +524,45 @@ class PreCancerousMedsUpdateView(generics.UpdateAPIView):
 #       logger.error(f"Email failed to send: {email_status}")
 
 #     return Response(PreCancerousMedsRequestSerializer(obj).data, status=status.HTTP_200_OK)
+
+class CancerActivityCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        
+        # 1. Base Query
+        activities_qs = CancerAwarenessActivity.objects.all()
+
+        # 2. Apply Role-Based Filtering
+        if user.is_staff or user.is_superuser:
+            # === ADMIN ===
+            # Admin sees total count of all activities uploaded by everyone
+            pass
+
+        elif hasattr(user, 'representative'):
+            # === RHU ===
+            # Filter where 'uploader' matches the RHU's LGU Name
+            try:
+                rhu_name = user.representative.rhu.lgu
+                activities_qs = activities_qs.filter(uploader=rhu_name)
+            except AttributeError:
+                activities_qs = activities_qs.none()
+
+        elif hasattr(user, 'privaterepresentative'):
+            # === PRIVATE PARTNER ===
+            # Filter where 'uploader' matches the Private Institution Name
+            try:
+                private_name = user.privaterepresentative.private.institution_name
+                activities_qs = activities_qs.filter(uploader=private_name)
+            except AttributeError:
+                activities_qs = activities_qs.none()
+        
+        else:
+            # Unknown user role
+            return Response({"total_activities": 0})
+
+        # 3. Return the Count
+        return Response({
+            "total_activities": activities_qs.count()
+        })

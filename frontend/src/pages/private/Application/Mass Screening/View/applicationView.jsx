@@ -1,43 +1,31 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import React, { useEffect, useRef, useState } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { 
-  getMyMassScreeningDetail, 
-  updateMyMassScreening, 
-  addMassScreeningAttachments, 
-  deleteMassScreeningAttachment 
-} from "src/api/massScreening";
+  ArrowLeft, 
+  Calendar, 
+  Save, 
+  Upload, 
+  FileText, 
+  Download, 
+  Trash2, 
+  Users, 
+  ClipboardList,
+  AlertCircle
+} from "lucide-react";
 
+import SystemLoader from "src/components/SystemLoader";
+import Notification from "src/components/Notification";
+import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import api from "src/api/axiosInstance";
 
-/* Notification (no close button) */
-function Notification({ message }) {
-  if (!message) return null;
-  return (
-    <div className="fixed top-1 left-1/2 -translate-x-1/2 z-50 transition-all duration-500">
-      <div className="bg-gray2 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
-        <img
-          src="/images/logo_white_notxt.png"
-          alt="Rafi Logo"
-          className="h-[25px]"
-        />
-        <span>{message}</span>
-      </div>
-    </div>
-  );
-}
-
-const applicationView = () => {
+const PartnerViewMassScreening = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Accept: state is the record itself OR inside { record } / { item }
-  const selected =
-    (location.state &&
-      (location.state.record || location.state.item || location.state)) ||
-    null;
+  // Logic to determine ID
+  const selected = (location.state && (location.state.record || location.state.item || location.state)) || null;
   const passedId = selected?.id || location.state?.id || null;
 
-  /* ------------------------- Editable form state ------------------------- */
   const [form, setForm] = useState({
     id: selected?.id ?? "",
     title: selected?.title ?? "",
@@ -46,143 +34,46 @@ const applicationView = () => {
     description: selected?.description ?? "",
     supportNeed: selected?.supportNeed ?? "",
   });
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [statusValue, setStatusValue] = useState(selected?.status || "");
   const [saving, setSaving] = useState(false);
+  const [statusValue, setStatusValue] = useState(selected?.status || "Pending");
+  const [attachments, setAttachments] = useState([]);
+  
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const fileInputRef = useRef(null);
 
-  const onChange = (k) => (e) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
-
-  const status = statusValue || ""; // Pending | Verified | Rejected | Done
-  const statusClasses = (() => {
+  // Status Badge Helper
+  const getStatusColor = (status) => {
     switch (status) {
-      case "Verified":
-        return "bg-green-100 text-green-700";
-      case "Rejected":
-        return "bg-red-100 text-red-700";
-      case "Done":
-        return "bg-blue-100 text-blue-700";
-      default:
-        return "bg-yellow-100 text-yellow-700"; // Pending or others
+      case "Verified": return "bg-green-100 text-green-700 border-green-200";
+      case "Rejected": return "bg-red-100 text-red-700 border-red-200";
+      case "Done": return "bg-blue-100 text-blue-700 border-blue-200";
+      default: return "bg-yellow-100 text-yellow-700 border-yellow-200";
     }
-  })();
-
-  const handleCheckAttendance = () => {
-    navigate("/private/application/mass-screening/view/attendance", {
-      state: {
-        record: form, // pass edited values forward
-        // Only pass patients if they exist; otherwise let Attendance fetch from backend
-        ...(Array.isArray(selected?.patients) && selected.patients.length
-          ? { patients: selected.patients }
-          : {}),
-      },
-    });
   };
-// Stop here for now
-  /* ------------------- Editable attachments ------------------- */
 
-  // Normalize initial attachments
+  // --- Data Transformation ---
   const toAttachment = (a) => {
-    // Normalize both server and local attachments to a common shape
-    // Server: { id, file: <url>, uploaded_at }
-    // Local (new): { name, size, file: File, url: blob: }
     if (typeof a === "string") return { name: a.split("/").pop(), url: a };
     if (a && typeof a === "object") {
-      if (a.file instanceof File) {
-        return { name: a.name || a.file.name, size: a.size, file: a.file, url: a.url };
-      }
-      // from API
-      if (a.id != null && typeof a.file === "string") {
-        return { id: a.id, name: a.file.split("/").pop(), url: a.file };
-      }
-      if (a.url) {
-        return { name: a.name, size: a.size, url: a.url };
-      }
+      if (a.file instanceof File) return { name: a.name, size: a.size, file: a.file, url: a.url };
+      if (a.id != null && typeof a.file === "string") return { id: a.id, name: a.file.split("/").pop(), url: a.file };
+      if (a.url) return { name: a.name, size: a.size, url: a.url };
     }
     return a;
   };
 
-  const initialAtt = (
-    Array.isArray(selected?.attachments) && selected.attachments.length
-      ? selected.attachments
-      : []
-  ).map(toAttachment);
-
-  const [attachments, setAttachments] = useState(initialAtt);
-  const fileInputRef = useRef(null);
-  const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
-
-  const addFiles = (fileList) => {
-    const files = Array.from(fileList || []);
-    const next = [];
-    for (const f of files) {
-      if (f.size > MAX_SIZE) {
-        setNotif(`"${f.name}" exceeds 10MB limit.`);
-        continue;
-      }
-      next.push({
-        name: f.name,
-        size: f.size,
-        file: f,
-        url: URL.createObjectURL(f),
-      });
-    }
-    if (next.length) setAttachments((prev) => [...prev, ...next]);
-  };
-
-  const removeAttachment = async (idx) => {
-    const item = attachments[idx];
-    if (!item) return;
-    // If server-side (has id), call API to delete then remove from state
-    if (item.id != null) {
-      try {
-        // await deleteMassScreeningAttachment(item.id);
-        await api.delete(`/partners/cancer-screening/mass-screening/attachments/delete/${item.id}/`)
-        setAttachments((prev) => prev.filter((_, i) => i !== idx));
-        setNotif("Attachment removed.");
-      } catch (e) {
-        setNotif(e?.response?.data?.detail || "Failed to remove attachment.");
-      }
-      return;
-    }
-    // Local unsaved file: just remove
-    setAttachments((prev) => {
-      const copy = [...prev];
-      const it = copy[idx];
-      if (it?.url?.startsWith("blob:")) URL.revokeObjectURL(it.url);
-      copy.splice(idx, 1);
-      return copy;
-    });
-  };
-
-  const openAttachment = (att) => {
-    const url = att?.url;
-    if (!url || url === "#") {
-      console.log("Attachment clicked (no real URL yet):", att?.name);
-      return;
-    }
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
-
-  /* ---------------- Save Changes: modal + notification ---------------- */
-  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
-  const [notif, setNotif] = useState("");
-  useEffect(() => {
-    if (!notif) return;
-    const t = setTimeout(() => setNotif(""), 2500);
-    return () => clearTimeout(t);
-  }, [notif]);
-
-  // Fetch detail if we only have an id or want to refresh from backend
+  // --- Fetch Data ---
   useEffect(() => {
     const fetchDetail = async () => {
       if (!passedId) return;
       try {
         setLoading(true);
-        setError("");
-        // const data = await getMyMassScreeningDetail(passedId);
-        const { data } = await api.get(`/partners/cancer-screening/mass-screening/detail/${passedId}/`)
+        const { data } = await api.get(`/partners/cancer-screening/mass-screening/detail/${passedId}/`);
+        
         setForm({
           id: data.id,
           title: data.title || "",
@@ -191,360 +82,338 @@ const applicationView = () => {
           description: data.description || "",
           supportNeed: data.support_need || "",
         });
-        setStatusValue(data.status || "");
+        setStatusValue(data.status || "Pending");
         const atts = Array.isArray(data.attachments) ? data.attachments : [];
         setAttachments(atts.map(toAttachment));
       } catch (e) {
-        setError(e?.response?.data?.detail || "Failed to load record.");
+        setNotification("Failed to load record details.");
+        setNotificationType("error");
       } finally {
         setLoading(false);
       }
     };
-    // Only fetch if we weren't given a full selected record (heuristic)
+    
     if (!selected || !selected.title) fetchDetail();
+    else if (selected?.attachments) setAttachments(selected.attachments.map(toAttachment));
   }, [passedId]);
 
-  const handleSaveClick = () => setShowSaveConfirm(true);
-  const confirmSave = async () => {
+  // --- Handlers ---
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    const MAX_SIZE = 10 * 1024 * 1024;
+    const next = [];
+
+    for (const f of files) {
+      if (f.size > MAX_SIZE) {
+        setNotification(`"${f.name}" exceeds 10MB limit.`);
+        setNotificationType("error");
+        continue;
+      }
+      next.push({ name: f.name, size: f.size, file: f, url: URL.createObjectURL(f) });
+    }
+    if (next.length) setAttachments((prev) => [...prev, ...next]);
+    e.target.value = ""; 
+  };
+
+  const removeAttachment = async (idx) => {
+    const item = attachments[idx];
+    if (item.id != null) {
+      try {
+        await api.delete(`/partners/cancer-screening/mass-screening/attachments/delete/${item.id}/`);
+        setAttachments((prev) => prev.filter((_, i) => i !== idx));
+        setNotification("Attachment removed.");
+        setNotificationType("success");
+      } catch (e) {
+        setNotification("Failed to remove attachment.");
+        setNotificationType("error");
+      }
+    } else {
+      setAttachments((prev) => prev.filter((_, i) => i !== idx));
+    }
+  };
+
+  const saveChanges = async () => {
+    setModalOpen(false);
     try {
       setSaving(true);
-      setShowSaveConfirm(false);
-      // 1) Update basic fields
-      console.log("Fuccck");
+      
       const enntries = {
         title: form.title,
         date: form.date,
         beneficiaries: form.beneficiaries,
         description: form.description,
         support_need: form.supportNeed,
-        // venue: "Argao",
       };
-      const payload = { enntries };
-      console.log("Data: ", enntries);
-      await api.patch(`/partners/cancer-screening/mass-screening/update/${form.id}/`, enntries );
+      
+      await api.patch(`/partners/cancer-screening/mass-screening/update/${form.id}/`, { enntries });
 
-      // 2) Upload any new local attachments
       const newFiles = attachments.filter((a) => a.file instanceof File && a.id == null).map((a) => a.file);
       if (newFiles.length) {
-        // await addMassScreeningAttachments(form.id, newFiles);
         const fd = new FormData();
         newFiles.forEach((file) => fd.append('attachments', file));
-        const res = await api.post(`/partners/cancer-screening/mass-screening/${form.id}/attachments/add/`, fd, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+        await api.post(`/partners/cancer-screening/mass-screening/${form.id}/attachments/add/`, fd, {
+           headers: { 'Content-Type': 'multipart/form-data' },
         });
-
-        // await api.post(`/partners/cancer-screening/mass-screening/${form.id}/attachments/add/`, newFiles)
       }
 
-      // 3) Refresh from backend to sync
-      // const data = await getMyMassScreeningDetail(form.id);
-      const { data } = await api.get(`/partners/cancer-screening/mass-screening/detail/${form.id}/`)
-      setForm({
-        id: data.id,
-        title: data.title || "",
-        date: data.date || "",
-        beneficiaries: data.beneficiaries || "",
-        description: data.description || "",
-        supportNeed: data.support_need || "",
-      });
-      setStatusValue(data.status || "");
-      const atts = Array.isArray(data.attachments) ? data.attachments : [];
-      setAttachments(atts.map(toAttachment));
+      // Refresh Data
+      const { data } = await api.get(`/partners/cancer-screening/mass-screening/detail/${form.id}/`);
+      setAttachments((data.attachments || []).map(toAttachment));
+      setStatusValue(data.status);
 
-      setNotif("Changes saved successfully.");
+      setNotification("Changes saved successfully!");
+      setNotificationType("success");
     } catch (e) {
       console.error(e);
-      setNotif(e?.response?.data?.detail || e?.response?.data?.error || "Failed to save changes.");
+      setNotification(e?.response?.data?.detail || "Failed to save changes.");
+      setNotificationType("error");
     } finally {
       setSaving(false);
+      setTimeout(() => setNotification(""), 3000);
     }
   };
 
+  if (loading) return <SystemLoader />;
+
   return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-gray relative">
-      <Notification message={notif} />
+    <>
+      {saving && <SystemLoader />}
+      
+      <ConfirmationModal
+        open={modalOpen}
+        title="Confirm Save"
+        desc="Are you sure you want to save changes to this record?"
+        onConfirm={saveChanges}
+        onCancel={() => setModalOpen(false)}
+      />
+      
+      <Notification message={notification} type={notificationType} />
 
-      {/* Top bar */}
-      {/* <div className="bg-white w-full py-1 px-5 flex h-[10%] justify-between items-end">
-        <h1 className="text-md font-bold h-full flex items-center">RHU</h1>
-      </div> */}
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
+          
+          {/* Top Title */}
+          <h2 className="text-xl font-semibold mb-6 text-gray-800">
+            Mass Screening Management
+          </h2>
 
-      {/* Content */}
-      <div className="w-full flex-1 py-5 flex flex-col justify-start gap-5 px-5 overflow-auto">
-        <h2 className="text-xl font-bold text-left w-full pl-5">
-          Mass Screening — View
-        </h2>
-
-        <div className="flex flex-col bg-white w-full rounded-2xl shadow-md px-5 py-5 gap-5">
-          {(!selected && loading) ? (
-            <div className="text-center text-gray-500 py-8">Loading…</div>
-          ) : (!selected && error) ? (
-            <div className="text-center text-red-600 py-8">{error}</div>
-          ) : (!selected && !passedId) ? (
-            <div className="text-center text-gray-500 py-8">
-              Record not found.
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
+            
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
+              <div className="flex flex-col gap-1">
+                <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
+                  {form.title || "Mass Screening Activity"}
+                </h1>
+                <p className="text-sm text-gray-500 flex items-center gap-2">
+                   ID: <span className="font-mono text-gray-700">{form.id}</span>
+                </p>
+              </div>
+              
+              <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase ${getStatusColor(statusValue)}`}>
+                {statusValue}
+              </span>
             </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">
-                  Mass Screening Details
-                </h3>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${statusClasses}`}>
-                  {status || "—"}
-                </span>
-              </div>
 
-              {/* Editable fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ReadOnlyField label="Mass ID" value={form.id} />
-                <LabeledInput
-                  label="Title"
-                  value={form.title}
-                  onChange={onChange("title")}
-                />
-                <LabeledInput
-                  label="Date"
-                  type="date"
-                  value={form.date}
-                  onChange={onChange("date")}
-                />
-                <LabeledInput
-                  label="Target Beneficiaries"
-                  value={form.beneficiaries}
-                  onChange={onChange("beneficiaries")}
-                />
-                <LabeledTextArea
-                  label="Description"
-                  value={form.description}
-                  onChange={onChange("description")}
-                />
-                <LabeledTextArea
-                  label="RAFI support need"
-                  value={form.supportNeed}
-                  onChange={onChange("supportNeed")}
-                />
-              </div>
-
-              {/* -------------------- Editable Attachments -------------------- */}
-              <div>
-                <div className="text-gray2 text-sm mb-1">Attachments</div>
-
-                <div className="flex flex-col gap-2">
-                  {attachments.map((att, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between px-3 border rounded-md border-primary py-2"
-                    >
-                      <button
-                        type="button"
-                        title={`Open ${att.name}`}
-                        onClick={() => openAttachment(att)}
-                        className="flex items-center gap-3 cursor-pointer hover:opacity-80"
-                      >
-                        <img
-                          src="/src/assets/images/services/cancerscreening/upload_icon.svg"
-                          alt=""
-                          className="h-5 w-7"
+            {/* Grid Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-12 gap-y-8">
+              
+              {/* Left Column: Form Details (2/3) */}
+              <div className="lg:col-span-2 space-y-8">
+                
+                {/* Activity Details */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-gray-400" /> Activity Details
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Activity Title</label>
+                        <input 
+                            name="title"
+                            value={form.title} 
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                            placeholder="Enter title"
                         />
-                        <div className="text-left">
-                          <div className="text-sm font-medium">{att.name}</div>
-                          {typeof att.size === "number" && (
-                            <div className="text-xs text-gray-500">
-                              {formatBytes(att.size)}
-                            </div>
-                          )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Date</label>
+                            <input 
+                                type="date"
+                                name="date"
+                                value={form.date} 
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                            />
                         </div>
-                      </button>
-
-                      <div className="flex items-center gap-3">
-                        <a
-                          href={att.url === "#" ? undefined : att.file_url}
-                          target={att.url === "#" ? undefined : "_blank"}
-                          rel="noopener noreferrer"
-                          onClick={(e) => {
-                            if (att.url === "#") {
-                              e.preventDefault();
-                              console.log(
-                                "Download clicked (no real URL yet):",
-                                att.name
-                              );
-                            }
-                          }}
-                          className="text-sm text-blue-600 underline"
-                        >
-                          Download
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => removeAttachment(idx)}
-                          className="text-sm text-red-600 hover:underline"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Add files */}
-                <div className="mt-3">
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => fileInputRef.current?.click()}
-                    onKeyDown={(e) =>
-                      (e.key === "Enter" || e.key === " ") &&
-                      fileInputRef.current?.click()
-                    }
-                    className="w-full bg-primary/10 rounded-xl border-2 border-dashed border-primary/40 flex flex-col items-center justify-center text-center py-8 cursor-pointer select-none"
-                  >
-                    <div className="bg-primary px-1 py-2 rounded-full mb-2">
-                      <img
-                        src="/src/assets/images/services/cancerscreening/upload_icon.svg"
-                        alt="Upload"
-                        className="h-5 w-7"
-                      />
-                    </div>
-                    <span className="font-semibold">Add files</span>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Size limit: 10MB each
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Beneficiaries</label>
+                            <input 
+                                name="beneficiaries"
+                                value={form.beneficiaries} 
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                placeholder="Target audience"
+                            />
+                        </div>
                     </div>
                   </div>
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => {
-                      addFiles(e.target.files);
-                      e.target.value = "";
-                    }}
-                    accept={[
-                      ".pdf",
-                      ".doc",
-                      ".docx",
-                      ".xls",
-                      ".xlsx",
-                      ".png",
-                      ".jpg",
-                      ".jpeg",
-                      "application/msword",
-                      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    ].join(",")}
-                  />
                 </div>
+
+                {/* Narrative Section */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-gray-400" /> Narrative & Needs
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Description</label>
+                        <textarea 
+                            name="description"
+                            rows={4}
+                            value={form.description} 
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"
+                            placeholder="Describe the activity..."
+                        />
+                    </div>
+
+                    <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">RAFI Support Need</label>
+                        <div className="bg-yellow-50/50 rounded-md p-1">
+                            <textarea 
+                                name="supportNeed"
+                                rows={3}
+                                value={form.supportNeed} 
+                                onChange={handleChange}
+                                className="w-full border border-yellow-200 bg-white rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition-all resize-none"
+                                placeholder="Specify support needed..."
+                            />
+                        </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
-              {/* ------------------------------------------------------------- */}
 
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  onClick={handleSaveClick}
-                  disabled={saving}
-                  className={`px-4 py-2 rounded-md bg-green-600 text-white font-semibold ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
-                >
-                  {saving ? "Saving…" : "Save Changes"}
-                </button>
-                <button
-                  onClick={handleCheckAttendance}
-                  className="px-4 py-2 rounded-md bg-primary text-white font-semibold"
-                >
-                  Check Attendance
-                </button>
+              {/* Right Column: Attendance & Attachments (1/3) */}
+              <div className="lg:col-span-1 space-y-8">
+                
+                {/* Attendance Card */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-gray-400" /> Attendance
+                  </h3>
+                  
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+                        Manage patient attendance for this mass screening event. Ensure all participants are recorded.
+                    </p>
+                    <button
+                        onClick={() => navigate("/private/application/mass-screening/view/attendance", {
+                            state: { record: form }
+                        })}
+                        className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 py-2 px-4 rounded text-sm font-medium transition-all flex items-center justify-center gap-2 shadow-sm"
+                    >
+                        <ClipboardList className="w-4 h-4 text-primary" />
+                        Check Attendance
+                    </button>
+                  </div>
+                </div>
+
+                {/* Attachments Card */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-gray-100 pb-1">
+                      <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+                        <Upload className="w-4 h-4 text-gray-400" /> Attachments
+                      </h3>
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-xs text-primary hover:text-primary/80 font-bold uppercase tracking-wide flex items-center gap-1 cursor-pointer"
+                      >
+                        + Add
+                      </button>
+                      <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileChange} />
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    {attachments.length === 0 ? (
+                        <div className="text-center p-4 bg-gray-50 rounded border border-dashed border-gray-200">
+                            <p className="text-xs text-gray-400">No files attached.</p>
+                        </div>
+                    ) : (
+                        attachments.map((att, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all group">
+                                <div className="flex items-center gap-3 overflow-hidden">
+                                    <FileText className="w-4 h-4 text-gray-400 shrink-0" />
+                                    <div className="overflow-hidden">
+                                        <p className="text-sm font-medium text-gray-700 truncate max-w-[120px]">{att.name}</p>
+                                        {att.size && <p className="text-[10px] text-gray-400">{(att.size / 1024 / 1024).toFixed(2)} MB</p>}
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    {att.url && att.url !== "#" && (
+                                        <a 
+                                            href={att.url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                                            title="Download"
+                                        >
+                                            <Download className="w-3.5 h-3.5" />
+                                        </a>
+                                    )}
+                                    <button 
+                                        onClick={() => removeAttachment(idx)}
+                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                                        title="Remove"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                  </div>
+                </div>
+
               </div>
-            </>
-          )}
-        </div>
+            </div>
 
-        <div className="w-full flex justify-end">
-          <Link
-            to="/private/application/mass-screening"
-            className="px-4 py-2 rounded-md w-[30%] text-center bg-primary text-white font-semibold"
-          >
-            Back
-          </Link>
-        </div>
-      </div>
-
-      {/* Save Confirmation Modal */}
-      {showSaveConfirm && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-white w-[min(420px,92vw)] rounded-xl shadow-xl p-6 z-50 text-center">
-            <h4 className="text-lg font-semibold mb-2">Save changes?</h4>
-            <p className="text-sm text-gray2 mb-6">
-              This will apply your updates to this record.
-            </p>
-            <div className="flex justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => setShowSaveConfirm(false)}
-                className="px-4 py-2 rounded-md border border-gray2"
+            {/* Footer Actions */}
+            <div className="flex justify-around print:hidden mt-6">
+              <Link
+                to="/private/application/mass-screening"
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
               >
-                Cancel
-              </button>
+                Back
+              </Link>
               <button
-                type="button"
-                onClick={confirmSave}
+                onClick={() => setModalOpen(true)}
                 disabled={saving}
-                className={`px-4 py-2 rounded-md bg-green-600 text-white font-semibold ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
+                className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
               >
-                {saving ? "Saving…" : "Confirm"}
+                {/* <Save className="w-4 h-4" /> */}
+                {saving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
+
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Decorative Footer */}
+        <div className="h-16 bg-secondary shrink-0"></div>
+      </div>
+    </>
   );
 };
 
-export default applicationView;
-
-/* ----------------------------- Small helpers ----------------------------- */
-function formatBytes(b) {
-  if (typeof b !== "number") return null;
-  if (b < 1024) return `${b} B`;
-  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
-  return `${(b / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function ReadOnlyField({ label, value }) {
-  return (
-    <div>
-      <div className="text-gray2 text-sm mb-1">{label}</div>
-      <div className="border border-gray-200 rounded-md px-4 py-2 bg-gray-50">
-        {value ?? "—"}
-      </div>
-    </div>
-  );
-}
-
-function LabeledInput({ label, value, onChange, type = "text" }) {
-  return (
-    <div>
-      <label className="text-gray2 text-sm mb-1 block">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        className="border border-gray-200 rounded-md px-4 py-2 w-full outline-none"
-      />
-    </div>
-  );
-}
-
-function LabeledTextArea({ label, value, onChange, full = false }) {
-  return (
-    <div className={full ? "md:col-span-2" : ""}>
-      <label className="text-gray2 text-sm mb-1 block">{label}</label>
-      <textarea
-        rows={4}
-        value={value}
-        onChange={onChange}
-        className="border border-gray-200 rounded-md px-4 py-2 w-full outline-none resize-none"
-      />
-    </div>
-  );
-}
+export default PartnerViewMassScreening;

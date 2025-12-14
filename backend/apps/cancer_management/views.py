@@ -26,6 +26,7 @@ from backend.utils.email import (
 import json
 import os
 import logging
+import threading
 logger = logging.getLogger(__name__)
 
 # ---------------------------
@@ -100,13 +101,25 @@ class CancerTreatmentCreateView(generics.CreateAPIView):
     cancer_treatment = serializer.save()
 
     response_data = CancerTreatmentSerializer(cancer_treatment, context={"request": request}).data
-    email_status = send_service_registration_email(
-      patient=patient, 
-      service_name=cancer_treatment.get_service_type_display()
-    )
+    # Define a small helper function to run in the background
+    def send_email_in_background(patient, service_name):
+      try:
+        send_service_registration_email(patient, service_name)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Background email failed: {e}")
     
-    if email_status is not True:
-      logger.error(f"Email failed to send: {email_status}")
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(patient, cancer_treatment.get_service_type_display()))
+    email_thread.start()
+
+    # email_status = send_service_registration_email(
+    #   patient=patient, 
+    #   service_name=cancer_treatment.get_service_type_display()
+    # )
+    
+    # if email_status is not True:
+      # logger.error(f"Email failed to send: {email_status}")
     return Response({"message": "Success", "data": response_data}, status=status.HTTP_201_CREATED)
 
 class CancerManagementListView(generics.ListAPIView):
@@ -181,15 +194,27 @@ class CancerTreatmentRequestStatusUpdateView(generics.UpdateAPIView):
     if user:
       create_notification(user, f'Cancer Treatment Application Update {instance.status.title()}', f'Your cancer treatment request has been {instance.status}.')
 
-    email_status = send_cancer_treatment_status_email(
-      patient=instance.patient, 
-      status=instance.status, 
-      treatment_date=instance.treatment_date, 
-      interview_date=instance.interview_date,
-      remarks=remarks
-    )
-    if email_status is not True:
-      logger.error(f"Email failed to send: {email_status}")
+    # Define a small helper function to run in the background
+    def send_email_in_background(patient, status, treatment_date, interview_date, remarks):
+      try:
+        send_cancer_treatment_status_email(patient=patient, status=status, treatment_date=treatment_date, interview_date=interview_date, remarks=remarks)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Background email failed: {e}")
+    
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(instance.patient, instance.status, instance.treatment_date, instance.interview_date, remarks))
+    email_thread.start()
+
+    # email_status = send_cancer_treatment_status_email(
+    #   patient=instance.patient, 
+    #   status=instance.status, 
+    #   treatment_date=instance.treatment_date, 
+    #   interview_date=instance.interview_date,
+    #   remarks=remarks
+    # )
+    # if email_status is not True:
+    #   logger.error(f"Email failed to send: {email_status}")
 
 class CancerTreatmentDeleteView(generics.DestroyAPIView):
   queryset = CancerTreatment.objects.all()
@@ -211,11 +236,23 @@ class SendLOAView(APIView):
     if not email:
       return Response({"error": "No recipient email provided."}, status=400)
     
-    result = send_loa_email(email, file_obj, patient_name)
+    # Define a small helper function to run in the background
+    def send_email_in_background(email, file_obj, patient_name):
+      try:
+        send_loa_email(email, file_obj, patient_name)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Background email failed: {e}")
+    
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(email, file_obj, patient_name))
+    email_thread.start()
 
-    if result is True:
-      return Response({"message": "LOA sent successfully."}, status=200)
-    return Response({"error": f"Failed to send LOA: {result}"}, status=500)
+    # result = send_loa_email(email, file_obj, patient_name)
+
+    # if result is True:
+    return Response({"message": "LOA sent successfully."}, status=200)
+    # return Response({"error": f"Failed to send LOA: {result}"}, status=500)
 
 class ServiceAttachmentUpdateView(APIView):
   parser_classes = [MultiPartParser, FormParser]
@@ -331,8 +368,20 @@ class SendCaseSummaryiew(APIView):
     if not email:
       return Response({"error": "No recipient email provided."}, status=400)
     
-    result = send_case_summary_email(email, file_obj, patient_name)
+    # Define a small helper function to run in the background
+    def send_email_in_background(email, file_obj, patient_name):
+      try:
+        send_case_summary_email(email, file_obj, patient_name)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Background email failed: {e}")
+    
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(email, file_obj, patient_name))
+    email_thread.start()
 
-    if result is True:
-      return Response({"message": "Case Summary sent successfully."}, status=200)
-    return Response({"error": f"Failed to send Case Summary: {result}"}, status=500)
+    # result = send_case_summary_email(email, file_obj, patient_name)
+
+    # if result is True:
+    return Response({"message": "Case Summary sent successfully."}, status=200)
+    # return Response({"error": f"Failed to send Case Summary: {result}"}, status=500)

@@ -28,6 +28,7 @@ urlpatterns = [
   path('mass-screening/rhu/<int:request_id>/attendance/', views.MassScreeningAttendanceView.as_view(), name='rhu_mass_screening_attendance'),
   path('mass-screening/rhu/<int:id>/attachments/add/', views.MyMassScreeningAttachmentAddView.as_view(), name='rhu_mass_screening_attachment_add'),
   path('mass-screening/rhu/attachments/delete/<int:id>/', views.MyMassScreeningAttachmentDeleteView.as_view(), name='rhu_mass_screening_attachment_delete'),
+  path('mass-screening/rhu/stats/', views.OngoingMassScreeningCountView.as_view(), name='mass_screening_stats'),
 
   # Admin: Mass Screening Management
   path('mass-screening/admin/create/', views.AdminMassScreeningCreateView.as_view(), name='admin_mass_screening_create'),

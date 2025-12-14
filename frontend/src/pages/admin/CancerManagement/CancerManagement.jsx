@@ -9,7 +9,6 @@ import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import Notification from "src/components/Notification";
 import SystemLoader from "src/components/SystemLoader";
-import LoadingModal from "src/components/Modal/LoadingModal";
 import DateModal from "src/components/Modal/DateModal";
 
 import CancerManagementPrint from "./generate/generate";

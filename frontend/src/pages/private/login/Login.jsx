@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 
-import LoadingModal from "src/components/Modal/LoadingModal";
-import NotificationModal from "src/components/Modal/NotificationModal";
 import SystemLoader from "src/components/SystemLoader";
-
-import api from "src/api/axiosInstance";
+import NotificationModal from "src/components/Modal/NotificationModal";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,7 +14,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Loading Modal
+  // Loading State
   const [loading, setLoading] = useState(false);
 
   // Notification Modal
@@ -24,41 +22,38 @@ const Login = () => {
   const [modalInfo, setModalInfo] = useState({
     type: "success",
     title: "Success!",
-    message: "The form has been submitted successfully.",
+    message: "",
   });
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent form reload
-
+    e.preventDefault();
     setLoading(true);
+
     try {
       const loggedInUser = await login(email, password);
 
+      // Private/Partner Specific Check
       if (!loggedInUser.is_private) {
         setModalInfo({
           type: "info",
-          title: "Login Failed",
-          message:
-            "You need an Private/Partner account to access the site for the private partner portal.",
+          title: "Access Denied",
+          message: "You need a Private Partner account to access this portal.",
         });
         setShowModal(true);
-        // alert(
-        //   "You need an RHU account to access the site for the rhu/private partner site."
-        // );
         return;
       }
 
+      // First Login Check
       if (loggedInUser.is_first_login) {
         navigate("/ResetPassword");
       } else {
         navigate("/Private");
       }
     } catch (err) {
-      // alert("Login failed. Please check your credentials.");
       setModalInfo({
         type: "error",
         title: "Login Failed",
-        message: "Login failed. Please check your credentials.",
+        message: "Invalid credentials. Please check your email and password.",
       });
       setShowModal(true);
       console.error("Login error:", err);
@@ -69,6 +64,8 @@ const Login = () => {
 
   return (
     <>
+      {loading && <SystemLoader />}
+
       <NotificationModal
         show={showModal}
         type={modalInfo.type}
@@ -76,139 +73,95 @@ const Login = () => {
         message={modalInfo.message}
         onClose={() => setShowModal(false)}
       />
-      {/* <LoadingModal open={loading} text="Loading..." /> */}
-      {loading && <SystemLoader />}
-      <div
-        id="right-panel"
-        className="bg-gray w-[100%]  lg:w-[75%] h-[100%] flex flex-col items-center  md:justify-center gap-10"
-      >
-        <div className="bg-primary w-full h-18 absolute flex px-5 py-10 gap-4 items-center md:hidden shadow-xl">
-          <img src="/images/logo_white_text.png" className="size-15" />
-          <div>
-            {" "}
-            <p className="font-bold text-white  text-[20px] tracking-wider">
-              CARES Platform
-            </p>
-          </div>
-        </div>
 
-        <div className="flex flex-col gap-2 items-center justify-center mt-36 md:mt-0">
-          <h2 className="text-3xl md:text-5xl font-bold text-primary text-center">
-            Login as Private Personnel
-          </h2>
-          <p className="text-center text-base text-black">
-            Welcome back — continue delivering quality <br />
-            care to your community.
-          </p>
-        </div>
-
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col items-center gap-2 bg-white w-[400px]  md:w-[450px] rounded-xl shadow px-8 py-6"
-        >
-          <div className="w-full space-y-3 mb-3">
-            <div className="flex gap-2 flex-col">
-              <label>Email</label>
-              <input
-                type="text"
-                className="border-[#E2E2E2] border-[1px] rounded-md p-2"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="flex gap-2 flex-col">
-              <label>Password</label>
-              <div className="relative border-[#E2E2E2] border-[1px] rounded-md p-2">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className=" pr-10 focus:outline-none flex w-full"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+      {/* Main Container - Centered Content */}
+      <div className="w-full h-full min-h-screen bg-gray flex items-center justify-center p-6">
+        
+        <div className="w-full max-w-md bg-white p-8 md:p-10 rounded-lg shadow-xl border border-gray-100">
+            
+            {/* Header Section */}
+            <div className="flex flex-col items-center mb-8 text-center gap-2">
+                <img 
+                  src="/images/logo_black_text.png" 
+                  alt="RAFI Logo" 
+                  className="h-14 object-contain mb-2" 
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-2 flex items-center cursor-pointer"
-                  aria-pressed={showPassword}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  title={showPassword ? "Hide password" : "Show password"}
-                >
-                  {!showPassword ? (
-                    // Eye-off icon
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 3l18 18M10.58 10.58A3 3 0 0012 15a3 3 0 001.42-.38M9.88 4.24A9.98 9.98 0 0112 4c5.52 0 10 4.48 10 8 0 1.32-.45 2.56-1.25 3.63M6.35 6.35C4.31 7.68 3 9.69 3 12c0 3.52 4.48 8 9 8 1.04 0 2.04-.17 2.97-.49"
-                      />
-                    </svg>
-                  ) : (
-                    // Eye icon
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
-                      />
-                      <circle cx="12" cy="12" r="3" strokeWidth="2" />
-                    </svg>
-                  )}
-                </button>
-              </div>
+                <h2 className="text-3xl font-bold text-primary">
+                   Login as Partner
+                </h2>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                   Welcome back — continue delivering quality <br className="hidden md:block"/>
+                   care to your community.
+                </p>
             </div>
-          </div>
-          <button
-            id="login-button"
-            type="submit"
-            className="w-full font-bold bg-primary text-white py-2 w-[45%] border-[1px] border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-          >
-            Login
-          </button>
-          <p className="text-sm text-black">
-            Don't have an account?{" "}
-            <Link
-              to="/private-registration/note"
-              className="text-primary font-semibold hover:underline"
-            >
-              Sign Up
-            </Link>
-          </p>
-          {/* <div className="w-full flex items-center my-2">
-            <hr className="flex-grow border-gray-200" />
-            <span className="mx-4 text-gray-400">Or</span>
-            <hr className="flex-grow border-gray-200" />
-          </div>
-          <button
-            type="button"
-            className="flex items-center text-sm w-full bg-[#f3f7fa] border py-2 rounded-full justify-center hover:bg-gray-100"
-          >
-            <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24">
-              <rect fill="#f35325" x="2" y="2" width="9" height="9" />
-              <rect fill="#81bc06" x="13" y="2" width="9" height="9" />
-              <rect fill="#05a6f0" x="2" y="13" width="9" height="9" />
-              <rect fill="#ffba08" x="13" y="13" width="9" height="9" />
-            </svg>
-            Sign up with Microsoft
-          </button> */}
-        </form>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+                
+                <div className="space-y-4">
+                      {/* Email Input */}
+                    <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+                            Email Address
+                        </label>
+                        <div className="relative">
+                            <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="name@example.com"
+                                className="w-full border border-gray-300 rounded-lg py-2.5 pl-10 pr-3 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    {/* Password Input */}
+                    <div>
+                        <div className="flex justify-between items-center mb-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                                Password
+                            </label>
+                        </div>
+                        <div className="relative">
+                            <Lock className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Enter your password"
+                                className="w-full border border-gray-300 rounded-lg py-2.5 pl-10 pr-10 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 focus:outline-none"
+                            >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button
+                    type="submit"
+                    className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary/90 shadow-md hover:shadow-lg transition-all transform active:scale-95"
+                >
+                    Login <ArrowRight className="w-4 h-4" />
+                </button>
+            </form>
+
+            <div className="pt-6 border-t border-gray-100 text-center mt-6">
+                <p className="text-sm text-gray-600">
+                    Don't have an account yet?{" "}
+                    <Link to="/private-registration/note" className="font-bold text-primary hover:underline">
+                        Sign Up
+                    </Link>
+                </p>
+            </div>
+
+        </div>
       </div>
     </>
   );

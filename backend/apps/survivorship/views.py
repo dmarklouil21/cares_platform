@@ -23,6 +23,7 @@ from backend.utils.email import (
 )
 
 import logging
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -142,11 +143,23 @@ class SendReportView(APIView):
     if not email:
       return Response({"error": "No recipient email provided."}, status=400)
     
-    result = send_report_email(email, file_obj, patient_name)
+    # Define a small helper function to run in the background
+    def send_email_in_background(email, file_obj, patient_name):
+      try:
+        send_report_email(email, file_obj, patient_name)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Background email failed: {e}")
+    
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(email, file_obj, patient_name))
+    email_thread.start()
 
-    if result is True:
-      return Response({"message": "Report Document sent successfully."}, status=200)
-    return Response({"error": f"Failed to send the report file: {result}"}, status=500)
+    # result = send_report_email(email, file_obj, patient_name)
+
+    # if result is True:
+    return Response({"message": "Report Document sent successfully."}, status=200)
+    # return Response({"error": f"Failed to send the report file: {result}"}, status=500)
 
 # Retrieve, update, delete a specific home visit
 # class PatientHomeVisitDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -273,11 +286,23 @@ class HormonalReplacementUpdateView(generics.UpdateAPIView):
     if user:
       create_notification(user, f'Hormonal Replacement Application Update', f'Your hormonal replacement medication request has been {instance.status}')
     
-    email_status = send_hormonal_replacement_status_email(
-      instance.patient, instance.status, instance.released_date, remarks
-    )
-    if email_status is not True:
-      logger.error(f"Email failed to send: {email_status}")
+    # Define a small helper function to run in the background
+    def send_email_in_background(patient, status, released_date, remarks):
+      try:
+        send_hormonal_replacement_status_email(patient, status, released_date, remarks)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Background email failed: {e}")
+    
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(instance.patient, instance.status, instance.released_date, remarks))
+    email_thread.start()
+
+    # email_status = send_hormonal_replacement_status_email(
+    #   instance.patient, instance.status, instance.released_date, remarks
+    # )
+    # if email_status is not True:
+    #   logger.error(f"Email failed to send: {email_status}")
     # return super().perform_update(serializer)
 
 class HormonalReplacementDeleteView(generics.DestroyAPIView):

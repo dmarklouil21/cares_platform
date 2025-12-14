@@ -44,8 +44,10 @@ const MassScreeningStatus = () => {
       setLoading(true);
       setError("");
       const data = await listMyMassScreenings();
+      console.log("RHU: ", data);
       const normalized = (Array.isArray(data) ? data : []).map((d) => ({
         id: d.id,
+        rhu: d.rhu_lgu,
         title: d.title,
         date: d.date,
         beneficiaries: d.beneficiaries,
@@ -307,7 +309,7 @@ const MassScreeningStatus = () => {
               {/* Table Header */}
               <div className="bg-lightblue px-4 py-3  w-[500px] md:w-[100%]">
                 <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
-                  <div className="col-span-2 text-center">Mass ID</div>
+                  <div className="col-span-2 text-center">RHU Name</div>
                   <div className="col-span-3 text-center">Title</div>
                   <div className="col-span-2 text-center">Date</div>
                   <div className="col-span-2 text-center">Beneficiaries</div>
@@ -333,7 +335,7 @@ const MassScreeningStatus = () => {
                           className="col-span-2 text-center text-blue-500 cursor-pointer font-medium"
                           onClick={() => handleViewClick(item.id)}
                         >
-                          {item.id || "—"}
+                          {item.rhu || "—"}
                         </div>
                         <div className="col-span-3 text-center text-gray-800">
                           {item.title || "—"}

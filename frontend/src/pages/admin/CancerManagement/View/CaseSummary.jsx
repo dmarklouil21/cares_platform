@@ -1,15 +1,79 @@
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
+import { 
+  Printer, 
+  ArrowLeft, 
+  FileText, 
+  User, 
+  Stethoscope, 
+  Briefcase, 
+  ClipboardCheck 
+} from "lucide-react";
+
 import CaseSummaryPrintTemplate from "./CaseSummaryPrintTemplate";
+
+// --- Reusable UI Components ---
+
+const SectionHeader = ({ icon: Icon, title }) => (
+  <div className="flex items-center gap-2 border-b border-gray-100 pb-2 mb-4 mt-8 first:mt-0">
+    <Icon className="w-5 h-5 text-yellow-600" />
+    <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide">{title}</h3>
+  </div>
+);
+
+const ReadOnlyField = ({ label, value }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label}
+    </label>
+    <div className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-gray-50 text-gray-700">
+      {value || "N/A"}
+    </div>
+  </div>
+);
+
+const InputGroup = ({ label, name, value, onChange, placeholder }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label}
+    </label>
+    <input
+      type="text"
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-white"
+    />
+  </div>
+);
+
+const TextAreaGroup = ({ label, name, value, onChange, placeholder, rows = 3 }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label}
+    </label>
+    <textarea
+      name={name}
+      value={value}
+      onChange={onChange}
+      rows={rows}
+      placeholder={placeholder}
+      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none bg-white"
+    />
+  </div>
+);
 
 const CaseSummaryPlan = () => {
   const location = useLocation();
-  const record = location.state;
   const { id } = useParams();
+  const record = location.state;
+
   const [additionalNotes, setAdditionalNotes] = useState({
     medicalAbstractNotes: "",
     socialCaseNotes: "",
   });
+
   const [interventionPlan, setInterventionPlan] = useState({
     recommendedSupport: "",
     scopeCoverage: "",
@@ -20,333 +84,182 @@ const CaseSummaryPlan = () => {
 
   const handleAdditionalNotesChange = (e) => {
     const { name, value } = e.target;
-    setAdditionalNotes((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setAdditionalNotes((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleInterventionPlanChange = (e) => {
     const { name, value } = e.target;
-    setInterventionPlan((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setInterventionPlan((prev) => ({ ...prev, [name]: value }));
   };
-  // *** NEW FUNCTION ***
+
   const handlePrint = () => {
     if (!record || !record.patient) {
       console.error("No record data to generate filename.");
-      window.print(); // Fallback to default print
+      window.print();
       return;
     }
 
-    // 1. Save the current document title
     const originalTitle = document.title;
-
-    // 2. Create the new title (filename)
     const newTitle = `Case_Summary_${record.patient.patient_id}_${record.patient.full_name}`;
-
-    // 3. Set the new title
     document.title = newTitle;
-
-    // 4. Trigger the print dialog
     window.print();
 
-    // 5. Restore the original title after a short delay
     setTimeout(() => {
       document.title = originalTitle;
-    }, 1000); // 1 second delay
+    }, 1000);
   };
+
+  // Safe accessors
+  const p = record?.patient || {};
+
   return (
-    <div className="h-screen w-full flex flex-col justify-between items-center bg-[#F8F9FA] overflow-auto">
-      {/* Header */}
-      {/* <div className="bg-[#F0F2F5] h-[10%] px-5 w-full flex justify-between items-center">
-        <h1 className="text-md font-bold">Case Summary & Intervention Plan</h1>
-        <div className="p-3">
-          <Link to={`/admin/cancer-management/view/${id}`}>
-            <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
-          </Link>
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+      <div className="py-5 px-5 md:px-5 flex flex-col flex-1 max-w-5xl mx-auto w-full">
+        
+        {/* Top Actions */}
+        <div className="flex justify-between items-center mb-6">
+           <h2 className="text-xl font-semibold text-gray-800">
+              Case Summary & Intervention Plan
+           </h2>
         </div>
-      </div> */}
 
-      {/* Card Container */}
-      <div className="h-full w-full p-5 flex flex-col gap-5">
-        <div className="border border-black/15 p-5 bg-white rounded-sm shadow-sm">
+        {/* Main Card */}
+        <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-8 px-6 md:px-10 shadow-sm border border-gray-100 flex-1">
+          
           {/* Header Section */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-xl font-bold uppercase tracking-wide">
-                Case Summary
-              </h1>
-              <p className="text-sm text-gray-600">
-                Case ID:{" "}
-                <span className="font-semibold">{record?.id || "N/A"}</span>
-              </p>
-              <p className="text-sm text-gray-600">
-                Date Created:{" "}
-                <span className="font-semibold">
-                  {record?.date_submitted || "N/A"}
-                </span>
-              </p>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-6 mb-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-yellow/10 rounded-full text-yellow">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800">Case Summary</h1>
+                <div className="flex gap-4 mt-1 text-sm text-gray-500 font-mono">
+                    <span>ID: {record?.id || "N/A"}</span>
+                    <span>•</span>
+                    <span>Created: {record?.date_submitted || "N/A"}</span>
+                </div>
+              </div>
             </div>
-
-            {/* Logo */}
             <img
               src="/images/logo_black_text.png"
               alt="rafi logo"
-              className="h-30 md:h-30 object-contain"
+              className="h-23 object-contain opacity-80 mt-4 md:mt-0"
             />
           </div>
 
-          {/* Patient Info */}
-          <Section title="Patient Details">
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="w-full">
-                <label className="text-sm font-medium block mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  defaultValue={record?.patient.full_name || ""}
-                  readOnly
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-              </div>
-              <div className="w-full">
-                <label className="text-sm font-medium block mb-1">
-                  Age / Sex
-                </label>
-                <input
-                  type="text"
-                  defaultValue={`${record?.patient.age || ""} / ${
-                    record?.patient.sex || ""
-                  }`}
-                  readOnly
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-              </div>
+          {/* 1. Patient Details */}
+          <section>
+            <SectionHeader icon={User} title="Patient Details" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ReadOnlyField label="Full Name" value={p.full_name} />
+              <ReadOnlyField label="Age / Sex" value={`${p.age || '-'} / ${p.sex || '-'}`} />
+              <ReadOnlyField label="Address" value={p.address} />
+              <ReadOnlyField label="LGU" value={p.city} />
             </div>
+          </section>
 
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="w-full">
-                <label className="text-sm font-medium block mb-1">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  defaultValue={record?.patient.address || ""}
-                  readOnly
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-              </div>
-              <div className="w-full">
-                <label className="text-sm font-medium block mb-1">LGU</label>
-                <input
-                  type="text"
-                  defaultValue={record?.patient.city || ""}
-                  readOnly
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-              </div>
+          {/* 2. Medical Summary */}
+          <section>
+            <SectionHeader icon={Stethoscope} title="Medical Summary" />
+            <div className="grid grid-cols-1 gap-4">
+               <ReadOnlyField label="Diagnosis & Stage" value={p.diagnosis?.[0]?.diagnosis} />
+               <TextAreaGroup 
+                  label="Medical Abstract Notes" 
+                  name="medicalAbstractNotes"
+                  value={additionalNotes.medicalAbstractNotes}
+                  onChange={handleAdditionalNotesChange}
+                  placeholder="Enter medical notes..."
+               />
             </div>
-          </Section>
+          </section>
 
-          {/* Medical Info */}
-          <Section title="Medical Summary">
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="w-full">
-                <label className="text-sm font-medium block mb-1">
-                  Diagnosis & Stage
-                </label>
-                <input
-                  type="text"
-                  defaultValue={record?.patient.diagnosis[0]?.diagnosis || ""}
-                  readOnly
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-              </div>
-              {/* <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Attachments</label>
-                <input
-                  type="text"
-                  defaultValue={record?.attachments?.join(", ") || ""}
-                  readOnly
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-              </div> */}
+          {/* 3. Socioeconomic */}
+          <section>
+            <SectionHeader icon={Briefcase} title="Socioeconomic Assessment" />
+            <div className="grid grid-cols-1 gap-4">
+               <ReadOnlyField label="Employment / Income" value={`${p.occupation || '-'} / ${p.monthly_income || '-'}`} />
+               <TextAreaGroup 
+                  label="Social Case Notes" 
+                  name="socialCaseNotes"
+                  value={additionalNotes.socialCaseNotes}
+                  onChange={handleAdditionalNotesChange}
+                  placeholder="Enter social case notes..."
+               />
             </div>
-            <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                Medical Abstract Notes
-              </label>
-              <textarea
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white resize-none"
-                name="medicalAbstractNotes"
-                value={additionalNotes.medicalAbstractNotes}
-                onChange={handleAdditionalNotesChange}
-              />
-            </div>
-          </Section>
+          </section>
 
-          {/* Socioeconomic Info */}
-          <Section title="Socioeconomic Assessment">
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="w-full">
-                <label className="text-sm font-medium block mb-1">
-                  Employment / Income
-                </label>
-                <input
-                  type="text"
-                  defaultValue={`${record?.patient.occupation || ""} / ${
-                    record?.patient.monthly_income || ""
-                  }`}
-                  readOnly
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-              </div>
-              {/* <div className="w-full">
-                <label className="text-sm font-medium block mb-1">Barangay Indigency</label>
-                <input
-                  type="text"
-                  defaultValue="Attach to Email"
-                  readOnly
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-              </div> */}
+          {/* 4. Intervention Plan */}
+          <section>
+            <SectionHeader icon={ClipboardCheck} title="Intervention Plan" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+               <InputGroup 
+                  label="Recommended Support" 
+                  name="recommendedSupport" 
+                  value={interventionPlan.recommendedSupport} 
+                  onChange={handleInterventionPlanChange} 
+               />
+               <InputGroup 
+                  label="Timeline & Milestones" 
+                  name="timelineMilestone" 
+                  value={interventionPlan.timelineMilestone} 
+                  onChange={handleInterventionPlanChange} 
+               />
             </div>
-            <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                Social Case Notes
-              </label>
-              <textarea
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white resize-none"
-                name="socialCaseNotes"
-                value={additionalNotes.socialCaseNotes}
-                onChange={handleAdditionalNotesChange}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+               <TextAreaGroup 
+                  label="Scope & Coverage" 
+                  name="scopeCoverage" 
+                  value={interventionPlan.scopeCoverage} 
+                  onChange={handleInterventionPlanChange} 
+               />
+               <TextAreaGroup 
+                  label="Follow-up / Monitoring" 
+                  name="followUpMonitoring" 
+                  value={interventionPlan.followUpMonitoring} 
+                  onChange={handleInterventionPlanChange} 
+               />
             </div>
-          </Section>
-
-          {/* Intervention Plan */}
-          <Section title="Intervention Plan">
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="w-full">
-                <label className="text-sm font-medium block mb-1">
-                  Recommended Support
-                </label>
-                <input
-                  type="text"
-                  name="recommendedSupport"
-                  value={interventionPlan.recommendedSupport}
-                  onChange={handleInterventionPlanChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-              </div>
-              <div className="w-full">
-                <label className="text-sm font-medium block mb-1">
-                  Timeline & Milestones
-                </label>
-                <input
-                  type="text"
-                  name="timelineMilestone"
-                  value={interventionPlan.timelineMilestone}
-                  onChange={handleInterventionPlanChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                />
-              </div>
-            </div>
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="w-full">
-                <label className="text-sm font-medium block mb-1">
-                  Scope & Coverage
-                </label>
-                <textarea
-                  name="scopeCoverage"
-                  value={interventionPlan.scopeCoverage}
-                  onChange={handleInterventionPlanChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white resize-none"
-                />
-              </div>
-              <div className="w-full">
-                <label className="text-sm font-medium block mb-1">
-                  Follow-up / Monitoring
-                </label>
-                <textarea
-                  name="followUpMonitoring"
-                  value={interventionPlan.followUpMonitoring}
-                  onChange={handleInterventionPlanChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2 bg-white resize-none"
-                />
-              </div>
-            </div>
-            <div className="w-full">
-              <label className="text-sm font-medium block mb-1">
-                PO Remarks
-              </label>
-              <textarea
-                name="poRemarks"
-                value={interventionPlan.poRemarks}
-                onChange={handleInterventionPlanChange}
-                className="w-full border border-gray-300 rounded px-3 py-2 bg-white resize-none"
-              />
-            </div>
-          </Section>
-
-          {/* Signatures */}
-          {/* <Section title="Signatures">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <SignatureBox label="Patient" />
-              <SignatureBox label="Program Officer" />
-              <SignatureBox label="Approver" />
-            </div>
-          </Section> */}
+            <TextAreaGroup 
+                label="PO Remarks" 
+                name="poRemarks" 
+                value={interventionPlan.poRemarks} 
+                onChange={handleInterventionPlanChange} 
+            />
+          </section>
+          {/* Footer Actions */}
+          <div className="flex justify-around print:hidden mt-6">
+            <Link
+              to={`/admin/cancer-management/view/${id}`}
+              className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+            >
+              {/* <ArrowLeft className="w-4 h-4" /> */}
+              Back
+            </Link>
+            
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-"
+            >
+              {/* <Printer className="w-4 h-4" /> */}
+              Save as PDF
+            </button>
+          </div>
         </div>
 
-        {/* Footer buttons */}
-        <div className="w-full flex justify-around">
-          <Link
-            to={`/admin/cancer-management/view/${id}`}
-            className="text-center bg-white text-black py-2 w-[35%] border border-black hover:border-black/15 rounded-md"
-          >
-            Back
-          </Link>
-          <button
-            type="button"
-            onClick={handlePrint}
-            // onClick={handlePrint}
-            className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-          >
-            Save As PDF
-          </button>
-        </div>
-        <br />
       </div>
-      <CaseSummaryPrintTemplate
-        caseData={record}
-        additionalNotes={additionalNotes}
-        interventionPlan={interventionPlan}
-      />
+
+        <CaseSummaryPrintTemplate
+          caseData={record}
+          additionalNotes={additionalNotes}
+          interventionPlan={interventionPlan}
+        />
+
+      {/* Decorative Footer */}
+      <div className="h-16 bg-secondary shrink-0"></div>
     </div>
   );
 };
-
-// Keep Section + SignatureBox for layout only
-const Section = ({ title, children }) => (
-  <div className="mb-8">
-    <div className="mb-4 border-b border-gray-200">
-      <h2 className="text-md font-bold tracking-wide uppercase pb-1">
-        {title}
-      </h2>
-    </div>
-    <div className="flex flex-col gap-4">{children}</div>
-  </div>
-);
-
-const SignatureBox = ({ label }) => (
-  <div className="border border-dashed border-gray-300 rounded-md p-4 h-[80px] flex flex-col justify-center">
-    <span className="text-sm text-gray-500">{label}</span>
-  </div>
-);
 
 export default CaseSummaryPlan;

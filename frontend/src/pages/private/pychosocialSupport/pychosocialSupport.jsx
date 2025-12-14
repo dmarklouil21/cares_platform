@@ -60,7 +60,7 @@ const PychosocialSupport = () => {
       */}
 
       <div className="h-full flex flex-col justify-between overflow-auto ">
-        <div className="py-6 px-10 md:px-10">
+        <div className="py-5 px-10 md:px-5">
           <h1 className="text-lg font-bold mb-6">Psychosocial Support</h1>
 
           <div className="bg-white rounded-lg p-5 md:p-10 mb-8 shadow-sm">
@@ -79,7 +79,7 @@ const PychosocialSupport = () => {
                     className="flex flex-col  md:flex-row gap-8 p-5 border-b-[1.5px] border-primary"
                   >
                     <img
-                      src={activity.photo_url || "/images/placeholder-image.png"}
+                      src={activity.photo || "/images/placeholder-image.png"}
                       alt={activity.title || "Activity photo"}
                       className="h-40 w-72 rounded-md object-cover"
                     />
@@ -96,7 +96,7 @@ const PychosocialSupport = () => {
 
                       {activity.attachment ? (
                         <a
-                          href={activity.attachment_url}
+                          href={activity.attachment}
                           target="_blank"
                           rel="noreferrer"
                           className="flex items-center justify-start gap-2 text-[12px] text-blue-600 underline"

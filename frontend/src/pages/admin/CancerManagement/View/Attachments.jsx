@@ -228,10 +228,11 @@ const ViewAttachments = () => {
       {loading && <SystemLoader />}
 
       <div className="h-screen w-full flex flex-col justify-start p-5 gap-3 overflow-auto items-center bg-gray">
-        <div className="h-full w-full flex flex-col gap-5 justify-between">
-          <div className="border border-black/15 p-3 bg-white rounded-sm">
+        <div className="h-full w-full flex flex-col gap-5">
+          <h2 className="text-xl font-semibold text-gray-800">Required Documents</h2>
+          <div className="border border-black/15 p-3 bg-white rounded-lg">
             <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
-              <h2 className="text-3xl text-yellow font-bold">
+              <h2 className="text-2xl text-yellow font-bold">
                 Submitted Documents
               </h2>
               <p className="font-bold italic">
@@ -247,14 +248,14 @@ const ViewAttachments = () => {
                     >
                       <div className="flex items-center gap-3">
                         <CheckIcon active={!!uploaded} />
-                        <span className="text-gray-900 font-medium">
+                        <span className="text-gray-900 text-sm font-medium">
                           {d.label}
                         </span>
                       </div>
                       {uploaded ? (
                         <div className="flex gap-3">
                           <a
-                            href={uploaded.file_url}
+                            href={uploaded.file}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 text-sm hover:text-blue-800"
@@ -289,24 +290,27 @@ const ViewAttachments = () => {
                 })}
               </div>
             </div>
-          </div>
-          <div className="w-full flex justify-around">
-            <Link
-              to={`/admin/cancer-management/view/${id}`}
-              className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
-            >
-              Back
-            </Link>
-            <button
-              type="button"
-              onClick={handleSave}
-              className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-            >
-              Save
-            </button>
+            <div className="w-full flex justify-around mt-6 mb-2">
+              <Link
+                to={`/admin/cancer-management/view/${id}`}
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+              >
+                Back
+              </Link>
+              <button
+                type="button"
+                onClick={handleSave}
+                className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+              >
+                Save
+              </button>
+            </div>
           </div>
         </div>
       </div>
+      <br />
+      {/* Decorative Footer */}
+      {/* <div className="h-16 bg-secondary shrink-0"></div> */}
     </>
   );
 };

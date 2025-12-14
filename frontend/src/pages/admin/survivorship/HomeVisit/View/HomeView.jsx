@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { jsPDF } from "jspdf";
-// import LOAPrintTemplate from "../generate/LOAPrintTemplate";
+import { Save, Calendar, ArrowLeft, Send, Printer } from "lucide-react";
+
 import api from "src/api/axiosInstance";
 
 // Components
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
+import NotificationModal from "src/components/Modal/NotificationModal";
 import Notification from "src/components/Notification";
 import SystemLoader from "src/components/SystemLoader";
 import DateModal from "src/components/Modal/DateModal";
@@ -18,60 +20,69 @@ const HomeVisitView = () => {
   const location = useLocation();
 
   // Data
-  const [data, setData] = useState({});
+  const [data, setData] = useState(null);
   const [status, setStatus] = useState("");
   const [visitDate, setVisitDate] = useState(null);
-  const [isNewDate, setIsNewDate] = useState(false);
+
+  // Narrative Fields
+  const [visitPurpose, setVisitPurpose] = useState("");
+  const [findings, setFindings] = useState("");
+  const [recommendations, setRecommendations] = useState("");
 
   // Loading & Notification
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState("");
-  const [notificationType, setNotificationType] = useState(location.state?.type || "");
+  const [notificationType, setNotificationType] = useState(
+    location.state?.type || ""
+  );
 
-  // Confirmation Modal
-  const [modalOpen, setModalOpen] = useState(false);
+  // Modals State
+  const [modalOpen, setModalOpen] = useState(false); // Confirmation
   const [modalText, setModalText] = useState("Confirm Action?");
   const [modalDesc, setModalDesc] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
-  // Visit Date Modal
   const [dateModalOpen, setDateModalOpen] = useState(false);
-  const [tempDate, setTempDate] = useState("");
   const [dateModalTitle, setDateModalTitle] = useState("Set Visitation Date");
 
-  // Send Report Modal
   const [sendReportModalOpen, setSendReportModalOpen] = useState(false);
   const [reportFile, setReportFile] = useState(null);
 
-  // Remark Message Modal
+  const [showModal, setShowModal] = useState(false); // Info Modal
+  const [modalInfo, setModalInfo] = useState({
+    type: "info",
+    title: "Info",
+    message: "",
+  });
+
+  // Narrative Modals
   const [visitPurposeModalOpen, setVisitPurposeModalOpen] = useState(false);
-  const [visitPurpose, setVisitPurpose] = useState("");
-
   const [findingsModalOpen, setFindingsModalOpen] = useState(false);
-  const [findings, setFindings] = useState("");
-
   const [recommendationModalOpen, setRecommendationModalOpen] = useState(false);
-  const [recommendations, setRecommendations] = useState("");
 
   // Fetch Data
   const fetchData = async () => {
     try {
+      setLoading(true);
       const { data } = await api.get(`/survivorship/home-visit/view/${id}/`);
       setData(data);
       setStatus(data.status);
       setVisitDate(data.visit_date || null);
-      setVisitPurpose(data.purpose_of_visit || "")
+      setVisitPurpose(data.purpose_of_visit || "");
       setFindings(data.findings || "");
       setRecommendations(data.recommendations || "");
     } catch (error) {
       console.error("Error fetching record:", error);
+      setNotificationType("error");
+      setNotification("Failed to load record details.");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, []);
-  console.log("Data: ", data);
+  }, [id]);
 
   // Auto-hide notification
   useEffect(() => {
@@ -80,10 +91,12 @@ const HomeVisitView = () => {
     return () => clearTimeout(timer);
   }, [notification]);
 
-  // Handlers
+  // --- Handlers ---
+
   const handleStatusChange = (e) => {
     const selectedStatus = e.target.value;
     if (selectedStatus === "Processing") {
+      setDateModalTitle("Set Visitation Date");
       setDateModalOpen(true);
       setModalAction({ newStatus: selectedStatus });
       setStatus(selectedStatus);
@@ -93,14 +106,12 @@ const HomeVisitView = () => {
     }
   };
 
-  const handleDateModalConfirm = async () => {
+  const handleDateModalConfirm = () => {
     if (!visitDate) {
       alert("Please select a date before proceeding.");
       return;
     }
-    // setVisitDate(tempDate);
-    setModalAction((prev) => ({ ...prev, newvisitDate: tempDate }));
-    // setIsNewDate(true);
+    setModalAction((prev) => ({ ...prev, newvisitDate: visitDate }));
     setDateModalOpen(false);
   };
 
@@ -129,14 +140,13 @@ const HomeVisitView = () => {
       });
 
       setNotificationType("success");
-      setNotification("Success.");
-
+      setNotification("Report sent successfully.");
     } catch (error) {
       setNotificationType("error");
-      setNotification("Something went wrong while submitting the changes.");
+      setNotification("Something went wrong while sending the report.");
     } finally {
       setLoading(false);
-      setLoaFile(null);
+      setReportFile(null);
     }
   };
 
@@ -144,7 +154,7 @@ const HomeVisitView = () => {
     setModalText("Save changes?");
     setModalDesc("Confirm to save the changes.");
     setModalOpen(true);
-    setModalAction({ newStatus: null });
+    // setModalAction({ newStatus: null }); // Preserve existing changes
   };
 
   const handleModalConfirm = async () => {
@@ -153,13 +163,13 @@ const HomeVisitView = () => {
       setModalOpen(false);
 
       let payload = {
-        status: modalAction.newStatus || status,
-        visit_date: modalAction.newvisitDate || visitDate,
-        purpose_of_visit: modalAction.newVisitPurpose || visitPurpose,
-        findings: modalAction.newFindings || findings,
-        recommendations: modalAction.newRecommendations || recommendations
+        status: modalAction?.newStatus || status,
+        visit_date: modalAction?.newvisitDate || visitDate,
+        purpose_of_visit: modalAction?.newVisitPurpose || visitPurpose,
+        findings: modalAction?.newFindings || findings,
+        recommendations: modalAction?.newRecommendations || recommendations,
       };
-      console.log("Payload: ", payload);
+
       await api.patch(`/survivorship/home-visit/update/${data.id}/`, payload);
 
       setNotificationType("success");
@@ -172,29 +182,23 @@ const HomeVisitView = () => {
       setLoading(false);
       setModalAction(null);
     }
-  }
-
-  const loaData = {
-    patient: {
-      full_name: data.patient?.full_name,
-      city: data.patient?.city,
-      age: data.patient?.age,
-      diagnosis: [{}],
-    },
-    procedure_name: data.procedure_name,
   };
 
   const generatePdf = () => {
+    if (!data) return;
     const doc = new jsPDF({ unit: "pt", format: "a4" });
     const width = doc.internal.pageSize.getWidth();
     const M = 48;
     let y = 60;
+
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.text("PATIENT HOME VISIT REPORT", width / 2, y, { align: "center" });
     y += 32;
+
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
+
     const drawLabelLine = (label, value) => {
       const text = `${label}:`;
       doc.text(text, M, y);
@@ -209,10 +213,15 @@ const HomeVisitView = () => {
       }
       y += 22;
     };
+
     drawLabelLine("Name of Patient", data.patient.full_name);
-    drawLabelLine("Current Cancer Diagnosis", data.patient.diagnosis[0]?.diagnosis);
+    drawLabelLine(
+      "Current Cancer Diagnosis",
+      data.patient.diagnosis[0]?.diagnosis
+    );
     drawLabelLine("Date & Time of Visit", `${data.visit_date}`);
     y += 4;
+
     doc.setFont("helvetica", "bold");
     doc.text("Purpose of Visit:", M, y);
     y += 16;
@@ -229,6 +238,7 @@ const HomeVisitView = () => {
     doc.setDrawColor(200);
     doc.line(M, y, width - M, y);
     y += 12;
+
     doc.setFont("helvetica", "bold");
     doc.text("Findings/ Observations:", M, y);
     y += 12;
@@ -248,6 +258,7 @@ const HomeVisitView = () => {
     };
     drawRuled(6);
     y += 12;
+
     doc.setFont("helvetica", "bold");
     doc.text("Recommendations:", M, y);
     y += 12;
@@ -260,45 +271,64 @@ const HomeVisitView = () => {
     y += doc.getTextDimensions(recoWrapped).h + 6;
     drawRuled(3);
     y += 24;
+
     doc.setDrawColor(220, 38, 38);
     doc.line(M, y, M + 200, y);
     doc.line(width - M - 200, y, width - M, y);
     doc.setFontSize(11);
     doc.setTextColor(0);
-    doc.text(`Prepared by: ${data.prepared_by}`, M, y + 18);
-    doc.text(`Approved by: ${data.approved_by}`, width - M - 200, y + 18);
+    doc.text(`Prepared by: ${data.prepared_by || "Representative"}`, M, y + 18);
+    doc.text(
+      `Approved by: ${data.approved_by || "Administrator"}`,
+      width - M - 200,
+      y + 18
+    );
     doc.setFontSize(10);
     doc.text("EJACC Representative", M, y + 34);
     doc.save(`PatientHomeVisit_${id}.pdf`);
   };
 
-  const statusPillClasses =
-    data?.status === "Completed"
-      ? "bg-green-100 text-green-700 border border-green-200"
-      : data?.status === "Processing"
-      ? "bg-blue-100 text-blue-700 border border-blue-200"
-      : data?.status === "Closed"
-      ? "bg-gray-100 text-gray-700 border border-gray-200"
-      : data?.status === "Pending"
-      ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-      : data?.status === "Rejected"
-      ? "bg-red-100 text-red-700 border border-red-200"
-      : "bg-yellow-100 text-yellow-700";
+  if (!data && !loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <p className="text-gray-500">Record not found.</p>
+      </div>
+    );
+  }
 
-  const statusLevels = {
-    "Pending": 0,
-    "Processing": 1,
-    "Recommendation": 2,
+  // --- Helper Styles ---
+  const getStatusColor = (st) => {
+    switch (st) {
+      case "Completed":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "Processing":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "Closed":
+        return "bg-gray-100 text-gray-700 border-gray-200";
+      case "Rejected":
+        return "bg-red-100 text-red-700 border-red-200";
+      case "Recommendation":
+        return "bg-purple-100 text-purple-700 border-purple-200";
+      case "Pending":
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-200";
+    }
   };
 
-  // Get the numeric level of the SAVED record status
+  const statusLevels = {
+    Pending: 0,
+    Processing: 1,
+    Recommendation: 2,
+    Completed: 3,
+  };
   const currentLevel = statusLevels[data?.status] || 0;
 
   return (
     <>
       {loading && <SystemLoader />}
 
-      {/* Modals */}
+      {/* --- Modals --- */}
       <ConfirmationModal
         open={modalOpen}
         title={modalText}
@@ -306,7 +336,17 @@ const HomeVisitView = () => {
         onConfirm={handleModalConfirm}
         onCancel={() => setModalOpen(false)}
       />
+
       <Notification message={notification} type={notificationType} />
+
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
+      />
+
       <DateModal
         open={dateModalOpen}
         title={dateModalTitle}
@@ -315,6 +355,7 @@ const HomeVisitView = () => {
         onConfirm={handleDateModalConfirm}
         onCancel={() => setDateModalOpen(false)}
       />
+
       <FileUploadModal
         open={sendReportModalOpen}
         title="Send Report"
@@ -323,281 +364,303 @@ const HomeVisitView = () => {
         onConfirm={handleSendReport}
         onCancel={() => setSendReportModalOpen(false)}
       />
-      {/* Visit Purpose */}
-      <TextAreaModal 
+
+      {/* Narrative Modals */}
+      <TextAreaModal
         open={visitPurposeModalOpen}
-        title="Add Purpose of Visit"
+        title="Edit Purpose of Visit"
         value={visitPurpose}
         onChange={setVisitPurpose}
         onConfirm={() => setVisitPurposeModalOpen(false)}
         onCancel={() => setVisitPurposeModalOpen(false)}
       />
-      {/* Findings */}
-      <TextAreaModal 
+      <TextAreaModal
         open={findingsModalOpen}
-        title="Add Findings"
+        title="Edit Findings"
         value={findings}
         onChange={setFindings}
         onConfirm={() => setFindingsModalOpen(false)}
         onCancel={() => setFindingsModalOpen(false)}
       />
-      {/* Recommendations */}
-      <TextAreaModal 
+      <TextAreaModal
         open={recommendationModalOpen}
-        title="Add Recommendations"
+        title="Edit Recommendations"
         value={recommendations}
         onChange={setRecommendations}
         onConfirm={() => setRecommendationModalOpen(false)}
         onCancel={() => setRecommendationModalOpen(false)}
       />
 
-      {/* Page Content */}
-      <div className="h-screen w-full flex flex-col p-5 gap-3 justify-start items-center bg-gray overflow-auto">
-        {/* Header */}
-        {/* <div className="h-[10%] px-5 w-full flex justify-between items-center">
-          <h1 className="text-md font-bold">Treatment Info</h1>
-          <Link to={"/admin/treatment-assistance/post-treatment"}>
-            <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
-          </Link>
-        </div> */}
+      {/* --- Main Content --- */}
+      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
+        <div className="py-5 px-5 md:px-5 flex flex-col flex-1">
+          {/* Top Title */}
+          <h2 className="text-xl font-semibold mb-6 text-gray-800">
+            Application Details
+          </h2>
 
-        {/* Home Visit Info */}
-        <div className="h-fit w-full flex flex-col gap-4">
-          <div className="bg-white rounded-md shadow border border-black/10">
-            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Patient Home Visit Details</h2>
-              <span className={`text-xs px-2 py-1 rounded ${statusPillClasses}`}>
+          {/* White Card Container */}
+          <div className="flex flex-col gap-6 w-full bg-white rounded-lg py-7 px-5 md:px-8 flex-1 overflow-auto shadow-sm">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-4">
+              <h1 className="font-bold text-[24px] md:text-2xl text-yellow">
+                Home Visit
+              </h1>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-bold border uppercase ${getStatusColor(
+                  data?.status
+                )}`}
+              >
                 {data?.status}
               </span>
-              {/* <div className="flex gap-2">
-                <h2 className="text-lg font-semibold">Post-Treatment Laboratory Request</h2>
-                <span className={`text-xs px-2 py-1 rounded ${statusPillClasses}`}>
-                  {data?.status}
-                </span>
-              </div>
-              <div>
-                <Link to={"/admin/treatment-assistance/post-treatment"}>
-                  <img src="/images/back.png" alt="Back" className="h-6 cursor-pointer" />
-                </Link>
-              </div> */}
             </div>
-            {/* Info Fields */}
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Patient ID</span>
-                <span className="text-gray-700">{data?.patient?.patient_id || "---"}</span>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Patient Name</span>
-                <span className="text-gray-700">{data?.patient?.full_name || "---"}</span>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Diagnosis</span>
-                <span className="text-gray-700">
-                  {data?.patient?.diagnosis?.[0]?.diagnosis || "---"}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Status</span>
-                <select
-                  className="-ml-1 outline-none focus:ring-0 text-gray-700"
-                  value={status}
-                  onChange={handleStatusChange}
-                  disabled={data?.status === "Completed"}
-                >
-                  <option value="Pending" disabled={currentLevel > 0}>Pending</option>
-                  <option value="Processing" disabled={currentLevel > 1}>Processing</option>
-                  <option value="Recommendation" disabled={currentLevel > 2}>Recommendation</option>
-                  <option value="Completed">Completed</option>
-                </select>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Date Created</span>
-                <span className="text-gray-700">
-                  {data?.created_at
-                    ? new Date(data?.created_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : "---"}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Visit Date</span>
-                <span className="text-gray-700">
-                  {visitDate
-                    ? new Date(visitDate).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : "---"}
-                </span>
-                {status === "Processing" && visitDate && (
-                  <span
-                    className="text-sm text-blue-700 cursor-pointer"
-                    onClick={() => setDateModalOpen(true)}
-                  >
-                    Edit
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
 
-          {/* Wellbeing Tool */}
-          <div className="bg-white rounded-md shadow border border-black/10">
-            <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Wellbeing Tool</h2>
-            </div>
-            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-              <div className="flex gap-2">
-                <span className="font-medium w-40">Wellbeing Form</span>
-                <Link
-                  className="text-blue-700"
-                  to={`/admin/survivorship/view/${data?.id}/wellbeing-form`}
-                  state={data}
-                >
-                  View
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Additional Info */}
-          {/* {data?.status !== "Pending" && data?.status !== "Processing" && ( */}
-            <div className="bg-white rounded-md shadow border border-black/10">
-              <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-                <h2 className="text-lg font-semibold">Narrative</h2>
-              </div>
-              <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-                <div className="flex items-start gap-2">
-                  <span className="font-medium w-40">Purpose of Visit</span>
-                  <span
-                    className="text-gray-700 break-words flex-1"
-                  >
-                    {visitPurpose}
-                    {!visitPurpose && 
-                      <span 
-                        className="text-blue-700 cursor-pointer"
-                        onClick={() => setVisitPurposeModalOpen(true)}
-                      >
-                        Add
-                      </span>
-                    }
-                  </span>
-                  {visitPurpose &&
-                    <span
-                      className="text-sm text-blue-700 cursor-pointer"
-                      onClick={() => setVisitPurposeModalOpen(true)}
-                    >
-                      Edit
+            {/* Grid Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
+              {/* Left Column: Patient & Status */}
+              <div className="space-y-8">
+                {/* Patient Information */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Patient Information
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <span className="text-gray-500 font-medium">
+                      Patient ID
                     </span>
-                  }
+                    <span className="col-span-2 text-gray-900 font-semibold">
+                      {data?.patient?.patient_id || "---"}
+                    </span>
+
+                    <span className="text-gray-500 font-medium">Full Name</span>
+                    <span className="col-span-2 text-gray-900 font-semibold">
+                      {data?.patient?.full_name || "---"}
+                    </span>
+
+                    <span className="text-gray-500 font-medium">Diagnosis</span>
+                    <span className="col-span-2 text-gray-900">
+                      {data?.patient?.diagnosis?.[0]?.diagnosis || "---"}
+                    </span>
+
+                    <span className="text-gray-500 font-medium">
+                      Date Created
+                    </span>
+                    <span className="col-span-2 text-gray-900">
+                      {data?.created_at
+                        ? new Date(data.created_at).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            }
+                          )
+                        : "---"}
+                    </span>
+                  </div>
                 </div>
-                {data?.status !== "Pending" && data?.status !== "Processing" && (
-                  <>
-                    <div className="flex items-start gap-2">
-                      <span className="font-medium w-40 shrink-0">Findings/Observation</span>
-                      <span
-                        className="text-gray-700 break-words flex-1"
+
+                {/* Status Management */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Status Management
+                  </h3>
+                  <div className="grid grid-cols-3 gap-3 text-sm items-center">
+                    <span className="text-gray-500 font-medium">
+                      Update Status
+                    </span>
+                    <div className="col-span-2">
+                      <select
+                        className="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:ring-2 focus:ring-primary outline-none transition-shadow"
+                        value={status}
+                        onChange={handleStatusChange}
+                        disabled={data?.status === "Completed"}
                       >
-                        {findings}
-                        {!findings && 
-                          <span 
-                            className="text-blue-700 cursor-pointer"
-                            onClick={() => setFindingsModalOpen(true)}
-                          >
-                            Add
-                          </span>
-                        }
-                      </span>
-                      {findings &&
-                        <span
-                          className="text-sm text-blue-700 cursor-pointer"
-                          onClick={() => setFindingsModalOpen(true)}
+                        <option value="Pending" disabled={currentLevel > 0}>
+                          Pending
+                        </option>
+                        <option value="Processing" disabled={currentLevel > 1}>
+                          Processing
+                        </option>
+                        <option
+                          value="Recommendation"
+                          disabled={currentLevel > 2}
                         >
-                          Edit
-                        </span>
-                      }
+                          Recommendation
+                        </option>
+                        <option value="Completed">Completed</option>
+                      </select>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <span className="font-medium w-40 shrink-0">Recommendation</span>
-                      <span
-                        className="text-gray-700 break-words flex-1"
-                      >
-                        {recommendations}
-                        {!recommendations && 
-                          <span 
-                            className="text-blue-700 cursor-pointer"
-                            onClick={() => setRecommendationModalOpen(true)}
-                          >
-                            Add
-                          </span>
-                        }
+
+                    <span className="text-gray-500 font-medium">
+                      Visit Date
+                    </span>
+                    <div className="col-span-2 flex items-center justify-between bg-gray-50 border border-gray-200 rounded px-3 py-2">
+                      <span className="text-gray-900 font-medium">
+                        {visitDate
+                          ? new Date(visitDate).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })
+                          : "Not Set"}
                       </span>
-                      {recommendations &&
-                        <span
-                          className="text-sm text-blue-700 cursor-pointer"
-                          onClick={() => setRecommendationModalOpen(true)}
+                      {status === "Processing" && (
+                        <button
+                          onClick={() => setDateModalOpen(true)}
+                          className="p-1 hover:bg-gray-200 rounded text-blue-600"
+                          title="Edit Visit Date"
                         >
-                          Edit
-                        </span>
-                      }
+                          <Calendar className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
-                  </>
+                  </div>
+                </div>
+
+                {/* Wellbeing Tool Link */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Wellbeing Tool
+                  </h3>
+                  <div>
+                    <Link
+                      to={`/admin/survivorship/view/${data?.id}/wellbeing-form`}
+                      state={data}
+                      className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-primary/50 transition-all group"
+                    >
+                      <span className="text-sm font-medium text-gray-700 group-hover:text-primary">
+                        Wellbeing Form
+                      </span>
+                      <ArrowLeft className="w-4 h-4 text-gray-300 rotate-180 group-hover:text-primary" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Narrative & Report */}
+              <div className="space-y-8">
+                {/* Narrative */}
+                <div className="space-y-4">
+                  <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                    Narrative Details
+                  </h3>
+
+                  <div className="space-y-3">
+                    {/* Purpose */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 relative group">
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="text-xs font-bold text-gray-500 uppercase">
+                          Purpose of Visit
+                        </span>
+                        <button
+                          onClick={() => setVisitPurposeModalOpen(true)}
+                          className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          {visitPurpose ? "Edit" : "Add"}
+                        </button>
+                      </div>
+                      <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+                        {visitPurpose || "No purpose specified."}
+                      </p>
+                    </div>
+
+                    {/* Findings & Recommendations (only if processed) */}
+                    {data?.status !== "Pending" &&
+                      data?.status !== "Processing" && (
+                        <>
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 relative">
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="text-xs font-bold text-gray-500 uppercase">
+                                Findings / Observations
+                              </span>
+                              <button
+                                onClick={() => setFindingsModalOpen(true)}
+                                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                              >
+                                {findings ? "Edit" : "Add"}
+                              </button>
+                            </div>
+                            <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+                              {findings || "No findings recorded."}
+                            </p>
+                          </div>
+
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 relative">
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="text-xs font-bold text-gray-500 uppercase">
+                                Recommendations
+                              </span>
+                              <button
+                                onClick={() => setRecommendationModalOpen(true)}
+                                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                              >
+                                {recommendations ? "Edit" : "Add"}
+                              </button>
+                            </div>
+                            <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+                              {recommendations || "No recommendations recorded."}
+                            </p>
+                          </div>
+                        </>
+                      )}
+                  </div>
+                </div>
+
+                {/* Report Generation (only if processed) */}
+                {(data?.status === "Recommendation" ||
+                  data?.status === "Completed") && (
+                  <div className="space-y-4">
+                    <h3 className="text-md font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1">
+                      Report Actions
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2 md:col-span-1 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                        <div className="font-semibold text-blue-900 mb-3 text-sm flex items-center gap-2">
+                          <Printer className="w-4 h-4" />
+                          Home Visit Report
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={generatePdf}
+                            className="text-xs bg-white border border-blue-200 text-blue-700 py-2 px-3 rounded hover:bg-blue-100 transition text-left"
+                          >
+                            Download / Print
+                          </button>
+                          <button
+                            onClick={() => setSendReportModalOpen(true)}
+                            className="text-xs bg-blue-600 text-white py-2 px-3 rounded hover:bg-blue-700 transition text-left flex justify-between items-center"
+                          >
+                            Send via Email <Send className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
-                
               </div>
             </div>
-          {/* )} */}
-
-          {/* Report Generation */}
-          {data?.status === "Recommendation" && (
-            <div className="bg-white rounded-md shadow border border-black/10">
-              <div className="border-b border-black/10 px-5 py-3 flex justify-between items-center">
-                <h2 className="text-lg font-semibold">Report Generation</h2>
-              </div>
-              <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-                <div className="flex gap-2">
-                  <span className="font-medium w-40">Generate Report</span>
-                  <span
-                    className="text-blue-700 cursor-pointer"
-                    onClick={generatePdf}
-                  >
-                    Download
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <span className="font-medium w-40">Send Report</span>
-                  <span
-                    className="text-blue-700 cursor-pointer"
-                    onClick={() => setSendReportModalOpen(true)}
-                  >
-                    Send
-                  </span>
-                </div>
-              </div>
+            {/* Footer Actions */}
+            <div className="flex justify-around print:hidden mt-6">
+              <Link
+                to="/admin/survivorship"
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+              >
+                Back
+              </Link>
+              <button
+                onClick={handleSaveChanges}
+                className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+              >
+                {/* <Save className="w-4 h-4" /> */}
+                Save Changes
+              </button>
             </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex justify-around print:hidden">
-            <Link
-              to={`/admin/survivorship`}
-              className="text-center bg-white text-black py-2 w-[35%] border border-black rounded-md"
-            >
-              Back
-            </Link>
-            <button
-              onClick={handleSaveChanges}
-              className="py-2 w-[30%] bg-primary rounded-md text-white hover:opacity-90 cursor-pointer"
-            >
-              Save Changes
-            </button>
           </div>
         </div>
+
+        {/* Decorative Footer */}
+        <div className="h-16 bg-secondary shrink-0"></div>
       </div>
     </>
   );

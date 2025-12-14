@@ -1,6 +1,6 @@
 const GreetPanel = () => {
   return (
-    <div className="lg:flex flex-col h-screen items-center justify-between py-5 bg-primary w-[25%] hidden">
+    <div className="lg:flex flex-col h-screen items-center justify-between py-5 bg-primary w-[35%] hidden">
       <div className="flex flex-col gap-5">
         <img
           src="/images/logo_white_text.png"

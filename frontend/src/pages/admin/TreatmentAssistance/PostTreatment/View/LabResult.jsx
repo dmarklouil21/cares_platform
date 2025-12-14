@@ -252,10 +252,11 @@ const LabResult = () => {
           </Link>
         </div> */}
 
-        <div className="h-full w-full flex flex-col justify-between">
-          <div className="border border-black/15 p-3 bg-white rounded-sm">
+        <div className="h-full w-full flex flex-col">
+          <h2 className="text-xl font-semibold mb-6 text-gray-800">Submitted Result</h2>
+          <div className="border border-black/15 p-3 bg-white rounded-lg">
             <div className="rounded-2xl bg-white p-4 flex flex-col gap-3">
-              <h2 className="text-3xl text-yellow font-bold">
+              <h2 className="text-2xl text-yellow font-bold">
                 Laboratory Test Result
               </h2>
               <p className="font-bold italic">
@@ -266,14 +267,14 @@ const LabResult = () => {
                 <div className="flex items-center gap-3 justify-between bg-gray-50 px-4 py-3 rounded-lg shadow-sm">
                   <div className="flex items-center gap-3">
                     <CheckIcon active={files} />
-                    <span className="text-gray-900 font-medium">
+                    <span className="text-gray-900 text-sm font-medium">
                       Patient Result
                     </span>
                   </div>
                   {files ? (
                     <a
                       // href={files[0].url}
-                      href={record?.uploaded_result_url}
+                      href={record?.uploaded_result}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 text-sm hover:text-blue-800 cursor-pointer"
@@ -312,25 +313,27 @@ const LabResult = () => {
                 </div>
               )}
             </div>
-          </div>
-          <div className="w-full flex justify-around">
-            <Link
-              to={`/admin/treatment-assistance/postview/${id}`}
-              className="text-center bg-white text-black py-2 w-[35%] border border-black/15 hover:border-black rounded-md"
-            >
-              Back
-            </Link>
-            <button
-              // type="submit"
-              type="button"
-              onClick={handleSave}
-              className="text-center font-bold bg-primary text-white py-2 w-[35%] border border-primary hover:border-lightblue hover:bg-lightblue rounded-md"
-            >
-              Save
-            </button>
+            <div className="w-full flex justify-around mt-6 mb-2">
+              <Link
+                to={`/admin/treatment-assistance/postview/${id}`}
+                className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
+              >
+                Back
+              </Link>
+              <button
+                // type="submit"
+                type="button"
+                onClick={handleSave}
+                className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+              >
+                Save
+              </button>
+            </div>
           </div>
         </div>
       </div>
+      {/* Decorative Footer */}
+      <div className="h-16 bg-secondary shrink-0"></div>
     </>
   );
 };

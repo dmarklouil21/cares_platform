@@ -22,6 +22,7 @@ from . models import PostTreatment, FollowupCheckups, RequiredAttachment
 from . serializers import PostTreatmentSerializer, PostTreatmentAdminCreateSerializer, RequiredAttachmentSerializer
 
 import logging
+import threading
 logger = logging.getLogger(__name__)
 
 # Create your views here.
@@ -185,15 +186,27 @@ class PostTreatmentUpdateView(APIView):
       if user:
         create_notification(user, f'Post Treatment {post_treatment.status.title()}', f'Your post treatment request has been {post_treatment.status}.')
 
-      email_status = send_post_treatment_status_email(
-        patient=post_treatment.patient, 
-        status=post_treatment.status, 
-        lab_test_date=post_treatment.laboratory_test_date, 
-        remarks=remarks
-      )
+      # Define a small helper function to run in the background
+      def send_email_in_background(patient, status, lab_test_date, remarks):
+        try:
+          send_post_treatment_status_email(patient=patient, status=status, lab_test_date=lab_test_date, remarks=remarks)
+        except Exception as e:
+          logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+          print(f"Background email failed: {e}")
+      
+      # Start the thread. The request proceeds immediately without waiting.
+      email_thread = threading.Thread(target=send_email_in_background, args=(post_treatment.patient, post_treatment.status, post_treatment.laboratory_test_date, remarks))
+      email_thread.start()
 
-      if email_status is not True:
-        logger.error(f"Email failed to send: {email_status}")
+      # email_status = send_post_treatment_status_email(
+      #   patient=post_treatment.patient, 
+      #   status=post_treatment.status, 
+      #   lab_test_date=post_treatment.laboratory_test_date, 
+      #   remarks=remarks
+      # )
+
+      # if email_status is not True:
+      #   logger.error(f"Email failed to send: {email_status}")
 
       return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -281,8 +294,20 @@ class SendLOAView(APIView):
     if not email:
       return Response({"error": "No recipient email provided."}, status=400)
     
-    result = send_loa_email(email, file_obj, patient_name)
+    # Define a small helper function to run in the background
+    def send_email_in_background(email, file_obj, patient_name):
+      try:
+        send_loa_email(email, file_obj, patient_name)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Background email failed: {e}")
+    
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(email, file_obj, patient_name))
+    email_thread.start()
 
-    if result is True:
-      return Response({"message": "LOA sent successfully."}, status=200)
-    return Response({"error": f"Failed to send LOA: {result}"}, status=500)
+    # result = send_loa_email(email, file_obj, patient_name)
+
+    # if result is True:
+    return Response({"message": "LOA sent successfully."}, status=200)
+    # return Response({"error": f"Failed to send LOA: {result}"}, status=500)

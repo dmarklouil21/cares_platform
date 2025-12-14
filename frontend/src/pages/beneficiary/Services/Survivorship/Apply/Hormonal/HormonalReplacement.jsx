@@ -1,89 +1,81 @@
-import { useRef, useState, useEffect, useMemo } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import api from "src/api/axiosInstance";
+import { 
+  FileText, 
+  Upload, 
+  Check, 
+  Save, 
+  ArrowLeft,
+  Pill,
+  AlertCircle
+} from "lucide-react";
 
 import ConfirmationModal from "src/components/Modal/ConfirmationModal";
 import NotificationModal from "src/components/Modal/NotificationModal";
 import SystemLoader from "src/components/SystemLoader";
 
 import { REQUIRED_DOCS } from "src/constants/requiredDocs";
+import api from "src/api/axiosInstance";
 
-const CheckIcon = ({ active }) => (
-  <img
-    src="/images/check.svg"
-    alt="Check"
-    className={`h-6 w-6 transition ${active ? "" : "grayscale opacity-50"}`}
-  />
+// --- Reusable UI Helpers ---
+const InputGroup = ({ label, name, type = "text", value, onChange, required, error, placeholder }) => (
+  <div>
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className={`w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-white ${
+        error ? 'border-red-500' : 'border-gray-300'
+      }`}
+    />
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
 );
 
 const HormonalReplacement = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const id = location.state?.id || null;
   const fileInputRef = useRef(null);
+
+  const id = location.state?.id || null;
+  const [isResubmitting, setIsResubmitting] = useState(!!id);
 
   // Form States
   const [medicines, setMedicines] = useState("");
 
-  const [isResubmitting, setIsResubmitting] = useState(!!id);
-
   // File Handling
   const requiredDocs = REQUIRED_DOCS["Hormonal Replacement"] || [];
-  const makeEmptyFiles = () =>
-    requiredDocs.reduce((acc, doc) => ({ ...acc, [doc.key]: null }), {});
-  const [files, setFiles] = useState(makeEmptyFiles);
   const [activeIdx, setActiveIdx] = useState(0);
   const activeDoc = requiredDocs[activeIdx];
+
+  const [files, setFiles] = useState(() => 
+    requiredDocs.reduce((acc, doc) => ({ ...acc, [doc.key]: null }), {})
+  );
+
   const allUploaded = useMemo(
-    () => requiredDocs.every((doc) => !!files[doc.key]),
+    () => requiredDocs.length > 0 && requiredDocs.every((doc) => !!files[doc.key]),
     [files, requiredDocs]
   );
 
-  // Modal States
-  const [confirmation, setConfirmation] = useState({
-    open: false,
-    text: "",
-    desc: "",
-    action: null,
-  });
-  const [notification, setNotification] = useState({
-    show: false,
-    type: "success",
-    title: "",
-    message: "",
-  });
-
-  // Loading
+  // UX States
   const [loading, setLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalInfo, setModalInfo] = useState({ type: "success", title: "", message: "" });
+  const [errors, setErrors] = useState({});
 
-  // Fetch latest screening ID (if needed later)
-  // useEffect(() => {
-  //   const fetchScreeningData = async () => {
-  //     try {
-  //       const response = await api.get(
-  //         "/beneficiary/individual-screening/list/"
-  //       );
-  //       const screenings = response.data;
-  //       if (screenings.length > 0) {
-  //         // Example: You can use this ID later for PATCH/PUT requests
-  //         const latestScreening = screenings.at(-1);
-  //         console.log("Latest Screening ID:", latestScreening.id);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching screening data:", error);
-  //     }
-  //   };
-
-  //   fetchScreeningData();
-  // }, []);
-
+  // Fetch Data (Edit Mode)
   useEffect(() => {
     if (!id) return;
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const { data } = await api.get(
-          `/beneficiary/hormonal-replacement/details/${id}/`
-        );
+        const { data } = await api.get(`/beneficiary/hormonal-replacement/details/${id}/`);
         setMedicines(data.medicines_requested || "");
 
         if (data.required_attachments) {
@@ -94,38 +86,53 @@ const HormonalReplacement = () => {
           setFiles(mappedFiles);
         }
       } catch (error) {
-        console.error("Error fetching screening data:", error);
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
-
     fetchData();
   }, [id]);
-  // File Handlers
-  const handleChooseFile = () => fileInputRef.current?.click();
 
+  // Handlers
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
     if (file && activeDoc) {
       setFiles((prev) => ({ ...prev, [activeDoc.key]: file }));
     }
-    e.target.value = ""; // allow reselecting the same file
+    e.target.value = ""; 
   };
 
-  // Submit Handlers
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file && activeDoc) {
+        setFiles((prev) => ({ ...prev, [activeDoc.key]: file }));
+    }
+  };
+
+  const handleDragOver = (e) => e.preventDefault();
+
+  const validate = () => {
+      const newErrors = {};
+      if (!medicines.trim()) newErrors.medicines = "Required";
+      return newErrors;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    setConfirmation({
-      open: true,
-      text: "Confirm Submit?",
-      desc: "Make sure all your inputs are correct!",
-      action: "submit",
-    });
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        setModalInfo({ type: "error", title: "Validation Error", message: "Please fill in all fields." });
+        setShowModal(true);
+        return;
+    }
+    setConfirmOpen(true);
   };
 
-  const handleConfirm = async () => {
-    if (confirmation.action !== "submit") return;
-
-    setConfirmation({ open: false, text: "", desc: "", action: null });
+  const onConfirmSubmit = async () => {
+    setConfirmOpen(false);
     setLoading(true);
 
     try {
@@ -139,225 +146,209 @@ const HormonalReplacement = () => {
       const endpoint = isResubmitting
         ? `/beneficiary/hormonal-replacement/update/${id}/`
         : `/beneficiary/hormonal-replacement/request/`;
-
+      
       const method = isResubmitting ? api.patch : api.post;
 
-      await method(endpoint, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      // await api.post(
-      //   `/beneficiary/hormonal-replacement/request/`,
-      //   formData,
-      //   {
-      //     headers: { "Content-Type": "multipart/form-data" },
-      //   }
-      // );
+      await method(endpoint, formData, { headers: { "Content-Type": "multipart/form-data" } });
 
       navigate("/beneficiary/success-application", {
-        state: { okLink: "beneficiary/applications/individual-screening" },
+        state: { okLink: "beneficiary/applications/hormonal-replacement" },
       });
+
     } catch (error) {
-      let message = "Something went wrong while submitting the form.";
+      console.error("Error submitting request:", error);
+      let message = "Something went wrong.";
       if (error.response?.data?.non_field_errors) {
         message = error.response.data.non_field_errors[0];
       }
-
-      setNotification({
-        show: true,
-        type: "error",
-        title: "Submission Failed",
-        message,
-      });
-
-      console.error("Error submitting a request:", error);
+      setModalInfo({ type: "error", title: "Submission Failed", message: message });
+      setShowModal(true);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-      {/* Confirmation Modal */}
-      <ConfirmationModal
-        open={confirmation.open}
-        title={confirmation.text}
-        desc={confirmation.desc}
-        onConfirm={handleConfirm}
-        onCancel={() =>
-          setConfirmation({ open: false, text: "", desc: "", action: null })
-        }
-      />
-
-      {/* Notification Modal */}
-      <NotificationModal
-        show={notification.show}
-        type={notification.type}
-        title={notification.title}
-        message={notification.message}
-        onClose={() => setNotification((prev) => ({ ...prev, show: false }))}
-      />
-
-      {/* Loader */}
+    <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
       {loading && <SystemLoader />}
+      
+      <ConfirmationModal
+        open={confirmOpen}
+        title={isResubmitting ? "Update Request?" : "Submit Request?"}
+        desc="Ensure all information and documents are correct."
+        onConfirm={onConfirmSubmit}
+        onCancel={() => setConfirmOpen(false)}
+      />
 
-      <div className="w-full h-screen bg-gray flex flex-col overflow-auto">
-        <div className="py-6 p-5 md:px-10 flex flex-col flex-1 ">
-          <h2 className="text-xl font-semibold mb-6">
-            Hormonal Replacement Medication Application
-          </h2>
+      <NotificationModal
+        show={showModal}
+        type={modalInfo.type}
+        title={modalInfo.title}
+        message={modalInfo.message}
+        onClose={() => setShowModal(false)}
+      />
 
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col gap-6 w-full bg-white rounded-2xl py-7 px-5 md:px-8 flex-1 overflow-auto"
-          >
-            {/* Screening Info */}
-            <div className="flex flex-col gap-6">
-              <h1 className="font-bold text-[22px] md:text-3xl text-yellow">
-                Hormonal Replacement
-              </h1>
+      <div className="py-5 px-5 md:px-5 flex flex-col flex-1 max-w-5xl mx-auto w-full">
+        
+        {/* Top Title */}
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">
+            Hormonal Replacement Application
+        </h2>
 
-              <label className="flex flex-col gap-2">
-                <span>Medicines</span>
-                <input
-                  type="text"
-                  name="medicines"
-                  placeholder="ex: Biogesic, Neozip"
-                  className="w-full :w-[85%] p-3 border border-gray2 rounded-md"
-                  value={medicines}
-                  onChange={(e) => setMedicines(e.target.value)}
-                />
-              </label>
-
-              {/* <label className="flex flex-col gap-2">
-                <span>Procedure</span>
-                <input
-                  type="text"
-                  name="procedureName"
-                  placeholder="ex: Breast Ultrasound"
-                  className="w-full :w-[85%] p-3 border border-gray2 rounded-md"
-                  value={procedureName}
-                  onChange={(e) => setProcedureName(e.target.value)}
-                  required
-                />
-              </label> */}
-
-              {/* <label className="flex flex-col gap-2">
-                <span>Cancer Site</span>
-                <input
-                  type="text"
-                  name="cancerSite"
-                  placeholder="ex: Breast"
-                  className="w-[85%] p-3 border border-gray2 rounded-md"
-                  value={cancerSite}
-                  onChange={(e) => setCancerSite(e.target.value)}
-                  required
-                />
-              </label> */}
+        {/* Main Content Card */}
+        <div className="flex flex-col gap-8 w-full bg-white rounded-lg py-8 px-6 md:px-10 shadow-sm border border-gray-100 flex-1">
+            
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-6 gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-yellow/10 rounded-full text-yellow">
+                        <Pill className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-800">Hormonal Replacement</h1>
+                        <p className="text-xs text-gray-500 mt-1">Request for hormonal therapy medication assistance.</p>
+                    </div>
+                </div>
             </div>
 
-            {/* File Upload Section */}
-            <div className="flex flex-col gap-6">
-              <h1 className="font-bold text-xl">Requirements/Attachments</h1>
-              <p className="font-bold italic">
-                Please comply with the following requirements before submission
-              </p>
-
-              {/* Required Docs List */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-10 mb-3">
-                {requiredDocs.map((doc, idx) => {
-                  const uploaded = !!files[doc.key];
-                  const isActive = idx === activeIdx;
-
-                  return (
-                    <button
-                      key={doc.key}
-                      type="button"
-                      onClick={() => setActiveIdx(idx)}
-                      className="flex items-center gap-3 text-left group"
-                    >
-                      <CheckIcon active={uploaded} />
-                      <span
-                        className={`${
-                          isActive ? "font-bold text-gray-900" : "text-gray-800"
-                        }`}
-                      >
-                        {doc.label}
-                      </span>
-                      {isActive && (
-                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                          Current
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Upload Box */}
-              <div
-                onClick={handleChooseFile}
-                className="mt-1 border border-gray-200 rounded-xl bg-primary/20 hover:bg-gray-100 transition cursor-pointer flex flex-col items-center justify-center h-56"
-              >
-                <div className="px-1.5 py-1 bg-primary rounded-4xl">
-                  <img
-                    src="/assets/images/services/cancerscreening/upload_icon.svg"
-                    alt="Upload"
-                    className="h-6"
-                  />
+            <form className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                
+                {/* LEFT COLUMN: Form Data */}
+                <div className="space-y-6">
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-l-4 border-yellow-500 pl-3">
+                        Request Details
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 gap-5">
+                        <InputGroup 
+                            label="Medicines Requested" 
+                            placeholder="e.g. Tamoxifen, Letrozole"
+                            value={medicines} 
+                            onChange={(e) => setMedicines(e.target.value)} 
+                            required 
+                            error={errors.medicines}
+                        />
+                        
+                        <div className="p-4 bg-orange-50 rounded-lg border border-orange-100 flex gap-3">
+                             <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0" />
+                             <p className="text-xs text-orange-800">
+                                Note: Only medicines included in the RAFI-EJACC formulary can be requested.
+                             </p>
+                        </div>
+                    </div>
                 </div>
-                <div className="text-sm text-gray-700">
-                  Choose a file to upload
+
+                {/* RIGHT COLUMN: File Uploads */}
+                <div className="space-y-6 flex flex-col">
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-l-4 border-primary pl-3 flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-gray-400" /> Required Documents
+                    </h3>
+
+                    <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-5 flex flex-col">
+                        
+                        {/* Requirement List */}
+                        <div className="space-y-1 mb-6">
+                            {requiredDocs.map((doc, idx) => {
+                                const isUploaded = !!files[doc.key];
+                                const isActive = idx === activeIdx;
+                                return (
+                                    <button
+                                        key={doc.key}
+                                        type="button"
+                                        onClick={() => setActiveIdx(idx)}
+                                        className={`w-full flex items-center justify-between p-3.5 rounded-lg text-left transition-all ${
+                                            isActive 
+                                            ? "bg-white shadow-sm border border-blue-200 ring-1 ring-blue-100" 
+                                            : "hover:bg-gray-100 border border-transparent"
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-1 rounded-full ${isUploaded ? "bg-green-100 text-green-600" : "bg-gray-200 text-gray-400"}`}>
+                                                <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                                            </div>
+                                            <span className={`text-sm ${isActive ? "font-bold text-blue-700" : "text-gray-600"}`}>
+                                                {doc.label}
+                                            </span>
+                                        </div>
+                                        {isActive && <span className="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Uploading</span>}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Dropzone Area */}
+                        <div 
+                            onClick={() => fileInputRef.current?.click()}
+                            onDragOver={handleDragOver}
+                            onDrop={handleDrop}
+                            className="mt-auto border-2 border-dashed border-gray-300 rounded-xl bg-white p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary hover:bg-blue-50/30 transition-all group min-h-[200px]"
+                        >
+                            <div className="p-3 bg-blue-50 text-primary rounded-full mb-3 group-hover:scale-110 transition-transform shadow-sm">
+                                <Upload className="w-8 h-8" />
+                            </div>
+                            
+                            {files[activeDoc?.key] ? (
+                                <div className="space-y-2 animate-in fade-in zoom-in duration-300">
+                                    <FileText className="w-8 h-8 text-gray-400 mx-auto" />
+                                    <p className="text-sm font-bold text-gray-800 break-all px-4">
+                                        {files[activeDoc.key].name || "File Uploaded"}
+                                    </p>
+                                    <p className="text-xs text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full inline-block border border-green-100">
+                                        Ready to submit
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-2">Click to replace</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    <p className="text-base font-medium text-gray-600 group-hover:text-primary transition-colors">
+                                        Click to upload <span className="font-bold text-gray-900">{activeDoc?.label}</span>
+                                    </p>
+                                    <p className="text-xs text-gray-400">or drag and drop file here</p>
+                                    <p className="text-[10px] text-gray-300 uppercase tracking-widest mt-4">Max Size: 10MB</p>
+                                </div>
+                            )}
+
+                            <input 
+                                ref={fileInputRef}
+                                type="file" 
+                                className="hidden" 
+                                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                onChange={handleFileSelect}
+                            />
+                        </div>
+
+                    </div>
                 </div>
-                <div className="text-xs text-gray-400">Size limit: 10MB</div>
 
-                {files[activeDoc?.key] && (
-                  <div className="mt-3 text-xs text-gray-700">
-                    Selected:{" "}
-                    <span className="font-medium">
-                      {files[activeDoc.key].name}
-                    </span>
-                  </div>
-                )}
-              </div>
+            </form>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.odt,.ods"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-
-              {/* Actions */}
-              <div className="mt-6 flex items-center justify-between flex-col-reverse md:flex-row gap-5">
-                <Link
-                  to="/beneficiary/services/cancer-management"
-                  className="border border-black/15 py-3 rounded-md text-center px-6  hover:bg-black/10 hover:border-black w-full md:w-[40%]"
+            {/* Footer Actions */}
+            <div className="flex justify-around print:hidden mt-6">
+                <button
+                    type="button"
+                    onClick={() => navigate("/beneficiary/services/cancer-management")}
+                    // className="px-6 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition-all"
+                    className="w-[35%] text-center gap-2 px-8 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:black/10 hover:border-black transition-all"
                 >
-                  Cancel
-                </Link>
-
-                {allUploaded ? (
-                  <button
-                    type="submit"
-                    className="bg-[#749AB6] text-white font-bold py-3 px-8 rounded-md border border-[#749AB6] hover:bg-[#C5D7E5] hover:border-[#C5D7E5] w-full md:w-[40%]"
-                  >
-                    Submit
-                  </button>
-                ) : (
-                  <div className="text-[12px] md:text-sm text-gray-600 max-w-auto">
-                    Please upload <span className="font-semibold">all</span>{" "}
-                    required files to enable submit.
-                  </div>
-                )}
-              </div>
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={!allUploaded}
+                    className="text-center w-[35%] cursor-pointer gap-2 px-8 py-2.5 rounded-md bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all transform active:scale-95"
+                >
+                    {/* <Save className="w-4 h-4" /> */}
+                    {isResubmitting ? "Update Request" : "Submit Request"}
+                </button>
             </div>
-          </form>
+
         </div>
-        <div className="h-16 bg-secondary"></div>
       </div>
-    </>
+      
+      {/* Decorative Footer */}
+      <div className="h-16 bg-secondary shrink-0"></div>
+    </div>
   );
 };
 

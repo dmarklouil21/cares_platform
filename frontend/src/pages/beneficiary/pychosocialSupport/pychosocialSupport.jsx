@@ -60,7 +60,7 @@ const PychosocialSupport = () => {
       */}
 
       <div className="h-full flex flex-col justify-between overflow-auto ">
-        <div className="py-6 p-5 md:px-10">
+        <div className="py-5 p-5 md:px-5">
           <h1 className="text-lg font-bold mb-6">Psychosocial Support</h1>
 
           <div className="bg-white rounded-lg p-5 md:p-10 mb-8 shadow-sm">

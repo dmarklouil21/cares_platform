@@ -16,6 +16,11 @@ from backend.utils.email import send_registration_email
 from apps.rhu.models import RHU, Rhuv2, Representative
 from apps.partners.models import Private, PrivateRepresentative
 
+import threading
+import logging
+
+logger = logging.getLogger(__name__) # <--- Setup logger
+
 class RegistrationAPIView(APIView):
   permission_classes = [AllowAny]
 
@@ -35,12 +40,24 @@ class RegistrationAPIView(APIView):
         status=status.HTTP_400_BAD_REQUEST
       )
     
-    email_status = send_registration_email(user, password)
-    if email_status is not True:
-      return Response(
-        {"message": f"Failed to send email: {email_status}"},
-        status=status.HTTP_400_BAD_REQUEST
-      )
+    # Define a small helper function to run in the background
+    def send_email_in_background(user_obj, pwd):
+      try:
+        send_registration_email(user_obj, pwd)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Background email failed: {e}")
+    
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(user, password))
+    email_thread.start()
+
+    # email_status = send_registration_email(user, password)
+    # if email_status is not True:
+    #   return Response(
+    #     {"message": f"Failed to send email: {email_status}"},
+    #     status=status.HTTP_400_BAD_REQUEST
+    #   )
     
     return Response(
       {"message": "User registered successfully. Please check your email."},
@@ -138,12 +155,24 @@ class RHURegistrationAPIView(APIView):
         status=status.HTTP_400_BAD_REQUEST
       )
     
-    email_status = send_registration_email(user, password)
-    if email_status is not True:
-      return Response(
-        {"message": f"Failed to send email: {email_status}"},
-        status=status.HTTP_400_BAD_REQUEST
-      )
+    # Define a small helper function to run in the background
+    def send_email_in_background(user_obj, pwd):
+      try:
+        send_registration_email(user_obj, pwd)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Background email failed: {e}")
+    
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(user, password))
+    email_thread.start()
+
+    # email_status = send_registration_email(user, password)
+    # if email_status is not True:
+    #   return Response(
+    #     {"message": f"Failed to send email: {email_status}"},
+    #     status=status.HTTP_400_BAD_REQUEST
+    #   )
     
     return Response(
       {"message": "RHU registered successfully. Please check your email."},
@@ -186,12 +215,24 @@ class PrivateRegistrationAPIView(APIView):
         status=status.HTTP_400_BAD_REQUEST
       )
     
-    email_status = send_registration_email(user, password)
-    if email_status is not True:
-      return Response(
-        {"message": f"Failed to send email: {email_status}"},
-        status=status.HTTP_400_BAD_REQUEST
-      )
+    # Define a small helper function to run in the background
+    def send_email_in_background(user_obj, pwd):
+      try:
+        send_registration_email(user_obj, pwd)
+      except Exception as e:
+        logger.error(f"CRITICAL EMAIL ERROR: {str(e)}")
+        print(f"Background email failed: {e}")
+    
+    # Start the thread. The request proceeds immediately without waiting.
+    email_thread = threading.Thread(target=send_email_in_background, args=(user, password))
+    email_thread.start()
+
+    # email_status = send_registration_email(user, password)
+    # if email_status is not True:
+    #   return Response(
+    #     {"message": f"Failed to send email: {email_status}"},
+    #     status=status.HTTP_400_BAD_REQUEST
+    #   )
     
     return Response(
       {"message": "RHU registered successfully. Please check your email."},
